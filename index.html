@@ -22,6 +22,10 @@
     --gain-soft:#f0fdf4;
     --loss:#dc2626;
     --loss-soft:#fef2f2;
+    --gold:#f59e0b;
+    --gold-soft:#fef3c7;
+    --purple:#a855f7;
+    --purple-soft:#faf5ff;
     --radius:10px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
@@ -183,7 +187,6 @@
   .row-actions{display:inline-flex;gap:4px;opacity:0;transition:opacity .15s}
   .row-actions button{padding:4px 8px;border-radius:5px;font-size:11px;color:var(--muted);transition:all .12s}
   .row-actions button:hover{background:var(--ink);color:#fff}
-  .row-actions button.del:hover{background:var(--loss);color:#fff}
 
   .empty-table{text-align:center;padding:60px 20px;color:var(--muted)}
   .empty-table h4{font-size:15px;font-weight:500;color:var(--ink);margin-bottom:6px}
@@ -199,7 +202,6 @@
   .modal-foot .btn-secondary,.modal-foot .btn-primary,.modal-foot .btn-danger{padding:9px 16px;font-size:13px}
   .modal-foot .spacer{flex:1}
 
-  /* form */
   .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   .field{display:flex;flex-direction:column;gap:6px}
   .field.full{grid-column:1/-1}
@@ -216,23 +218,137 @@
   .snap-row.total{padding-top:10px;border-top:1px solid var(--line);font-size:14px}
   .snap-row.total .v{font-size:16px}
 
-  /* toast */
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:9px;font-size:13px;font-weight:500;opacity:0;transition:all .25s;pointer-events:none;z-index:200}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-  /* tab header (with action button) */
   .tab-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:14px}
   .tab-head h2{font-size:22px;font-weight:500;letter-spacing:-0.02em}
   .tab-head .meta{font-size:12px;color:var(--muted);margin-top:4px}
 
-  /* coming-soon notice */
   .notice{background:var(--accent-soft);border:1px solid #c7dafe;border-radius:8px;padding:12px 16px;font-size:12px;color:var(--accent);margin-bottom:24px;display:flex;align-items:center;gap:10px}
   .notice b{font-weight:600}
+
+  /* ============ FX RATE CARD ============ */
+  .rate-card{
+    background:linear-gradient(135deg,var(--gold-soft),#fff);
+    border:1px solid #fcd34d;border-radius:var(--radius);
+    padding:24px 28px;margin-bottom:24px;
+    display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  }
+  .rate-card .info{display:flex;align-items:center;gap:18px}
+  .rate-card .flag{
+    width:44px;height:44px;border-radius:10px;
+    background:#fff;border:1px solid #fcd34d;
+    display:grid;place-items:center;font-size:22px;
+  }
+  .rate-card .label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#92400e;font-weight:600;margin-bottom:2px}
+  .rate-card .pair{font-size:13px;color:#78350f}
+  .rate-card .rate{
+    font-family:'Geist Mono',monospace;font-size:32px;font-weight:500;
+    letter-spacing:-0.02em;color:#0a0a0a;
+  }
+  .rate-card .edit-btn{
+    padding:8px 14px;background:#fff;border:1px solid #fcd34d;
+    border-radius:8px;font-size:12px;font-weight:500;color:#92400e;
+    transition:all .15s;
+  }
+  .rate-card .edit-btn:hover{background:#fef3c7}
+
+  /* ============ DIVIDENDS ============ */
+  .div-hero{
+    background:linear-gradient(135deg,var(--gain-soft),#fff);
+    border:1px solid #bbf7d0;border-radius:var(--radius);
+    padding:32px 36px;margin-bottom:32px;
+    display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;
+  }
+  .div-hero .left .label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#166534;font-weight:600;margin-bottom:8px}
+  .div-hero .left .amt{
+    font-size:48px;font-weight:500;letter-spacing:-0.025em;
+    color:#0a0a0a;line-height:1;
+  }
+  .div-hero .left .amt .cur{font-size:22px;color:#166534;vertical-align:top;margin-right:4px}
+  .div-hero .left .meta{font-size:13px;color:#166534;margin-top:8px}
+  .div-hero .right{text-align:right}
+  .div-hero .right .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#166534;font-weight:600;margin-bottom:6px}
+  .div-hero .right .vs{font-size:20px;font-weight:500;color:var(--gain)}
+  .div-hero .right .vs.dn{color:var(--loss)}
+
+  /* monthly bars (grouped) */
+  .month-chart{height:280px;margin-top:16px;position:relative}
+  .month-chart svg{width:100%;height:100%;overflow:visible}
+  .month-chart .bar{transition:opacity .15s}
+  .month-chart .bar:hover{opacity:.85}
+  .month-chart .bar-label{font-family:'Geist Mono',monospace;font-size:9px;fill:var(--muted)}
+  .month-chart .axis{font-family:'Geist Mono',monospace;font-size:10px;fill:var(--muted-2)}
+  .legend{display:flex;gap:18px;font-size:12px;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+  .legend .item{display:flex;align-items:center;gap:6px}
+  .legend .sw{width:12px;height:12px;border-radius:3px}
+
+  /* monthly entry table (editable) */
+  .month-input-table{width:100%;border-collapse:collapse}
+  .month-input-table th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:500;padding:0 10px 12px;text-align:right;border-bottom:1px solid var(--line)}
+  .month-input-table th:first-child{text-align:left}
+  .month-input-table td{padding:8px 10px;border-bottom:1px solid var(--line)}
+  .month-input-table td:first-child{font-size:13px;font-weight:500}
+  .month-input-table input{
+    width:100%;padding:8px 10px;border:1px solid transparent;border-radius:6px;
+    background:var(--bg);text-align:right;font-family:'Geist Mono',monospace;
+    font-size:12px;outline:none;transition:all .12s;
+  }
+  .month-input-table input:hover{border-color:var(--line-2)}
+  .month-input-table input:focus{border-color:var(--ink);background:var(--surface)}
+  .month-input-table input.saving{border-color:var(--accent)}
+  .month-input-table input.saved{border-color:var(--gain)}
+  .month-input-table tr.total td{font-weight:500;background:var(--bg)}
+  .month-input-table tr.total td:not(:first-child){font-family:'Geist Mono',monospace;text-align:right}
+
+  /* goals */
+  .goals-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .goal{
+    background:var(--bg);border:1px solid var(--line);border-radius:8px;
+    padding:16px 18px;
+  }
+  .goal .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+  .goal .year{font-size:13px;font-weight:600;color:var(--ink)}
+  .goal .pct{font-size:12px;color:var(--muted);font-family:'Geist Mono',monospace}
+  .goal .amt{font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'Geist Mono',monospace}
+  .goal .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+  .goal .bar i{display:block;height:100%;background:var(--gain);transition:width .4s}
+  .goal.done .bar i{background:var(--gain)}
+  .goal.done .pct{color:var(--gain)}
+  .goal.future{opacity:.7}
+
+  /* annual history table */
+  .yearly-table{width:100%;border-collapse:collapse}
+  .yearly-table th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:500;padding:0 12px 12px;text-align:right;border-bottom:1px solid var(--line)}
+  .yearly-table th:first-child{text-align:left}
+  .yearly-table td{padding:12px;border-bottom:1px solid var(--line);font-size:13px;text-align:right;font-family:'Geist Mono',monospace}
+  .yearly-table td:first-child{font-family:'Geist',sans-serif;font-weight:500;text-align:left}
+  .yearly-table tr:last-child td{border-bottom:none}
+  .yearly-table tr{cursor:pointer;transition:background .12s}
+  .yearly-table tr:hover{background:var(--bg)}
+  .yearly-table tr:hover .row-actions{opacity:1}
+
+  /* income target */
+  .target-card{
+    background:linear-gradient(135deg,var(--accent-soft),#fff);
+    border:1px solid #c7dafe;border-radius:var(--radius);
+    padding:24px 28px;
+  }
+  .target-card .label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);font-weight:600;margin-bottom:8px}
+  .target-card .target{font-size:28px;font-weight:500;letter-spacing:-0.02em;font-family:'Geist Mono',monospace}
+  .target-card .meta{font-size:12px;color:var(--muted);margin-top:6px}
+  .target-card .progress{margin-top:14px;height:8px;background:#fff;border-radius:4px;overflow:hidden;border:1px solid #c7dafe}
+  .target-card .progress i{display:block;height:100%;background:var(--accent);transition:width .4s}
+  .target-card .pct{font-size:12px;color:var(--accent);font-weight:600;margin-top:6px;font-family:'Geist Mono',monospace}
 
   @media (max-width:900px){
     .stats{grid-template-columns:repeat(2,1fr)}
     .grid-2{grid-template-columns:1fr}
     .hero-amt{font-size:48px}
+    .goals-grid{grid-template-columns:1fr}
+    .div-hero .right{text-align:left}
+    .div-hero .left .amt{font-size:38px}
   }
   @media (max-width:600px){
     .shell{padding:20px}
@@ -240,6 +356,7 @@
     .tab{white-space:nowrap;flex:0 0 auto}
     .stats{grid-template-columns:1fr}
     .form-grid{grid-template-columns:1fr}
+    .month-input-table{font-size:11px}
   }
 </style>
 </head>
@@ -344,11 +461,7 @@
           <button class="btn-secondary" id="btnSnapshot2">📸 New snapshot</button>
         </div>
         <div id="growthChartWrap">
-          <div class="empty-chart">
-            <div class="ico">📈</div>
-            <h4>No snapshots yet</h4>
-            <p>Save your first snapshot to start tracking how your net worth evolves over time.</p>
-          </div>
+          <div class="empty-chart"><div class="ico">📈</div><h4>No snapshots yet</h4><p>Save your first snapshot to start tracking how your net worth evolves over time.</p></div>
         </div>
       </div>
 
@@ -366,19 +479,9 @@
         <div class="card">
           <div class="card-head"><h3>Since last snapshot</h3><div class="meta" id="monthMeta">—</div></div>
           <div class="month-stat">
-            <div class="item">
-              <div class="l">Net change</div>
-              <div class="v" id="monthChange">—</div>
-              <div class="s" id="monthChangePct">No previous snapshot</div>
-            </div>
-            <div class="item">
-              <div class="l">Days elapsed</div>
-              <div class="v" id="monthDays">—</div>
-            </div>
-            <div class="item">
-              <div class="l">Total snapshots</div>
-              <div class="v" id="monthSnaps">0</div>
-            </div>
+            <div class="item"><div class="l">Net change</div><div class="v" id="monthChange">—</div><div class="s" id="monthChangePct">No previous snapshot</div></div>
+            <div class="item"><div class="l">Days elapsed</div><div class="v" id="monthDays">—</div></div>
+            <div class="item"><div class="l">Total snapshots</div><div class="v" id="monthSnaps">0</div></div>
           </div>
         </div>
       </div>
@@ -396,45 +499,21 @@
 
       <div class="notice">
         <span>ℹ️</span>
-        <span><b>Quotes are not live yet.</b> Until Part 6 integrates brapi.dev, "Price", "Position" and "Day" columns will show — and totals will be based on amount invested only.</span>
+        <span><b>Quotes are not live yet.</b> Until Part 6 integrates brapi.dev, "Price" and "Position" columns show — and totals are based on amount invested only.</span>
       </div>
 
       <div class="stats">
-        <div class="stat">
-          <div class="lbl">Total invested</div>
-          <div class="val" id="stockTotalInvested">R$ 0,00</div>
-          <div class="sub" id="stockCount">0 holdings</div>
-        </div>
-        <div class="stat">
-          <div class="lbl">Current value</div>
-          <div class="val" id="stockCurrentValue">R$ 0,00</div>
-          <div class="sub">Awaiting quotes</div>
-        </div>
-        <div class="stat">
-          <div class="lbl">Return</div>
-          <div class="val" id="stockReturn">—</div>
-          <div class="sub">Awaiting quotes</div>
-        </div>
-        <div class="stat">
-          <div class="lbl">Total return (incl. dividends)</div>
-          <div class="val" id="stockTotalReturn">—</div>
-          <div class="sub">Awaiting quotes &amp; dividends</div>
-        </div>
+        <div class="stat"><div class="lbl">Total invested</div><div class="val" id="stockTotalInvested">R$ 0,00</div><div class="sub" id="stockCount">0 holdings</div></div>
+        <div class="stat"><div class="lbl">Current value</div><div class="val" id="stockCurrentValue">R$ 0,00</div><div class="sub">Awaiting quotes</div></div>
+        <div class="stat"><div class="lbl">Return</div><div class="val" id="stockReturn">—</div><div class="sub">Awaiting quotes</div></div>
+        <div class="stat"><div class="lbl">Total return (incl. dividends)</div><div class="val" id="stockTotalReturn">—</div><div class="sub">Awaiting quotes &amp; dividends</div></div>
       </div>
 
       <div class="card">
-        <div class="card-head">
-          <h3>Holdings</h3>
-          <div class="meta">Click any row to edit</div>
-        </div>
+        <div class="card-head"><h3>Holdings</h3><div class="meta">Click any row to edit</div></div>
         <div class="table-wrap">
-          <table id="stocksTable">
-            <thead>
-              <tr>
-                <th>Ticker</th><th>Sector</th><th>Qty</th><th>Avg price</th>
-                <th>Price</th><th>Invested</th><th>Position</th><th></th>
-              </tr>
-            </thead>
+          <table>
+            <thead><tr><th>Ticker</th><th>Sector</th><th>Qty</th><th>Avg price</th><th>Price</th><th>Invested</th><th>Position</th><th></th></tr></thead>
             <tbody id="stocksBody"></tbody>
           </table>
         </div>
@@ -453,45 +532,18 @@
         </div>
         <button class="btn-primary" id="btnAddCrypto">+ Add coin</button>
       </div>
-
-      <div class="notice">
-        <span>ℹ️</span>
-        <span><b>Quotes are not live yet.</b> Until Part 6 integrates CoinGecko, "Price" and "Position" will show — and totals will be based on amount invested only.</span>
-      </div>
-
+      <div class="notice"><span>ℹ️</span><span><b>Quotes are not live yet.</b> Until Part 6 integrates CoinGecko, totals are based on amount invested only.</span></div>
       <div class="stats">
-        <div class="stat">
-          <div class="lbl">Total invested</div>
-          <div class="val" id="cryptoTotalInvested">R$ 0,00</div>
-          <div class="sub" id="cryptoCount">0 coins</div>
-        </div>
-        <div class="stat">
-          <div class="lbl">Current value</div>
-          <div class="val" id="cryptoCurrentValue">R$ 0,00</div>
-          <div class="sub">Awaiting quotes</div>
-        </div>
-        <div class="stat">
-          <div class="lbl">Return</div>
-          <div class="val" id="cryptoReturn">—</div>
-          <div class="sub">Awaiting quotes</div>
-        </div>
-        <div class="stat">
-          <div class="lbl">Today</div>
-          <div class="val" id="cryptoToday">—</div>
-          <div class="sub">Awaiting quotes</div>
-        </div>
+        <div class="stat"><div class="lbl">Total invested</div><div class="val" id="cryptoTotalInvested">R$ 0,00</div><div class="sub" id="cryptoCount">0 coins</div></div>
+        <div class="stat"><div class="lbl">Current value</div><div class="val" id="cryptoCurrentValue">R$ 0,00</div><div class="sub">Awaiting quotes</div></div>
+        <div class="stat"><div class="lbl">Return</div><div class="val" id="cryptoReturn">—</div><div class="sub">Awaiting quotes</div></div>
+        <div class="stat"><div class="lbl">Today</div><div class="val" id="cryptoToday">—</div><div class="sub">Awaiting quotes</div></div>
       </div>
-
       <div class="card">
         <div class="card-head"><h3>Holdings</h3><div class="meta">Click any row to edit</div></div>
         <div class="table-wrap">
           <table>
-            <thead>
-              <tr>
-                <th>Coin</th><th>Symbol</th><th>Qty</th><th>Avg price</th>
-                <th>Price</th><th>Invested</th><th>Position</th><th></th>
-              </tr>
-            </thead>
+            <thead><tr><th>Coin</th><th>Symbol</th><th>Qty</th><th>Avg price</th><th>Price</th><th>Invested</th><th>Position</th><th></th></tr></thead>
             <tbody id="cryptoBody"></tbody>
           </table>
         </div>
@@ -499,15 +551,129 @@
     </div>
 
     <!-- ===== FX ===== -->
-    <div class="panel" id="fx"><div class="placeholder"><h3>FX</h3><p>Coming in Part 5 — USD accounts.</p></div></div>
+    <div class="panel" id="fx">
+      <div class="tab-head">
+        <div>
+          <h2>FX · Dollar accounts</h2>
+          <div class="meta">USD positions across multiple accounts · BCB PTAX coming in Part 6</div>
+        </div>
+        <button class="btn-primary" id="btnAddFx">+ Add account</button>
+      </div>
+
+      <div class="rate-card">
+        <div class="info">
+          <div class="flag">🇺🇸</div>
+          <div>
+            <div class="label">Exchange rate</div>
+            <div class="pair">USD / BRL</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="rate" id="fxRate">R$ 5,1530</div>
+          <button class="edit-btn" id="btnEditRate" style="margin-top:6px">Edit rate</button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="lbl">Total USD <span class="dot" style="background:#f59e0b"></span></div><div class="val mono" id="fxTotalUsd">US$ 0,00</div><div class="sub" id="fxCount">0 accounts</div></div>
+        <div class="stat"><div class="lbl">Total BRL</div><div class="val" id="fxTotalBrl">R$ 0,00</div><div class="sub">At current rate</div></div>
+        <div class="stat"><div class="lbl">Largest account</div><div class="val" id="fxLargest">—</div><div class="sub" id="fxLargestSub">—</div></div>
+        <div class="stat"><div class="lbl">Avg cost rate</div><div class="val">—</div><div class="sub">Awaiting Part 6</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Accounts</h3><div class="meta">Click any row to edit</div></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Account</th><th></th><th>USD</th><th>BRL</th><th>%</th><th></th></tr></thead>
+            <tbody id="fxBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
     <!-- ===== DIVIDENDS ===== -->
-    <div class="panel" id="dividends"><div class="placeholder"><h3>Dividends</h3><p>Coming in Part 5 — monthly history, yearly comparison and goals.</p></div></div>
+    <div class="panel" id="dividends">
+      <div class="tab-head">
+        <div>
+          <h2>Dividends · Proventos</h2>
+          <div class="meta">Monthly history, yearly comparison and Barsi-style goals</div>
+        </div>
+      </div>
+
+      <div class="div-hero">
+        <div class="left">
+          <div class="label">YTD <span id="divHeroYear">2026</span></div>
+          <div class="amt"><span class="cur">R$</span><span id="divHeroAmt">0</span></div>
+          <div class="meta" id="divHeroAvg">R$ 0 / month average</div>
+        </div>
+        <div class="right">
+          <div class="lbl">vs same period last year</div>
+          <div class="vs" id="divHeroVs">—</div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="lbl">Last 12 months</div><div class="val" id="divLast12">R$ 0</div><div class="sub" id="divLast12Sub">—</div></div>
+        <div class="stat"><div class="lbl">Best month</div><div class="val" id="divBest">—</div><div class="sub" id="divBestSub">—</div></div>
+        <div class="stat"><div class="lbl">Avg monthly (12M)</div><div class="val" id="divAvg">R$ 0</div><div class="sub">Trailing 12M</div></div>
+        <div class="stat"><div class="lbl">All-time received</div><div class="val" id="divAll">R$ 0</div><div class="sub" id="divAllSub">Across all years</div></div>
+      </div>
+
+      <div class="card" style="margin-bottom:32px">
+        <div class="card-head">
+          <div>
+            <h3>Monthly comparison</h3>
+            <div class="meta">2024 · 2025 · 2026 grouped bars</div>
+          </div>
+        </div>
+        <div class="month-chart" id="monthChartWrap"></div>
+        <div class="legend">
+          <div class="item"><div class="sw" style="background:#cbd5e1"></div>2024</div>
+          <div class="item"><div class="sw" style="background:#60a5fa"></div>2025</div>
+          <div class="item"><div class="sw" style="background:#16a34a"></div>2026</div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:0;margin-bottom:32px">
+        <div class="card">
+          <div class="card-head"><h3>Monthly entries</h3><div class="meta">Click to edit · auto-saves</div></div>
+          <table class="month-input-table" id="monthInputTable"></table>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Yearly history</h3><button class="btn-secondary" id="btnAddYear" style="padding:7px 12px;font-size:12px">+ Add year</button></div>
+          <table class="yearly-table">
+            <thead><tr><th>Year</th><th>Patrimônio</th><th>Proventos</th><th>DY%</th><th>YoY</th></tr></thead>
+            <tbody id="yearlyBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:24px">
+        <div class="card-head">
+          <div>
+            <h3>Annual goals</h3>
+            <div class="meta">Barsi-adapted methodology · Horizon 70-80 years</div>
+          </div>
+          <button class="btn-secondary" id="btnEditGoals" style="padding:7px 12px;font-size:12px">Edit goals</button>
+        </div>
+        <div class="goals-grid" id="goalsGrid"></div>
+      </div>
+
+      <div class="target-card">
+        <div class="label">Monthly income target · 2030</div>
+        <div class="target" id="targetAmt">R$ 16.216</div>
+        <div class="meta" id="targetMeta">Goal monthly passive income</div>
+        <div class="progress"><i id="targetProgress" style="width:0%"></i></div>
+        <div class="pct" id="targetPct">0% · current avg R$ 0</div>
+      </div>
+
+    </div>
 
   </div>
 </div>
 
-<!-- ============== SNAPSHOT MODAL ============== -->
+<!-- ============== MODALS ============== -->
 <div class="modal-bg" id="snapshotModal">
   <div class="modal">
     <h3>Save snapshot</h3>
@@ -520,43 +686,19 @@
   </div>
 </div>
 
-<!-- ============== STOCK MODAL ============== -->
 <div class="modal-bg" id="stockModal">
   <div class="modal">
     <h3 id="stockModalTitle">Add stock</h3>
     <p class="sub">Brazilian equities. Use the official B3 ticker (e.g. PETR4, VALE3).</p>
     <div class="form-grid">
-      <div class="field">
-        <label>Ticker</label>
-        <input type="text" id="stockTicker" placeholder="PETR4" autocomplete="off" maxlength="10" />
-      </div>
-      <div class="field">
-        <label>Sector</label>
+      <div class="field"><label>Ticker</label><input type="text" id="stockTicker" placeholder="PETR4" autocomplete="off" maxlength="10" /></div>
+      <div class="field"><label>Sector</label>
         <select id="stockSector">
-          <option value="">Select...</option>
-          <option>Banking</option>
-          <option>Insurance</option>
-          <option>Oil &amp; Gas</option>
-          <option>Mining</option>
-          <option>Utilities</option>
-          <option>Industrial</option>
-          <option>Retail</option>
-          <option>Pulp &amp; Paper</option>
-          <option>Financial</option>
-          <option>Real Estate</option>
-          <option>Telecom</option>
-          <option>Other</option>
+          <option value="">Select...</option><option>Banking</option><option>Insurance</option><option>Oil &amp; Gas</option><option>Mining</option><option>Utilities</option><option>Industrial</option><option>Retail</option><option>Pulp &amp; Paper</option><option>Financial</option><option>Real Estate</option><option>Telecom</option><option>Other</option>
         </select>
       </div>
-      <div class="field">
-        <label>Quantity</label>
-        <input type="number" id="stockQty" placeholder="100" min="0" step="1" />
-      </div>
-      <div class="field">
-        <label>Average price (R$)</label>
-        <input type="number" id="stockAvg" placeholder="32.50" min="0" step="0.01" />
-        <div class="hint">Your cost basis per share</div>
-      </div>
+      <div class="field"><label>Quantity</label><input type="number" id="stockQty" placeholder="100" min="0" step="1" /></div>
+      <div class="field"><label>Average price (R$)</label><input type="number" id="stockAvg" placeholder="32.50" min="0" step="0.01" /><div class="hint">Your cost basis per share</div></div>
     </div>
     <div class="modal-foot">
       <button class="btn-danger" id="stockDelete" style="display:none">Delete</button>
@@ -567,29 +709,15 @@
   </div>
 </div>
 
-<!-- ============== CRYPTO MODAL ============== -->
 <div class="modal-bg" id="cryptoModal">
   <div class="modal">
     <h3 id="cryptoModalTitle">Add coin</h3>
     <p class="sub">Cryptocurrency holdings. Use the official symbol (BTC, ETH, SOL).</p>
     <div class="form-grid">
-      <div class="field">
-        <label>Coin name</label>
-        <input type="text" id="cryptoName" placeholder="Bitcoin" autocomplete="off" />
-      </div>
-      <div class="field">
-        <label>Symbol</label>
-        <input type="text" id="cryptoSymbol" placeholder="BTC" autocomplete="off" maxlength="10" />
-      </div>
-      <div class="field">
-        <label>Quantity</label>
-        <input type="number" id="cryptoQty" placeholder="0.5" min="0" step="0.00000001" />
-      </div>
-      <div class="field">
-        <label>Average price (R$)</label>
-        <input type="number" id="cryptoAvg" placeholder="200000" min="0" step="0.01" />
-        <div class="hint">Your cost basis per coin</div>
-      </div>
+      <div class="field"><label>Coin name</label><input type="text" id="cryptoName" placeholder="Bitcoin" autocomplete="off" /></div>
+      <div class="field"><label>Symbol</label><input type="text" id="cryptoSymbol" placeholder="BTC" autocomplete="off" maxlength="10" /></div>
+      <div class="field"><label>Quantity</label><input type="number" id="cryptoQty" placeholder="0.5" min="0" step="0.00000001" /></div>
+      <div class="field"><label>Average price (R$)</label><input type="number" id="cryptoAvg" placeholder="200000" min="0" step="0.01" /><div class="hint">Your cost basis per coin</div></div>
     </div>
     <div class="modal-foot">
       <button class="btn-danger" id="cryptoDelete" style="display:none">Delete</button>
@@ -600,20 +728,83 @@
   </div>
 </div>
 
+<!-- FX Modal -->
+<div class="modal-bg" id="fxModal">
+  <div class="modal">
+    <h3 id="fxModalTitle">Add account</h3>
+    <p class="sub">USD account. The BRL value is calculated automatically using the current exchange rate.</p>
+    <div class="form-grid">
+      <div class="field full"><label>Account name</label><input type="text" id="fxName" placeholder="Wise · Avenue · Nomad..." autocomplete="off" /></div>
+      <div class="field full"><label>Amount in USD</label><input type="number" id="fxUsd" placeholder="1000.00" min="0" step="0.01" /><div class="hint" id="fxBrlPreview">BRL: R$ 0,00</div></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-danger" id="fxDelete" style="display:none">Delete</button>
+      <div class="spacer"></div>
+      <button class="btn-secondary" id="fxCancel">Cancel</button>
+      <button class="btn-primary" id="fxSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rate Modal -->
+<div class="modal-bg" id="rateModal">
+  <div class="modal">
+    <h3>Edit USD/BRL rate</h3>
+    <p class="sub">Manual exchange rate. All BRL values will recalculate automatically. Live rate via BCB PTAX coming in Part 6.</p>
+    <div class="field"><label>Rate (R$ per US$ 1)</label><input type="number" id="rateInput" placeholder="5.1530" min="0" step="0.0001" /></div>
+    <div class="modal-foot">
+      <div class="spacer"></div>
+      <button class="btn-secondary" id="rateCancel">Cancel</button>
+      <button class="btn-primary" id="rateSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Yearly Modal -->
+<div class="modal-bg" id="yearlyModal">
+  <div class="modal">
+    <h3 id="yearlyModalTitle">Add year</h3>
+    <p class="sub">Annual snapshot for dividend yield tracking.</p>
+    <div class="form-grid">
+      <div class="field"><label>Year</label><input type="number" id="yearlyYear" placeholder="2026" min="2000" max="2100" /></div>
+      <div class="field"><label>Patrimônio (R$)</label><input type="number" id="yearlyEquity" placeholder="1000000" min="0" step="0.01" /></div>
+      <div class="field full"><label>Proventos do ano (R$)</label><input type="number" id="yearlyDivs" placeholder="50000" min="0" step="0.01" /><div class="hint">Total dividends received in this year</div></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-danger" id="yearlyDelete" style="display:none">Delete</button>
+      <div class="spacer"></div>
+      <button class="btn-secondary" id="yearlyCancel">Cancel</button>
+      <button class="btn-primary" id="yearlySave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Goals Modal -->
+<div class="modal-bg" id="goalsModal">
+  <div class="modal">
+    <h3>Edit annual goals</h3>
+    <p class="sub">Goals for annual dividend income (Barsi-adapted method).</p>
+    <div id="goalsForm"></div>
+    <div class="field full" style="margin-top:14px">
+      <label>Monthly income target (2030)</label>
+      <input type="number" id="goalMonthly" placeholder="16216" min="0" step="0.01" />
+      <div class="hint">Long-term passive income goal</div>
+    </div>
+    <div class="modal-foot">
+      <div class="spacer"></div>
+      <button class="btn-secondary" id="goalsCancel">Cancel</button>
+      <button class="btn-primary" id="goalsSave">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
-<!-- ============== SCRIPT ============== -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import {
-    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import {
-    getFirestore, doc, setDoc, deleteDoc, collection, addDoc,
-    onSnapshot, query, orderBy, serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  // ---- Firebase ----
   const firebaseConfig = {
     apiKey: "AIzaSyA5zsPOxpOBPN8BVnJRIN0mIJ4gdlUntc8",
     authDomain: "wealthy-tracker-68658.firebaseapp.com",
@@ -631,8 +822,14 @@
   const colSnapshots = () => collection(db, "household", "main", "snapshots");
   const colStocks    = () => collection(db, "household", "main", "stocks");
   const colCrypto    = () => collection(db, "household", "main", "crypto");
-  const docStock = (id) => doc(db, "household", "main", "stocks", id);
+  const colFx        = () => collection(db, "household", "main", "fxAccounts");
+  const colYearly    = () => collection(db, "household", "main", "dividendsYearly");
+  const docStock  = (id) => doc(db, "household", "main", "stocks", id);
   const docCrypto = (id) => doc(db, "household", "main", "crypto", id);
+  const docFx     = (id) => doc(db, "household", "main", "fxAccounts", id);
+  const docYearly = (id) => doc(db, "household", "main", "dividendsYearly", id);
+  const docConfig    = doc(db, "household", "main", "config", "settings");
+  const docDividends = doc(db, "household", "main", "config", "dividends");
 
   // ---- State ----
   let state = {
@@ -642,12 +839,20 @@
     crypto: [],
     bonds: [],
     fxAccounts: [],
+    yearly: [],
+    fxRate: 5.1530,
+    monthlyDividends: {}, // { "2024-01": 1628.74, ... }
+    goals: { 2025:60000, 2026:120000, 2027:160000, 2028:200000, 2029:250000, 2030:300000 },
+    monthlyTarget: 16216,
   };
 
-  // ---- Utils ----
   const $ = (id) => document.getElementById(id);
   const fmtBRL = (n) => 'R$ ' + (n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtBRL0 = (n) => 'R$ ' + (n || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  const fmtUSD = (n) => 'US$ ' + (n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmtPct = (n) => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const MONTHS_FULL = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
 
   function showToast(msg) {
     const t = $('toast');
@@ -655,35 +860,27 @@
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2400);
   }
+  function badgeFromTicker(t) { return t ? t.slice(0,2).toUpperCase() : '?'; }
 
-  function badgeFromTicker(ticker) {
-    if (!ticker) return '?';
-    return ticker.slice(0, 2).toUpperCase();
-  }
-
-  // ---- Totals ----
+  // ============================================================
+  //                      TOTALS
+  // ============================================================
   function computeTotals() {
-    const stocks = state.stocks.reduce((s, x) => s + ((+x.qty || 0) * (+x.price || 0)), 0);
-    const stocksInvested = state.stocks.reduce((s, x) => s + ((+x.qty || 0) * (+x.avg || 0)), 0);
-    const crypto = state.crypto.reduce((s, x) => s + ((+x.qty || 0) * (+x.price || 0)), 0);
-    const cryptoInvested = state.crypto.reduce((s, x) => s + ((+x.qty || 0) * (+x.avg || 0)), 0);
-    const fixed = state.bonds.reduce((s, x) => s + (+x.current || 0), 0);
-    const fx = state.fxAccounts.reduce((s, x) => s + (+x.brl || 0), 0);
-
-    // Until quotes are live, "current" = "invested" for stocks/crypto
+    const stocks = state.stocks.reduce((s, x) => s + ((+x.qty||0) * (+x.price||0)), 0);
+    const stocksInvested = state.stocks.reduce((s, x) => s + ((+x.qty||0) * (+x.avg||0)), 0);
+    const crypto = state.crypto.reduce((s, x) => s + ((+x.qty||0) * (+x.price||0)), 0);
+    const cryptoInvested = state.crypto.reduce((s, x) => s + ((+x.qty||0) * (+x.avg||0)), 0);
+    const fixed = state.bonds.reduce((s, x) => s + (+x.current||0), 0);
+    const fxUsd = state.fxAccounts.reduce((s, x) => s + (+x.usd||0), 0);
+    const fx = fxUsd * state.fxRate;
     const stocksValue = stocks > 0 ? stocks : stocksInvested;
     const cryptoValue = crypto > 0 ? crypto : cryptoInvested;
-
     const total = stocksValue + fixed + cryptoValue + fx;
-    return {
-      stocks: stocksValue, stocksInvested,
-      crypto: cryptoValue, cryptoInvested,
-      fixed, fx, total
-    };
+    return { stocks: stocksValue, stocksInvested, crypto: cryptoValue, cryptoInvested, fixed, fx, fxUsd, total };
   }
 
   // ============================================================
-  //                      OVERVIEW RENDER
+  //                      OVERVIEW
   // ============================================================
   function renderOverview() {
     const t = computeTotals();
@@ -691,7 +888,6 @@
     const [intPart, centPart] = totalStr.split(',');
     $('heroAmt').textContent = intPart;
     $('heroCents').textContent = ',' + (centPart || '00');
-
     const pct = (v) => t.total > 0 ? ((v / t.total) * 100).toFixed(1) : '0.0';
     $('statStocks').textContent = fmtBRL(t.stocks);
     $('statStocksSub').textContent = `${state.stocks.length} holdings · ${pct(t.stocks)}%`;
@@ -708,9 +904,7 @@
       bars[1].style.width = (t.fixed / t.total * 100) + '%';
       bars[2].style.width = (t.crypto / t.total * 100) + '%';
       bars[3].style.width = (t.fx / t.total * 100) + '%';
-    } else {
-      bars.forEach(b => b.style.width = '0%');
-    }
+    } else { bars.forEach(b => b.style.width = '0%'); }
 
     $('allocList').innerHTML = `
       <div class="alloc-row"><div class="name"><span class="dot" style="background:#2563eb"></span>Stocks · ${state.stocks.length} holdings</div><div class="v"><b>${pct(t.stocks)}%</b>${fmtBRL(t.stocks)}</div></div>
@@ -718,7 +912,6 @@
       <div class="alloc-row"><div class="name"><span class="dot" style="background:#a855f7"></span>Crypto · ${state.crypto.length} coins</div><div class="v"><b>${pct(t.crypto)}%</b>${fmtBRL(t.crypto)}</div></div>
       <div class="alloc-row"><div class="name"><span class="dot" style="background:#f59e0b"></span>USD · ${state.fxAccounts.length} accounts</div><div class="v"><b>${pct(t.fx)}%</b>${fmtBRL(t.fx)}</div></div>
     `;
-
     renderGrowthChart();
     renderSinceLast();
     updateHeroDelta();
@@ -743,329 +936,622 @@
     const points = snaps.map((s, i) => ({
       x: padL + (snaps.length === 1 ? innerW / 2 : i * xStep),
       y: padT + innerH - ((s.total - yMin) / yRange) * innerH,
-      snap: s
     }));
-    const linePath = points.map((p, i) => (i === 0 ? 'M' : 'L') + p.x + ',' + p.y).join(' ');
-    const areaPath = snaps.length > 1
-      ? linePath + ` L ${points[points.length - 1].x},${padT + innerH} L ${points[0].x},${padT + innerH} Z` : '';
+    const linePath = points.map((p, i) => (i===0?'M':'L') + p.x + ',' + p.y).join(' ');
+    const areaPath = snaps.length > 1 ? linePath + ` L ${points[points.length-1].x},${padT+innerH} L ${points[0].x},${padT+innerH} Z` : '';
     const yTicks = [];
-    for (let i = 0; i < 4; i++) {
-      yTicks.push({ v: yMin + (yRange * (3 - i) / 3), y: padT + (innerH * i / 3) });
-    }
+    for (let i = 0; i < 4; i++) yTicks.push({ v: yMin + (yRange * (3-i)/3), y: padT + (innerH * i/3) });
     const xLabels = [];
-    if (snaps.length === 1) {
+    if (snaps.length === 1) xLabels.push({ x: points[0].x, label: formatDateShort(snaps[0].date) });
+    else {
       xLabels.push({ x: points[0].x, label: formatDateShort(snaps[0].date) });
-    } else {
-      xLabels.push({ x: points[0].x, label: formatDateShort(snaps[0].date) });
-      if (snaps.length > 2) {
-        const mid = Math.floor(snaps.length / 2);
-        xLabels.push({ x: points[mid].x, label: formatDateShort(snaps[mid].date) });
-      }
-      xLabels.push({ x: points[points.length - 1].x, label: formatDateShort(snaps[snaps.length - 1].date) });
+      if (snaps.length > 2) { const m = Math.floor(snaps.length/2); xLabels.push({ x: points[m].x, label: formatDateShort(snaps[m].date) }); }
+      xLabels.push({ x: points[points.length-1].x, label: formatDateShort(snaps[snaps.length-1].date) });
     }
-    wrap.innerHTML = `
-      <div class="chart">
-        <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
-          <defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2563eb" stop-opacity=".15"/><stop offset="100%" stop-color="#2563eb" stop-opacity="0"/></linearGradient></defs>
-          <g class="grid">${yTicks.map(t => `<line x1="${padL}" y1="${t.y}" x2="${W - padR}" y2="${t.y}"/>`).join('')}</g>
-          ${yTicks.map(t => `<text class="y" x="0" y="${t.y + 4}">${shortMoney(t.v)}</text>`).join('')}
-          ${snaps.length > 1 ? `<path class="area" d="${areaPath}"/>` : ''}
-          ${snaps.length > 1 ? `<path class="line" d="${linePath}"/>` : ''}
-          ${points.map(p => `<circle class="dot" cx="${p.x}" cy="${p.y}" r="4"/>`).join('')}
-          ${xLabels.map(l => `<text class="x" x="${l.x}" y="${H - 8}" text-anchor="middle">${l.label}</text>`).join('')}
-        </svg>
-      </div>`;
-    $('growthMeta').textContent = `${snaps.length} snapshot${snaps.length > 1 ? 's' : ''} · ${formatDateShort(snaps[0].date)} → ${formatDateShort(snaps[snaps.length - 1].date)}`;
+    wrap.innerHTML = `<div class="chart"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      <defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2563eb" stop-opacity=".15"/><stop offset="100%" stop-color="#2563eb" stop-opacity="0"/></linearGradient></defs>
+      <g class="grid">${yTicks.map(t => `<line x1="${padL}" y1="${t.y}" x2="${W-padR}" y2="${t.y}"/>`).join('')}</g>
+      ${yTicks.map(t => `<text class="y" x="0" y="${t.y+4}">${shortMoney(t.v)}</text>`).join('')}
+      ${snaps.length > 1 ? `<path class="area" d="${areaPath}"/><path class="line" d="${linePath}"/>` : ''}
+      ${points.map(p => `<circle class="dot" cx="${p.x}" cy="${p.y}" r="4"/>`).join('')}
+      ${xLabels.map(l => `<text class="x" x="${l.x}" y="${H-8}" text-anchor="middle">${l.label}</text>`).join('')}
+    </svg></div>`;
+    $('growthMeta').textContent = `${snaps.length} snapshot${snaps.length>1?'s':''} · ${formatDateShort(snaps[0].date)} → ${formatDateShort(snaps[snaps.length-1].date)}`;
   }
-
-  function shortMoney(n) {
-    if (Math.abs(n) >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
-    if (Math.abs(n) >= 1_000) return (n / 1_000).toFixed(0) + 'k';
-    return n.toFixed(0);
-  }
-  function formatDateShort(date) {
-    if (!date) return '';
-    const d = date instanceof Date ? date : new Date(date);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  }
+  function shortMoney(n) { if (Math.abs(n) >= 1_000_000) return (n/1_000_000).toFixed(1) + 'M'; if (Math.abs(n) >= 1_000) return (n/1_000).toFixed(0) + 'k'; return n.toFixed(0); }
+  function formatDateShort(date) { if (!date) return ''; const d = date instanceof Date ? date : new Date(date); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
 
   function updateHeroDelta() {
     const t = computeTotals();
     const snaps = state.snapshots;
     const heroDelta = $('heroDelta');
-    if (snaps.length === 0) {
-      heroDelta.innerHTML = `<span class="pill flat">— No snapshots yet</span><span class="meta">Save your first snapshot to track growth</span>`;
-      return;
-    }
+    if (snaps.length === 0) { heroDelta.innerHTML = `<span class="pill flat">— No snapshots yet</span><span class="meta">Save your first snapshot to track growth</span>`; return; }
     const last = snaps[snaps.length - 1];
     const diff = t.total - last.total;
     const pct = last.total > 0 ? (diff / last.total) * 100 : 0;
     const cls = diff > 0 ? '' : (diff < 0 ? 'dn' : 'flat');
     const arrow = diff > 0 ? '↑' : (diff < 0 ? '↓' : '·');
-    heroDelta.innerHTML = `<span class="pill ${cls}">${arrow} ${fmtPct(pct)}</span><span class="meta">${diff >= 0 ? '+' : ''}${fmtBRL(diff)} since ${formatDateShort(last.date)}</span>`;
+    heroDelta.innerHTML = `<span class="pill ${cls}">${arrow} ${fmtPct(pct)}</span><span class="meta">${diff>=0?'+':''}${fmtBRL(diff)} since ${formatDateShort(last.date)}</span>`;
   }
-
   function renderSinceLast() {
     const t = computeTotals();
     const snaps = state.snapshots;
     $('monthSnaps').textContent = snaps.length;
-    if (snaps.length === 0) {
-      $('monthChange').textContent = '—';
-      $('monthChangePct').textContent = 'No previous snapshot';
-      $('monthDays').textContent = '—';
-      $('monthMeta').textContent = '—';
-      return;
-    }
-    const last = snaps[snaps.length - 1];
+    if (snaps.length === 0) { $('monthChange').textContent='—'; $('monthChangePct').textContent='No previous snapshot'; $('monthDays').textContent='—'; $('monthMeta').textContent='—'; return; }
+    const last = snaps[snaps.length-1];
     const diff = t.total - last.total;
-    const pct = last.total > 0 ? (diff / last.total) * 100 : 0;
-    const days = Math.max(0, Math.floor((Date.now() - new Date(last.date).getTime()) / (1000 * 60 * 60 * 24)));
+    const pct = last.total > 0 ? (diff/last.total)*100 : 0;
+    const days = Math.max(0, Math.floor((Date.now() - new Date(last.date).getTime()) / (1000*60*60*24)));
     const sign = diff >= 0 ? '+' : '';
     const cls = diff > 0 ? 'pos' : (diff < 0 ? 'neg' : '');
     $('monthChange').innerHTML = `<span class="${cls}">${sign}${fmtBRL(diff)}</span>`;
     $('monthChangePct').innerHTML = `<span class="${cls}">${fmtPct(pct)}</span> vs last snapshot`;
-    $('monthDays').textContent = days + (days === 1 ? ' day' : ' days');
+    $('monthDays').textContent = days + (days===1?' day':' days');
     $('monthMeta').textContent = formatDateShort(last.date);
   }
 
   // ============================================================
-  //                      STOCKS RENDER
+  //                      STOCKS
   // ============================================================
   function renderStocks() {
     const t = computeTotals();
     const tbody = $('stocksBody');
-
     $('stockTotalInvested').textContent = fmtBRL(t.stocksInvested);
-    $('stockCount').textContent = `${state.stocks.length} holding${state.stocks.length !== 1 ? 's' : ''}`;
+    $('stockCount').textContent = `${state.stocks.length} holding${state.stocks.length!==1?'s':''}`;
     $('stockCurrentValue').textContent = fmtBRL(t.stocks);
-
-    if (state.stocks.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8"><div class="empty-table"><h4>No stocks yet</h4><p>Click "Add stock" to get started.</p></div></td></tr>`;
-      return;
-    }
-
-    // Sort by invested desc
-    const sorted = [...state.stocks].sort((a, b) => ((+b.qty || 0) * (+b.avg || 0)) - ((+a.qty || 0) * (+a.avg || 0)));
-
+    if (state.stocks.length === 0) { tbody.innerHTML = `<tr><td colspan="8"><div class="empty-table"><h4>No stocks yet</h4><p>Click "Add stock" to get started.</p></div></td></tr>`; return; }
+    const sorted = [...state.stocks].sort((a,b) => ((+b.qty||0)*(+b.avg||0)) - ((+a.qty||0)*(+a.avg||0)));
     tbody.innerHTML = sorted.map(s => {
-      const invested = (+s.qty || 0) * (+s.avg || 0);
-      const position = (+s.qty || 0) * (+s.price || 0);
-      const hasPrice = (+s.price || 0) > 0;
-      return `
-        <tr data-id="${s.id}" data-type="stock">
-          <td><span class="ticker"><span class="badge">${badgeFromTicker(s.ticker)}</span>${s.ticker || '—'}</span></td>
-          <td>${s.sector || '—'}</td>
-          <td class="mono">${(+s.qty || 0).toLocaleString('pt-BR')}</td>
-          <td class="mono">${(+s.avg || 0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
-          <td class="mono ${hasPrice ? '' : 'empty'}">${hasPrice ? (+s.price).toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—'}</td>
-          <td class="mono">${invested.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
-          <td class="mono ${hasPrice ? '' : 'empty'}">${hasPrice ? position.toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—'}</td>
-          <td><span class="row-actions"><button class="edit">Edit</button></span></td>
-        </tr>
-      `;
+      const invested = (+s.qty||0)*(+s.avg||0);
+      const position = (+s.qty||0)*(+s.price||0);
+      const hasPrice = (+s.price||0) > 0;
+      return `<tr data-id="${s.id}">
+        <td><span class="ticker"><span class="badge">${badgeFromTicker(s.ticker)}</span>${s.ticker||'—'}</span></td>
+        <td>${s.sector||'—'}</td>
+        <td class="mono">${(+s.qty||0).toLocaleString('pt-BR')}</td>
+        <td class="mono">${(+s.avg||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+        <td class="mono ${hasPrice?'':'empty'}">${hasPrice?(+s.price).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
+        <td class="mono">${invested.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+        <td class="mono ${hasPrice?'':'empty'}">${hasPrice?position.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
+        <td><span class="row-actions"><button>Edit</button></span></td>
+      </tr>`;
     }).join('');
-
-    // Bind clicks
-    tbody.querySelectorAll('tr[data-id]').forEach(tr => {
-      tr.addEventListener('click', () => openStockModal(tr.dataset.id));
-    });
+    tbody.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => openStockModal(tr.dataset.id)));
   }
 
   // ============================================================
-  //                      CRYPTO RENDER
+  //                      CRYPTO
   // ============================================================
   function renderCrypto() {
     const t = computeTotals();
     const tbody = $('cryptoBody');
-
     $('cryptoTotalInvested').textContent = fmtBRL(t.cryptoInvested);
-    $('cryptoCount').textContent = `${state.crypto.length} coin${state.crypto.length !== 1 ? 's' : ''}`;
+    $('cryptoCount').textContent = `${state.crypto.length} coin${state.crypto.length!==1?'s':''}`;
     $('cryptoCurrentValue').textContent = fmtBRL(t.crypto);
-
-    if (state.crypto.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8"><div class="empty-table"><h4>No coins yet</h4><p>Click "Add coin" to get started.</p></div></td></tr>`;
-      return;
-    }
-
-    const sorted = [...state.crypto].sort((a, b) => ((+b.qty || 0) * (+b.avg || 0)) - ((+a.qty || 0) * (+a.avg || 0)));
-
+    if (state.crypto.length === 0) { tbody.innerHTML = `<tr><td colspan="8"><div class="empty-table"><h4>No coins yet</h4><p>Click "Add coin" to get started.</p></div></td></tr>`; return; }
+    const sorted = [...state.crypto].sort((a,b) => ((+b.qty||0)*(+b.avg||0)) - ((+a.qty||0)*(+a.avg||0)));
     tbody.innerHTML = sorted.map(c => {
-      const invested = (+c.qty || 0) * (+c.avg || 0);
-      const position = (+c.qty || 0) * (+c.price || 0);
-      const hasPrice = (+c.price || 0) > 0;
-      return `
-        <tr data-id="${c.id}" data-type="crypto">
-          <td><span class="ticker"><span class="badge">${(c.symbol || '?').slice(0,2).toUpperCase()}</span>${c.name || '—'}</span></td>
-          <td>${c.symbol || '—'}</td>
-          <td class="mono">${(+c.qty || 0).toLocaleString('pt-BR', {maximumFractionDigits:8})}</td>
-          <td class="mono">${(+c.avg || 0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
-          <td class="mono ${hasPrice ? '' : 'empty'}">${hasPrice ? (+c.price).toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—'}</td>
-          <td class="mono">${invested.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
-          <td class="mono ${hasPrice ? '' : 'empty'}">${hasPrice ? position.toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—'}</td>
-          <td><span class="row-actions"><button class="edit">Edit</button></span></td>
-        </tr>
-      `;
+      const invested = (+c.qty||0)*(+c.avg||0);
+      const position = (+c.qty||0)*(+c.price||0);
+      const hasPrice = (+c.price||0) > 0;
+      return `<tr data-id="${c.id}">
+        <td><span class="ticker"><span class="badge">${(c.symbol||'?').slice(0,2).toUpperCase()}</span>${c.name||'—'}</span></td>
+        <td>${c.symbol||'—'}</td>
+        <td class="mono">${(+c.qty||0).toLocaleString('pt-BR',{maximumFractionDigits:8})}</td>
+        <td class="mono">${(+c.avg||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+        <td class="mono ${hasPrice?'':'empty'}">${hasPrice?(+c.price).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
+        <td class="mono">${invested.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+        <td class="mono ${hasPrice?'':'empty'}">${hasPrice?position.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
+        <td><span class="row-actions"><button>Edit</button></span></td>
+      </tr>`;
     }).join('');
-
-    tbody.querySelectorAll('tr[data-id]').forEach(tr => {
-      tr.addEventListener('click', () => openCryptoModal(tr.dataset.id));
-    });
+    tbody.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => openCryptoModal(tr.dataset.id)));
   }
 
   // ============================================================
-  //                      STOCK MODAL
+  //                      FX (Dollar)
+  // ============================================================
+  function renderFx() {
+    const t = computeTotals();
+    const tbody = $('fxBody');
+    $('fxRate').textContent = 'R$ ' + state.fxRate.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+    $('fxTotalUsd').textContent = fmtUSD(t.fxUsd);
+    $('fxTotalBrl').textContent = fmtBRL(t.fx);
+    $('fxCount').textContent = `${state.fxAccounts.length} account${state.fxAccounts.length!==1?'s':''}`;
+
+    if (state.fxAccounts.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-table"><h4>No accounts yet</h4><p>Click "Add account" to register your USD positions.</p></div></td></tr>`;
+      $('fxLargest').textContent = '—';
+      $('fxLargestSub').textContent = '—';
+      return;
+    }
+    const sorted = [...state.fxAccounts].sort((a,b) => (+b.usd||0) - (+a.usd||0));
+    const largest = sorted[0];
+    $('fxLargest').textContent = largest.name || '—';
+    $('fxLargestSub').textContent = `${fmtUSD(+largest.usd||0)} · ${t.fxUsd>0?((largest.usd/t.fxUsd)*100).toFixed(1):'0.0'}%`;
+
+    tbody.innerHTML = sorted.map(a => {
+      const usd = +a.usd || 0;
+      const brl = usd * state.fxRate;
+      const pct = t.fxUsd > 0 ? (usd / t.fxUsd) * 100 : 0;
+      return `<tr data-id="${a.id}">
+        <td><span class="ticker"><span class="badge">$</span>${a.name||'—'}</span></td>
+        <td></td>
+        <td class="mono">${fmtUSD(usd)}</td>
+        <td class="mono">${fmtBRL(brl)}</td>
+        <td class="mono">${pct.toFixed(1)}%</td>
+        <td><span class="row-actions"><button>Edit</button></span></td>
+      </tr>`;
+    }).join('');
+    tbody.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => openFxModal(tr.dataset.id)));
+  }
+
+  // ============================================================
+  //                      DIVIDENDS
+  // ============================================================
+  function renderDividends() {
+    const md = state.monthlyDividends;
+    const currentYear = new Date().getFullYear();
+    const lastYear = currentYear - 1;
+    const currentMonth = new Date().getMonth() + 1;
+
+    // YTD current year
+    let ytd = 0;
+    for (let m = 1; m <= 12; m++) ytd += (+md[`${currentYear}-${String(m).padStart(2,'0')}`] || 0);
+
+    // YTD last year (same months)
+    let ytdLastSamePeriod = 0;
+    for (let m = 1; m <= currentMonth; m++) ytdLastSamePeriod += (+md[`${lastYear}-${String(m).padStart(2,'0')}`] || 0);
+
+    // Last 12 months total
+    let last12 = 0;
+    const now = new Date();
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      last12 += (+md[k] || 0);
+    }
+
+    // All-time
+    let allTime = 0;
+    Object.values(md).forEach(v => allTime += (+v || 0));
+
+    // Best month ever
+    let bestKey = null, bestVal = 0;
+    Object.entries(md).forEach(([k,v]) => { if ((+v||0) > bestVal) { bestVal = +v; bestKey = k; } });
+
+    // Hero
+    $('divHeroYear').textContent = currentYear;
+    const ytdStr = ytd.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+    $('divHeroAmt').textContent = ytdStr;
+    const monthsElapsed = currentMonth;
+    const avg = monthsElapsed > 0 ? ytd / monthsElapsed : 0;
+    $('divHeroAvg').textContent = `${fmtBRL0(avg)} / month average`;
+
+    if (ytdLastSamePeriod > 0) {
+      const vsPct = ((ytd - ytdLastSamePeriod) / ytdLastSamePeriod) * 100;
+      const arrow = vsPct >= 0 ? '↑' : '↓';
+      const cls = vsPct >= 0 ? '' : 'dn';
+      $('divHeroVs').className = 'vs ' + cls;
+      $('divHeroVs').innerHTML = `${arrow} ${vsPct >= 0 ? '+' : ''}${vsPct.toFixed(1)}%`;
+    } else {
+      $('divHeroVs').textContent = '—';
+    }
+
+    // Stats
+    $('divLast12').textContent = fmtBRL0(last12);
+    $('divLast12Sub').textContent = `Across last 12 months`;
+    $('divAvg').textContent = fmtBRL0(last12 / 12);
+    $('divAll').textContent = fmtBRL0(allTime);
+    $('divAllSub').textContent = `${Object.keys(md).filter(k => (+md[k]||0)>0).length} months recorded`;
+
+    if (bestKey) {
+      const [yy, mm] = bestKey.split('-');
+      $('divBest').textContent = fmtBRL0(bestVal);
+      $('divBestSub').textContent = `${MONTHS[parseInt(mm)-1]} ${yy}`;
+    } else {
+      $('divBest').textContent = '—';
+      $('divBestSub').textContent = '—';
+    }
+
+    renderMonthChart();
+    renderMonthInputs();
+    renderYearlyTable();
+    renderGoals();
+    renderTarget(last12 / 12);
+  }
+
+  function renderMonthChart() {
+    const wrap = $('monthChartWrap');
+    const md = state.monthlyDividends;
+    const years = [2024, 2025, 2026];
+    const colors = { 2024: '#cbd5e1', 2025: '#60a5fa', 2026: '#16a34a' };
+
+    // Find max for scale
+    let max = 0;
+    for (let m = 1; m <= 12; m++) {
+      years.forEach(y => {
+        const v = +md[`${y}-${String(m).padStart(2,'0')}`] || 0;
+        if (v > max) max = v;
+      });
+    }
+    if (max === 0) max = 1000;
+
+    const W = 700, H = 240, padL = 50, padR = 16, padT = 16, padB = 32;
+    const innerW = W - padL - padR, innerH = H - padT - padB;
+    const groupW = innerW / 12;
+    const barW = (groupW - 8) / 3;
+
+    let svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;
+    // Y axis ticks
+    for (let i = 0; i <= 4; i++) {
+      const v = max * (4-i) / 4;
+      const y = padT + (innerH * i / 4);
+      svg += `<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#ececec"/>`;
+      svg += `<text class="axis" x="0" y="${y+4}">${shortMoney(v)}</text>`;
+    }
+    // Bars
+    for (let m = 0; m < 12; m++) {
+      const groupX = padL + m * groupW + 4;
+      years.forEach((y, idx) => {
+        const v = +md[`${y}-${String(m+1).padStart(2,'0')}`] || 0;
+        const h = (v / max) * innerH;
+        const bx = groupX + idx * barW;
+        const by = padT + innerH - h;
+        if (v > 0) {
+          svg += `<rect class="bar" x="${bx}" y="${by}" width="${barW-1}" height="${h}" rx="2" fill="${colors[y]}"><title>${y} ${MONTHS[m]}: ${fmtBRL(v)}</title></rect>`;
+        }
+      });
+      svg += `<text class="bar-label" x="${groupX + groupW/2 - 4}" y="${H-12}" text-anchor="middle">${MONTHS[m].charAt(0)}</text>`;
+    }
+    svg += `</svg>`;
+    wrap.innerHTML = svg;
+  }
+
+  function renderMonthInputs() {
+    const md = state.monthlyDividends;
+    const tbody = `<thead><tr><th>Month</th><th>2024</th><th>2025</th><th>2026</th></tr></thead><tbody>`;
+    let rows = '';
+    let totals = { 2024: 0, 2025: 0, 2026: 0 };
+    for (let m = 0; m < 12; m++) {
+      const mm = String(m+1).padStart(2,'0');
+      rows += `<tr><td>${MONTHS[m]}</td>`;
+      [2024, 2025, 2026].forEach(y => {
+        const k = `${y}-${mm}`;
+        const v = +md[k] || 0;
+        totals[y] += v;
+        rows += `<td><input type="number" data-key="${k}" value="${v||''}" placeholder="—" step="0.01" min="0" /></td>`;
+      });
+      rows += `</tr>`;
+    }
+    rows += `<tr class="total"><td>Total</td><td>${fmtBRL0(totals[2024])}</td><td>${fmtBRL0(totals[2025])}</td><td>${fmtBRL0(totals[2026])}</td></tr>`;
+    rows += `</tbody>`;
+    $('monthInputTable').innerHTML = tbody + rows;
+
+    // Bind input handlers (debounced save)
+    $('monthInputTable').querySelectorAll('input[data-key]').forEach(inp => {
+      let timer = null;
+      inp.addEventListener('input', () => {
+        inp.classList.remove('saved');
+        inp.classList.add('saving');
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => saveMonthlyDividend(inp.dataset.key, inp.value, inp), 600);
+      });
+    });
+  }
+
+  async function saveMonthlyDividend(key, value, inp) {
+    const v = parseFloat(value) || 0;
+    state.monthlyDividends[key] = v;
+    try {
+      await setDoc(docDividends, { monthly: state.monthlyDividends }, { merge: true });
+      inp.classList.remove('saving');
+      inp.classList.add('saved');
+      setTimeout(() => inp.classList.remove('saved'), 1200);
+      renderMonthChart();
+      renderDividends();
+    } catch (err) {
+      console.error(err);
+      showToast('Error saving');
+    }
+  }
+
+  function renderYearlyTable() {
+    const tbody = $('yearlyBody');
+    const sorted = [...state.yearly].sort((a,b) => (a.year||0) - (b.year||0));
+    if (sorted.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-table"><h4>No yearly data</h4><p>Click "Add year" to start tracking annual dividend yield.</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = sorted.map((y, i) => {
+      const dy = (+y.equity > 0) ? ((+y.divs / +y.equity) * 100).toFixed(2) + '%' : '—';
+      let yoy = '—';
+      if (i > 0) {
+        const prev = +sorted[i-1].divs || 0;
+        if (prev > 0) {
+          const growth = (((+y.divs || 0) - prev) / prev) * 100;
+          yoy = (growth >= 0 ? '+' : '') + growth.toFixed(1) + '%';
+        }
+      }
+      return `<tr data-id="${y.id}">
+        <td>${y.year}</td>
+        <td>${fmtBRL0(+y.equity||0)}</td>
+        <td>${fmtBRL0(+y.divs||0)}</td>
+        <td>${dy}</td>
+        <td>${yoy}</td>
+      </tr>`;
+    }).join('');
+    tbody.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => openYearlyModal(tr.dataset.id)));
+  }
+
+  function renderGoals() {
+    const md = state.monthlyDividends;
+    const yearTotals = {};
+    Object.entries(md).forEach(([k,v]) => {
+      const y = parseInt(k.split('-')[0]);
+      yearTotals[y] = (yearTotals[y] || 0) + (+v || 0);
+    });
+
+    const grid = $('goalsGrid');
+    const years = Object.keys(state.goals).map(Number).sort();
+    grid.innerHTML = years.map(year => {
+      const goal = state.goals[year];
+      const actual = yearTotals[year] || 0;
+      const pct = goal > 0 ? Math.min(100, (actual / goal) * 100) : 0;
+      const done = pct >= 100;
+      const future = year > new Date().getFullYear();
+      return `<div class="goal ${done?'done':''} ${future?'future':''}">
+        <div class="top">
+          <div class="year">${year} ${done?'✓':''}</div>
+          <div class="pct">${pct.toFixed(0)}%</div>
+        </div>
+        <div class="amt">${fmtBRL0(actual)} / ${fmtBRL0(goal)}</div>
+        <div class="bar"><i style="width:${pct}%"></i></div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderTarget(currentAvg) {
+    $('targetAmt').textContent = fmtBRL0(state.monthlyTarget);
+    const pct = state.monthlyTarget > 0 ? Math.min(100, (currentAvg / state.monthlyTarget) * 100) : 0;
+    $('targetProgress').style.width = pct + '%';
+    $('targetPct').textContent = `${pct.toFixed(1)}% · current avg ${fmtBRL0(currentAvg)} / month`;
+  }
+
+  // ============================================================
+  //                      MODALS — STOCK
   // ============================================================
   let editingStockId = null;
   function openStockModal(id = null) {
     editingStockId = id;
     if (id) {
-      const s = state.stocks.find(x => x.id === id);
-      if (!s) return;
+      const s = state.stocks.find(x => x.id === id); if (!s) return;
       $('stockModalTitle').textContent = 'Edit stock';
-      $('stockTicker').value = s.ticker || '';
-      $('stockSector').value = s.sector || '';
-      $('stockQty').value = s.qty || '';
-      $('stockAvg').value = s.avg || '';
+      $('stockTicker').value = s.ticker || ''; $('stockSector').value = s.sector || '';
+      $('stockQty').value = s.qty || ''; $('stockAvg').value = s.avg || '';
       $('stockDelete').style.display = '';
     } else {
       $('stockModalTitle').textContent = 'Add stock';
-      $('stockTicker').value = '';
-      $('stockSector').value = '';
-      $('stockQty').value = '';
-      $('stockAvg').value = '';
+      $('stockTicker').value = ''; $('stockSector').value = '';
+      $('stockQty').value = ''; $('stockAvg').value = '';
       $('stockDelete').style.display = 'none';
     }
     $('stockModal').classList.add('show');
     setTimeout(() => $('stockTicker').focus(), 50);
   }
   function closeStockModal() { $('stockModal').classList.remove('show'); editingStockId = null; }
-
   async function saveStock() {
     const ticker = $('stockTicker').value.trim().toUpperCase();
     const sector = $('stockSector').value;
     const qty = parseFloat($('stockQty').value);
     const avg = parseFloat($('stockAvg').value);
-
     if (!ticker) { showToast('Ticker is required'); return; }
     if (!qty || qty <= 0) { showToast('Quantity must be > 0'); return; }
     if (!avg || avg < 0) { showToast('Average price required'); return; }
-
-    const data = {
-      ticker, sector: sector || 'Other',
-      qty, avg,
-      price: 0, // will be filled by brapi in Part 6
-      updatedAt: serverTimestamp(),
-      updatedBy: state.user?.displayName || 'unknown'
-    };
-
+    const data = { ticker, sector: sector || 'Other', qty, avg, price: 0, updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'unknown' };
     const btn = $('stockSave');
     try {
       btn.disabled = true; btn.textContent = 'Saving...';
-      if (editingStockId) {
-        await setDoc(docStock(editingStockId), data, { merge: true });
-        showToast('✓ Stock updated');
-      } else {
-        await addDoc(colStocks(), { ...data, createdAt: serverTimestamp() });
-        showToast('✓ Stock added');
-      }
+      if (editingStockId) { await setDoc(docStock(editingStockId), data, { merge: true }); showToast('✓ Stock updated'); }
+      else { await addDoc(colStocks(), { ...data, createdAt: serverTimestamp() }); showToast('✓ Stock added'); }
       closeStockModal();
-    } catch (err) {
-      console.error(err); showToast('Error saving stock');
-    } finally {
-      btn.disabled = false; btn.textContent = 'Save';
-    }
+    } catch (err) { console.error(err); showToast('Error saving'); }
+    finally { btn.disabled = false; btn.textContent = 'Save'; }
   }
-
   async function deleteStock() {
     if (!editingStockId) return;
     if (!confirm('Delete this stock? This cannot be undone.')) return;
-    try {
-      await deleteDoc(docStock(editingStockId));
-      showToast('✓ Stock removed');
-      closeStockModal();
-    } catch (err) {
-      console.error(err); showToast('Error deleting stock');
-    }
+    try { await deleteDoc(docStock(editingStockId)); showToast('✓ Stock removed'); closeStockModal(); }
+    catch (err) { console.error(err); showToast('Error deleting'); }
   }
 
   // ============================================================
-  //                      CRYPTO MODAL
+  //                      MODALS — CRYPTO
   // ============================================================
   let editingCryptoId = null;
   function openCryptoModal(id = null) {
     editingCryptoId = id;
     if (id) {
-      const c = state.crypto.find(x => x.id === id);
-      if (!c) return;
+      const c = state.crypto.find(x => x.id === id); if (!c) return;
       $('cryptoModalTitle').textContent = 'Edit coin';
-      $('cryptoName').value = c.name || '';
-      $('cryptoSymbol').value = c.symbol || '';
-      $('cryptoQty').value = c.qty || '';
-      $('cryptoAvg').value = c.avg || '';
+      $('cryptoName').value = c.name || ''; $('cryptoSymbol').value = c.symbol || '';
+      $('cryptoQty').value = c.qty || ''; $('cryptoAvg').value = c.avg || '';
       $('cryptoDelete').style.display = '';
     } else {
       $('cryptoModalTitle').textContent = 'Add coin';
-      $('cryptoName').value = '';
-      $('cryptoSymbol').value = '';
-      $('cryptoQty').value = '';
-      $('cryptoAvg').value = '';
+      $('cryptoName').value = ''; $('cryptoSymbol').value = '';
+      $('cryptoQty').value = ''; $('cryptoAvg').value = '';
       $('cryptoDelete').style.display = 'none';
     }
     $('cryptoModal').classList.add('show');
     setTimeout(() => $('cryptoName').focus(), 50);
   }
   function closeCryptoModal() { $('cryptoModal').classList.remove('show'); editingCryptoId = null; }
-
   async function saveCrypto() {
     const name = $('cryptoName').value.trim();
     const symbol = $('cryptoSymbol').value.trim().toUpperCase();
     const qty = parseFloat($('cryptoQty').value);
     const avg = parseFloat($('cryptoAvg').value);
-
     if (!name) { showToast('Coin name required'); return; }
     if (!symbol) { showToast('Symbol required'); return; }
     if (!qty || qty <= 0) { showToast('Quantity must be > 0'); return; }
     if (!avg || avg < 0) { showToast('Average price required'); return; }
-
-    const data = {
-      name, symbol, qty, avg,
-      price: 0,
-      updatedAt: serverTimestamp(),
-      updatedBy: state.user?.displayName || 'unknown'
-    };
-
+    const data = { name, symbol, qty, avg, price: 0, updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'unknown' };
     const btn = $('cryptoSave');
     try {
       btn.disabled = true; btn.textContent = 'Saving...';
-      if (editingCryptoId) {
-        await setDoc(docCrypto(editingCryptoId), data, { merge: true });
-        showToast('✓ Coin updated');
-      } else {
-        await addDoc(colCrypto(), { ...data, createdAt: serverTimestamp() });
-        showToast('✓ Coin added');
-      }
+      if (editingCryptoId) { await setDoc(docCrypto(editingCryptoId), data, { merge: true }); showToast('✓ Coin updated'); }
+      else { await addDoc(colCrypto(), { ...data, createdAt: serverTimestamp() }); showToast('✓ Coin added'); }
       closeCryptoModal();
-    } catch (err) {
-      console.error(err); showToast('Error saving coin');
-    } finally {
-      btn.disabled = false; btn.textContent = 'Save';
-    }
+    } catch (err) { console.error(err); showToast('Error saving'); }
+    finally { btn.disabled = false; btn.textContent = 'Save'; }
   }
-
   async function deleteCrypto() {
     if (!editingCryptoId) return;
     if (!confirm('Delete this coin? This cannot be undone.')) return;
-    try {
-      await deleteDoc(docCrypto(editingCryptoId));
-      showToast('✓ Coin removed');
-      closeCryptoModal();
-    } catch (err) {
-      console.error(err); showToast('Error deleting coin');
-    }
+    try { await deleteDoc(docCrypto(editingCryptoId)); showToast('✓ Coin removed'); closeCryptoModal(); }
+    catch (err) { console.error(err); showToast('Error deleting'); }
   }
 
   // ============================================================
-  //                      SNAPSHOT MODAL
+  //                      MODALS — FX
+  // ============================================================
+  let editingFxId = null;
+  function openFxModal(id = null) {
+    editingFxId = id;
+    if (id) {
+      const a = state.fxAccounts.find(x => x.id === id); if (!a) return;
+      $('fxModalTitle').textContent = 'Edit account';
+      $('fxName').value = a.name || ''; $('fxUsd').value = a.usd || '';
+      $('fxDelete').style.display = '';
+    } else {
+      $('fxModalTitle').textContent = 'Add account';
+      $('fxName').value = ''; $('fxUsd').value = '';
+      $('fxDelete').style.display = 'none';
+    }
+    updateFxBrlPreview();
+    $('fxModal').classList.add('show');
+    setTimeout(() => $('fxName').focus(), 50);
+  }
+  function closeFxModal() { $('fxModal').classList.remove('show'); editingFxId = null; }
+  function updateFxBrlPreview() {
+    const usd = parseFloat($('fxUsd').value) || 0;
+    $('fxBrlPreview').textContent = 'BRL: ' + fmtBRL(usd * state.fxRate);
+  }
+  async function saveFx() {
+    const name = $('fxName').value.trim();
+    const usd = parseFloat($('fxUsd').value);
+    if (!name) { showToast('Account name required'); return; }
+    if (isNaN(usd) || usd < 0) { showToast('Valid USD amount required'); return; }
+    const data = { name, usd, updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'unknown' };
+    const btn = $('fxSave');
+    try {
+      btn.disabled = true; btn.textContent = 'Saving...';
+      if (editingFxId) { await setDoc(docFx(editingFxId), data, { merge: true }); showToast('✓ Account updated'); }
+      else { await addDoc(colFx(), { ...data, createdAt: serverTimestamp() }); showToast('✓ Account added'); }
+      closeFxModal();
+    } catch (err) { console.error(err); showToast('Error saving'); }
+    finally { btn.disabled = false; btn.textContent = 'Save'; }
+  }
+  async function deleteFx() {
+    if (!editingFxId) return;
+    if (!confirm('Delete this account? This cannot be undone.')) return;
+    try { await deleteDoc(docFx(editingFxId)); showToast('✓ Account removed'); closeFxModal(); }
+    catch (err) { console.error(err); showToast('Error deleting'); }
+  }
+
+  // ============================================================
+  //                      MODAL — RATE
+  // ============================================================
+  function openRateModal() {
+    $('rateInput').value = state.fxRate;
+    $('rateModal').classList.add('show');
+    setTimeout(() => $('rateInput').focus(), 50);
+  }
+  function closeRateModal() { $('rateModal').classList.remove('show'); }
+  async function saveRate() {
+    const r = parseFloat($('rateInput').value);
+    if (!r || r <= 0) { showToast('Invalid rate'); return; }
+    try {
+      await setDoc(docConfig, { fxRate: r }, { merge: true });
+      showToast('✓ Rate updated');
+      closeRateModal();
+    } catch (err) { console.error(err); showToast('Error saving'); }
+  }
+
+  // ============================================================
+  //                      MODAL — YEARLY
+  // ============================================================
+  let editingYearlyId = null;
+  function openYearlyModal(id = null) {
+    editingYearlyId = id;
+    if (id) {
+      const y = state.yearly.find(x => x.id === id); if (!y) return;
+      $('yearlyModalTitle').textContent = 'Edit year';
+      $('yearlyYear').value = y.year || ''; $('yearlyEquity').value = y.equity || ''; $('yearlyDivs').value = y.divs || '';
+      $('yearlyDelete').style.display = '';
+    } else {
+      $('yearlyModalTitle').textContent = 'Add year';
+      $('yearlyYear').value = ''; $('yearlyEquity').value = ''; $('yearlyDivs').value = '';
+      $('yearlyDelete').style.display = 'none';
+    }
+    $('yearlyModal').classList.add('show');
+    setTimeout(() => $('yearlyYear').focus(), 50);
+  }
+  function closeYearlyModal() { $('yearlyModal').classList.remove('show'); editingYearlyId = null; }
+  async function saveYearly() {
+    const year = parseInt($('yearlyYear').value);
+    const equity = parseFloat($('yearlyEquity').value);
+    const divs = parseFloat($('yearlyDivs').value);
+    if (!year) { showToast('Year required'); return; }
+    if (isNaN(equity)) { showToast('Equity required'); return; }
+    if (isNaN(divs)) { showToast('Dividends required'); return; }
+    const data = { year, equity, divs, updatedAt: serverTimestamp() };
+    const btn = $('yearlySave');
+    try {
+      btn.disabled = true; btn.textContent = 'Saving...';
+      if (editingYearlyId) { await setDoc(docYearly(editingYearlyId), data, { merge: true }); showToast('✓ Year updated'); }
+      else { await addDoc(colYearly(), { ...data, createdAt: serverTimestamp() }); showToast('✓ Year added'); }
+      closeYearlyModal();
+    } catch (err) { console.error(err); showToast('Error saving'); }
+    finally { btn.disabled = false; btn.textContent = 'Save'; }
+  }
+  async function deleteYearly() {
+    if (!editingYearlyId) return;
+    if (!confirm('Delete this year? This cannot be undone.')) return;
+    try { await deleteDoc(docYearly(editingYearlyId)); showToast('✓ Year removed'); closeYearlyModal(); }
+    catch (err) { console.error(err); showToast('Error deleting'); }
+  }
+
+  // ============================================================
+  //                      MODAL — GOALS
+  // ============================================================
+  function openGoalsModal() {
+    const years = [2025, 2026, 2027, 2028, 2029, 2030];
+    $('goalsForm').innerHTML = `<div class="form-grid">${years.map(y => `
+      <div class="field">
+        <label>${y} (R$)</label>
+        <input type="number" id="goal${y}" value="${state.goals[y] || ''}" min="0" step="0.01" />
+      </div>
+    `).join('')}</div>`;
+    $('goalMonthly').value = state.monthlyTarget;
+    $('goalsModal').classList.add('show');
+  }
+  function closeGoalsModal() { $('goalsModal').classList.remove('show'); }
+  async function saveGoals() {
+    const years = [2025, 2026, 2027, 2028, 2029, 2030];
+    const goals = {};
+    years.forEach(y => { goals[y] = parseFloat($('goal' + y).value) || 0; });
+    const monthlyTarget = parseFloat($('goalMonthly').value) || 0;
+    try {
+      await setDoc(docDividends, { goals, monthlyTarget }, { merge: true });
+      showToast('✓ Goals updated');
+      closeGoalsModal();
+    } catch (err) { console.error(err); showToast('Error saving'); }
+  }
+
+  // ============================================================
+  //                      MODAL — SNAPSHOT
   // ============================================================
   function openSnapshotModal() {
     const t = computeTotals();
@@ -1079,7 +1565,6 @@
     $('snapshotModal').classList.add('show');
   }
   function closeSnapshotModal() { $('snapshotModal').classList.remove('show'); }
-
   async function saveSnapshot() {
     const t = computeTotals();
     const btn = $('snapConfirm');
@@ -1092,84 +1577,100 @@
       });
       closeSnapshotModal();
       showToast('✓ Snapshot saved');
-    } catch (err) {
-      console.error(err); showToast('Error saving snapshot');
-    } finally {
-      btn.disabled = false; btn.textContent = 'Save snapshot';
-    }
+    } catch (err) { console.error(err); showToast('Error saving snapshot'); }
+    finally { btn.disabled = false; btn.textContent = 'Save snapshot'; }
   }
 
   // ============================================================
-  //                      EVENT BINDING
+  //                      EVENTS
   // ============================================================
   $('btnSnapshot').addEventListener('click', openSnapshotModal);
   $('btnSnapshot2').addEventListener('click', openSnapshotModal);
   $('snapCancel').addEventListener('click', closeSnapshotModal);
   $('snapConfirm').addEventListener('click', saveSnapshot);
-  $('snapshotModal').addEventListener('click', (e) => { if (e.target.id === 'snapshotModal') closeSnapshotModal(); });
+  $('snapshotModal').addEventListener('click', e => { if (e.target.id === 'snapshotModal') closeSnapshotModal(); });
 
   $('btnAddStock').addEventListener('click', () => openStockModal());
   $('stockCancel').addEventListener('click', closeStockModal);
   $('stockSave').addEventListener('click', saveStock);
   $('stockDelete').addEventListener('click', deleteStock);
-  $('stockModal').addEventListener('click', (e) => { if (e.target.id === 'stockModal') closeStockModal(); });
+  $('stockModal').addEventListener('click', e => { if (e.target.id === 'stockModal') closeStockModal(); });
 
   $('btnAddCrypto').addEventListener('click', () => openCryptoModal());
   $('cryptoCancel').addEventListener('click', closeCryptoModal);
   $('cryptoSave').addEventListener('click', saveCrypto);
   $('cryptoDelete').addEventListener('click', deleteCrypto);
-  $('cryptoModal').addEventListener('click', (e) => { if (e.target.id === 'cryptoModal') closeCryptoModal(); });
+  $('cryptoModal').addEventListener('click', e => { if (e.target.id === 'cryptoModal') closeCryptoModal(); });
 
-  // Esc closes modals
-  document.addEventListener('keydown', (e) => {
+  $('btnAddFx').addEventListener('click', () => openFxModal());
+  $('fxCancel').addEventListener('click', closeFxModal);
+  $('fxSave').addEventListener('click', saveFx);
+  $('fxDelete').addEventListener('click', deleteFx);
+  $('fxUsd').addEventListener('input', updateFxBrlPreview);
+  $('fxModal').addEventListener('click', e => { if (e.target.id === 'fxModal') closeFxModal(); });
+
+  $('btnEditRate').addEventListener('click', openRateModal);
+  $('rateCancel').addEventListener('click', closeRateModal);
+  $('rateSave').addEventListener('click', saveRate);
+  $('rateModal').addEventListener('click', e => { if (e.target.id === 'rateModal') closeRateModal(); });
+
+  $('btnAddYear').addEventListener('click', () => openYearlyModal());
+  $('yearlyCancel').addEventListener('click', closeYearlyModal);
+  $('yearlySave').addEventListener('click', saveYearly);
+  $('yearlyDelete').addEventListener('click', deleteYearly);
+  $('yearlyModal').addEventListener('click', e => { if (e.target.id === 'yearlyModal') closeYearlyModal(); });
+
+  $('btnEditGoals').addEventListener('click', openGoalsModal);
+  $('goalsCancel').addEventListener('click', closeGoalsModal);
+  $('goalsSave').addEventListener('click', saveGoals);
+  $('goalsModal').addEventListener('click', e => { if (e.target.id === 'goalsModal') closeGoalsModal(); });
+
+  document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       closeSnapshotModal(); closeStockModal(); closeCryptoModal();
+      closeFxModal(); closeRateModal(); closeYearlyModal(); closeGoalsModal();
     }
   });
 
   // ============================================================
   //                      FIRESTORE SUBSCRIPTIONS
   // ============================================================
-  let unsub = { snapshots: null, stocks: null, crypto: null };
-
+  let unsub = {};
   function subscribeAll() {
-    unsub.snapshots = onSnapshot(
-      query(colSnapshots(), orderBy('date', 'asc')),
-      (snap) => {
-        state.snapshots = snap.docs.map(d => {
-          const data = d.data();
-          return { id: d.id, ...data, date: data.date?.toDate?.() || new Date() };
-        });
-        renderOverview();
-      },
-      (err) => { console.error(err); $('connStatus').textContent = 'Sync error'; }
-    );
-
-    unsub.stocks = onSnapshot(
-      colStocks(),
-      (snap) => {
-        state.stocks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderStocks();
-        renderOverview();
-      },
-      (err) => { console.error(err); }
-    );
-
-    unsub.crypto = onSnapshot(
-      colCrypto(),
-      (snap) => {
-        state.crypto = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderCrypto();
-        renderOverview();
-      },
-      (err) => { console.error(err); }
-    );
+    unsub.snapshots = onSnapshot(query(colSnapshots(), orderBy('date','asc')), (snap) => {
+      state.snapshots = snap.docs.map(d => { const data = d.data(); return { id: d.id, ...data, date: data.date?.toDate?.() || new Date() }; });
+      renderOverview();
+    });
+    unsub.stocks = onSnapshot(colStocks(), (snap) => {
+      state.stocks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderStocks(); renderOverview();
+    });
+    unsub.crypto = onSnapshot(colCrypto(), (snap) => {
+      state.crypto = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderCrypto(); renderOverview();
+    });
+    unsub.fx = onSnapshot(colFx(), (snap) => {
+      state.fxAccounts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderFx(); renderOverview();
+    });
+    unsub.yearly = onSnapshot(colYearly(), (snap) => {
+      state.yearly = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderYearlyTable();
+    });
+    unsub.config = onSnapshot(docConfig, (snap) => {
+      const data = snap.data() || {};
+      if (typeof data.fxRate === 'number') state.fxRate = data.fxRate;
+      renderFx(); renderOverview();
+    });
+    unsub.dividends = onSnapshot(docDividends, (snap) => {
+      const data = snap.data() || {};
+      if (data.monthly) state.monthlyDividends = data.monthly;
+      if (data.goals) state.goals = data.goals;
+      if (typeof data.monthlyTarget === 'number') state.monthlyTarget = data.monthlyTarget;
+      renderDividends();
+    });
   }
-
-  function unsubscribeAll() {
-    Object.values(unsub).forEach(fn => fn && fn());
-    unsub = { snapshots: null, stocks: null, crypto: null };
-  }
+  function unsubscribeAll() { Object.values(unsub).forEach(fn => fn && fn()); unsub = {}; }
 
   // ============================================================
   //                      AUTH & TABS
@@ -1177,21 +1678,15 @@
   $('btnLogin').addEventListener('click', async () => {
     $('loginError').classList.remove('show');
     $('btnLoginText').textContent = 'Signing in...';
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (err) {
+    try { await signInWithPopup(auth, provider); }
+    catch (err) {
       console.error(err);
       $('loginError').textContent = 'Sign in failed: ' + (err.message || err.code);
       $('loginError').classList.add('show');
       $('btnLoginText').textContent = 'Sign in with Google';
     }
   });
-
-  $('btnLogout').addEventListener('click', async () => {
-    unsubscribeAll();
-    await signOut(auth);
-  });
-
+  $('btnLogout').addEventListener('click', async () => { unsubscribeAll(); await signOut(auth); });
   $('btnCopyUid').addEventListener('click', () => {
     const uid = $('uidDisplay').textContent;
     if (!uid || uid === '—') return;
@@ -1201,7 +1696,6 @@
       setTimeout(() => { b.textContent = 'Copy UID'; b.classList.remove('copied'); }, 2000);
     });
   });
-
   document.querySelectorAll('.tab').forEach(t => {
     t.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
@@ -1219,25 +1713,19 @@
       $('userName').textContent = user.displayName || user.email;
       if (user.photoURL) $('userPhoto').src = user.photoURL;
       $('uidDisplay').textContent = user.uid;
-
       try {
         $('connStatus').textContent = 'Connecting...';
         $('connStatus').classList.remove('live');
         await setDoc(doc(db, 'household', 'main', 'meta', 'connection'), {
-          lastSeenBy: user.displayName || user.email,
-          lastSeenAt: serverTimestamp(),
-          uid: user.uid
+          lastSeenBy: user.displayName || user.email, lastSeenAt: serverTimestamp(), uid: user.uid
         }, { merge: true });
         $('connStatus').textContent = 'Connected · Firestore live';
         $('connStatus').classList.add('live');
         subscribeAll();
-        renderOverview();
-        renderStocks();
-        renderCrypto();
+        renderOverview(); renderStocks(); renderCrypto(); renderFx(); renderDividends();
       } catch (err) {
         console.error('Firestore error:', err);
-        $('connStatus').textContent = 'Firestore error';
-        $('connStatus').classList.remove('live');
+        $('connStatus').textContent = 'Firestore error'; $('connStatus').classList.remove('live');
       }
     } else {
       state.user = null;
