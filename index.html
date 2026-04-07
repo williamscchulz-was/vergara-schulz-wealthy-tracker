@@ -33,8 +33,9 @@
   }
   .mono{font-family:'Geist Mono',ui-monospace,monospace;font-feature-settings:"zero"}
   button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input,select{font-family:inherit;font-size:14px}
 
-  /* === LOGIN SCREEN === */
+  /* === LOGIN === */
   .login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
   .login-card{background:var(--surface);border:1px solid var(--line-2);border-radius:14px;padding:48px 40px;max-width:420px;width:100%;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.04)}
   .login-card .logo-big{width:52px;height:52px;border-radius:12px;background:var(--ink);display:grid;place-items:center;color:var(--bg);font-weight:600;font-size:22px;margin:0 auto 22px}
@@ -56,11 +57,10 @@
   .uid-banner button:hover{opacity:.9}
   .uid-banner button.copied{background:var(--gain)}
 
-  /* === MAIN APP === */
+  /* === APP === */
   .app{display:none}
   .app.show{display:block}
   .login-screen.hide{display:none}
-
   .shell{max-width:1180px;margin:0 auto;padding:32px 32px 80px}
 
   .top{display:flex;align-items:center;justify-content:space-between;padding-bottom:24px}
@@ -97,10 +97,13 @@
   .pill.flat{background:var(--bg);color:var(--muted)}
   .hero-delta .meta{color:var(--muted)}
 
-  .btn-primary{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;background:var(--ink);color:#fff;border-radius:9px;font-size:13px;font-weight:500;transition:opacity .15s}
+  .btn-primary{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;background:var(--ink);color:#fff;border-radius:9px;font-size:13px;font-weight:500;transition:opacity .15s;border:1px solid var(--ink)}
   .btn-primary:hover{opacity:.85}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed}
   .btn-secondary{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;background:var(--surface);border:1px solid var(--line-2);color:var(--ink);border-radius:9px;font-size:13px;font-weight:500;transition:border-color .15s}
   .btn-secondary:hover{border-color:var(--ink)}
+  .btn-danger{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;background:var(--loss-soft);border:1px solid #fecaca;color:var(--loss);border-radius:9px;font-size:13px;font-weight:500;transition:all .15s}
+  .btn-danger:hover{background:#fee2e2}
 
   /* === STATS === */
   .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
@@ -152,7 +155,6 @@
   .pos{color:var(--gain)}
   .neg{color:var(--loss)}
 
-  /* connection */
   .conn{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
   .conn::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--muted-2)}
   .conn.live::before{background:var(--gain);box-shadow:0 0 0 0 rgba(22,163,74,.4);animation:pulse 2.2s infinite}
@@ -162,14 +164,50 @@
   .placeholder h3{font-size:18px;font-weight:500;margin-bottom:8px}
   .placeholder p{font-size:13px;color:var(--muted)}
 
+  /* === TABLE === */
+  .table-wrap{overflow-x:auto;margin:0 -8px}
+  table{width:100%;border-collapse:collapse;min-width:680px}
+  thead th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:500;padding:0 14px 14px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+  thead th:first-child,thead th:nth-child(2){text-align:left}
+  tbody td{padding:16px 14px;font-size:13px;text-align:right;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
+  tbody td:first-child{text-align:left;font-weight:500}
+  tbody td:nth-child(2){text-align:left;color:var(--muted)}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr{transition:background .12s;cursor:pointer}
+  tbody tr:hover{background:var(--bg)}
+  tbody tr:hover .row-actions{opacity:1}
+  tbody td.empty{color:var(--muted-2)}
+
+  .ticker{display:inline-flex;align-items:center;gap:11px}
+  .ticker .badge{width:30px;height:30px;border-radius:7px;background:var(--bg);border:1px solid var(--line-2);display:grid;place-items:center;font-size:10px;font-weight:600;color:var(--muted);font-family:'Geist Mono',monospace}
+  .row-actions{display:inline-flex;gap:4px;opacity:0;transition:opacity .15s}
+  .row-actions button{padding:4px 8px;border-radius:5px;font-size:11px;color:var(--muted);transition:all .12s}
+  .row-actions button:hover{background:var(--ink);color:#fff}
+  .row-actions button.del:hover{background:var(--loss);color:#fff}
+
+  .empty-table{text-align:center;padding:60px 20px;color:var(--muted)}
+  .empty-table h4{font-size:15px;font-weight:500;color:var(--ink);margin-bottom:6px}
+  .empty-table p{font-size:13px;margin-bottom:20px}
+
   /* === MODAL === */
   .modal-bg{position:fixed;inset:0;background:rgba(10,10,10,.4);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
   .modal-bg.show{display:flex;animation:fade .15s}
-  .modal{background:var(--surface);border-radius:14px;padding:28px;max-width:440px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.12)}
+  .modal{background:var(--surface);border-radius:14px;padding:28px;max-width:480px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.12);max-height:90vh;overflow-y:auto}
   .modal h3{font-size:18px;font-weight:500;margin-bottom:6px;letter-spacing:-0.015em}
   .modal .sub{font-size:13px;color:var(--muted);margin-bottom:22px}
-  .modal-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
-  .modal-foot .btn-secondary,.modal-foot .btn-primary{padding:9px 16px;font-size:13px}
+  .modal-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:24px;flex-wrap:wrap}
+  .modal-foot .btn-secondary,.modal-foot .btn-primary,.modal-foot .btn-danger{padding:9px 16px;font-size:13px}
+  .modal-foot .spacer{flex:1}
+
+  /* form */
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field.full{grid-column:1/-1}
+  .field label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:500}
+  .field input,.field select{padding:10px 12px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface);transition:border-color .12s;outline:none;color:var(--ink);width:100%}
+  .field input:focus,.field select:focus{border-color:var(--ink)}
+  .field input::placeholder{color:var(--muted-2)}
+  .field .hint{font-size:11px;color:var(--muted-2);margin-top:2px}
 
   .snap-summary{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
   .snap-row{display:flex;justify-content:space-between;align-items:center;font-size:13px}
@@ -182,6 +220,15 @@
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:9px;font-size:13px;font-weight:500;opacity:0;transition:all .25s;pointer-events:none;z-index:200}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+  /* tab header (with action button) */
+  .tab-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:14px}
+  .tab-head h2{font-size:22px;font-weight:500;letter-spacing:-0.02em}
+  .tab-head .meta{font-size:12px;color:var(--muted);margin-top:4px}
+
+  /* coming-soon notice */
+  .notice{background:var(--accent-soft);border:1px solid #c7dafe;border-radius:8px;padding:12px 16px;font-size:12px;color:var(--accent);margin-bottom:24px;display:flex;align-items:center;gap:10px}
+  .notice b{font-weight:600}
+
   @media (max-width:900px){
     .stats{grid-template-columns:repeat(2,1fr)}
     .grid-2{grid-template-columns:1fr}
@@ -192,6 +239,7 @@
     .tabs{width:100%;overflow-x:auto;flex-wrap:nowrap}
     .tab{white-space:nowrap;flex:0 0 auto}
     .stats{grid-template-columns:1fr}
+    .form-grid{grid-template-columns:1fr}
   }
 </style>
 </head>
@@ -250,7 +298,6 @@
 
     <!-- ===== OVERVIEW ===== -->
     <div class="panel active" id="overview">
-
       <div class="hero-block">
         <div class="hero-left">
           <div class="hero-label">Total net worth</div>
@@ -335,15 +382,127 @@
           </div>
         </div>
       </div>
-
     </div>
 
-    <!-- placeholders -->
-    <div class="panel" id="stocks"><div class="placeholder"><h3>Stocks</h3><p>Coming in Part 3.</p></div></div>
-    <div class="panel" id="fixed"><div class="placeholder"><h3>Fixed Income</h3><p>Coming in Part 4.</p></div></div>
-    <div class="panel" id="crypto"><div class="placeholder"><h3>Crypto</h3><p>Coming in Part 3.</p></div></div>
-    <div class="panel" id="fx"><div class="placeholder"><h3>FX</h3><p>Coming in Part 5.</p></div></div>
-    <div class="panel" id="dividends"><div class="placeholder"><h3>Dividends</h3><p>Coming in Part 5.</p></div></div>
+    <!-- ===== STOCKS ===== -->
+    <div class="panel" id="stocks">
+      <div class="tab-head">
+        <div>
+          <h2>Stocks</h2>
+          <div class="meta">Brazilian equities · brapi.dev quotes coming in Part 6</div>
+        </div>
+        <button class="btn-primary" id="btnAddStock">+ Add stock</button>
+      </div>
+
+      <div class="notice">
+        <span>ℹ️</span>
+        <span><b>Quotes are not live yet.</b> Until Part 6 integrates brapi.dev, "Price", "Position" and "Day" columns will show — and totals will be based on amount invested only.</span>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="lbl">Total invested</div>
+          <div class="val" id="stockTotalInvested">R$ 0,00</div>
+          <div class="sub" id="stockCount">0 holdings</div>
+        </div>
+        <div class="stat">
+          <div class="lbl">Current value</div>
+          <div class="val" id="stockCurrentValue">R$ 0,00</div>
+          <div class="sub">Awaiting quotes</div>
+        </div>
+        <div class="stat">
+          <div class="lbl">Return</div>
+          <div class="val" id="stockReturn">—</div>
+          <div class="sub">Awaiting quotes</div>
+        </div>
+        <div class="stat">
+          <div class="lbl">Total return (incl. dividends)</div>
+          <div class="val" id="stockTotalReturn">—</div>
+          <div class="sub">Awaiting quotes &amp; dividends</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>Holdings</h3>
+          <div class="meta">Click any row to edit</div>
+        </div>
+        <div class="table-wrap">
+          <table id="stocksTable">
+            <thead>
+              <tr>
+                <th>Ticker</th><th>Sector</th><th>Qty</th><th>Avg price</th>
+                <th>Price</th><th>Invested</th><th>Position</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="stocksBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FIXED ===== -->
+    <div class="panel" id="fixed"><div class="placeholder"><h3>Fixed Income</h3><p>Coming in Part 4 — bonds, emergency reserve and Kids portfolio.</p></div></div>
+
+    <!-- ===== CRYPTO ===== -->
+    <div class="panel" id="crypto">
+      <div class="tab-head">
+        <div>
+          <h2>Crypto</h2>
+          <div class="meta">Digital assets · CoinGecko quotes coming in Part 6</div>
+        </div>
+        <button class="btn-primary" id="btnAddCrypto">+ Add coin</button>
+      </div>
+
+      <div class="notice">
+        <span>ℹ️</span>
+        <span><b>Quotes are not live yet.</b> Until Part 6 integrates CoinGecko, "Price" and "Position" will show — and totals will be based on amount invested only.</span>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="lbl">Total invested</div>
+          <div class="val" id="cryptoTotalInvested">R$ 0,00</div>
+          <div class="sub" id="cryptoCount">0 coins</div>
+        </div>
+        <div class="stat">
+          <div class="lbl">Current value</div>
+          <div class="val" id="cryptoCurrentValue">R$ 0,00</div>
+          <div class="sub">Awaiting quotes</div>
+        </div>
+        <div class="stat">
+          <div class="lbl">Return</div>
+          <div class="val" id="cryptoReturn">—</div>
+          <div class="sub">Awaiting quotes</div>
+        </div>
+        <div class="stat">
+          <div class="lbl">Today</div>
+          <div class="val" id="cryptoToday">—</div>
+          <div class="sub">Awaiting quotes</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Holdings</h3><div class="meta">Click any row to edit</div></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Coin</th><th>Symbol</th><th>Qty</th><th>Avg price</th>
+                <th>Price</th><th>Invested</th><th>Position</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="cryptoBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FX ===== -->
+    <div class="panel" id="fx"><div class="placeholder"><h3>FX</h3><p>Coming in Part 5 — USD accounts.</p></div></div>
+
+    <!-- ===== DIVIDENDS ===== -->
+    <div class="panel" id="dividends"><div class="placeholder"><h3>Dividends</h3><p>Coming in Part 5 — monthly history, yearly comparison and goals.</p></div></div>
 
   </div>
 </div>
@@ -361,19 +520,100 @@
   </div>
 </div>
 
+<!-- ============== STOCK MODAL ============== -->
+<div class="modal-bg" id="stockModal">
+  <div class="modal">
+    <h3 id="stockModalTitle">Add stock</h3>
+    <p class="sub">Brazilian equities. Use the official B3 ticker (e.g. PETR4, VALE3).</p>
+    <div class="form-grid">
+      <div class="field">
+        <label>Ticker</label>
+        <input type="text" id="stockTicker" placeholder="PETR4" autocomplete="off" maxlength="10" />
+      </div>
+      <div class="field">
+        <label>Sector</label>
+        <select id="stockSector">
+          <option value="">Select...</option>
+          <option>Banking</option>
+          <option>Insurance</option>
+          <option>Oil &amp; Gas</option>
+          <option>Mining</option>
+          <option>Utilities</option>
+          <option>Industrial</option>
+          <option>Retail</option>
+          <option>Pulp &amp; Paper</option>
+          <option>Financial</option>
+          <option>Real Estate</option>
+          <option>Telecom</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Quantity</label>
+        <input type="number" id="stockQty" placeholder="100" min="0" step="1" />
+      </div>
+      <div class="field">
+        <label>Average price (R$)</label>
+        <input type="number" id="stockAvg" placeholder="32.50" min="0" step="0.01" />
+        <div class="hint">Your cost basis per share</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-danger" id="stockDelete" style="display:none">Delete</button>
+      <div class="spacer"></div>
+      <button class="btn-secondary" id="stockCancel">Cancel</button>
+      <button class="btn-primary" id="stockSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== CRYPTO MODAL ============== -->
+<div class="modal-bg" id="cryptoModal">
+  <div class="modal">
+    <h3 id="cryptoModalTitle">Add coin</h3>
+    <p class="sub">Cryptocurrency holdings. Use the official symbol (BTC, ETH, SOL).</p>
+    <div class="form-grid">
+      <div class="field">
+        <label>Coin name</label>
+        <input type="text" id="cryptoName" placeholder="Bitcoin" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label>Symbol</label>
+        <input type="text" id="cryptoSymbol" placeholder="BTC" autocomplete="off" maxlength="10" />
+      </div>
+      <div class="field">
+        <label>Quantity</label>
+        <input type="number" id="cryptoQty" placeholder="0.5" min="0" step="0.00000001" />
+      </div>
+      <div class="field">
+        <label>Average price (R$)</label>
+        <input type="number" id="cryptoAvg" placeholder="200000" min="0" step="0.01" />
+        <div class="hint">Your cost basis per coin</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-danger" id="cryptoDelete" style="display:none">Delete</button>
+      <div class="spacer"></div>
+      <button class="btn-secondary" id="cryptoCancel">Cancel</button>
+      <button class="btn-primary" id="cryptoSave">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
-<!-- ============== FIREBASE / APP LOGIC ============== -->
+<!-- ============== SCRIPT ============== -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
     getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import {
-    getFirestore, doc, setDoc, collection, addDoc,
+    getFirestore, doc, setDoc, deleteDoc, collection, addDoc,
     onSnapshot, query, orderBy, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+  // ---- Firebase ----
   const firebaseConfig = {
     apiKey: "AIzaSyA5zsPOxpOBPN8BVnJRIN0mIJ4gdlUntc8",
     authDomain: "wealthy-tracker-68658.firebaseapp.com",
@@ -382,29 +622,30 @@
     messagingSenderId: "559892333696",
     appId: "1:559892333696:web:3272f0f8e86449f4885265"
   };
-
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
 
-  // ---- Firestore paths (everything under household/main for the couple) ----
-  const pathSnapshots = () => collection(db, "household", "main", "snapshots");
+  // ---- Paths ----
+  const colSnapshots = () => collection(db, "household", "main", "snapshots");
+  const colStocks    = () => collection(db, "household", "main", "stocks");
+  const colCrypto    = () => collection(db, "household", "main", "crypto");
+  const docStock = (id) => doc(db, "household", "main", "stocks", id);
+  const docCrypto = (id) => doc(db, "household", "main", "crypto", id);
 
   // ---- State ----
   let state = {
     user: null,
     snapshots: [],
     stocks: [],
-    bonds: [],
     crypto: [],
+    bonds: [],
     fxAccounts: [],
   };
 
-  // ---- DOM helper ----
+  // ---- Utils ----
   const $ = (id) => document.getElementById(id);
-
-  // ---- Format helpers ----
   const fmtBRL = (n) => 'R$ ' + (n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmtPct = (n) => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
 
@@ -415,28 +656,42 @@
     setTimeout(() => t.classList.remove('show'), 2400);
   }
 
-  // ---- Compute totals ----
-  // Parts 3-5 will fill in the actual computations from holdings.
-  function computeTotals() {
-    const stocks = state.stocks.reduce((s, x) => s + (x.qty * x.price || 0), 0);
-    const fixed  = state.bonds.reduce((s, x) => s + (x.current || 0), 0);
-    const crypto = state.crypto.reduce((s, x) => s + (x.qty * x.price || 0), 0);
-    const fx     = state.fxAccounts.reduce((s, x) => s + (x.brl || 0), 0);
-    const total  = stocks + fixed + crypto + fx;
-    return { stocks, fixed, crypto, fx, total };
+  function badgeFromTicker(ticker) {
+    if (!ticker) return '?';
+    return ticker.slice(0, 2).toUpperCase();
   }
 
-  // ---- Render ----
+  // ---- Totals ----
+  function computeTotals() {
+    const stocks = state.stocks.reduce((s, x) => s + ((+x.qty || 0) * (+x.price || 0)), 0);
+    const stocksInvested = state.stocks.reduce((s, x) => s + ((+x.qty || 0) * (+x.avg || 0)), 0);
+    const crypto = state.crypto.reduce((s, x) => s + ((+x.qty || 0) * (+x.price || 0)), 0);
+    const cryptoInvested = state.crypto.reduce((s, x) => s + ((+x.qty || 0) * (+x.avg || 0)), 0);
+    const fixed = state.bonds.reduce((s, x) => s + (+x.current || 0), 0);
+    const fx = state.fxAccounts.reduce((s, x) => s + (+x.brl || 0), 0);
+
+    // Until quotes are live, "current" = "invested" for stocks/crypto
+    const stocksValue = stocks > 0 ? stocks : stocksInvested;
+    const cryptoValue = crypto > 0 ? crypto : cryptoInvested;
+
+    const total = stocksValue + fixed + cryptoValue + fx;
+    return {
+      stocks: stocksValue, stocksInvested,
+      crypto: cryptoValue, cryptoInvested,
+      fixed, fx, total
+    };
+  }
+
+  // ============================================================
+  //                      OVERVIEW RENDER
+  // ============================================================
   function renderOverview() {
     const t = computeTotals();
-
-    // Hero
     const totalStr = t.total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const [intPart, centPart] = totalStr.split(',');
     $('heroAmt').textContent = intPart;
     $('heroCents').textContent = ',' + (centPart || '00');
 
-    // Stats
     const pct = (v) => t.total > 0 ? ((v / t.total) * 100).toFixed(1) : '0.0';
     $('statStocks').textContent = fmtBRL(t.stocks);
     $('statStocksSub').textContent = `${state.stocks.length} holdings · ${pct(t.stocks)}%`;
@@ -447,7 +702,6 @@
     $('statFx').textContent = fmtBRL(t.fx);
     $('statFxSub').textContent = `${state.fxAccounts.length} accounts · ${pct(t.fx)}%`;
 
-    // Allocation bar
     const bars = document.querySelectorAll('#allocBar i');
     if (t.total > 0) {
       bars[0].style.width = (t.stocks / t.total * 100) + '%';
@@ -458,7 +712,6 @@
       bars.forEach(b => b.style.width = '0%');
     }
 
-    // Allocation list
     $('allocList').innerHTML = `
       <div class="alloc-row"><div class="name"><span class="dot" style="background:#2563eb"></span>Stocks · ${state.stocks.length} holdings</div><div class="v"><b>${pct(t.stocks)}%</b>${fmtBRL(t.stocks)}</div></div>
       <div class="alloc-row"><div class="name"><span class="dot" style="background:#16a34a"></span>Fixed Income · ${state.bonds.length} bonds</div><div class="v"><b>${pct(t.fixed)}%</b>${fmtBRL(t.fixed)}</div></div>
@@ -471,54 +724,34 @@
     updateHeroDelta();
   }
 
-  // ---- Wealth growth chart ----
   function renderGrowthChart() {
     const wrap = $('growthChartWrap');
     const snaps = state.snapshots;
-
     if (snaps.length === 0) {
-      wrap.innerHTML = `
-        <div class="empty-chart">
-          <div class="ico">📈</div>
-          <h4>No snapshots yet</h4>
-          <p>Save your first snapshot to start tracking how your net worth evolves over time.</p>
-        </div>`;
+      wrap.innerHTML = `<div class="empty-chart"><div class="ico">📈</div><h4>No snapshots yet</h4><p>Save your first snapshot to start tracking how your net worth evolves over time.</p></div>`;
       $('growthMeta').textContent = 'Snapshots over time';
       return;
     }
-
-    const W = 700, H = 280, padL = 50, padR = 16, padT = 20, padB = 32;
-    const innerW = W - padL - padR;
-    const innerH = H - padT - padB;
-
+    const W=700,H=280,padL=50,padR=16,padT=20,padB=32;
+    const innerW=W-padL-padR, innerH=H-padT-padB;
     const totals = snaps.map(s => s.total);
-    const minV = Math.min(...totals);
-    const maxV = Math.max(...totals);
+    const minV = Math.min(...totals), maxV = Math.max(...totals);
     const range = (maxV - minV) || (maxV || 1);
-    const yMin = Math.max(0, minV - range * 0.1);
-    const yMax = maxV + range * 0.1;
+    const yMin = Math.max(0, minV - range * 0.1), yMax = maxV + range * 0.1;
     const yRange = (yMax - yMin) || 1;
-
     const xStep = snaps.length > 1 ? innerW / (snaps.length - 1) : 0;
-
-    const points = snaps.map((s, i) => {
-      const x = padL + (snaps.length === 1 ? innerW / 2 : i * xStep);
-      const y = padT + innerH - ((s.total - yMin) / yRange) * innerH;
-      return { x, y, snap: s };
-    });
-
+    const points = snaps.map((s, i) => ({
+      x: padL + (snaps.length === 1 ? innerW / 2 : i * xStep),
+      y: padT + innerH - ((s.total - yMin) / yRange) * innerH,
+      snap: s
+    }));
     const linePath = points.map((p, i) => (i === 0 ? 'M' : 'L') + p.x + ',' + p.y).join(' ');
     const areaPath = snaps.length > 1
-      ? linePath + ` L ${points[points.length - 1].x},${padT + innerH} L ${points[0].x},${padT + innerH} Z`
-      : '';
-
+      ? linePath + ` L ${points[points.length - 1].x},${padT + innerH} L ${points[0].x},${padT + innerH} Z` : '';
     const yTicks = [];
     for (let i = 0; i < 4; i++) {
-      const v = yMin + (yRange * (3 - i) / 3);
-      const y = padT + (innerH * i / 3);
-      yTicks.push({ v, y });
+      yTicks.push({ v: yMin + (yRange * (3 - i) / 3), y: padT + (innerH * i / 3) });
     }
-
     const xLabels = [];
     if (snaps.length === 1) {
       xLabels.push({ x: points[0].x, label: formatDateShort(snaps[0].date) });
@@ -530,19 +763,11 @@
       }
       xLabels.push({ x: points[points.length - 1].x, label: formatDateShort(snaps[snaps.length - 1].date) });
     }
-
     wrap.innerHTML = `
       <div class="chart">
         <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#2563eb" stop-opacity=".15"/>
-              <stop offset="100%" stop-color="#2563eb" stop-opacity="0"/>
-            </linearGradient>
-          </defs>
-          <g class="grid">
-            ${yTicks.map(t => `<line x1="${padL}" y1="${t.y}" x2="${W - padR}" y2="${t.y}"/>`).join('')}
-          </g>
+          <defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2563eb" stop-opacity=".15"/><stop offset="100%" stop-color="#2563eb" stop-opacity="0"/></linearGradient></defs>
+          <g class="grid">${yTicks.map(t => `<line x1="${padL}" y1="${t.y}" x2="${W - padR}" y2="${t.y}"/>`).join('')}</g>
           ${yTicks.map(t => `<text class="y" x="0" y="${t.y + 4}">${shortMoney(t.v)}</text>`).join('')}
           ${snaps.length > 1 ? `<path class="area" d="${areaPath}"/>` : ''}
           ${snaps.length > 1 ? `<path class="line" d="${linePath}"/>` : ''}
@@ -550,7 +775,6 @@
           ${xLabels.map(l => `<text class="x" x="${l.x}" y="${H - 8}" text-anchor="middle">${l.label}</text>`).join('')}
         </svg>
       </div>`;
-
     $('growthMeta').textContent = `${snaps.length} snapshot${snaps.length > 1 ? 's' : ''} · ${formatDateShort(snaps[0].date)} → ${formatDateShort(snaps[snaps.length - 1].date)}`;
   }
 
@@ -559,7 +783,6 @@
     if (Math.abs(n) >= 1_000) return (n / 1_000).toFixed(0) + 'k';
     return n.toFixed(0);
   }
-
   function formatDateShort(date) {
     if (!date) return '';
     const d = date instanceof Date ? date : new Date(date);
@@ -570,29 +793,22 @@
     const t = computeTotals();
     const snaps = state.snapshots;
     const heroDelta = $('heroDelta');
-
     if (snaps.length === 0) {
       heroDelta.innerHTML = `<span class="pill flat">— No snapshots yet</span><span class="meta">Save your first snapshot to track growth</span>`;
       return;
     }
-
     const last = snaps[snaps.length - 1];
     const diff = t.total - last.total;
     const pct = last.total > 0 ? (diff / last.total) * 100 : 0;
     const cls = diff > 0 ? '' : (diff < 0 ? 'dn' : 'flat');
     const arrow = diff > 0 ? '↑' : (diff < 0 ? '↓' : '·');
-    heroDelta.innerHTML = `
-      <span class="pill ${cls}">${arrow} ${fmtPct(pct)}</span>
-      <span class="meta">${diff >= 0 ? '+' : ''}${fmtBRL(diff)} since ${formatDateShort(last.date)}</span>
-    `;
+    heroDelta.innerHTML = `<span class="pill ${cls}">${arrow} ${fmtPct(pct)}</span><span class="meta">${diff >= 0 ? '+' : ''}${fmtBRL(diff)} since ${formatDateShort(last.date)}</span>`;
   }
 
   function renderSinceLast() {
     const t = computeTotals();
     const snaps = state.snapshots;
-
     $('monthSnaps').textContent = snaps.length;
-
     if (snaps.length === 0) {
       $('monthChange').textContent = '—';
       $('monthChangePct').textContent = 'No previous snapshot';
@@ -600,12 +816,10 @@
       $('monthMeta').textContent = '—';
       return;
     }
-
     const last = snaps[snaps.length - 1];
     const diff = t.total - last.total;
     const pct = last.total > 0 ? (diff / last.total) * 100 : 0;
     const days = Math.max(0, Math.floor((Date.now() - new Date(last.date).getTime()) / (1000 * 60 * 60 * 24)));
-
     const sign = diff >= 0 ? '+' : '';
     const cls = diff > 0 ? 'pos' : (diff < 0 ? 'neg' : '');
     $('monthChange').innerHTML = `<span class="${cls}">${sign}${fmtBRL(diff)}</span>`;
@@ -614,7 +828,245 @@
     $('monthMeta').textContent = formatDateShort(last.date);
   }
 
-  // ---- Snapshot modal ----
+  // ============================================================
+  //                      STOCKS RENDER
+  // ============================================================
+  function renderStocks() {
+    const t = computeTotals();
+    const tbody = $('stocksBody');
+
+    $('stockTotalInvested').textContent = fmtBRL(t.stocksInvested);
+    $('stockCount').textContent = `${state.stocks.length} holding${state.stocks.length !== 1 ? 's' : ''}`;
+    $('stockCurrentValue').textContent = fmtBRL(t.stocks);
+
+    if (state.stocks.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8"><div class="empty-table"><h4>No stocks yet</h4><p>Click "Add stock" to get started.</p></div></td></tr>`;
+      return;
+    }
+
+    // Sort by invested desc
+    const sorted = [...state.stocks].sort((a, b) => ((+b.qty || 0) * (+b.avg || 0)) - ((+a.qty || 0) * (+a.avg || 0)));
+
+    tbody.innerHTML = sorted.map(s => {
+      const invested = (+s.qty || 0) * (+s.avg || 0);
+      const position = (+s.qty || 0) * (+s.price || 0);
+      const hasPrice = (+s.price || 0) > 0;
+      return `
+        <tr data-id="${s.id}" data-type="stock">
+          <td><span class="ticker"><span class="badge">${badgeFromTicker(s.ticker)}</span>${s.ticker || '—'}</span></td>
+          <td>${s.sector || '—'}</td>
+          <td class="mono">${(+s.qty || 0).toLocaleString('pt-BR')}</td>
+          <td class="mono">${(+s.avg || 0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+          <td class="mono ${hasPrice ? '' : 'empty'}">${hasPrice ? (+s.price).toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—'}</td>
+          <td class="mono">${invested.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+          <td class="mono ${hasPrice ? '' : 'empty'}">${hasPrice ? position.toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—'}</td>
+          <td><span class="row-actions"><button class="edit">Edit</button></span></td>
+        </tr>
+      `;
+    }).join('');
+
+    // Bind clicks
+    tbody.querySelectorAll('tr[data-id]').forEach(tr => {
+      tr.addEventListener('click', () => openStockModal(tr.dataset.id));
+    });
+  }
+
+  // ============================================================
+  //                      CRYPTO RENDER
+  // ============================================================
+  function renderCrypto() {
+    const t = computeTotals();
+    const tbody = $('cryptoBody');
+
+    $('cryptoTotalInvested').textContent = fmtBRL(t.cryptoInvested);
+    $('cryptoCount').textContent = `${state.crypto.length} coin${state.crypto.length !== 1 ? 's' : ''}`;
+    $('cryptoCurrentValue').textContent = fmtBRL(t.crypto);
+
+    if (state.crypto.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8"><div class="empty-table"><h4>No coins yet</h4><p>Click "Add coin" to get started.</p></div></td></tr>`;
+      return;
+    }
+
+    const sorted = [...state.crypto].sort((a, b) => ((+b.qty || 0) * (+b.avg || 0)) - ((+a.qty || 0) * (+a.avg || 0)));
+
+    tbody.innerHTML = sorted.map(c => {
+      const invested = (+c.qty || 0) * (+c.avg || 0);
+      const position = (+c.qty || 0) * (+c.price || 0);
+      const hasPrice = (+c.price || 0) > 0;
+      return `
+        <tr data-id="${c.id}" data-type="crypto">
+          <td><span class="ticker"><span class="badge">${(c.symbol || '?').slice(0,2).toUpperCase()}</span>${c.name || '—'}</span></td>
+          <td>${c.symbol || '—'}</td>
+          <td class="mono">${(+c.qty || 0).toLocaleString('pt-BR', {maximumFractionDigits:8})}</td>
+          <td class="mono">${(+c.avg || 0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+          <td class="mono ${hasPrice ? '' : 'empty'}">${hasPrice ? (+c.price).toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—'}</td>
+          <td class="mono">${invested.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+          <td class="mono ${hasPrice ? '' : 'empty'}">${hasPrice ? position.toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—'}</td>
+          <td><span class="row-actions"><button class="edit">Edit</button></span></td>
+        </tr>
+      `;
+    }).join('');
+
+    tbody.querySelectorAll('tr[data-id]').forEach(tr => {
+      tr.addEventListener('click', () => openCryptoModal(tr.dataset.id));
+    });
+  }
+
+  // ============================================================
+  //                      STOCK MODAL
+  // ============================================================
+  let editingStockId = null;
+  function openStockModal(id = null) {
+    editingStockId = id;
+    if (id) {
+      const s = state.stocks.find(x => x.id === id);
+      if (!s) return;
+      $('stockModalTitle').textContent = 'Edit stock';
+      $('stockTicker').value = s.ticker || '';
+      $('stockSector').value = s.sector || '';
+      $('stockQty').value = s.qty || '';
+      $('stockAvg').value = s.avg || '';
+      $('stockDelete').style.display = '';
+    } else {
+      $('stockModalTitle').textContent = 'Add stock';
+      $('stockTicker').value = '';
+      $('stockSector').value = '';
+      $('stockQty').value = '';
+      $('stockAvg').value = '';
+      $('stockDelete').style.display = 'none';
+    }
+    $('stockModal').classList.add('show');
+    setTimeout(() => $('stockTicker').focus(), 50);
+  }
+  function closeStockModal() { $('stockModal').classList.remove('show'); editingStockId = null; }
+
+  async function saveStock() {
+    const ticker = $('stockTicker').value.trim().toUpperCase();
+    const sector = $('stockSector').value;
+    const qty = parseFloat($('stockQty').value);
+    const avg = parseFloat($('stockAvg').value);
+
+    if (!ticker) { showToast('Ticker is required'); return; }
+    if (!qty || qty <= 0) { showToast('Quantity must be > 0'); return; }
+    if (!avg || avg < 0) { showToast('Average price required'); return; }
+
+    const data = {
+      ticker, sector: sector || 'Other',
+      qty, avg,
+      price: 0, // will be filled by brapi in Part 6
+      updatedAt: serverTimestamp(),
+      updatedBy: state.user?.displayName || 'unknown'
+    };
+
+    const btn = $('stockSave');
+    try {
+      btn.disabled = true; btn.textContent = 'Saving...';
+      if (editingStockId) {
+        await setDoc(docStock(editingStockId), data, { merge: true });
+        showToast('✓ Stock updated');
+      } else {
+        await addDoc(colStocks(), { ...data, createdAt: serverTimestamp() });
+        showToast('✓ Stock added');
+      }
+      closeStockModal();
+    } catch (err) {
+      console.error(err); showToast('Error saving stock');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Save';
+    }
+  }
+
+  async function deleteStock() {
+    if (!editingStockId) return;
+    if (!confirm('Delete this stock? This cannot be undone.')) return;
+    try {
+      await deleteDoc(docStock(editingStockId));
+      showToast('✓ Stock removed');
+      closeStockModal();
+    } catch (err) {
+      console.error(err); showToast('Error deleting stock');
+    }
+  }
+
+  // ============================================================
+  //                      CRYPTO MODAL
+  // ============================================================
+  let editingCryptoId = null;
+  function openCryptoModal(id = null) {
+    editingCryptoId = id;
+    if (id) {
+      const c = state.crypto.find(x => x.id === id);
+      if (!c) return;
+      $('cryptoModalTitle').textContent = 'Edit coin';
+      $('cryptoName').value = c.name || '';
+      $('cryptoSymbol').value = c.symbol || '';
+      $('cryptoQty').value = c.qty || '';
+      $('cryptoAvg').value = c.avg || '';
+      $('cryptoDelete').style.display = '';
+    } else {
+      $('cryptoModalTitle').textContent = 'Add coin';
+      $('cryptoName').value = '';
+      $('cryptoSymbol').value = '';
+      $('cryptoQty').value = '';
+      $('cryptoAvg').value = '';
+      $('cryptoDelete').style.display = 'none';
+    }
+    $('cryptoModal').classList.add('show');
+    setTimeout(() => $('cryptoName').focus(), 50);
+  }
+  function closeCryptoModal() { $('cryptoModal').classList.remove('show'); editingCryptoId = null; }
+
+  async function saveCrypto() {
+    const name = $('cryptoName').value.trim();
+    const symbol = $('cryptoSymbol').value.trim().toUpperCase();
+    const qty = parseFloat($('cryptoQty').value);
+    const avg = parseFloat($('cryptoAvg').value);
+
+    if (!name) { showToast('Coin name required'); return; }
+    if (!symbol) { showToast('Symbol required'); return; }
+    if (!qty || qty <= 0) { showToast('Quantity must be > 0'); return; }
+    if (!avg || avg < 0) { showToast('Average price required'); return; }
+
+    const data = {
+      name, symbol, qty, avg,
+      price: 0,
+      updatedAt: serverTimestamp(),
+      updatedBy: state.user?.displayName || 'unknown'
+    };
+
+    const btn = $('cryptoSave');
+    try {
+      btn.disabled = true; btn.textContent = 'Saving...';
+      if (editingCryptoId) {
+        await setDoc(docCrypto(editingCryptoId), data, { merge: true });
+        showToast('✓ Coin updated');
+      } else {
+        await addDoc(colCrypto(), { ...data, createdAt: serverTimestamp() });
+        showToast('✓ Coin added');
+      }
+      closeCryptoModal();
+    } catch (err) {
+      console.error(err); showToast('Error saving coin');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Save';
+    }
+  }
+
+  async function deleteCrypto() {
+    if (!editingCryptoId) return;
+    if (!confirm('Delete this coin? This cannot be undone.')) return;
+    try {
+      await deleteDoc(docCrypto(editingCryptoId));
+      showToast('✓ Coin removed');
+      closeCryptoModal();
+    } catch (err) {
+      console.error(err); showToast('Error deleting coin');
+    }
+  }
+
+  // ============================================================
+  //                      SNAPSHOT MODAL
+  // ============================================================
   function openSnapshotModal() {
     const t = computeTotals();
     $('snapSummary').innerHTML = `
@@ -626,74 +1078,102 @@
     `;
     $('snapshotModal').classList.add('show');
   }
-
-  function closeSnapshotModal() {
-    $('snapshotModal').classList.remove('show');
-  }
+  function closeSnapshotModal() { $('snapshotModal').classList.remove('show'); }
 
   async function saveSnapshot() {
     const t = computeTotals();
     const btn = $('snapConfirm');
     try {
-      btn.disabled = true;
-      btn.textContent = 'Saving...';
-      await addDoc(pathSnapshots(), {
+      btn.disabled = true; btn.textContent = 'Saving...';
+      await addDoc(colSnapshots(), {
         date: serverTimestamp(),
-        stocks: t.stocks,
-        fixed: t.fixed,
-        crypto: t.crypto,
-        fx: t.fx,
-        total: t.total,
-        savedBy: state.user?.displayName || state.user?.email || 'unknown'
+        stocks: t.stocks, fixed: t.fixed, crypto: t.crypto, fx: t.fx, total: t.total,
+        savedBy: state.user?.displayName || 'unknown'
       });
       closeSnapshotModal();
       showToast('✓ Snapshot saved');
     } catch (err) {
-      console.error(err);
-      showToast('Error saving snapshot');
+      console.error(err); showToast('Error saving snapshot');
     } finally {
-      btn.disabled = false;
-      btn.textContent = 'Save snapshot';
+      btn.disabled = false; btn.textContent = 'Save snapshot';
     }
   }
 
+  // ============================================================
+  //                      EVENT BINDING
+  // ============================================================
   $('btnSnapshot').addEventListener('click', openSnapshotModal);
   $('btnSnapshot2').addEventListener('click', openSnapshotModal);
   $('snapCancel').addEventListener('click', closeSnapshotModal);
   $('snapConfirm').addEventListener('click', saveSnapshot);
   $('snapshotModal').addEventListener('click', (e) => { if (e.target.id === 'snapshotModal') closeSnapshotModal(); });
 
-  // ---- Firestore subscriptions ----
-  let unsubSnapshots = null;
+  $('btnAddStock').addEventListener('click', () => openStockModal());
+  $('stockCancel').addEventListener('click', closeStockModal);
+  $('stockSave').addEventListener('click', saveStock);
+  $('stockDelete').addEventListener('click', deleteStock);
+  $('stockModal').addEventListener('click', (e) => { if (e.target.id === 'stockModal') closeStockModal(); });
+
+  $('btnAddCrypto').addEventListener('click', () => openCryptoModal());
+  $('cryptoCancel').addEventListener('click', closeCryptoModal);
+  $('cryptoSave').addEventListener('click', saveCrypto);
+  $('cryptoDelete').addEventListener('click', deleteCrypto);
+  $('cryptoModal').addEventListener('click', (e) => { if (e.target.id === 'cryptoModal') closeCryptoModal(); });
+
+  // Esc closes modals
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeSnapshotModal(); closeStockModal(); closeCryptoModal();
+    }
+  });
+
+  // ============================================================
+  //                      FIRESTORE SUBSCRIPTIONS
+  // ============================================================
+  let unsub = { snapshots: null, stocks: null, crypto: null };
 
   function subscribeAll() {
-    unsubSnapshots = onSnapshot(
-      query(pathSnapshots(), orderBy('date', 'asc')),
+    unsub.snapshots = onSnapshot(
+      query(colSnapshots(), orderBy('date', 'asc')),
       (snap) => {
         state.snapshots = snap.docs.map(d => {
           const data = d.data();
-          return {
-            id: d.id,
-            ...data,
-            date: data.date?.toDate?.() || new Date()
-          };
+          return { id: d.id, ...data, date: data.date?.toDate?.() || new Date() };
         });
         renderOverview();
       },
-      (err) => {
-        console.error('Snapshots subscription error:', err);
-        $('connStatus').textContent = 'Sync error';
-        $('connStatus').classList.remove('live');
-      }
+      (err) => { console.error(err); $('connStatus').textContent = 'Sync error'; }
+    );
+
+    unsub.stocks = onSnapshot(
+      colStocks(),
+      (snap) => {
+        state.stocks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderStocks();
+        renderOverview();
+      },
+      (err) => { console.error(err); }
+    );
+
+    unsub.crypto = onSnapshot(
+      colCrypto(),
+      (snap) => {
+        state.crypto = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderCrypto();
+        renderOverview();
+      },
+      (err) => { console.error(err); }
     );
   }
 
   function unsubscribeAll() {
-    if (unsubSnapshots) unsubSnapshots();
-    unsubSnapshots = null;
+    Object.values(unsub).forEach(fn => fn && fn());
+    unsub = { snapshots: null, stocks: null, crypto: null };
   }
 
-  // ---- Auth ----
+  // ============================================================
+  //                      AUTH & TABS
+  // ============================================================
   $('btnLogin').addEventListener('click', async () => {
     $('loginError').classList.remove('show');
     $('btnLoginText').textContent = 'Signing in...';
@@ -717,8 +1197,7 @@
     if (!uid || uid === '—') return;
     navigator.clipboard.writeText(uid).then(() => {
       const b = $('btnCopyUid');
-      b.textContent = '✓ Copied';
-      b.classList.add('copied');
+      b.textContent = '✓ Copied'; b.classList.add('copied');
       setTimeout(() => { b.textContent = 'Copy UID'; b.classList.remove('copied'); }, 2000);
     });
   });
@@ -751,9 +1230,10 @@
         }, { merge: true });
         $('connStatus').textContent = 'Connected · Firestore live';
         $('connStatus').classList.add('live');
-
         subscribeAll();
         renderOverview();
+        renderStocks();
+        renderCrypto();
       } catch (err) {
         console.error('Firestore error:', err);
         $('connStatus').textContent = 'Firestore error';
