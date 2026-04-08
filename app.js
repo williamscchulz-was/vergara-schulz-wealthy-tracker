@@ -27,6 +27,7 @@ const docExpense  = (id) => doc(db, "household", "main", "expenses", id);
 const docYearly   = (id) => doc(db, "household", "main", "dividendsYearly", id);
 const docConfig   = doc(db, "household", "main", "config", "settings");
 const docI10      = doc(db, "household", "main", "config", "i10");
+const docI10Cfg   = doc(db, "household", "main", "config", "i10sync");
 
 // ---- Constants ----
 const CATEGORIES = {
@@ -49,7 +50,9 @@ const state = {
   mode: 'expenses',             // 'expenses' | 'investments'
   expenses: [],
   yearly: [],
-  i10: { equity: 0, dividends: 0, updatedAt: null, year: new Date().getFullYear() },
+  i10: { equity: 0, dividends: 0, updatedAt: null, year: new Date().getFullYear(), assets: [] },
+  i10Cfg: { workerUrl: '', walletId: '', autoSync: false },
+  i10Syncing: false,
   dividendsYearlyGoal: 1_000_000,
   dividendsYearlyGoalYear: 2035,
   currentViewMonth: new Date(),  // month being viewed in Expenses
@@ -319,9 +322,22 @@ function renderInvestments() {
   // Hero — Patrimônio
   $('i10Equity').textContent = (state.i10.equity || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
   if (state.i10.updatedAt) {
-    $('i10Updated').textContent = 'Atualizado: ' + formatDateTimeBR(state.i10.updatedAt);
+    const sourceTag = state.i10.source === 'investidor10-sync' ? ' · via I10' : ' · manual';
+    $('i10Updated').textContent = 'Atualizado: ' + formatDateTimeBR(state.i10.updatedAt) + sourceTag;
   } else {
     $('i10Updated').textContent = 'Ainda não atualizado';
+  }
+  // Amt subtitle: show variation if synced
+  const subEl = $('i10EquitySub');
+  if (subEl) {
+    if (state.i10.source === 'investidor10-sync' && state.i10.applied > 0) {
+      const variation = +state.i10.variation || 0;
+      const sign = variation >= 0 ? '+' : '';
+      const cls = variation >= 0 ? 'pos' : 'neg';
+      subEl.innerHTML = `Aplicado ${fmtBRL0(state.i10.applied)} · <span class="${cls}">${sign}${variation.toFixed(2)}%</span>`;
+    } else {
+      subEl.textContent = 'Atualização manual · configure sync pra automático';
+    }
   }
 
   // Secondary cards
@@ -375,6 +391,7 @@ function renderInvestments() {
   renderDividendsChart();
   renderPLChart();
   renderYearlyTable();
+  renderI10Assets();
 }
 
 function buildBarChart(years, values, opts = {}) {
@@ -525,6 +542,150 @@ function renderYearlyTable() {
 }
 
 // ============================================================
+//                I10 AUTO-SYNC (via Cloudflare Worker)
+// ============================================================
+function renderI10Assets() {
+  const wrap = $('i10AssetsList');
+  if (!wrap) return;
+  const assets = state.i10.assets || [];
+  if (assets.length === 0) {
+    wrap.innerHTML = `<div class="empty-table" style="padding:30px 10px"><h4>Nenhum ativo sincronizado</h4><p>Clique em "Sincronizar" pra importar sua carteira do Investidor 10.</p></div>`;
+    return;
+  }
+  const totalEquity = assets.reduce((s, a) => s + (+a.equity || 0), 0) || 1;
+  // Ordena do maior pro menor por patrimônio no ativo
+  const sorted = [...assets].sort((a, b) => (+b.equity || 0) - (+a.equity || 0));
+  wrap.innerHTML = sorted.map(a => {
+    const pct = ((+a.equity || 0) / totalEquity) * 100;
+    const appr = +a.appreciation || 0;
+    const apprCls = appr >= 0 ? 'pos' : 'neg';
+    const apprSign = appr >= 0 ? '+' : '';
+    return `<div class="asset-row">
+      <div class="asset-head">
+        <div class="asset-ticker">
+          <span class="tk">${a.ticker || '—'}</span>
+          <span class="qty">${fmtInt(+a.quantity || 0)} cotas · PM ${fmtBRL(+a.avgPrice || 0)}</span>
+        </div>
+        <div class="asset-values">
+          <div class="asset-equity">${fmtBRL0(+a.equity || 0)}</div>
+          <div class="asset-appr ${apprCls}">${apprSign}${appr.toFixed(1)}%</div>
+        </div>
+      </div>
+      <div class="asset-bar"><i style="width:${pct.toFixed(2)}%"></i></div>
+      <div class="asset-foot">
+        <span>${pct.toFixed(1)}% da carteira</span>
+        <span>Atual ${fmtBRL(+a.currentPrice || 0)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function syncFromI10() {
+  const { workerUrl, walletId } = state.i10Cfg;
+  if (!workerUrl || !walletId) {
+    showToast('Configure o Worker e Wallet ID primeiro');
+    openI10ConfigModal();
+    return;
+  }
+  if (state.i10Syncing) return;
+  state.i10Syncing = true;
+  const btn = $('btnSyncI10');
+  const originalHTML = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Sincronizando...'; }
+
+  try {
+    const year = new Date().getFullYear();
+    const base = workerUrl.replace(/\/+$/, ''); // remove trailing slash
+    const res = await fetch(`${base}/i10/all/${encodeURIComponent(walletId)}?year=${year}`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const payload = await res.json();
+
+    // Parse metrics (equity, applied, variation, profit_twr)
+    const m = payload.metrics || {};
+    const equity = parseFloat(m.equity) || 0;
+    const applied = parseFloat(m.applied) || 0;
+    const variation = parseFloat(m.variation) || 0;
+    const profitTwr = parseFloat(m.profit_twr) || 0;
+
+    // Parse earnings (sum of dividends YTD)
+    const dividends = parseFloat(payload.earnings?.sum) || 0;
+
+    // Parse actives (list of tickers)
+    const rawAssets = Array.isArray(payload.actives?.data) ? payload.actives.data : [];
+    const assets = rawAssets.map(a => ({
+      ticker: a.ticker || a.ticker_name || '',
+      quantity: +a.quantity || 0,
+      avgPrice: +a.avg_price || 0,
+      currentPrice: parseFloat(a.current_price) || 0,
+      equity: +a.equity_total || parseFloat(a.equity_brl) || 0,
+      appreciation: +a.appreciation || 0,
+      percentWallet: +a.percent_wallet || 0,
+      earnings: +a.earnings_received || 0,
+      image: a.image || '',
+      url: a.url || '',
+    }));
+
+    // Persist in Firestore — both users share via onSnapshot
+    await setDoc(docI10, {
+      equity,
+      dividends,
+      applied,
+      variation,
+      profitTwr,
+      assets,
+      year,
+      updatedAt: serverTimestamp(),
+      updatedBy: (state.user?.displayName || 'unknown') + ' (auto)',
+      source: 'investidor10-sync',
+    }, { merge: true });
+
+    showToast(`✓ Sincronizado · ${assets.length} ativos`);
+  } catch (err) {
+    console.error('I10 sync error:', err);
+    showToast('Falha ao sincronizar: ' + (err.message || 'erro desconhecido'));
+  } finally {
+    state.i10Syncing = false;
+    if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
+  }
+}
+
+// ============================================================
+//                I10 CONFIG MODAL (Worker URL + Wallet ID)
+// ============================================================
+function openI10ConfigModal() {
+  $('i10CfgWorker').value = state.i10Cfg.workerUrl || '';
+  $('i10CfgWallet').value = state.i10Cfg.walletId || '';
+  $('i10CfgModal').classList.add('show');
+  setTimeout(() => $('i10CfgWorker').focus(), 50);
+}
+function closeI10ConfigModal() { $('i10CfgModal').classList.remove('show'); }
+
+async function saveI10Config() {
+  const workerUrl = ($('i10CfgWorker').value || '').trim();
+  const walletId = ($('i10CfgWallet').value || '').trim();
+  if (!workerUrl || !/^https?:\/\//.test(workerUrl)) { showToast('Worker URL inválida'); return; }
+  if (!walletId || !/^\d+$/.test(walletId)) { showToast('Wallet ID deve ser numérico'); return; }
+  const btn = $('i10CfgSave');
+  try {
+    btn.disabled = true; btn.textContent = 'Salvando...';
+    await setDoc(docI10Cfg, {
+      workerUrl,
+      walletId,
+      updatedAt: serverTimestamp(),
+      updatedBy: state.user?.displayName || 'unknown',
+    }, { merge: true });
+    showToast('✓ Configuração salva');
+    closeI10ConfigModal();
+    // Auto-sync right after saving, so user sees data immediately
+    setTimeout(() => syncFromI10(), 300);
+  } catch (err) { console.error(err); showToast('Erro ao salvar'); }
+  finally { btn.disabled = false; btn.textContent = 'Salvar'; }
+}
+
+// ============================================================
 //                I10 EDIT MODAL
 // ============================================================
 function openI10Modal() {
@@ -552,6 +713,7 @@ async function saveI10() {
       year: new Date().getFullYear(),
       updatedAt: serverTimestamp(),
       updatedBy: state.user?.displayName || 'unknown',
+      source: 'manual',
     }, { merge: true });
     showToast('✓ Valores atualizados');
     closeI10Modal();
@@ -650,6 +812,13 @@ $('i10Cancel').addEventListener('click', closeI10Modal);
 $('i10Save').addEventListener('click', saveI10);
 $('i10Modal').addEventListener('click', e => { if (e.target.id === 'i10Modal') closeI10Modal(); });
 
+// I10 Sync button + Config modal
+$('btnSyncI10')?.addEventListener('click', syncFromI10);
+$('btnCfgI10')?.addEventListener('click', openI10ConfigModal);
+$('i10CfgCancel')?.addEventListener('click', closeI10ConfigModal);
+$('i10CfgSave')?.addEventListener('click', saveI10Config);
+$('i10CfgModal')?.addEventListener('click', e => { if (e.target.id === 'i10CfgModal') closeI10ConfigModal(); });
+
 // Yearly modal
 $('btnAddYear').addEventListener('click', () => openYearlyModal());
 $('yearlyCancel').addEventListener('click', closeYearlyModal);
@@ -662,6 +831,7 @@ document.addEventListener('keydown', e => {
     closeExpenseModal();
     closeI10Modal();
     closeYearlyModal();
+    closeI10ConfigModal();
   }
 });
 
@@ -690,7 +860,17 @@ function subscribeAll() {
     state.i10.dividends = +data.dividends || 0;
     state.i10.updatedAt = data.updatedAt?.toDate?.() || null;
     state.i10.year = data.year || new Date().getFullYear();
+    state.i10.assets = Array.isArray(data.assets) ? data.assets : [];
+    state.i10.applied = +data.applied || 0;
+    state.i10.variation = +data.variation || 0;
+    state.i10.profitTwr = +data.profitTwr || 0;
+    state.i10.source = data.source || null;
     if (state.mode === 'investments') renderInvestments();
+  });
+  unsub.i10Cfg = onSnapshot(docI10Cfg, (snap) => {
+    const data = snap.data() || {};
+    state.i10Cfg.workerUrl = data.workerUrl || '';
+    state.i10Cfg.walletId = data.walletId || '';
   });
 }
 function unsubscribeAll() { Object.values(unsub).forEach(fn => fn && fn()); unsub = {}; }

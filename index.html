@@ -226,8 +226,40 @@
     background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
     color:#fff;border-radius:8px;font-size:11px;font-weight:500;
   }
-  .i10-hero .edit-btn:hover{background:rgba(255,255,255,.2)}
+  .i10-hero .edit-btn:hover{background:rgba(255,255,255,.2);cursor:pointer}
+  .i10-hero .sync-btn{
+    display:inline-flex;align-items:center;gap:8px;padding:11px 18px;
+    background:rgba(48,209,88,.22);border:1px solid rgba(48,209,88,.5);
+    color:#fff;border-radius:11px;font-size:13px;font-weight:600;
+    cursor:pointer;transition:all .15s var(--ease);
+  }
+  .i10-hero .sync-btn:hover:not(:disabled){background:rgba(48,209,88,.32);transform:translateY(-1px)}
+  .i10-hero .sync-btn:disabled{opacity:.55;cursor:wait;transform:none}
+  .i10-hero .btn-row{display:flex;gap:6px;align-items:center}
+  .i10-hero .edit-btn.cfg{padding:7px 10px;min-width:auto}
   .i10-hero .updated{font-size:11px;opacity:.75;font-family:'Geist Mono',monospace}
+  .i10-hero .amt-sub .pos{color:#34e17a;font-weight:600}
+  .i10-hero .amt-sub .neg{color:#ff6b5e;font-weight:600}
+
+  /* Assets list (synced from I10) */
+  .assets-list{display:flex;flex-direction:column;gap:14px}
+  .asset-row{
+    padding:14px 16px;background:var(--surface-2);border:1px solid var(--line);
+    border-radius:var(--radius-sm);transition:all .15s var(--ease);
+  }
+  .asset-row:hover{border-color:var(--line-2);transform:translateY(-1px);box-shadow:var(--shadow-1)}
+  .asset-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px}
+  .asset-ticker{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .asset-ticker .tk{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:-0.01em}
+  .asset-ticker .qty{font-size:11px;color:var(--muted);font-family:'Geist Mono',monospace}
+  .asset-values{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+  .asset-equity{font-size:15px;font-weight:600;color:var(--ink-2);font-family:'Geist Mono',monospace;letter-spacing:-0.01em}
+  .asset-appr{font-size:11px;font-weight:600;font-family:'Geist Mono',monospace}
+  .asset-appr.pos{color:var(--gain-deep)}
+  .asset-appr.neg{color:var(--loss)}
+  .asset-bar{height:5px;background:var(--line);border-radius:3px;overflow:hidden;margin:8px 0}
+  .asset-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#4ea3ff);transition:width .5s var(--ease)}
+  .asset-foot{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-family:'Geist Mono',monospace}
 
   .i10-secondary{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:32px}
   .i10-card{
@@ -512,10 +544,14 @@
           <div class="amt-sub" id="i10EquitySub">Atualizado manualmente · automação em breve</div>
         </div>
         <div class="right">
-          <a href="https://investidor10.com.br/wallet/public/1986068?h=e7342357fda4facec345faeeaa80016d13d53afd" target="_blank" rel="noopener" class="link-btn">
+          <a href="https://investidor10.com.br/wallet/public/1986068?h=e7342357fda4facec345faeeaa80016d13d53afd" target="_blank" rel="noopener" class="link-btn" id="i10PublicLink">
             🔗 Abrir no Investidor10
           </a>
-          <button class="edit-btn" id="btnEditI10">✏️ Editar valores</button>
+          <button class="sync-btn" id="btnSyncI10" title="Sincronizar automaticamente do Investidor 10">🔄 Sincronizar</button>
+          <div class="btn-row">
+            <button class="edit-btn" id="btnEditI10">✏️ Editar</button>
+            <button class="edit-btn cfg" id="btnCfgI10" title="Configurar Worker URL e Wallet ID">⚙️</button>
+          </div>
           <div class="updated" id="i10Updated">Última atualização: —</div>
         </div>
       </div>
@@ -558,6 +594,16 @@
           <div class="val" id="divAllTime">R$ 0</div>
           <div class="sub">Proventos de todos os anos</div>
         </div>
+      </div>
+
+      <div class="card" id="i10AssetsCard" style="margin-bottom:20px">
+        <div class="card-head">
+          <div>
+            <h3>Ativos da carteira</h3>
+            <div class="meta">Sincronizado do Investidor 10 · ordenado por patrimônio</div>
+          </div>
+        </div>
+        <div id="i10AssetsList" class="assets-list"></div>
       </div>
 
       <div class="card" style="margin-bottom:20px">
@@ -649,6 +695,29 @@
     <div class="spacer"></div>
     <button class="btn-secondary" id="i10Cancel">Cancelar</button>
     <button class="btn-primary" id="i10Save">Salvar</button>
+  </div>
+</div></div>
+
+<!-- I10 Sync Config Modal -->
+<div class="modal-bg" id="i10CfgModal"><div class="modal">
+  <h3>⚙️ Configurar sincronização I10</h3>
+  <p class="sub">Cole a URL do seu Cloudflare Worker e o ID da sua carteira pública. A configuração é compartilhada entre os dois usuários via Firestore.</p>
+  <div class="form-grid">
+    <div class="field full">
+      <label>Worker URL</label>
+      <input type="url" id="i10CfgWorker" placeholder="https://ledger-i10-proxy.seu-subdominio.workers.dev" />
+      <div class="hint">URL do Cloudflare Worker publicado · veja DEPLOY-WORKER.md</div>
+    </div>
+    <div class="field full">
+      <label>Wallet ID</label>
+      <input type="text" id="i10CfgWallet" placeholder="1986068" inputmode="numeric" />
+      <div class="hint">Número que aparece na URL pública da sua carteira no Investidor 10</div>
+    </div>
+  </div>
+  <div class="modal-foot">
+    <div class="spacer"></div>
+    <button class="btn-secondary" id="i10CfgCancel">Cancelar</button>
+    <button class="btn-primary" id="i10CfgSave">Salvar</button>
   </div>
 </div></div>
 
