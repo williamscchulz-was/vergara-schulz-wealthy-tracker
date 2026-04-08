@@ -1,5 +1,6 @@
 // ============================================================
 //  LEDGER — Wealth Tracker (app.js)
+//  Entrega B: brapi.dev + CoinGecko + 4h refresh + year-close
 // ============================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -19,6 +20,15 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
+// ---- API config ----
+const BRAPI_TOKEN = "sagKZLJeR9rdAVWK9xMhgT";
+const BRAPI_QUOTE = (tickers) => `https://brapi.dev/api/quote/${tickers}?token=${BRAPI_TOKEN}`;
+const BRAPI_CURRENCY = `https://brapi.dev/api/v2/currency?currency=USD-BRL&token=${BRAPI_TOKEN}`;
+const COINGECKO_BTC = `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=brl&include_24hr_change=true`;
+
+const COINGECKO_MAP = { BTC: 'bitcoin' };
+const REFRESH_INTERVAL_MS = 4 * 60 * 60 * 1000; // 4 hours
+
 // ---- Paths ----
 const colSnapshots = () => collection(db, "household", "main", "snapshots");
 const colStocks    = () => collection(db, "household", "main", "stocks");
@@ -33,6 +43,7 @@ const docYearly = (id) => doc(db, "household", "main", "dividendsYearly", id);
 const docFixed  = (id) => doc(db, "household", "main", "fixedIncome", id);
 const docConfig    = doc(db, "household", "main", "config", "settings");
 const docDividends = doc(db, "household", "main", "config", "dividends");
+const docQuotes    = doc(db, "household", "main", "config", "quotes");
 
 // ---- State ----
 const state = {
@@ -40,13 +51,19 @@ const state = {
   snapshots: [],
   stocks: [],
   crypto: [],
-  bonds: [],         // fixedIncome items
+  bonds: [],
   fxAccounts: [],
-  yearly: [],        // dividendsYearly
+  yearly: [],
   fxRate: 5.1530,
+  fxRateSource: 'manual', // 'manual' | 'live'
+  fxRateChange: 0,
   monthlyDividends: {},
-  dividendsYearlyGoal: 1_000_000, // R$ 1M by 2035
+  dividendsYearlyGoal: 1_000_000,
   dividendsYearlyGoalYear: 2035,
+  quotes: {}, // { PETR4: { price, change }, BTC: { price, change }, ... }
+  lastUpdate: null,
+  isRefreshing: false,
+  refreshTimer: null,
 };
 
 // ---- Utils ----
@@ -61,7 +78,7 @@ function showToast(msg) {
   const t = $('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2400);
+  setTimeout(() => t.classList.remove('show'), 2600);
 }
 function badgeFromTicker(t) { return t ? t.slice(0,2).toUpperCase() : '?'; }
 function shortMoney(n) {
@@ -81,31 +98,240 @@ function formatMaturity(date) {
     return d.toLocaleDateString('pt-BR', { month: '2-digit', year: 'numeric' });
   } catch { return '—'; }
 }
+function formatTime(date) {
+  if (!date) return '—';
+  const d = date instanceof Date ? date : new Date(date);
+  return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
 
 // ============================================================
-//                      TOTALS
+//                      API FETCHERS
 // ============================================================
+async function fetchStockQuotes() {
+  if (!state.stocks.length) return {};
+  const tickers = [...new Set(state.stocks.map(s => s.ticker).filter(Boolean))].join(',');
+  if (!tickers) return {};
+  try {
+    const res = await fetch(BRAPI_QUOTE(tickers));
+    if (!res.ok) throw new Error(`brapi ${res.status}`);
+    const data = await res.json();
+    const out = {};
+    (data.results || []).forEach(r => {
+      out[r.symbol] = {
+        price: +r.regularMarketPrice || 0,
+        change: +r.regularMarketChangePercent || 0,
+        name: r.longName || r.shortName || '',
+      };
+    });
+    return out;
+  } catch (err) {
+    console.error('brapi stocks error:', err);
+    throw err;
+  }
+}
+
+async function fetchCurrencyQuote() {
+  try {
+    const res = await fetch(BRAPI_CURRENCY);
+    if (!res.ok) throw new Error(`brapi currency ${res.status}`);
+    const data = await res.json();
+    const first = (data.currency && data.currency[0]) || null;
+    if (!first) throw new Error('no currency data');
+    return {
+      rate: +first.bidPrice || +first.askPrice || 0,
+      change: +first.percentageChange || 0,
+    };
+  } catch (err) {
+    console.error('brapi currency error:', err);
+    throw err;
+  }
+}
+
+async function fetchCryptoQuotes() {
+  if (!state.crypto.length) return {};
+  const ids = [...new Set(state.crypto
+    .map(c => COINGECKO_MAP[(c.symbol||'').toUpperCase()])
+    .filter(Boolean))].join(',');
+  if (!ids) return {};
+  try {
+    const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=brl&include_24hr_change=true`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`coingecko ${res.status}`);
+    const data = await res.json();
+    const out = {};
+    Object.entries(data).forEach(([geckoId, vals]) => {
+      const symbol = Object.entries(COINGECKO_MAP).find(([_, v]) => v === geckoId)?.[0];
+      if (symbol) {
+        out[symbol] = {
+          price: +vals.brl || 0,
+          change: +vals.brl_24h_change || 0,
+        };
+      }
+    });
+    return out;
+  } catch (err) {
+    console.error('coingecko error:', err);
+    throw err;
+  }
+}
+
+// ============================================================
+//                      REFRESH CONTROLLER
+// ============================================================
+async function refreshAllQuotes(manual = false) {
+  if (state.isRefreshing) return;
+  state.isRefreshing = true;
+  updateRefreshUI('fetching');
+  $('btnRefresh').classList.add('spinning');
+
+  const results = { stocks: null, crypto: null, fx: null, errors: [] };
+
+  // Stocks
+  try { results.stocks = await fetchStockQuotes(); }
+  catch (err) { results.errors.push('Stocks: ' + err.message); }
+
+  // Crypto
+  try { results.crypto = await fetchCryptoQuotes(); }
+  catch (err) { results.errors.push('Crypto: ' + err.message); }
+
+  // FX rate
+  try { results.fx = await fetchCurrencyQuote(); }
+  catch (err) { results.errors.push('FX: ' + err.message); }
+
+  // Merge into state.quotes and save to Firestore
+  const allQuotes = { ...state.quotes };
+  if (results.stocks) Object.assign(allQuotes, results.stocks);
+  if (results.crypto) Object.assign(allQuotes, results.crypto);
+
+  const updateData = {
+    quotes: allQuotes,
+    lastUpdate: serverTimestamp(),
+    updatedBy: state.user?.displayName || 'unknown',
+  };
+  if (results.fx && results.fx.rate > 0) {
+    updateData.fxRate = results.fx.rate;
+    updateData.fxRateChange = results.fx.change || 0;
+    updateData.fxRateSource = 'live';
+  }
+
+  try {
+    await setDoc(docQuotes, updateData, { merge: true });
+    if (results.fx && results.fx.rate > 0) {
+      await setDoc(docConfig, {
+        fxRate: results.fx.rate,
+        fxRateChange: results.fx.change || 0,
+        fxRateSource: 'live',
+      }, { merge: true });
+    }
+  } catch (err) {
+    console.error('firestore quote save error:', err);
+    results.errors.push('Save: ' + err.message);
+  }
+
+  state.isRefreshing = false;
+  $('btnRefresh').classList.remove('spinning');
+
+  if (results.errors.length > 0 && (!results.stocks && !results.crypto && !results.fx)) {
+    updateRefreshUI('error');
+    if (manual) showToast('⚠️ Refresh failed — check console');
+  } else {
+    updateRefreshUI('ok');
+    if (manual) {
+      const partial = results.errors.length > 0 ? ' (some failed)' : '';
+      showToast('✓ Quotes updated' + partial);
+    }
+  }
+}
+
+function updateRefreshUI(status) {
+  const info = $('updateInfo');
+  info.classList.remove('fetching', 'error');
+  if (status === 'fetching') {
+    info.classList.add('fetching');
+    info.textContent = 'Fetching quotes...';
+  } else if (status === 'error') {
+    info.classList.add('error');
+    info.textContent = 'Refresh failed';
+  } else {
+    const t = state.lastUpdate ? formatTime(state.lastUpdate) : '—';
+    info.textContent = 'Last update: ' + t;
+  }
+}
+
+function startAutoRefresh() {
+  if (state.refreshTimer) clearInterval(state.refreshTimer);
+  state.refreshTimer = setInterval(() => {
+    refreshAllQuotes(false);
+  }, REFRESH_INTERVAL_MS);
+}
+
+function stopAutoRefresh() {
+  if (state.refreshTimer) { clearInterval(state.refreshTimer); state.refreshTimer = null; }
+}
+
+// ============================================================
+//                      TOTALS (using live quotes)
+// ============================================================
+function getPriceFor(ticker) {
+  const q = state.quotes[ticker];
+  return q ? (+q.price || 0) : 0;
+}
+function getChangeFor(ticker) {
+  const q = state.quotes[ticker];
+  return q ? (+q.change || 0) : 0;
+}
+
 function computeTotals() {
-  const stocks = state.stocks.reduce((s, x) => s + ((+x.qty||0) * (+x.price||0)), 0);
+  const stocks = state.stocks.reduce((s, x) => {
+    const live = getPriceFor(x.ticker);
+    const price = live > 0 ? live : (+x.avg || 0);
+    return s + ((+x.qty||0) * price);
+  }, 0);
   const stocksInvested = state.stocks.reduce((s, x) => s + ((+x.qty||0) * (+x.avg||0)), 0);
-  const crypto = state.crypto.reduce((s, x) => s + ((+x.qty||0) * (+x.price||0)), 0);
+
+  // Stocks day change (weighted)
+  let stocksDayValue = 0;
+  state.stocks.forEach(x => {
+    const live = getPriceFor(x.ticker);
+    const change = getChangeFor(x.ticker);
+    if (live > 0 && change !== 0) {
+      const currentVal = (+x.qty||0) * live;
+      const prevVal = currentVal / (1 + change/100);
+      stocksDayValue += (currentVal - prevVal);
+    }
+  });
+
+  const crypto = state.crypto.reduce((s, x) => {
+    const live = getPriceFor((x.symbol||'').toUpperCase());
+    const price = live > 0 ? live : (+x.avg || 0);
+    return s + ((+x.qty||0) * price);
+  }, 0);
   const cryptoInvested = state.crypto.reduce((s, x) => s + ((+x.qty||0) * (+x.avg||0)), 0);
+
+  let cryptoDayValue = 0;
+  state.crypto.forEach(x => {
+    const sym = (x.symbol||'').toUpperCase();
+    const live = getPriceFor(sym);
+    const change = getChangeFor(sym);
+    if (live > 0 && change !== 0) {
+      const currentVal = (+x.qty||0) * live;
+      const prevVal = currentVal / (1 + change/100);
+      cryptoDayValue += (currentVal - prevVal);
+    }
+  });
+
   const fxUsd = state.fxAccounts.reduce((s, x) => s + (+x.usd||0), 0);
   const fx = fxUsd * state.fxRate;
 
-  // Fixed income breakdown by category
   const fiReserve = state.bonds.filter(b => b.category === 'reserve').reduce((s,x)=>s+(+x.value||0),0);
   const fiApps = state.bonds.filter(b => b.category === 'apps').reduce((s,x)=>s+(+x.value||0),0);
   const fiKids = state.bonds.filter(b => b.category === 'kids').reduce((s,x)=>s+(+x.value||0),0);
   const fixed = fiReserve + fiApps + fiKids;
 
-  const stocksValue = stocks > 0 ? stocks : stocksInvested;
-  const cryptoValue = crypto > 0 ? crypto : cryptoInvested;
-  const total = stocksValue + fixed + cryptoValue + fx;
-
+  const total = stocks + fixed + crypto + fx;
   return {
-    stocks: stocksValue, stocksInvested,
-    crypto: cryptoValue, cryptoInvested,
+    stocks, stocksInvested, stocksDayValue,
+    crypto, cryptoInvested, cryptoDayValue,
     fixed, fiReserve, fiApps, fiKids,
     fx, fxUsd, total
   };
@@ -150,15 +376,13 @@ function renderOverview() {
   renderNetWorthGrowthChart();
   renderSinceLast();
   updateHeroDelta();
+  checkNewYearBanner();
 }
 
 // ============================================================
 //                      BAR CHART BUILDER
 // ============================================================
 function buildBarChart(years, values, opts = {}) {
-  // years: array of years [2020, 2021, ...]
-  // values: array of numbers same length
-  // opts: { goal, goalYear, color, currentYear }
   const W = 780, H = 280, padL = 50, padR = 20, padT = 30, padB = 40;
   const innerW = W - padL - padR;
   const innerH = H - padT - padB;
@@ -174,9 +398,7 @@ function buildBarChart(years, values, opts = {}) {
   const barSlot = innerW / years.length;
   const barWidth = Math.min(barSlot * 0.6, 32);
   const currentYearActual = new Date().getFullYear();
-
   const color = opts.color || '#0071e3';
-  const colorLight = opts.color ? opts.color + '40' : '#0071e340';
 
   let svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">`;
   svg += `<defs>
@@ -190,7 +412,6 @@ function buildBarChart(years, values, opts = {}) {
     </linearGradient>
   </defs>`;
 
-  // Grid lines (4 levels)
   for (let i = 0; i <= 4; i++) {
     const y = padT + (innerH * i / 4);
     svg += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#f0f0f2" stroke-width="1"/>`;
@@ -198,14 +419,12 @@ function buildBarChart(years, values, opts = {}) {
     svg += `<text class="axis" x="${padL - 8}" y="${y + 4}" text-anchor="end">${shortMoney(val)}</text>`;
   }
 
-  // Goal line
   if (opts.goal) {
     const goalY = padT + innerH - (opts.goal / yMax) * innerH;
     svg += `<line class="goal-line" x1="${padL}" y1="${goalY}" x2="${W - padR}" y2="${goalY}"/>`;
     svg += `<text class="goal-label" x="${W - padR - 4}" y="${goalY - 6}" text-anchor="end">Goal: ${shortMoney(opts.goal)}</text>`;
   }
 
-  // Bars
   years.forEach((y, i) => {
     const v = values[i] || 0;
     const barH = (v / yMax) * innerH;
@@ -215,15 +434,15 @@ function buildBarChart(years, values, opts = {}) {
     const fillUrl = isCurrent ? 'url(#barGradientCurrent)' : 'url(#barGradient)';
     const cls = isCurrent ? 'bar bar-current' : 'bar';
     svg += `<rect class="${cls}" x="${x}" y="${barY}" width="${barWidth}" height="${barH}" rx="4" fill="${fillUrl}"><title>${y}: ${fmtBRL0(v)}</title></rect>`;
-    // Year label
     svg += `<text class="axis" x="${x + barWidth/2}" y="${H - 18}" text-anchor="middle">${y}</text>`;
   });
 
-  // Tooltip for most recent year with data
-  const lastIdx = values.length - 1;
-  const lastYear = years[lastIdx];
-  const lastVal = values[lastIdx];
-  if (lastVal > 0) {
+  // Tooltip for most recent non-zero year
+  let lastIdx = values.length - 1;
+  while (lastIdx >= 0 && !values[lastIdx]) lastIdx--;
+  if (lastIdx >= 0) {
+    const lastYear = years[lastIdx];
+    const lastVal = values[lastIdx];
     const barH = (lastVal / yMax) * innerH;
     const x = padL + barSlot * lastIdx + (barSlot - barWidth) / 2 + barWidth / 2;
     const tipY = padT + innerH - barH - 14;
@@ -242,23 +461,17 @@ function buildBarChart(years, values, opts = {}) {
   return `<div class="bar-chart">${svg}</div>`;
 }
 
-// ============================================================
-//                      DIVIDENDS GROWTH CHART
-// ============================================================
 function renderDividendsGrowthChart() {
   const wrap = $('divChartWrap');
   const currentYear = new Date().getFullYear();
-  const goalYear = state.dividendsYearlyGoalYear; // 2035
+  const goalYear = state.dividendsYearlyGoalYear;
   const startYear = 2021;
   const years = [];
   for (let y = startYear; y <= goalYear; y++) years.push(y);
 
-  // Build values from yearly table + current YTD
   const values = years.map(y => {
-    // From yearly history
     const yh = state.yearly.find(r => r.year === y);
     if (yh) return +yh.divs || 0;
-    // From current year monthly entries
     if (y === currentYear) {
       let ytd = 0;
       for (let m = 1; m <= 12; m++) {
@@ -269,7 +482,6 @@ function renderDividendsGrowthChart() {
     return 0;
   });
 
-  // Only show up to current year + goal marker (future years as 0)
   wrap.innerHTML = buildBarChart(years, values, {
     goal: state.dividendsYearlyGoal,
     goalYear: goalYear,
@@ -277,7 +489,6 @@ function renderDividendsGrowthChart() {
     currentYear
   });
 
-  // Goal pills
   const yearsLeft = Math.max(0, goalYear - currentYear);
   const currentYearValue = values[years.indexOf(currentYear)] || 0;
   const progress = state.dividendsYearlyGoal > 0 ? (currentYearValue / state.dividendsYearlyGoal) * 100 : 0;
@@ -286,33 +497,25 @@ function renderDividendsGrowthChart() {
   $('divProgress').textContent = progress.toFixed(1) + '%';
 }
 
-// ============================================================
-//                      NET WORTH GROWTH CHART
-// ============================================================
 function renderNetWorthGrowthChart() {
   const wrap = $('plChartWrap');
   const currentYear = new Date().getFullYear();
-  // Collect equity data from yearly table
   const yearsWithData = state.yearly
     .filter(y => y.equity != null)
     .sort((a, b) => a.year - b.year);
 
   if (yearsWithData.length === 0) {
-    // Fallback: current snapshot
     const t = computeTotals();
     if (t.total > 0) {
       wrap.innerHTML = buildBarChart([currentYear], [t.total], { color: '#0071e3', currentYear });
-      $('plSinceFirst').textContent = '—';
-      $('plCagr').textContent = '—';
-      return;
+    } else {
+      wrap.innerHTML = `<div class="empty-chart"><div class="ico">📈</div><h4>No net worth history yet</h4><p>Add yearly history entries to see the growth chart.</p></div>`;
     }
-    wrap.innerHTML = `<div class="empty-chart"><div class="ico">📈</div><h4>No net worth history yet</h4><p>Add yearly history entries (Dividends tab) to see the growth chart.</p></div>`;
     $('plSinceFirst').textContent = '—';
     $('plCagr').textContent = '—';
     return;
   }
 
-  // For current year, use latest snapshot if available, otherwise use yearly entry
   const t = computeTotals();
   const currentYearEntry = yearsWithData.find(y => y.year === currentYear);
   let yearsArr = yearsWithData.map(y => y.year);
@@ -321,17 +524,12 @@ function renderNetWorthGrowthChart() {
     yearsArr.push(currentYear);
     valuesArr.push(t.total);
   } else if (currentYearEntry && t.total > 0) {
-    // Use live total for current year if it's bigger (more recent)
     const idx = yearsArr.indexOf(currentYear);
     if (t.total > valuesArr[idx]) valuesArr[idx] = t.total;
   }
 
-  wrap.innerHTML = buildBarChart(yearsArr, valuesArr, {
-    color: '#0071e3',
-    currentYear
-  });
+  wrap.innerHTML = buildBarChart(yearsArr, valuesArr, { color: '#0071e3', currentYear });
 
-  // Calculate growth metrics
   const first = valuesArr[0];
   const last = valuesArr[valuesArr.length - 1];
   const yearsSpan = yearsArr[yearsArr.length - 1] - yearsArr[0];
@@ -392,23 +590,58 @@ function renderStocks() {
   $('stockTotalInvested').textContent = fmtBRL(t.stocksInvested);
   $('stockCount').textContent = `${state.stocks.length} holding${state.stocks.length!==1?'s':''}`;
   $('stockCurrentValue').textContent = fmtBRL(t.stocks);
+
+  // Return
+  if (t.stocksInvested > 0 && t.stocks > 0) {
+    const ret = t.stocks - t.stocksInvested;
+    const pct = (ret / t.stocksInvested) * 100;
+    const cls = ret >= 0 ? 'up' : 'dn';
+    $('stockReturn').innerHTML = `<span class="${ret>=0?'pos':'neg'}">${ret>=0?'+':''}${fmtBRL(ret)}</span>`;
+    $('stockReturnSub').innerHTML = `<span class="${cls}">${fmtPct(pct)}</span>`;
+  } else {
+    $('stockReturn').textContent = '—';
+    $('stockReturnSub').textContent = 'Awaiting quotes';
+  }
+
+  // Today
+  if (t.stocksDayValue !== 0) {
+    const cls = t.stocksDayValue >= 0 ? 'pos' : 'neg';
+    $('stockToday').innerHTML = `<span class="${cls}">${t.stocksDayValue>=0?'+':''}${fmtBRL(t.stocksDayValue)}</span>`;
+    $('stockTodaySub').textContent = 'Today variation';
+  } else {
+    $('stockToday').textContent = '—';
+    $('stockTodaySub').textContent = 'Today variation';
+  }
+
   if (state.stocks.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-table"><h4>No stocks yet</h4><p>Click "Add stock" to get started.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-table"><h4>No stocks yet</h4><p>Click "Add stock" to get started.</p></div></td></tr>`;
     return;
   }
-  const sorted = [...state.stocks].sort((a,b) => ((+b.qty||0)*(+b.avg||0)) - ((+a.qty||0)*(+a.avg||0)));
+  const sorted = [...state.stocks].sort((a,b) => {
+    const aVal = (+a.qty||0) * (getPriceFor(a.ticker) || +a.avg || 0);
+    const bVal = (+b.qty||0) * (getPriceFor(b.ticker) || +b.avg || 0);
+    return bVal - aVal;
+  });
   tbody.innerHTML = sorted.map(s => {
+    const livePrice = getPriceFor(s.ticker);
+    const dayChange = getChangeFor(s.ticker);
+    const price = livePrice > 0 ? livePrice : 0;
     const invested = (+s.qty||0)*(+s.avg||0);
-    const position = (+s.qty||0)*(+s.price||0);
-    const hasPrice = (+s.price||0) > 0;
+    const position = (+s.qty||0)*(price || (+s.avg||0));
+    const pl = position - invested;
+    const plPct = invested > 0 ? (pl/invested)*100 : 0;
+    const hasPrice = price > 0;
+    const dayClass = dayChange >= 0 ? '' : 'dn';
+    const plClass = pl >= 0 ? 'pos' : 'neg';
     return `<tr data-id="${s.id}">
       <td><span class="ticker"><span class="badge">${badgeFromTicker(s.ticker)}</span>${s.ticker||'—'}</span></td>
       <td>${s.sector||'—'}</td>
       <td class="mono">${(+s.qty||0).toLocaleString('pt-BR')}</td>
       <td class="mono">${(+s.avg||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-      <td class="mono ${hasPrice?'':'empty'}">${hasPrice?(+s.price).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
-      <td class="mono">${invested.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-      <td class="mono ${hasPrice?'':'empty'}">${hasPrice?position.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
+      <td class="mono ${hasPrice?'':'empty'}">${hasPrice?price.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
+      <td class="mono">${hasPrice && dayChange!==0 ? `<span class="chip ${dayClass}">${fmtPct(dayChange)}</span>` : '—'}</td>
+      <td class="mono">${position.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+      <td class="mono ${hasPrice?'':'empty'}"><span class="${hasPrice?plClass:''}">${hasPrice?(pl>=0?'+':'')+fmtPct(plPct):'—'}</span></td>
       <td><span class="row-actions"><button>Edit</button></span></td>
     </tr>`;
   }).join('');
@@ -424,23 +657,52 @@ function renderCrypto() {
   $('cryptoTotalInvested').textContent = fmtBRL(t.cryptoInvested);
   $('cryptoCount').textContent = `${state.crypto.length} coin${state.crypto.length!==1?'s':''}`;
   $('cryptoCurrentValue').textContent = fmtBRL(t.crypto);
+
+  if (t.cryptoInvested > 0 && t.crypto > 0) {
+    const ret = t.crypto - t.cryptoInvested;
+    const pct = (ret / t.cryptoInvested) * 100;
+    $('cryptoReturn').innerHTML = `<span class="${ret>=0?'pos':'neg'}">${ret>=0?'+':''}${fmtBRL(ret)}</span>`;
+    $('cryptoReturnSub').innerHTML = `<span class="${ret>=0?'up':'dn'}">${fmtPct(pct)}</span>`;
+  } else {
+    $('cryptoReturn').textContent = '—';
+    $('cryptoReturnSub').textContent = 'Awaiting quotes';
+  }
+
+  if (t.cryptoDayValue !== 0) {
+    const cls = t.cryptoDayValue >= 0 ? 'pos' : 'neg';
+    $('cryptoToday').innerHTML = `<span class="${cls}">${t.cryptoDayValue>=0?'+':''}${fmtBRL(t.cryptoDayValue)}</span>`;
+    $('cryptoTodaySub').textContent = '24h variation';
+  } else {
+    $('cryptoToday').textContent = '—';
+    $('cryptoTodaySub').textContent = '24h variation';
+  }
+
   if (state.crypto.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-table"><h4>No coins yet</h4><p>Click "Add coin" to get started.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-table"><h4>No coins yet</h4><p>Click "Add coin" to get started.</p></div></td></tr>`;
     return;
   }
   const sorted = [...state.crypto].sort((a,b) => ((+b.qty||0)*(+b.avg||0)) - ((+a.qty||0)*(+a.avg||0)));
   tbody.innerHTML = sorted.map(c => {
+    const sym = (c.symbol||'').toUpperCase();
+    const livePrice = getPriceFor(sym);
+    const dayChange = getChangeFor(sym);
+    const price = livePrice > 0 ? livePrice : 0;
     const invested = (+c.qty||0)*(+c.avg||0);
-    const position = (+c.qty||0)*(+c.price||0);
-    const hasPrice = (+c.price||0) > 0;
+    const position = (+c.qty||0)*(price || (+c.avg||0));
+    const pl = position - invested;
+    const plPct = invested > 0 ? (pl/invested)*100 : 0;
+    const hasPrice = price > 0;
+    const dayClass = dayChange >= 0 ? '' : 'dn';
+    const plClass = pl >= 0 ? 'pos' : 'neg';
     return `<tr data-id="${c.id}">
-      <td><span class="ticker"><span class="badge">${(c.symbol||'?').slice(0,2).toUpperCase()}</span>${c.name||'—'}</span></td>
+      <td><span class="ticker"><span class="badge">${sym.slice(0,2) || '?'}</span>${c.name||'—'}</span></td>
       <td>${c.symbol||'—'}</td>
       <td class="mono">${(+c.qty||0).toLocaleString('pt-BR',{maximumFractionDigits:8})}</td>
       <td class="mono">${(+c.avg||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-      <td class="mono ${hasPrice?'':'empty'}">${hasPrice?(+c.price).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
-      <td class="mono">${invested.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-      <td class="mono ${hasPrice?'':'empty'}">${hasPrice?position.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
+      <td class="mono ${hasPrice?'':'empty'}">${hasPrice?price.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
+      <td class="mono">${hasPrice && dayChange!==0 ? `<span class="chip ${dayClass}">${fmtPct(dayChange)}</span>` : '—'}</td>
+      <td class="mono">${position.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+      <td class="mono ${hasPrice?'':'empty'}"><span class="${hasPrice?plClass:''}">${hasPrice?(pl>=0?'+':'')+fmtPct(plPct):'—'}</span></td>
       <td><span class="row-actions"><button>Edit</button></span></td>
     </tr>`;
   }).join('');
@@ -454,9 +716,19 @@ function renderFx() {
   const t = computeTotals();
   const tbody = $('fxBody');
   $('fxRate').textContent = 'R$ ' + state.fxRate.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+  $('fxRateMeta').textContent = state.fxRateSource === 'live' ? 'Live · brapi.dev' : 'Manual rate';
   $('fxTotalUsd').textContent = fmtUSD(t.fxUsd);
   $('fxTotalBrl').textContent = fmtBRL(t.fx);
   $('fxCount').textContent = `${state.fxAccounts.length} account${state.fxAccounts.length!==1?'s':''}`;
+
+  // Day variation for FX rate
+  if (state.fxRateChange !== 0) {
+    const cls = state.fxRateChange >= 0 ? 'pos' : 'neg';
+    $('fxDay').innerHTML = `<span class="${cls}">${fmtPct(state.fxRateChange)}</span>`;
+    $('fxDaySub').textContent = 'USD/BRL today';
+  } else {
+    $('fxDay').textContent = '—';
+  }
 
   if (state.fxAccounts.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6"><div class="empty-table"><h4>No accounts yet</h4><p>Click "Add account" to register your USD positions.</p></div></td></tr>`;
@@ -507,13 +779,13 @@ function renderFixedIncome() {
   $('fiAppsTotal').textContent = fmtBRL(t.fiApps);
   $('fiKidsTotal').textContent = fmtBRL(t.fiKids);
 
-  renderFiSection('reserve', reserveItems);
-  renderFiSection('apps', appsItems);
-  renderFiSection('kids', kidsItems);
+  renderFiSection('Reserve', reserveItems);
+  renderFiSection('Apps', appsItems);
+  renderFiSection('Kids', kidsItems);
 }
 
 function renderFiSection(cat, items) {
-  const tbody = $('fi' + cat.charAt(0).toUpperCase() + cat.slice(1) + 'Body');
+  const tbody = $('fi' + cat + 'Body');
   if (!items.length) {
     tbody.innerHTML = `<tr><td colspan="6"><div class="empty-table"><h4>No items yet</h4><p>Click "+ Add" to register the first one.</p></div></td></tr>`;
     return;
@@ -557,10 +829,7 @@ function renderDividends() {
 
   let allTime = 0;
   Object.values(md).forEach(v => allTime += (+v || 0));
-
-  // Include yearly history in all-time
   state.yearly.forEach(y => {
-    // Only add if no monthly entries for that year
     const hasMonthly = Object.keys(md).some(k => k.startsWith(y.year + '-'));
     if (!hasMonthly) allTime += (+y.divs || 0);
   });
@@ -569,17 +838,14 @@ function renderDividends() {
   Object.entries(md).forEach(([k,v]) => { if ((+v||0) > bestVal) { bestVal = +v; bestKey = k; } });
 
   $('divHeroYear').textContent = currentYear;
-  const ytdStr = ytd.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
-  $('divHeroAmt').textContent = ytdStr;
-  const monthsElapsed = currentMonth;
-  const avg = monthsElapsed > 0 ? ytd / monthsElapsed : 0;
+  $('divHeroAmt').textContent = ytd.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  const avg = currentMonth > 0 ? ytd / currentMonth : 0;
   $('divHeroAvg').textContent = `${fmtBRL0(avg)} / month average`;
 
   if (ytdLastSamePeriod > 0) {
     const vsPct = ((ytd - ytdLastSamePeriod) / ytdLastSamePeriod) * 100;
     const arrow = vsPct >= 0 ? '↑' : '↓';
-    const cls = vsPct >= 0 ? '' : 'dn';
-    $('divHeroVs').className = 'vs ' + cls;
+    $('divHeroVs').className = 'vs ' + (vsPct >= 0 ? '' : 'dn');
     $('divHeroVs').innerHTML = `${arrow} ${vsPct >= 0 ? '+' : ''}${vsPct.toFixed(1)}%`;
   } else {
     $('divHeroVs').textContent = '—';
@@ -589,7 +855,7 @@ function renderDividends() {
   $('divLast12Sub').textContent = `Across last 12 months`;
   $('divAvg').textContent = fmtBRL0(last12 / 12);
   $('divAll').textContent = fmtBRL0(allTime);
-  $('divAllSub').textContent = `Monthly + yearly history combined`;
+  $('divAllSub').textContent = `Monthly + yearly combined`;
 
   if (bestKey) {
     const [yy, mm] = bestKey.split('-');
@@ -601,20 +867,21 @@ function renderDividends() {
 
   renderMonthInputs();
   renderYearlyTable();
-  // Refresh growth charts (they depend on yearly + monthly)
   renderDividendsGrowthChart();
   renderNetWorthGrowthChart();
 }
 
 function renderMonthInputs() {
   const md = state.monthlyDividends;
-  const tbody = `<thead><tr><th>Month</th><th>2024</th><th>2025</th><th>2026</th></tr></thead><tbody>`;
+  const currentYear = new Date().getFullYear();
+  const years = [currentYear - 2, currentYear - 1, currentYear];
+  const thead = `<thead><tr><th>Month</th>${years.map(y => `<th>${y}</th>`).join('')}</tr></thead><tbody>`;
   let rows = '';
-  let totals = { 2024: 0, 2025: 0, 2026: 0 };
+  const totals = {}; years.forEach(y => totals[y] = 0);
   for (let m = 0; m < 12; m++) {
     const mm = String(m+1).padStart(2,'0');
     rows += `<tr><td>${MONTHS[m]}</td>`;
-    [2024, 2025, 2026].forEach(y => {
+    years.forEach(y => {
       const k = `${y}-${mm}`;
       const v = +md[k] || 0;
       totals[y] += v;
@@ -622,9 +889,9 @@ function renderMonthInputs() {
     });
     rows += `</tr>`;
   }
-  rows += `<tr class="total"><td>Total</td><td>${fmtBRL0(totals[2024])}</td><td>${fmtBRL0(totals[2025])}</td><td>${fmtBRL0(totals[2026])}</td></tr>`;
+  rows += `<tr class="total"><td>Total</td>${years.map(y => `<td>${fmtBRL0(totals[y])}</td>`).join('')}</tr>`;
   rows += `</tbody>`;
-  $('monthInputTable').innerHTML = tbody + rows;
+  $('monthInputTable').innerHTML = thead + rows;
 
   $('monthInputTable').querySelectorAll('input[data-key]').forEach(inp => {
     let timer = null;
@@ -647,10 +914,7 @@ async function saveMonthlyDividend(key, value, inp) {
     setTimeout(() => inp.classList.remove('saved'), 1200);
     renderDividends();
     renderOverview();
-  } catch (err) {
-    console.error(err);
-    showToast('Error saving');
-  }
+  } catch (err) { console.error(err); showToast('Error saving'); }
 }
 
 function renderYearlyTable() {
@@ -670,15 +934,100 @@ function renderYearlyTable() {
         yoy = (growth >= 0 ? '+' : '') + growth.toFixed(1) + '%';
       }
     }
-    return `<tr data-id="${y.id}">
-      <td>${y.year}</td>
-      <td>${fmtBRL0(+y.equity||0)}</td>
-      <td>${fmtBRL0(+y.divs||0)}</td>
-      <td>${dy}</td>
-      <td>${yoy}</td>
-    </tr>`;
+    return `<tr data-id="${y.id}"><td>${y.year}</td><td>${fmtBRL0(+y.equity||0)}</td><td>${fmtBRL0(+y.divs||0)}</td><td>${dy}</td><td>${yoy}</td></tr>`;
   }).join('');
   tbody.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => openYearlyModal(tr.dataset.id)));
+}
+
+// ============================================================
+//                      NEW YEAR BANNER & MODAL
+// ============================================================
+function checkNewYearBanner() {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const month = now.getMonth() + 1; // 1-12
+
+  // Show banner from November onwards OR if in new year without closure
+  const prevYear = currentYear - 1;
+  const hasPrevYearEntry = state.yearly.some(y => y.year === prevYear);
+  const hasCurrentYearEntry = state.yearly.some(y => y.year === currentYear);
+
+  let show = false;
+  let titleText = '';
+  let subText = '';
+
+  if (month >= 11 && !hasCurrentYearEntry) {
+    // Nov/Dec of current year — offer to close current year
+    show = true;
+    titleText = `Ready to close ${currentYear}?`;
+    subText = `The year is ending. Click to lock in ${currentYear}'s totals and start the new year.`;
+  } else if (!hasPrevYearEntry && month <= 6) {
+    // Jan-Jun of new year, prev year not closed yet
+    show = true;
+    titleText = `${prevYear} is not closed yet`;
+    subText = `The previous year still needs to be locked into your yearly history. Click to close it.`;
+  }
+
+  const banner = $('newYearBanner');
+  if (show) {
+    $('newYearTitle').textContent = titleText;
+    $('newYearSub').textContent = subText;
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+function openNewYearModal() {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const month = now.getMonth() + 1;
+
+  // Determine which year to close
+  const prevYear = currentYear - 1;
+  const hasPrevYearEntry = state.yearly.some(y => y.year === prevYear);
+  const yearToClose = (month >= 11) ? currentYear : (hasPrevYearEntry ? currentYear : prevYear);
+
+  // Pre-fill equity: current total net worth
+  const t = computeTotals();
+  const equity = t.total;
+
+  // Pre-fill dividends: sum of monthly entries for that year
+  let divs = 0;
+  for (let m = 1; m <= 12; m++) {
+    divs += (+state.monthlyDividends[`${yearToClose}-${String(m).padStart(2,'0')}`] || 0);
+  }
+
+  $('newYearModalTitle').textContent = `Close ${yearToClose}`;
+  $('nyYear').value = yearToClose;
+  $('nyEquity').value = equity.toFixed(2);
+  $('nyDivs').value = divs.toFixed(2);
+
+  $('newYearModal').classList.add('show');
+}
+
+function closeNewYearModal() { $('newYearModal').classList.remove('show'); }
+
+async function confirmNewYear() {
+  const year = parseInt($('nyYear').value);
+  const equity = parseFloat($('nyEquity').value);
+  const divs = parseFloat($('nyDivs').value);
+  if (!year) { showToast('Year required'); return; }
+  if (isNaN(equity) || isNaN(divs)) { showToast('Valid values required'); return; }
+
+  const existing = state.yearly.find(y => y.year === year);
+  const btn = $('nyConfirm');
+  try {
+    btn.disabled = true; btn.textContent = 'Saving...';
+    if (existing) {
+      await setDoc(docYearly(existing.id), { year, equity, divs, updatedAt: serverTimestamp() }, { merge: true });
+    } else {
+      await addDoc(colYearly(), { year, equity, divs, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    }
+    showToast(`✓ ${year} closed`);
+    closeNewYearModal();
+  } catch (err) { console.error(err); showToast('Error closing year'); }
+  finally { btn.disabled = false; btn.textContent = 'Close year'; }
 }
 
 // ============================================================
@@ -712,13 +1061,15 @@ async function saveStock() {
   if (!ticker) { showToast('Ticker is required'); return; }
   if (!qty || qty <= 0) { showToast('Quantity must be > 0'); return; }
   if (!avg || avg < 0) { showToast('Average price required'); return; }
-  const data = { ticker, sector: sector || 'Other', qty, avg, price: 0, updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'unknown' };
+  const data = { ticker, sector: sector || 'Other', qty, avg, updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'unknown' };
   const btn = $('stockSave');
   try {
     btn.disabled = true; btn.textContent = 'Saving...';
     if (editingStockId) { await setDoc(docStock(editingStockId), data, { merge: true }); showToast('✓ Stock updated'); }
     else { await addDoc(colStocks(), { ...data, createdAt: serverTimestamp() }); showToast('✓ Stock added'); }
     closeStockModal();
+    // Refresh quotes for new ticker
+    setTimeout(() => refreshAllQuotes(false), 500);
   } catch (err) { console.error(err); showToast('Error saving'); }
   finally { btn.disabled = false; btn.textContent = 'Save'; }
 }
@@ -762,13 +1113,14 @@ async function saveCrypto() {
   if (!symbol) { showToast('Symbol required'); return; }
   if (!qty || qty <= 0) { showToast('Quantity must be > 0'); return; }
   if (!avg || avg < 0) { showToast('Average price required'); return; }
-  const data = { name, symbol, qty, avg, price: 0, updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'unknown' };
+  const data = { name, symbol, qty, avg, updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'unknown' };
   const btn = $('cryptoSave');
   try {
     btn.disabled = true; btn.textContent = 'Saving...';
     if (editingCryptoId) { await setDoc(docCrypto(editingCryptoId), data, { merge: true }); showToast('✓ Coin updated'); }
     else { await addDoc(colCrypto(), { ...data, createdAt: serverTimestamp() }); showToast('✓ Coin added'); }
     closeCryptoModal();
+    setTimeout(() => refreshAllQuotes(false), 500);
   } catch (err) { console.error(err); showToast('Error saving'); }
   finally { btn.disabled = false; btn.textContent = 'Save'; }
 }
@@ -828,7 +1180,7 @@ async function deleteFx() {
 }
 
 // ============================================================
-//                      MODALS — RATE
+//                      MODAL — RATE
 // ============================================================
 function openRateModal() {
   $('rateInput').value = state.fxRate;
@@ -840,14 +1192,14 @@ async function saveRate() {
   const r = parseFloat($('rateInput').value);
   if (!r || r <= 0) { showToast('Invalid rate'); return; }
   try {
-    await setDoc(docConfig, { fxRate: r }, { merge: true });
+    await setDoc(docConfig, { fxRate: r, fxRateSource: 'manual' }, { merge: true });
     showToast('✓ Rate updated');
     closeRateModal();
   } catch (err) { console.error(err); showToast('Error saving'); }
 }
 
 // ============================================================
-//                      MODALS — YEARLY
+//                      MODAL — YEARLY
 // ============================================================
 let editingYearlyId = null;
 function openYearlyModal(id = null) {
@@ -891,7 +1243,7 @@ async function deleteYearly() {
 }
 
 // ============================================================
-//                      MODALS — FIXED INCOME
+//                      MODAL — FIXED INCOME
 // ============================================================
 let editingFiId = null;
 let editingFiCategory = null;
@@ -903,7 +1255,6 @@ function openFiModal(id = null, category = null) {
     editingFiCategory = b.category;
     const catLabels = { reserve: 'Emergency reserve', apps: 'Application', kids: 'Kids portfolio' };
     $('fiModalTitle').textContent = `Edit ${catLabels[b.category] || 'item'}`;
-    $('fiModalSub').textContent = 'Update the values below.';
     $('fiName').value = b.name || '';
     $('fiType').value = b.type || '';
     $('fiYield').value = b.yield || '';
@@ -913,7 +1264,6 @@ function openFiModal(id = null, category = null) {
   } else {
     const catLabels = { reserve: 'Add to Emergency Reserve', apps: 'Add to Applications', kids: 'Add to Kids portfolio' };
     $('fiModalTitle').textContent = catLabels[category] || 'Add fixed income';
-    $('fiModalSub').textContent = 'Register a bond, CDB, treasury or any fixed income product.';
     $('fiName').value = ''; $('fiType').value = ''; $('fiYield').value = '';
     $('fiMaturity').value = ''; $('fiValue').value = '';
     $('fiDelete').style.display = 'none';
@@ -1025,7 +1375,6 @@ $('yearlySave').addEventListener('click', saveYearly);
 $('yearlyDelete').addEventListener('click', deleteYearly);
 $('yearlyModal').addEventListener('click', e => { if (e.target.id === 'yearlyModal') closeYearlyModal(); });
 
-// Fixed Income add buttons
 document.querySelectorAll('[data-add]').forEach(btn => {
   btn.addEventListener('click', () => openFiModal(null, btn.dataset.add));
 });
@@ -1034,10 +1383,18 @@ $('fiSave').addEventListener('click', saveFi);
 $('fiDelete').addEventListener('click', deleteFi);
 $('fiModal').addEventListener('click', e => { if (e.target.id === 'fiModal') closeFiModal(); });
 
+$('btnStartNewYear').addEventListener('click', openNewYearModal);
+$('nyCancel').addEventListener('click', closeNewYearModal);
+$('nyConfirm').addEventListener('click', confirmNewYear);
+$('newYearModal').addEventListener('click', e => { if (e.target.id === 'newYearModal') closeNewYearModal(); });
+
+$('btnRefresh').addEventListener('click', () => refreshAllQuotes(true));
+
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     closeSnapshotModal(); closeStockModal(); closeCryptoModal();
-    closeFxModal(); closeRateModal(); closeYearlyModal(); closeFiModal();
+    closeFxModal(); closeRateModal(); closeYearlyModal();
+    closeFiModal(); closeNewYearModal();
   }
 });
 
@@ -1075,6 +1432,8 @@ function subscribeAll() {
   unsub.config = onSnapshot(docConfig, (snap) => {
     const data = snap.data() || {};
     if (typeof data.fxRate === 'number') state.fxRate = data.fxRate;
+    if (typeof data.fxRateChange === 'number') state.fxRateChange = data.fxRateChange;
+    if (typeof data.fxRateSource === 'string') state.fxRateSource = data.fxRateSource;
     if (typeof data.dividendsYearlyGoal === 'number') state.dividendsYearlyGoal = data.dividendsYearlyGoal;
     if (typeof data.dividendsYearlyGoalYear === 'number') state.dividendsYearlyGoalYear = data.dividendsYearlyGoalYear;
     renderFx(); renderOverview();
@@ -1083,6 +1442,15 @@ function subscribeAll() {
     const data = snap.data() || {};
     if (data.monthly) state.monthlyDividends = data.monthly;
     renderDividends();
+  });
+  unsub.quotes = onSnapshot(docQuotes, (snap) => {
+    const data = snap.data() || {};
+    if (data.quotes) state.quotes = data.quotes;
+    if (data.lastUpdate) {
+      state.lastUpdate = data.lastUpdate.toDate?.() || new Date(data.lastUpdate);
+      updateRefreshUI('ok');
+    }
+    renderStocks(); renderCrypto(); renderOverview();
   });
 }
 function unsubscribeAll() { Object.values(unsub).forEach(fn => fn && fn()); unsub = {}; }
@@ -1101,7 +1469,7 @@ $('btnLogin').addEventListener('click', async () => {
     $('btnLoginText').textContent = 'Sign in with Google';
   }
 });
-$('btnLogout').addEventListener('click', async () => { unsubscribeAll(); await signOut(auth); });
+$('btnLogout').addEventListener('click', async () => { unsubscribeAll(); stopAutoRefresh(); await signOut(auth); });
 $('btnCopyUid').addEventListener('click', () => {
   const uid = $('uidDisplay').textContent;
   if (!uid || uid === '—') return;
@@ -1129,23 +1497,23 @@ onAuthStateChanged(auth, async (user) => {
     if (user.photoURL) $('userPhoto').src = user.photoURL;
     $('uidDisplay').textContent = user.uid;
     try {
-      $('connStatus').textContent = 'Connecting...';
-      $('connStatus').classList.remove('live');
       await setDoc(doc(db, 'household', 'main', 'meta', 'connection'), {
         lastSeenBy: user.displayName || user.email, lastSeenAt: serverTimestamp(), uid: user.uid
       }, { merge: true });
-      $('connStatus').textContent = 'Connected · Firestore live';
-      $('connStatus').classList.add('live');
       subscribeAll();
       renderOverview(); renderStocks(); renderCrypto(); renderFx();
       renderFixedIncome(); renderDividends();
+
+      // Initial quote fetch after subscriptions warm up
+      setTimeout(() => refreshAllQuotes(false), 1500);
+      startAutoRefresh();
     } catch (err) {
       console.error('Firestore error:', err);
-      $('connStatus').textContent = 'Firestore error'; $('connStatus').classList.remove('live');
     }
   } else {
     state.user = null;
     unsubscribeAll();
+    stopAutoRefresh();
     $('loginScreen').classList.remove('hide');
     $('app').classList.remove('show');
     $('btnLoginText').textContent = 'Sign in with Google';

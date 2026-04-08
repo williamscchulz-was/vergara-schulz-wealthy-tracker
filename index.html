@@ -9,28 +9,28 @@
 <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   :root{
-    --bg:#f5f5f7;            /* Apple light gray */
+    --bg:#f5f5f7;
     --surface:#ffffff;
-    --surface-2:#fbfbfd;     /* Apple secondary */
+    --surface-2:#fbfbfd;
     --ink:#0a0a0a;
-    --ink-2:#1d1d1f;         /* Apple primary text */
-    --muted:#6e6e73;         /* Apple secondary text */
+    --ink-2:#1d1d1f;
+    --muted:#6e6e73;
     --muted-2:#a1a1a6;
     --line:#f0f0f2;
     --line-2:#e5e5ea;
-    --accent:#0071e3;        /* Apple blue */
+    --accent:#0071e3;
     --accent-2:#2563eb;
     --accent-soft:#e8f1ff;
-    --gain:#30d158;          /* Apple green */
+    --gain:#30d158;
     --gain-deep:#1e8e3e;
     --gain-soft:#e8f8ed;
-    --loss:#ff3b30;          /* Apple red */
+    --loss:#ff3b30;
     --loss-soft:#ffebe9;
-    --gold:#ff9500;          /* Apple orange */
+    --gold:#ff9500;
     --gold-soft:#fff4e5;
-    --purple:#af52de;        /* Apple purple */
+    --purple:#af52de;
     --purple-soft:#f7ecff;
-    --radius:18px;           /* Apple card radius */
+    --radius:18px;
     --radius-sm:12px;
     --shadow-1:0 1px 3px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.03);
     --shadow-2:0 4px 16px rgba(0,0,0,.06), 0 2px 6px rgba(0,0,0,.04);
@@ -69,18 +69,34 @@
   .uid-banner button:hover{opacity:.9}
   .uid-banner button.copied{background:var(--gain-deep)}
 
+  /* === NEW YEAR BANNER === */
+  .newyear-banner{background:linear-gradient(135deg,#fff4e5,#fff9ed);border:1px solid #ffd9a8;border-radius:var(--radius-sm);padding:16px 20px;margin-bottom:24px;display:none;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;box-shadow:var(--shadow-1)}
+  .newyear-banner.show{display:flex;animation:fade .35s var(--ease)}
+  .newyear-banner .info{flex:1;min-width:240px}
+  .newyear-banner .title{font-size:14px;font-weight:600;color:#8a4b00;margin-bottom:3px;display:flex;align-items:center;gap:8px}
+  .newyear-banner .sub{font-size:12px;color:#8a4b00;opacity:.85;line-height:1.5}
+  .newyear-banner button{padding:10px 18px;background:#8a4b00;color:#fff;border-radius:10px;font-size:13px;font-weight:600;box-shadow:var(--shadow-1)}
+  .newyear-banner button:hover{background:#6b3a00;transform:translateY(-1px)}
+
   /* === APP === */
   .app{display:none}
   .app.show{display:block}
   .login-screen.hide{display:none}
   .shell{max-width:1200px;margin:0 auto;padding:28px 28px 100px}
 
-  .top{display:flex;align-items:center;justify-content:space-between;padding-bottom:20px;margin-bottom:8px}
+  .top{display:flex;align-items:center;justify-content:space-between;padding-bottom:20px;margin-bottom:8px;gap:14px;flex-wrap:wrap}
   .brand{display:flex;align-items:center;gap:10px}
   .brand .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#0a0a0a,#1d1d1f);display:grid;place-items:center;color:#fff;font-weight:600;font-size:13px;box-shadow:var(--shadow-1)}
   .brand h1{font-size:16px;font-weight:600;letter-spacing:-0.018em}
   .brand h1 span{color:var(--muted);font-weight:400}
-  .top-right{display:flex;align-items:center;gap:14px;font-size:13px;color:var(--muted)}
+  .top-right{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+  .update-info{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);padding:6px 10px;border:1px solid var(--line-2);border-radius:99px;background:var(--surface)}
+  .update-info.fetching{border-color:var(--accent);color:var(--accent)}
+  .update-info.error{border-color:var(--loss);color:var(--loss)}
+  .btn-refresh{padding:6px 10px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface);font-size:14px;line-height:1;transition:all .2s var(--ease)}
+  .btn-refresh:hover{border-color:var(--ink-2);background:var(--surface-2)}
+  .btn-refresh.spinning{animation:spin 1s linear infinite;border-color:var(--accent);color:var(--accent)}
+  @keyframes spin{to{transform:rotate(360deg)}}
   .user-chip{display:inline-flex;align-items:center;gap:9px;padding:5px 12px 5px 5px;border:1px solid var(--line-2);border-radius:99px;font-size:12px;background:var(--surface)}
   .user-chip img{width:24px;height:24px;border-radius:50%}
   .user-chip .name{color:var(--ink-2);font-weight:500}
@@ -137,13 +153,9 @@
   .card-head h3{font-size:16px;font-weight:600;letter-spacing:-0.015em;color:var(--ink-2)}
   .card-head .meta{font-size:12px;color:var(--muted);margin-top:4px}
 
-  /* === GOAL PILLS (DejvDesign inspired) === */
+  /* === GOAL PILLS === */
   .goal-pills{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
-  .goal-pill{
-    display:inline-flex;align-items:center;gap:8px;
-    padding:8px 14px;background:var(--surface-2);border:1px solid var(--line-2);
-    border-radius:99px;font-size:12px;
-  }
+  .goal-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:99px;font-size:12px}
   .goal-pill b{color:var(--ink-2);font-weight:600}
   .goal-pill .lbl{color:var(--muted)}
   .goal-pill.accent{background:var(--accent-soft);border-color:#b8d4ff}
@@ -151,7 +163,7 @@
   .goal-pill.gain{background:var(--gain-soft);border-color:#b8e7c5}
   .goal-pill.gain b{color:var(--gain-deep)}
 
-  /* === BAR CHART (annual growth) === */
+  /* === BAR CHART === */
   .bar-chart{height:280px;position:relative;margin-top:12px}
   .bar-chart svg{width:100%;height:100%;overflow:visible}
   .bar-chart .grid line{stroke:var(--line);stroke-dasharray:0}
@@ -190,7 +202,6 @@
   .pos{color:var(--gain-deep)}
   .neg{color:var(--loss)}
 
-  /* === CONN === */
   .conn{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
   .conn::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--muted-2)}
   .conn.live::before{background:var(--gain);box-shadow:0 0 0 0 rgba(48,209,88,.4);animation:pulse 2.2s infinite}
@@ -213,6 +224,8 @@
   tbody tr:hover{background:var(--surface-2)}
   tbody tr:hover .row-actions{opacity:1}
   tbody td.empty{color:var(--muted-2)}
+  .chip{display:inline-flex;align-items:center;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:500;background:var(--gain-soft);color:var(--gain-deep)}
+  .chip.dn{background:var(--loss-soft);color:var(--loss)}
 
   .ticker{display:inline-flex;align-items:center;gap:11px}
   .ticker .badge{width:32px;height:32px;border-radius:9px;background:var(--surface-2);border:1px solid var(--line-2);display:grid;place-items:center;font-size:10px;font-weight:600;color:var(--muted);font-family:'Geist Mono',monospace}
@@ -250,7 +263,6 @@
   .snap-row.total{padding-top:12px;border-top:1px solid var(--line-2);font-size:14px}
   .snap-row.total .v{font-size:16px}
 
-  /* toast */
   .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink-2);color:#fff;padding:13px 22px;border-radius:12px;font-size:13px;font-weight:600;opacity:0;transition:all .3s var(--ease);pointer-events:none;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.2)}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
@@ -258,44 +270,19 @@
   .tab-head h2{font-size:26px;font-weight:600;letter-spacing:-0.025em;color:var(--ink-2)}
   .tab-head .meta{font-size:13px;color:var(--muted);margin-top:4px}
 
-  .notice{background:var(--accent-soft);border:1px solid #b8d4ff;border-radius:12px;padding:14px 18px;font-size:12px;color:var(--accent);margin-bottom:24px;display:flex;align-items:center;gap:10px;line-height:1.5}
-  .notice b{font-weight:600}
-
   /* === FX RATE CARD === */
-  .rate-card{
-    background:linear-gradient(135deg,var(--gold-soft),#fff);
-    border:1px solid #ffd9a8;border-radius:var(--radius);
-    padding:26px 30px;margin-bottom:24px;
-    display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
-    box-shadow:var(--shadow-1);
-  }
+  .rate-card{background:linear-gradient(135deg,var(--gold-soft),#fff);border:1px solid #ffd9a8;border-radius:var(--radius);padding:26px 30px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;box-shadow:var(--shadow-1)}
   .rate-card .info{display:flex;align-items:center;gap:18px}
-  .rate-card .flag{
-    width:48px;height:48px;border-radius:12px;
-    background:#fff;border:1px solid #ffd9a8;
-    display:grid;place-items:center;font-size:24px;
-    box-shadow:var(--shadow-1);
-  }
+  .rate-card .flag{width:48px;height:48px;border-radius:12px;background:#fff;border:1px solid #ffd9a8;display:grid;place-items:center;font-size:24px;box-shadow:var(--shadow-1)}
   .rate-card .label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#8a4b00;font-weight:600;margin-bottom:2px}
   .rate-card .pair{font-size:13px;color:#6b3a00}
-  .rate-card .rate{
-    font-family:'Geist Mono',monospace;font-size:34px;font-weight:600;
-    letter-spacing:-0.02em;color:var(--ink-2);
-  }
-  .rate-card .edit-btn{
-    padding:9px 16px;background:#fff;border:1px solid #ffd9a8;
-    border-radius:10px;font-size:12px;font-weight:500;color:#8a4b00;
-  }
+  .rate-card .rate{font-family:'Geist Mono',monospace;font-size:34px;font-weight:600;letter-spacing:-0.02em;color:var(--ink-2)}
+  .rate-card .rate-meta{font-size:11px;color:#6b3a00;margin-top:4px;font-family:'Geist Mono',monospace}
+  .rate-card .edit-btn{padding:9px 16px;background:#fff;border:1px solid #ffd9a8;border-radius:10px;font-size:12px;font-weight:500;color:#8a4b00}
   .rate-card .edit-btn:hover{background:var(--gold-soft)}
 
   /* === DIVIDENDS HERO === */
-  .div-hero{
-    background:linear-gradient(135deg,var(--gain-soft),#fff);
-    border:1px solid #b8e7c5;border-radius:var(--radius);
-    padding:36px 40px;margin-bottom:32px;
-    display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;
-    box-shadow:var(--shadow-1);
-  }
+  .div-hero{background:linear-gradient(135deg,var(--gain-soft),#fff);border:1px solid #b8e7c5;border-radius:var(--radius);padding:36px 40px;margin-bottom:32px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;box-shadow:var(--shadow-1)}
   .div-hero .left .label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--gain-deep);font-weight:600;margin-bottom:10px}
   .div-hero .left .amt{font-size:52px;font-weight:600;letter-spacing:-0.03em;color:var(--ink-2);line-height:.95}
   .div-hero .left .amt .cur{font-size:24px;color:var(--gain-deep);vertical-align:top;margin-right:6px}
@@ -305,17 +292,12 @@
   .div-hero .right .vs{font-size:22px;font-weight:700;color:var(--gain-deep)}
   .div-hero .right .vs.dn{color:var(--loss)}
 
-  /* monthly input table */
   .month-input-table{width:100%;border-collapse:collapse}
   .month-input-table th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;padding:0 10px 12px;text-align:right;border-bottom:1px solid var(--line)}
   .month-input-table th:first-child{text-align:left}
   .month-input-table td{padding:8px 10px;border-bottom:1px solid var(--line)}
   .month-input-table td:first-child{font-size:13px;font-weight:500}
-  .month-input-table input{
-    width:100%;padding:9px 12px;border:1px solid transparent;border-radius:8px;
-    background:var(--surface-2);text-align:right;font-family:'Geist Mono',monospace;
-    font-size:12px;outline:none;transition:all .2s var(--ease);
-  }
+  .month-input-table input{width:100%;padding:9px 12px;border:1px solid transparent;border-radius:8px;background:var(--surface-2);text-align:right;font-family:'Geist Mono',monospace;font-size:12px;outline:none;transition:all .2s var(--ease)}
   .month-input-table input:hover{border-color:var(--line-2)}
   .month-input-table input:focus{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px var(--accent-soft)}
   .month-input-table input.saving{border-color:var(--accent)}
@@ -323,7 +305,6 @@
   .month-input-table tr.total td{font-weight:600;background:var(--surface-2)}
   .month-input-table tr.total td:not(:first-child){font-family:'Geist Mono',monospace;text-align:right}
 
-  /* yearly history table */
   .yearly-table{width:100%;border-collapse:collapse}
   .yearly-table th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;padding:0 12px 12px;text-align:right;border-bottom:1px solid var(--line)}
   .yearly-table th:first-child{text-align:left}
@@ -390,7 +371,8 @@
         <h1>Ledger <span>· wealth tracker</span></h1>
       </div>
       <div class="top-right">
-        <span class="conn live" id="connStatus">Connected</span>
+        <span class="update-info" id="updateInfo">Last update: —</span>
+        <button class="btn-refresh" id="btnRefresh" title="Refresh quotes">↻</button>
         <div class="user-chip">
           <img id="userPhoto" alt="" />
           <span class="name" id="userName">User</span>
@@ -405,6 +387,14 @@
         <div class="uid" id="uidDisplay">—</div>
       </div>
       <button id="btnCopyUid">Copy UID</button>
+    </div>
+
+    <div class="newyear-banner" id="newYearBanner">
+      <div class="info">
+        <div class="title">🎊 <span id="newYearTitle">Ready to close 2026?</span></div>
+        <div class="sub" id="newYearSub">When you're ready, click to lock in the year's totals and start tracking the new one.</div>
+      </div>
+      <button id="btnStartNewYear">Start new year</button>
     </div>
 
     <nav class="tabs">
@@ -439,7 +429,6 @@
         <div class="stat"><div class="lbl">USD <span class="dot" style="background:#ff9500"></span></div><div class="val" id="statFx">R$ 0,00</div><div class="sub" id="statFxSub">0 accounts · 0%</div></div>
       </div>
 
-      <!-- DIVIDENDS GROWTH CHART -->
       <div class="card" style="margin-bottom:20px">
         <div class="card-head">
           <div>
@@ -455,12 +444,11 @@
         <div id="divChartWrap"></div>
       </div>
 
-      <!-- NET WORTH GROWTH CHART -->
       <div class="card" style="margin-bottom:32px">
         <div class="card-head">
           <div>
             <h3>Net worth growth</h3>
-            <div class="meta" id="plGrowthMeta">Annual history · auto-snapshots from 2026</div>
+            <div class="meta" id="plGrowthMeta">Annual history</div>
           </div>
           <div class="goal-pills">
             <div class="goal-pill"><span class="lbl">Since 2020</span><b id="plSinceFirst">—</b></div>
@@ -495,20 +483,19 @@
     <!-- ===== STOCKS ===== -->
     <div class="panel" id="stocks">
       <div class="tab-head">
-        <div><h2>Stocks</h2><div class="meta">Brazilian equities · brapi.dev quotes coming in Part 6</div></div>
+        <div><h2>Stocks</h2><div class="meta">Brazilian equities · brapi.dev live quotes</div></div>
         <button class="btn-primary" id="btnAddStock">+ Add stock</button>
       </div>
-      <div class="notice"><span>ℹ️</span><span><b>Quotes are not live yet.</b> Until Part 6 integrates brapi.dev, totals are based on amount invested only.</span></div>
       <div class="stats">
         <div class="stat"><div class="lbl">Total invested</div><div class="val" id="stockTotalInvested">R$ 0,00</div><div class="sub" id="stockCount">0 holdings</div></div>
-        <div class="stat"><div class="lbl">Current value</div><div class="val" id="stockCurrentValue">R$ 0,00</div><div class="sub">Awaiting quotes</div></div>
-        <div class="stat"><div class="lbl">Return</div><div class="val" id="stockReturn">—</div><div class="sub">Awaiting quotes</div></div>
-        <div class="stat"><div class="lbl">Total return (incl. dividends)</div><div class="val" id="stockTotalReturn">—</div><div class="sub">Awaiting quotes &amp; dividends</div></div>
+        <div class="stat"><div class="lbl">Current value</div><div class="val" id="stockCurrentValue">R$ 0,00</div><div class="sub" id="stockCurrentSub">—</div></div>
+        <div class="stat"><div class="lbl">Return</div><div class="val" id="stockReturn">—</div><div class="sub" id="stockReturnSub">Unrealized P/L</div></div>
+        <div class="stat"><div class="lbl">Today</div><div class="val" id="stockToday">—</div><div class="sub" id="stockTodaySub">—</div></div>
       </div>
       <div class="card">
-        <div class="card-head"><h3>Holdings</h3><div class="meta">Click any row to edit</div></div>
+        <div class="card-head"><h3>Holdings</h3><div class="meta">Click any row to edit · auto-refresh every 4h</div></div>
         <div class="table-wrap">
-          <table><thead><tr><th>Ticker</th><th>Sector</th><th>Qty</th><th>Avg price</th><th>Price</th><th>Invested</th><th>Position</th><th></th></tr></thead><tbody id="stocksBody"></tbody></table>
+          <table><thead><tr><th>Ticker</th><th>Sector</th><th>Qty</th><th>Avg</th><th>Price</th><th>Day</th><th>Position</th><th>P/L</th><th></th></tr></thead><tbody id="stocksBody"></tbody></table>
         </div>
       </div>
     </div>
@@ -518,14 +505,12 @@
       <div class="tab-head">
         <div><h2>Fixed Income</h2><div class="meta">Bonds, emergency reserve and Kids portfolio</div></div>
       </div>
-
       <div class="stats">
         <div class="stat"><div class="lbl">Total <span class="dot" style="background:#30d158"></span></div><div class="val" id="fiTotal">R$ 0,00</div><div class="sub" id="fiCount">0 items</div></div>
         <div class="stat"><div class="lbl">Reserve <span class="dot" style="background:#30d158"></span></div><div class="val" id="fiReserve">R$ 0,00</div><div class="sub" id="fiReserveSub">0 items</div></div>
         <div class="stat"><div class="lbl">Applications <span class="dot" style="background:#0071e3"></span></div><div class="val" id="fiApps">R$ 0,00</div><div class="sub" id="fiAppsSub">0 items</div></div>
         <div class="stat"><div class="lbl">Kids <span class="dot" style="background:#af52de"></span></div><div class="val" id="fiKids">R$ 0,00</div><div class="sub" id="fiKidsSub">0 items</div></div>
       </div>
-
       <div class="fi-section reserve">
         <div class="fi-section-head">
           <div class="label"><div class="ico">🛡️</div><h3>Emergency reserve</h3></div>
@@ -536,7 +521,6 @@
         </div>
         <div class="fi-card"><div class="table-wrap"><table><thead><tr><th>Product</th><th>Type</th><th>Yield</th><th>Maturity</th><th>Value</th><th></th></tr></thead><tbody id="fiReserveBody"></tbody></table></div></div>
       </div>
-
       <div class="fi-section apps">
         <div class="fi-section-head">
           <div class="label"><div class="ico">💼</div><h3>Applications</h3></div>
@@ -547,7 +531,6 @@
         </div>
         <div class="fi-card"><div class="table-wrap"><table><thead><tr><th>Product</th><th>Type</th><th>Yield</th><th>Maturity</th><th>Value</th><th></th></tr></thead><tbody id="fiAppsBody"></tbody></table></div></div>
       </div>
-
       <div class="fi-section kids">
         <div class="fi-section-head">
           <div class="label"><div class="ico">👶</div><h3>Kids portfolio</h3></div>
@@ -563,20 +546,19 @@
     <!-- ===== CRYPTO ===== -->
     <div class="panel" id="crypto">
       <div class="tab-head">
-        <div><h2>Crypto</h2><div class="meta">Digital assets · CoinGecko quotes coming in Part 6</div></div>
+        <div><h2>Crypto</h2><div class="meta">Bitcoin · CoinGecko live quotes</div></div>
         <button class="btn-primary" id="btnAddCrypto">+ Add coin</button>
       </div>
-      <div class="notice"><span>ℹ️</span><span><b>Quotes are not live yet.</b> Until Part 6 integrates CoinGecko, totals are based on amount invested only.</span></div>
       <div class="stats">
         <div class="stat"><div class="lbl">Total invested</div><div class="val" id="cryptoTotalInvested">R$ 0,00</div><div class="sub" id="cryptoCount">0 coins</div></div>
-        <div class="stat"><div class="lbl">Current value</div><div class="val" id="cryptoCurrentValue">R$ 0,00</div><div class="sub">Awaiting quotes</div></div>
-        <div class="stat"><div class="lbl">Return</div><div class="val" id="cryptoReturn">—</div><div class="sub">Awaiting quotes</div></div>
-        <div class="stat"><div class="lbl">Today</div><div class="val" id="cryptoToday">—</div><div class="sub">Awaiting quotes</div></div>
+        <div class="stat"><div class="lbl">Current value</div><div class="val" id="cryptoCurrentValue">R$ 0,00</div><div class="sub" id="cryptoCurrentSub">—</div></div>
+        <div class="stat"><div class="lbl">Return</div><div class="val" id="cryptoReturn">—</div><div class="sub" id="cryptoReturnSub">Unrealized P/L</div></div>
+        <div class="stat"><div class="lbl">Today</div><div class="val" id="cryptoToday">—</div><div class="sub" id="cryptoTodaySub">—</div></div>
       </div>
       <div class="card">
-        <div class="card-head"><h3>Holdings</h3><div class="meta">Click any row to edit</div></div>
+        <div class="card-head"><h3>Holdings</h3><div class="meta">Click any row to edit · auto-refresh every 4h</div></div>
         <div class="table-wrap">
-          <table><thead><tr><th>Coin</th><th>Symbol</th><th>Qty</th><th>Avg price</th><th>Price</th><th>Invested</th><th>Position</th><th></th></tr></thead><tbody id="cryptoBody"></tbody></table>
+          <table><thead><tr><th>Coin</th><th>Symbol</th><th>Qty</th><th>Avg</th><th>Price</th><th>Day</th><th>Position</th><th>P/L</th><th></th></tr></thead><tbody id="cryptoBody"></tbody></table>
         </div>
       </div>
     </div>
@@ -584,7 +566,7 @@
     <!-- ===== FX ===== -->
     <div class="panel" id="fx">
       <div class="tab-head">
-        <div><h2>FX · Dollar accounts</h2><div class="meta">USD positions across multiple accounts · BCB PTAX coming in Part 6</div></div>
+        <div><h2>FX · Dollar accounts</h2><div class="meta">USD positions · brapi.dev live rate</div></div>
         <button class="btn-primary" id="btnAddFx">+ Add account</button>
       </div>
       <div class="rate-card">
@@ -594,14 +576,15 @@
         </div>
         <div style="text-align:right">
           <div class="rate" id="fxRate">R$ 5,1530</div>
-          <button class="edit-btn" id="btnEditRate" style="margin-top:6px">Edit rate</button>
+          <div class="rate-meta" id="fxRateMeta">Manual rate</div>
+          <button class="edit-btn" id="btnEditRate" style="margin-top:6px">Edit manually</button>
         </div>
       </div>
       <div class="stats">
         <div class="stat"><div class="lbl">Total USD <span class="dot" style="background:#ff9500"></span></div><div class="val mono" id="fxTotalUsd">US$ 0,00</div><div class="sub" id="fxCount">0 accounts</div></div>
         <div class="stat"><div class="lbl">Total BRL</div><div class="val" id="fxTotalBrl">R$ 0,00</div><div class="sub">At current rate</div></div>
         <div class="stat"><div class="lbl">Largest account</div><div class="val" id="fxLargest">—</div><div class="sub" id="fxLargestSub">—</div></div>
-        <div class="stat"><div class="lbl">Avg cost rate</div><div class="val">—</div><div class="sub">Awaiting Part 6</div></div>
+        <div class="stat"><div class="lbl">Day variation</div><div class="val" id="fxDay">—</div><div class="sub" id="fxDaySub">USD/BRL</div></div>
       </div>
       <div class="card">
         <div class="card-head"><h3>Accounts</h3><div class="meta">Click any row to edit</div></div>
@@ -616,7 +599,6 @@
       <div class="tab-head">
         <div><h2>Dividends · Proventos</h2><div class="meta">Monthly tracking and yearly comparison</div></div>
       </div>
-
       <div class="div-hero">
         <div class="left">
           <div class="label">YTD <span id="divHeroYear">2026</span></div>
@@ -628,14 +610,12 @@
           <div class="vs" id="divHeroVs">—</div>
         </div>
       </div>
-
       <div class="stats">
         <div class="stat"><div class="lbl">Last 12 months</div><div class="val" id="divLast12">R$ 0</div><div class="sub" id="divLast12Sub">—</div></div>
         <div class="stat"><div class="lbl">Best month</div><div class="val" id="divBest">—</div><div class="sub" id="divBestSub">—</div></div>
         <div class="stat"><div class="lbl">Avg monthly (12M)</div><div class="val" id="divAvg">R$ 0</div><div class="sub">Trailing 12M</div></div>
         <div class="stat"><div class="lbl">All-time received</div><div class="val" id="divAll">R$ 0</div><div class="sub" id="divAllSub">Across all years</div></div>
       </div>
-
       <div class="grid-2" style="margin-top:0;margin-bottom:32px">
         <div class="card">
           <div class="card-head"><h3>Monthly entries</h3><div class="meta">Click to edit · auto-saves</div></div>
@@ -717,7 +697,7 @@
 
 <div class="modal-bg" id="rateModal"><div class="modal">
   <h3>Edit USD/BRL rate</h3>
-  <p class="sub">Manual exchange rate. All BRL values will recalculate automatically. Live rate via BCB PTAX coming in Part 6.</p>
+  <p class="sub">Set a manual exchange rate. Next auto-refresh will overwrite it with live brapi.dev data.</p>
   <div class="field"><label>Rate (R$ per US$ 1)</label><input type="number" id="rateInput" placeholder="5.1530" min="0" step="0.0001" /></div>
   <div class="modal-foot">
     <div class="spacer"></div>
@@ -742,7 +722,6 @@
   </div>
 </div></div>
 
-<!-- Fixed Income Modal -->
 <div class="modal-bg" id="fiModal"><div class="modal">
   <h3 id="fiModalTitle">Add fixed income</h3>
   <p class="sub" id="fiModalSub">Register a bond, CDB, treasury or any fixed income product.</p>
@@ -758,6 +737,22 @@
     <div class="spacer"></div>
     <button class="btn-secondary" id="fiCancel">Cancel</button>
     <button class="btn-primary" id="fiSave">Save</button>
+  </div>
+</div></div>
+
+<!-- NEW YEAR MODAL -->
+<div class="modal-bg" id="newYearModal"><div class="modal">
+  <h3 id="newYearModalTitle">Close 2026</h3>
+  <p class="sub">Lock in the final values for the year. This creates a yearly history entry for the growth charts. Values are pre-filled from your current data — adjust if needed.</p>
+  <div class="form-grid">
+    <div class="field"><label>Year being closed</label><input type="number" id="nyYear" readonly /></div>
+    <div class="field"><label>Patrimônio final (R$)</label><input type="number" id="nyEquity" min="0" step="0.01" /></div>
+    <div class="field full"><label>Total proventos do ano (R$)</label><input type="number" id="nyDivs" min="0" step="0.01" /><div class="hint">Sum of all monthly dividend entries</div></div>
+  </div>
+  <div class="modal-foot">
+    <div class="spacer"></div>
+    <button class="btn-secondary" id="nyCancel">Cancel</button>
+    <button class="btn-primary" id="nyConfirm">Close year</button>
   </div>
 </div></div>
 
