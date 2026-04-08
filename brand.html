@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ledger — Brand Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#f5f5f7;
+    --surface:#fff;
+    --ink:#1d1d1f;
+    --muted:#6e6e73;
+    --line:#e5e5ea;
+    --accent:#0071e3;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Geist',-apple-system,sans-serif;
+    padding:48px 32px 120px;
+    letter-spacing:-0.011em;
+    min-height:100vh;
+  }
+  .shell{max-width:1100px;margin:0 auto}
+  h1{font-size:32px;font-weight:600;letter-spacing:-0.03em;margin-bottom:8px}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:40px}
+  .section{margin-bottom:56px}
+  .section-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+  .grid{display:grid;gap:16px}
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:32px;
+    box-shadow:0 1px 3px rgba(0,0,0,.04);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:18px;
+    min-height:180px;
+  }
+  .card.dark{background:#1d1d1f;border-color:#0a0a0a}
+  .card.accent{background:linear-gradient(135deg,#0071e3,#2563eb);border-color:#0071e3}
+  .card .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600;text-align:center}
+  .card.dark .label,.card.accent .label{color:rgba(255,255,255,.7)}
+  .card .size{font-size:10px;color:var(--muted);font-family:ui-monospace,monospace}
+  .card.dark .size,.card.accent .size{color:rgba(255,255,255,.5)}
+
+  .grid-main{grid-template-columns:1fr 1fr 1fr}
+  .grid-sizes{grid-template-columns:repeat(6,1fr);gap:12px}
+  .grid-sizes .card{padding:20px 10px;min-height:120px;gap:10px}
+  .grid-wordmark{grid-template-columns:1fr 1fr}
+  .grid-variants{grid-template-columns:1fr 1fr 1fr}
+
+  .wordmark-row{display:flex;align-items:center;gap:12px}
+  .wordmark-row h2{
+    font-size:28px;font-weight:600;letter-spacing:-0.025em;color:var(--ink);
+  }
+  .card.dark .wordmark-row h2,.card.accent .wordmark-row h2{color:#fff}
+  .wordmark-row h2 .dot{color:var(--accent);margin-left:2px}
+  .card.dark .wordmark-row h2 .dot{color:#64d2ff}
+  .card.accent .wordmark-row h2 .dot{color:#fff}
+
+  .downloads{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:28px;margin-top:32px}
+  .downloads h3{font-size:16px;font-weight:600;margin-bottom:8px}
+  .downloads p{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px}
+  .code-block{background:#1d1d1f;color:#e5e5ea;padding:16px 20px;border-radius:12px;font-family:ui-monospace,monospace;font-size:12px;overflow-x:auto;white-space:pre;line-height:1.5}
+
+  @media (max-width:900px){
+    .grid-main,.grid-variants,.grid-wordmark{grid-template-columns:1fr}
+    .grid-sizes{grid-template-columns:repeat(3,1fr)}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <h1>Ledger — Brand kit</h1>
+  <p class="sub">Identidade visual minimalista inspirada em Apple. Monograma geométrico com traços que remetem a barras de gráfico.</p>
+
+  <!-- ========== MAIN LOGO ========== -->
+  <div class="section">
+    <div class="section-title">Logo principal</div>
+    <div class="grid grid-main">
+
+      <div class="card">
+        <svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bgGradLight1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#0a0a0a"/>
+              <stop offset="100%" stop-color="#2d2d30"/>
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="120" height="120" rx="26" fill="url(#bgGradLight1)"/>
+          <!-- Subtle grid lines background -->
+          <g opacity="0.08" stroke="#ffffff" stroke-width="1">
+            <line x1="30" y1="24" x2="30" y2="96"/>
+            <line x1="50" y1="24" x2="50" y2="96"/>
+            <line x1="70" y1="24" x2="70" y2="96"/>
+            <line x1="90" y1="24" x2="90" y2="96"/>
+            <line x1="24" y1="60" x2="96" y2="60"/>
+          </g>
+          <!-- The "L" stroke -->
+          <path d="M 36 28 L 36 88 L 78 88" stroke="#ffffff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <!-- Bar chart accents on top of horizontal bar -->
+          <rect x="48" y="70" width="5" height="10" rx="1.5" fill="#64d2ff" opacity="0.9"/>
+          <rect x="58" y="60" width="5" height="20" rx="1.5" fill="#30d158" opacity="0.9"/>
+          <rect x="68" y="48" width="5" height="32" rx="1.5" fill="#0071e3"/>
+        </svg>
+        <div class="label">Logo principal · 120px</div>
+        <div class="size">Escuro + barras de crescimento</div>
+      </div>
+
+      <div class="card dark">
+        <svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="120" height="120" rx="26" fill="#ffffff"/>
+          <g opacity="0.08" stroke="#0a0a0a" stroke-width="1">
+            <line x1="30" y1="24" x2="30" y2="96"/>
+            <line x1="50" y1="24" x2="50" y2="96"/>
+            <line x1="70" y1="24" x2="70" y2="96"/>
+            <line x1="90" y1="24" x2="90" y2="96"/>
+            <line x1="24" y1="60" x2="96" y2="60"/>
+          </g>
+          <path d="M 36 28 L 36 88 L 78 88" stroke="#0a0a0a" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <rect x="48" y="70" width="5" height="10" rx="1.5" fill="#64d2ff"/>
+          <rect x="58" y="60" width="5" height="20" rx="1.5" fill="#30d158"/>
+          <rect x="68" y="48" width="5" height="32" rx="1.5" fill="#0071e3"/>
+        </svg>
+        <div class="label">Em fundo escuro · 120px</div>
+        <div class="size">Inverted light</div>
+      </div>
+
+      <div class="card accent">
+        <svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="120" height="120" rx="26" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+          <g opacity="0.12" stroke="#ffffff" stroke-width="1">
+            <line x1="30" y1="24" x2="30" y2="96"/>
+            <line x1="50" y1="24" x2="50" y2="96"/>
+            <line x1="70" y1="24" x2="70" y2="96"/>
+            <line x1="90" y1="24" x2="90" y2="96"/>
+            <line x1="24" y1="60" x2="96" y2="60"/>
+          </g>
+          <path d="M 36 28 L 36 88 L 78 88" stroke="#ffffff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <rect x="48" y="70" width="5" height="10" rx="1.5" fill="#ffffff" opacity="0.6"/>
+          <rect x="58" y="60" width="5" height="20" rx="1.5" fill="#ffffff" opacity="0.8"/>
+          <rect x="68" y="48" width="5" height="32" rx="1.5" fill="#ffffff"/>
+        </svg>
+        <div class="label">Em accent · 120px</div>
+        <div class="size">Ghost variant</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========== SIZES ========== -->
+  <div class="section">
+    <div class="section-title">Escalabilidade</div>
+    <div class="grid grid-sizes">
+
+      <div class="card">
+        <svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="bgGradS1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0a0a0a"/><stop offset="100%" stop-color="#2d2d30"/></linearGradient></defs>
+          <rect x="0" y="0" width="120" height="120" rx="26" fill="url(#bgGradS1)"/>
+          <g opacity="0.08" stroke="#ffffff" stroke-width="1">
+            <line x1="30" y1="24" x2="30" y2="96"/><line x1="50" y1="24" x2="50" y2="96"/>
+            <line x1="70" y1="24" x2="70" y2="96"/><line x1="90" y1="24" x2="90" y2="96"/>
+            <line x1="24" y1="60" x2="96" y2="60"/>
+          </g>
+          <path d="M 36 28 L 36 88 L 78 88" stroke="#ffffff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <rect x="48" y="70" width="5" height="10" rx="1.5" fill="#64d2ff" opacity="0.9"/>
+          <rect x="58" y="60" width="5" height="20" rx="1.5" fill="#30d158" opacity="0.9"/>
+          <rect x="68" y="48" width="5" height="32" rx="1.5" fill="#0071e3"/>
+        </svg>
+        <div class="size">120px</div>
+      </div>
+
+      <div class="card">
+        <svg width="64" height="64" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="bgGradS2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0a0a0a"/><stop offset="100%" stop-color="#2d2d30"/></linearGradient></defs>
+          <rect x="0" y="0" width="120" height="120" rx="26" fill="url(#bgGradS2)"/>
+          <g opacity="0.08" stroke="#ffffff" stroke-width="1">
+            <line x1="30" y1="24" x2="30" y2="96"/><line x1="50" y1="24" x2="50" y2="96"/>
+            <line x1="70" y1="24" x2="70" y2="96"/><line x1="90" y1="24" x2="90" y2="96"/>
+            <line x1="24" y1="60" x2="96" y2="60"/>
+          </g>
+          <path d="M 36 28 L 36 88 L 78 88" stroke="#ffffff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <rect x="48" y="70" width="5" height="10" rx="1.5" fill="#64d2ff" opacity="0.9"/>
+          <rect x="58" y="60" width="5" height="20" rx="1.5" fill="#30d158" opacity="0.9"/>
+          <rect x="68" y="48" width="5" height="32" rx="1.5" fill="#0071e3"/>
+        </svg>
+        <div class="size">64px</div>
+      </div>
+
+      <div class="card">
+        <svg width="40" height="40" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="bgGradS3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0a0a0a"/><stop offset="100%" stop-color="#2d2d30"/></linearGradient></defs>
+          <rect x="0" y="0" width="120" height="120" rx="26" fill="url(#bgGradS3)"/>
+          <path d="M 36 28 L 36 88 L 78 88" stroke="#ffffff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <rect x="48" y="70" width="5" height="10" rx="1.5" fill="#64d2ff" opacity="0.9"/>
+          <rect x="58" y="60" width="5" height="20" rx="1.5" fill="#30d158" opacity="0.9"/>
+          <rect x="68" y="48" width="5" height="32" rx="1.5" fill="#0071e3"/>
+        </svg>
+        <div class="size">40px (login)</div>
+      </div>
+
+      <div class="card">
+        <svg width="28" height="28" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="bgGradS4" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0a0a0a"/><stop offset="100%" stop-color="#2d2d30"/></linearGradient></defs>
+          <rect x="0" y="0" width="120" height="120" rx="26" fill="url(#bgGradS4)"/>
+          <path d="M 36 28 L 36 88 L 78 88" stroke="#ffffff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <rect x="58" y="60" width="6" height="20" rx="2" fill="#30d158"/>
+          <rect x="68" y="48" width="6" height="32" rx="2" fill="#0071e3"/>
+        </svg>
+        <div class="size">28px (header)</div>
+      </div>
+
+      <div class="card">
+        <svg width="20" height="20" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="bgGradS5" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0a0a0a"/><stop offset="100%" stop-color="#2d2d30"/></linearGradient></defs>
+          <rect x="0" y="0" width="120" height="120" rx="26" fill="url(#bgGradS5)"/>
+          <path d="M 36 28 L 36 88 L 78 88" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <rect x="68" y="48" width="7" height="32" rx="2" fill="#0071e3"/>
+        </svg>
+        <div class="size">20px</div>
+      </div>
+
+      <div class="card">
+        <svg width="16" height="16" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="bgGradS6" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0a0a0a"/><stop offset="100%" stop-color="#2d2d30"/></linearGradient></defs>
+          <rect x="0" y="0" width="120" height="120" rx="26" fill="url(#bgGradS6)"/>
+          <path d="M 36 28 L 36 88 L 78 88" stroke="#ffffff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <div class="size">16px (favicon)</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========== WORDMARK ========== -->
+  <div class="section">
+    <div class="section-title">Wordmark · marca completa</div>
+    <div class="grid grid-wordmark">
+
+      <div class="card" style="padding:56px">
+        <div class="wordmark-row">
+          <svg width="48" height="48" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+            <defs><linearGradient id="bgGradW1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0a0a0a"/><stop offset="100%" stop-color="#2d2d30"/></linearGradient></defs>
+            <rect x="0" y="0" width="120" height="120" rx="26" fill="url(#bgGradW1)"/>
+            <g opacity="0.08" stroke="#ffffff" stroke-width="1">
+              <line x1="30" y1="24" x2="30" y2="96"/><line x1="50" y1="24" x2="50" y2="96"/>
+              <line x1="70" y1="24" x2="70" y2="96"/><line x1="90" y1="24" x2="90" y2="96"/>
+              <line x1="24" y1="60" x2="96" y2="60"/>
+            </g>
+            <path d="M 36 28 L 36 88 L 78 88" stroke="#ffffff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <rect x="48" y="70" width="5" height="10" rx="1.5" fill="#64d2ff" opacity="0.9"/>
+            <rect x="58" y="60" width="5" height="20" rx="1.5" fill="#30d158" opacity="0.9"/>
+            <rect x="68" y="48" width="5" height="32" rx="1.5" fill="#0071e3"/>
+          </svg>
+          <h2>Ledger<span class="dot">.</span></h2>
+        </div>
+        <div class="label">Marca completa</div>
+      </div>
+
+      <div class="card dark" style="padding:56px">
+        <div class="wordmark-row">
+          <svg width="48" height="48" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0" y="0" width="120" height="120" rx="26" fill="#ffffff"/>
+            <g opacity="0.08" stroke="#0a0a0a" stroke-width="1">
+              <line x1="30" y1="24" x2="30" y2="96"/><line x1="50" y1="24" x2="50" y2="96"/>
+              <line x1="70" y1="24" x2="70" y2="96"/><line x1="90" y1="24" x2="90" y2="96"/>
+              <line x1="24" y1="60" x2="96" y2="60"/>
+            </g>
+            <path d="M 36 28 L 36 88 L 78 88" stroke="#0a0a0a" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <rect x="48" y="70" width="5" height="10" rx="1.5" fill="#64d2ff"/>
+            <rect x="58" y="60" width="5" height="20" rx="1.5" fill="#30d158"/>
+            <rect x="68" y="48" width="5" height="32" rx="1.5" fill="#0071e3"/>
+          </svg>
+          <h2>Ledger<span class="dot">.</span></h2>
+        </div>
+        <div class="label">Em fundo escuro</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========== DOWNLOADS ========== -->
+  <div class="downloads">
+    <h3>📥 Como usar</h3>
+    <p>Esse arquivo <code>brand.html</code> é só um preview pra você ver as variantes. Os SVGs já estão embutidos no <code>index.html</code> novo que vou atualizar. Você só substitui os arquivos no GitHub.</p>
+    <p>Se quiser exportar como PNG (pra redes sociais, favicon, etc), abre essa página no navegador, clica com botão direito em cima do logo que quiser e escolhe "Salvar imagem como..." ou tira um screenshot.</p>
+  </div>
+
+</div>
+</body>
+</html>
