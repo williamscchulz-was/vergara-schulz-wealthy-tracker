@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Seed History — Ledger</title>
+<style>
+  body{font-family:-apple-system,sans-serif;max-width:720px;margin:40px auto;padding:0 24px;background:#f5f5f7;color:#1d1d1f}
+  h1{font-size:24px;margin-bottom:6px;font-weight:600}
+  .sub{color:#6e6e73;font-size:14px;margin-bottom:24px}
+  .card{background:#fff;border:1px solid #e5e5ea;border-radius:18px;padding:26px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  h3{font-size:15px;font-weight:600;margin-bottom:10px}
+  button{background:#1d1d1f;color:#fff;border:none;padding:12px 22px;border-radius:12px;font-size:14px;cursor:pointer;font-weight:600}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  button.danger{background:#ff3b30}
+  pre{background:#f5f5f7;padding:14px;border-radius:10px;font-size:11px;overflow:auto;max-height:260px;border:1px solid #e5e5ea}
+  .log{background:#1d1d1f;color:#86efac;padding:16px;border-radius:12px;font-family:monospace;font-size:12px;min-height:80px;white-space:pre-wrap;margin-top:14px;max-height:300px;overflow-y:auto}
+  .err{color:#fca5a5}
+  .warn{background:#fff4e5;border:1px solid #ffd9a8;border-radius:12px;padding:14px;font-size:13px;color:#8a4b00;margin-bottom:16px;line-height:1.5}
+  .success{background:#e8f8ed;border:1px solid #b8e7c5;border-radius:12px;padding:14px;font-size:13px;color:#1e8e3e;margin-bottom:16px;line-height:1.5;display:none}
+  .success.show{display:block}
+</style>
+</head>
+<body>
+  <h1>Seed history</h1>
+  <p class="sub">One-time script to populate Firestore with historical data (yearly PL 2020-2025 + monthly dividends 2024-2026).</p>
+
+  <div class="warn">
+    ⚠️ <b>Run this only once.</b> If you run it twice you'll get duplicates. After running, delete this file from the repo.
+  </div>
+
+  <div class="success" id="successBox">
+    ✓ <b>Seed completed successfully!</b> You can now go to the main app and check the Overview (growth charts) and Dividends (monthly + yearly tables).
+  </div>
+
+  <div class="card">
+    <h3>Step 1 — Sign in with Google</h3>
+    <p class="sub">Same Google account you use on the main app.</p>
+    <button id="btnLogin">Sign in with Google</button>
+    <div id="loginInfo" style="margin-top:12px;font-size:13px;color:#6e6e73"></div>
+  </div>
+
+  <div class="card">
+    <h3>Step 2 — Preview data</h3>
+    <p class="sub">Yearly PL (patrimônio) + annual dividends history + 2024-2026 monthly entries from your spreadsheet.</p>
+    <pre id="preview"></pre>
+  </div>
+
+  <div class="card">
+    <h3>Step 3 — Run the seed</h3>
+    <p class="sub">Writes to: <code>/household/main/dividendsYearly</code> (collection) and <code>/household/main/config/dividends</code> (monthly object).</p>
+    <button id="btnSeed" disabled>Run seed (sign in first)</button>
+    <div class="log" id="log">Waiting...</div>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA5zsPOxpOBPN8BVnJRIN0mIJ4gdlUntc8",
+    authDomain: "wealthy-tracker-68658.firebaseapp.com",
+    projectId: "wealthy-tracker-68658",
+    storageBucket: "wealthy-tracker-68658.firebasestorage.app",
+    messagingSenderId: "559892333696",
+    appId: "1:559892333696:web:3272f0f8e86449f4885265"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
+
+  // Yearly PL (from William)
+  const yearlyHistory = [
+    { year: 2020, equity: 22791,     divs: 0 },
+    { year: 2021, equity: 76824.71,  divs: 922.23 },
+    { year: 2022, equity: 67988.13,  divs: 7461.84 },
+    { year: 2023, equity: 304692.31, divs: 10395.63 },
+    { year: 2024, equity: 615772.62, divs: 33166.54 },
+    { year: 2025, equity: 1412030.23,divs: 67255.97 },
+  ];
+
+  // Monthly dividends from spreadsheet
+  const monthlyDividends = {
+    // 2024
+    "2024-01": 1628.74, "2024-02": 3236.36, "2024-03": 2785.55,
+    "2024-04": 3822.67, "2024-05": 1144.76, "2024-06": 4296.88,
+    "2024-07": 728.22,  "2024-08": 4245.49, "2024-09": 3464.48,
+    "2024-10": 812.71,  "2024-11": 1119.99, "2024-12": 4971.03,
+    // 2025
+    "2025-01": 4451.97, "2025-02": 2250.84, "2025-03": 18814.90,
+    "2025-04": 2070.47, "2025-05": 1090.65, "2025-06": 5373.47,
+    "2025-07": 3038.06, "2025-08": 13985.98,"2025-09": 6408.09,
+    "2025-10": 2787.21, "2025-11": 1759.72, "2025-12": 5224.61,
+    // 2026 (so far)
+    "2026-01": 7949.13, "2026-02": 976.35,  "2026-03": 51129.11,
+  };
+
+  document.getElementById('preview').textContent =
+    "YEARLY HISTORY (PL + dividends):\n" + JSON.stringify(yearlyHistory, null, 2) +
+    "\n\nMONTHLY DIVIDENDS (2024-2026 partial):\n" +
+    Object.entries(monthlyDividends).map(([k,v]) => `  ${k}: R$ ${v.toLocaleString('pt-BR')}`).join('\n');
+
+  const log = (msg, isErr=false) => {
+    const el = document.getElementById('log');
+    const cls = isErr ? 'err' : '';
+    el.innerHTML += `<span class="${cls}">${msg}</span>\n`;
+    el.scrollTop = el.scrollHeight;
+  };
+
+  document.getElementById('btnLogin').onclick = async () => {
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (e) {
+      log('Login error: ' + e.message, true);
+    }
+  };
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.getElementById('loginInfo').textContent = `✓ Signed in as ${user.displayName || user.email}`;
+      document.getElementById('btnSeed').disabled = false;
+      document.getElementById('btnSeed').textContent = 'Run seed';
+    }
+  });
+
+  document.getElementById('btnSeed').onclick = async () => {
+    if (!confirm('Run seed? This writes yearly history + monthly dividends to Firestore. Do it only once.')) return;
+    document.getElementById('btnSeed').disabled = true;
+    document.getElementById('log').innerHTML = '';
+    log('Starting seed...\n');
+
+    try {
+      // 1. Yearly history
+      log('Writing yearly history:');
+      for (const y of yearlyHistory) {
+        await addDoc(collection(db, "household", "main", "dividendsYearly"), {
+          ...y,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+        log(`  ✓ ${y.year}: PL R$ ${y.equity.toLocaleString('pt-BR')} · divs R$ ${y.divs.toLocaleString('pt-BR')}`);
+      }
+
+      // 2. Monthly dividends
+      log('\nWriting monthly dividends...');
+      await setDoc(doc(db, "household", "main", "config", "dividends"), {
+        monthly: monthlyDividends,
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+      log(`  ✓ ${Object.keys(monthlyDividends).length} monthly entries saved`);
+
+      // 3. Config (annual goal)
+      log('\nSetting annual goal...');
+      await setDoc(doc(db, "household", "main", "config", "settings"), {
+        dividendsYearlyGoal: 1_000_000,
+        dividendsYearlyGoalYear: 2035,
+        fxRate: 5.1530,
+      }, { merge: true });
+      log(`  ✓ Goal: R$ 1M by 2035`);
+
+      log('\n✓ Seed complete! Open the main app and check the Overview (growth charts).');
+      document.getElementById('successBox').classList.add('show');
+    } catch (err) {
+      log('ERROR: ' + err.message, true);
+      console.error(err);
+    }
+  };
+</script>
+</body>
+</html>
