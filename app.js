@@ -306,7 +306,11 @@ function computeTotals() {
     const price = live > 0 ? live : (+x.avg || 0);
     return s + ((+x.qty||0) * price);
   }, 0);
-  const cryptoInvested = state.crypto.reduce((s, x) => s + ((+x.qty||0) * (+x.avg||0)), 0);
+  const cryptoInvested = state.crypto.reduce((s, x) => {
+    // If avgUsd exists, recalculate BRL using current live rate
+    const avgBrl = (+x.avgUsd || 0) > 0 ? (+x.avgUsd * state.fxRate) : (+x.avg || 0);
+    return s + ((+x.qty||0) * avgBrl);
+  }, 0);
 
   let cryptoDayValue = 0;
   state.crypto.forEach(x => {
@@ -678,7 +682,7 @@ function renderCrypto() {
   }
 
   if (state.crypto.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-table"><h4>No coins yet</h4><p>Click "Add coin" to get started.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-table"><h4>No coins yet</h4><p>Click "Add coin" to get started.</p></div></td></tr>`;
     return;
   }
   const sorted = [...state.crypto].sort((a,b) => ((+b.qty||0)*(+b.avg||0)) - ((+a.qty||0)*(+a.avg||0)));
@@ -692,12 +696,14 @@ function renderCrypto() {
     const pl = position - invested;
     const plPct = invested > 0 ? (pl/invested)*100 : 0;
     const hasPrice = price > 0;
+    const hasAvgUsd = (+c.avgUsd||0) > 0;
     const dayClass = dayChange >= 0 ? '' : 'dn';
     const plClass = pl >= 0 ? 'pos' : 'neg';
     return `<tr data-id="${c.id}">
       <td><span class="ticker"><span class="badge">${sym.slice(0,2) || '?'}</span>${c.name||'—'}</span></td>
       <td>${c.symbol||'—'}</td>
       <td class="mono">${(+c.qty||0).toLocaleString('pt-BR',{maximumFractionDigits:8})}</td>
+      <td class="mono ${hasAvgUsd?'':'empty'}">${hasAvgUsd?'$ '+(+c.avgUsd).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</td>
       <td class="mono">${(+c.avg||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       <td class="mono ${hasPrice?'':'empty'}">${hasPrice?price.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
       <td class="mono">${hasPrice && dayChange!==0 ? `<span class="chip ${dayClass}">${fmtPct(dayChange)}</span>` : '—'}</td>
@@ -1091,29 +1097,53 @@ function openCryptoModal(id = null) {
     const c = state.crypto.find(x => x.id === id); if (!c) return;
     $('cryptoModalTitle').textContent = 'Edit coin';
     $('cryptoName').value = c.name || ''; $('cryptoSymbol').value = c.symbol || '';
-    $('cryptoQty').value = c.qty || ''; $('cryptoAvg').value = c.avg || '';
+    $('cryptoQty').value = c.qty || '';
+    $('cryptoAvgUsd').value = c.avgUsd || '';
+    $('cryptoAvg').value = c.avg || '';
     $('cryptoDelete').style.display = '';
   } else {
     $('cryptoModalTitle').textContent = 'Add coin';
     $('cryptoName').value = ''; $('cryptoSymbol').value = '';
-    $('cryptoQty').value = ''; $('cryptoAvg').value = '';
+    $('cryptoQty').value = '';
+    $('cryptoAvgUsd').value = '';
+    $('cryptoAvg').value = '';
     $('cryptoDelete').style.display = 'none';
   }
+  updateCryptoAvgHint();
   $('cryptoModal').classList.add('show');
   setTimeout(() => $('cryptoName').focus(), 50);
 }
 function closeCryptoModal() { $('cryptoModal').classList.remove('show'); editingCryptoId = null; }
 
+function updateCryptoAvgHint() {
+  const usd = parseFloat($('cryptoAvgUsd').value) || 0;
+  if (usd > 0) {
+    const brl = usd * state.fxRate;
+    $('cryptoAvg').value = brl.toFixed(2);
+    $('cryptoAvgHint').textContent = `Auto: ${fmtUSD(usd)} × R$ ${state.fxRate.toFixed(4)} = ${fmtBRL(brl)}`;
+  } else {
+    $('cryptoAvgHint').textContent = 'Fill USD above OR fill BRL directly';
+  }
+}
+
 async function saveCrypto() {
   const name = $('cryptoName').value.trim();
   const symbol = $('cryptoSymbol').value.trim().toUpperCase();
   const qty = parseFloat($('cryptoQty').value);
-  const avg = parseFloat($('cryptoAvg').value);
+  const avgUsdRaw = parseFloat($('cryptoAvgUsd').value);
+  const avgUsd = isNaN(avgUsdRaw) ? 0 : avgUsdRaw;
+  let avg = parseFloat($('cryptoAvg').value);
+  // If USD is filled, BRL is derived from it (source of truth = USD)
+  if (avgUsd > 0) avg = avgUsd * state.fxRate;
   if (!name) { showToast('Coin name required'); return; }
   if (!symbol) { showToast('Symbol required'); return; }
   if (!qty || qty <= 0) { showToast('Quantity must be > 0'); return; }
-  if (!avg || avg < 0) { showToast('Average price required'); return; }
-  const data = { name, symbol, qty, avg, updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'unknown' };
+  if (!avg || avg < 0) { showToast('Average price required (USD or BRL)'); return; }
+  const data = {
+    name, symbol, qty, avg, avgUsd,
+    updatedAt: serverTimestamp(),
+    updatedBy: state.user?.displayName || 'unknown'
+  };
   const btn = $('cryptoSave');
   try {
     btn.disabled = true; btn.textContent = 'Saving...';
@@ -1355,6 +1385,7 @@ $('btnAddCrypto').addEventListener('click', () => openCryptoModal());
 $('cryptoCancel').addEventListener('click', closeCryptoModal);
 $('cryptoSave').addEventListener('click', saveCrypto);
 $('cryptoDelete').addEventListener('click', deleteCrypto);
+$('cryptoAvgUsd').addEventListener('input', updateCryptoAvgHint);
 $('cryptoModal').addEventListener('click', e => { if (e.target.id === 'cryptoModal') closeCryptoModal(); });
 
 $('btnAddFx').addEventListener('click', () => openFxModal());

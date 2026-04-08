@@ -558,7 +558,7 @@
       <div class="card">
         <div class="card-head"><h3>Holdings</h3><div class="meta">Click any row to edit · auto-refresh every 4h</div></div>
         <div class="table-wrap">
-          <table><thead><tr><th>Coin</th><th>Symbol</th><th>Qty</th><th>Avg</th><th>Price</th><th>Day</th><th>Position</th><th>P/L</th><th></th></tr></thead><tbody id="cryptoBody"></tbody></table>
+          <table><thead><tr><th>Coin</th><th>Symbol</th><th>Qty</th><th>Avg USD</th><th>Avg BRL</th><th>Price</th><th>Day</th><th>Position</th><th>P/L</th><th></th></tr></thead><tbody id="cryptoBody"></tbody></table>
         </div>
       </div>
     </div>
@@ -665,12 +665,13 @@
 
 <div class="modal-bg" id="cryptoModal"><div class="modal">
   <h3 id="cryptoModalTitle">Add coin</h3>
-  <p class="sub">Cryptocurrency holdings. When you buy more, just update qty and avg price.</p>
+  <p class="sub">Cryptocurrency holdings. When you buy more, update qty and avg price.</p>
   <div class="form-grid">
     <div class="field"><label>Coin name</label><input type="text" id="cryptoName" placeholder="Bitcoin" autocomplete="off" /></div>
     <div class="field"><label>Symbol</label><input type="text" id="cryptoSymbol" placeholder="BTC" autocomplete="off" maxlength="10" /></div>
     <div class="field"><label>Quantity</label><input type="number" id="cryptoQty" placeholder="0.5" min="0" step="0.00000001" /></div>
-    <div class="field"><label>Average price (R$)</label><input type="number" id="cryptoAvg" placeholder="200000" min="0" step="0.01" /><div class="hint">Your cost basis per coin</div></div>
+    <div class="field"><label>Avg price USD</label><input type="number" id="cryptoAvgUsd" placeholder="50000" min="0" step="0.01" /><div class="hint">Cost basis in USD (auto converts to BRL)</div></div>
+    <div class="field full"><label>Avg price BRL</label><input type="number" id="cryptoAvg" placeholder="200000" min="0" step="0.01" /><div class="hint" id="cryptoAvgHint">Fill USD above OR fill BRL directly</div></div>
   </div>
   <div class="modal-foot">
     <button class="btn-danger" id="cryptoDelete" style="display:none">Delete</button>
