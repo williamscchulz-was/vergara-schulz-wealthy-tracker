@@ -141,31 +141,26 @@ display:flex;align-items:center;justify-content:center;
 padding:20px;
 position:relative;
 overflow:hidden;
-background:#020820;
-}
-/* Aurora gradient layer */
-.login-screen::before{
-content:””;
-position:absolute;
-inset:0;
-pointer-events:none;
 background:
-radial-gradient(ellipse 80% 55% at 50% 100%,
-#030a25 0%,
-#030a25 40%,
+radial-gradient(ellipse 70% 50% at 50% 105%,
+#020820 0%,
+#020820 35%,
 transparent 70%),
-radial-gradient(ellipse 100% 70% at 50% 110%,
-#5eb0ff 0%,
-#2563eb 22%,
-#1d4ed8 42%,
-transparent 68%),
+radial-gradient(ellipse 110% 80% at 50% 115%,
+#93c5fd 0%,
+#60a5fa 12%,
+#3b82f6 28%,
+#1d4ed8 50%,
+transparent 75%),
 linear-gradient(180deg,
 #020820 0%,
-#0a1f5c 45%,
+#061233 30%,
+#0a1f5c 60%,
 #1e40af 100%);
 }
 /* Grain overlay */
-.login-screen::after{
+/* Grain overlay */
+.login-screen::before{
 content:””;
 position:absolute;
 inset:0;
@@ -1197,9 +1192,9 @@ border-color:var(–accent);
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="app.js"></script>
+<script type="module" src="app.js?v=20260410a"></script>
 
-<script type="module" src="goal-projection.js"></script>
+<script type="module" src="goal-projection.js?v=20260410a"></script>
 
 </body>
 </html>
