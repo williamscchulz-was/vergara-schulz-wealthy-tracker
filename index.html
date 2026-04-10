@@ -3,126 +3,985 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Ledger — Personal Finance</title>
-
-<meta name="description" content="Controle de despesas e investimentos · W + F" />
-
-<!-- PWA manifest -->
-<link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#0a0a0a" />
-<meta name="background-color" content="#f5f5f7" />
-
-<!-- Favicons -->
-<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
-<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png" />
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' rx='26' fill='%230a0a0a'/%3E%3Cpath d='M 36 28 L 36 88 L 78 88' stroke='%23fff' stroke-width='12' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Crect x='68' y='48' width='7' height='32' rx='2' fill='%230071e3'/%3E%3C/svg%3E" />
-
-<!-- iOS / Apple Touch -->
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<meta name="theme-color" content="#050309" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Ledger" />
-<meta name="mobile-web-app-capable" content="yes" />
-<meta name="application-name" content="Ledger" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icon512.png" />
+<title>Ledger - Personal Finance</title>
 
-<!-- Open Graph (preview in WhatsApp, Telegram, Twitter, etc) -->
-<meta property="og:type" content="website" />
-<meta property="og:title" content="Ledger — Personal Finance" />
-<meta property="og:description" content="Controle de despesas e investimentos · W + F" />
-<meta property="og:image" content="icons/icon-512.png" />
-<meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="Ledger — Personal Finance" />
-<meta name="twitter:description" content="Controle de despesas e investimentos · W + F" />
-<meta name="twitter:image" content="icons/icon-512.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+
 <style>
+
   /* ===========================================================
-     LEDGER v3 - Apple refined dark + Nubank purple
+     LEDGER v5 — Refined cosmic finance
      =========================================================== */
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
-  body {
-    font-family: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    background: #0a0612;
-    color: #f5f0ff;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    font-feature-settings: 'cv11', 'ss03';
-    overflow-x: hidden;
-    min-height: 100vh;
-  }
 
   :root {
-    /* Surfaces */
-    --bg: #0a0612;
-    --bg-2: #0e0817;
-    --surface: #130a20;
-    --surface-2: #1a1230;
-    --surface-3: #221838;
-    --line: rgba(168, 85, 247, 0.10);
-    --line-strong: rgba(168, 85, 247, 0.20);
+    /* Surfaces — ultra dark with subtle warmth */
+    --bg: #050309;
+    --bg-deep: #030106;
+    --card-bg: rgba(255, 255, 255, 0.025);
+    --card-bg-strong: rgba(255, 255, 255, 0.04);
+    --card-border: rgba(168, 85, 247, 0.12);
+    --card-border-strong: rgba(168, 85, 247, 0.22);
+    --card-divider: rgba(255, 255, 255, 0.06);
 
     /* Ink */
-    --ink: #f5f0ff;
-    --ink-2: #e0d4f5;
-    --ink-muted: #9b8cb8;
-    --ink-dim: #6e5a8a;
+    --ink: #faf7ff;
+    --ink-2: #e8dfff;
+    --ink-3: #b8a8d4;
+    --ink-muted: #7d6e96;
+    --ink-dim: #4d4063;
 
-    /* Brand */
+    /* Brand purple */
     --purple: #a855f7;
-    --purple-2: #c084fc;
+    --purple-light: #c084fc;
+    --purple-bright: #d8b4fe;
     --purple-deep: #7c3aed;
-    --purple-soft: rgba(168, 85, 247, 0.14);
     --pink: #ec4899;
-    --pink-soft: rgba(236, 72, 153, 0.14);
+    --pink-light: #f472b6;
 
     /* Semantic */
-    --gain: #30d158;
-    --gain-soft: rgba(48, 209, 88, 0.14);
-    --gain-deep: #4ade80;
-    --loss: #ff453a;
-    --loss-soft: rgba(255, 69, 58, 0.14);
-    --warn: #ff9f0a;
-    --warn-soft: rgba(255, 159, 10, 0.14);
+    --gain: #34e17a;
+    --gain-soft: rgba(52, 225, 122, 0.12);
+    --loss: #ff5e57;
+    --loss-soft: rgba(255, 94, 87, 0.12);
+    --warn: #ffb340;
+    --warn-soft: rgba(255, 179, 64, 0.12);
 
     /* Effects */
-    --radius: 24px;
-    --radius-sm: 16px;
+    --radius: 28px;
+    --radius-md: 20px;
+    --radius-sm: 14px;
     --radius-pill: 999px;
-    --shadow-1: 0 4px 20px rgba(0, 0, 0, 0.4);
-    --shadow-2: 0 12px 48px rgba(0, 0, 0, 0.5);
-    --shadow-purple: 0 12px 60px rgba(168, 85, 247, 0.35);
     --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-snap: cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
-  /* Atmospheric background */
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    background:
-      radial-gradient(ellipse 60% 40% at 80% 0%, rgba(168, 85, 247, 0.18), transparent 60%),
-      radial-gradient(ellipse 50% 35% at 20% 30%, rgba(236, 72, 153, 0.08), transparent 60%),
-      radial-gradient(ellipse 70% 50% at 50% 100%, rgba(124, 58, 237, 0.10), transparent 70%);
-  }
-
-  body::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.025;
-    mix-blend-mode: overlay;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  body {
+    font-family: 'Geist', -apple-system, system-ui, sans-serif;
+    background: var(--bg-deep);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'cv11', 'ss03', 'ss04';
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.5;
   }
 
   /* ===========================================================
-     LOGIN
+     COSMIC BACKGROUND — atmospheric, depth
+     =========================================================== */
+  .cosmos {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .cosmos::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 50% at 75% -10%, rgba(168, 85, 247, 0.30), transparent 55%),
+      radial-gradient(ellipse 60% 45% at 15% 25%, rgba(236, 72, 153, 0.16), transparent 55%),
+      radial-gradient(ellipse 100% 70% at 50% 110%, rgba(124, 58, 237, 0.18), transparent 65%),
+      radial-gradient(ellipse 50% 35% at 90% 65%, rgba(168, 85, 247, 0.12), transparent 60%),
+      linear-gradient(180deg, #050309 0%, #08051a 50%, #050309 100%);
+  }
+  .cosmos::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.08;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  /* Stars */
+  .stars {
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 17% 32%, rgba(255,255,255,0.6), transparent),
+      radial-gradient(1px 1px at 84% 12%, rgba(216,180,254,0.5), transparent),
+      radial-gradient(1px 1px at 23% 71%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 67% 88%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 92% 47%, rgba(216,180,254,0.4), transparent),
+      radial-gradient(1px 1px at 8% 55%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1px 1px at 41% 22%, rgba(216,180,254,0.4), transparent),
+      radial-gradient(1px 1px at 55% 65%, rgba(255,255,255,0.4), transparent);
+    background-size: 100% 100%;
+    opacity: 0.7;
+    animation: twinkle 8s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 0.85; }
+  }
+
+  /* ===========================================================
+     LAYOUT
+     =========================================================== */
+  .page {
+    position: relative;
+    z-index: 1;
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0 24px 120px;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0;
+    margin-bottom: 8px;
+    background: linear-gradient(180deg, rgba(5, 3, 9, 0.92) 0%, rgba(5, 3, 9, 0.65) 100%);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .brand-mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, #a855f7 0%, #7c3aed 50%, #ec4899 100%);
+    display: grid;
+    place-items: center;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.08),
+      0 8px 24px rgba(168, 85, 247, 0.45),
+      inset 0 1px 0 rgba(255,255,255,0.20);
+    position: relative;
+  }
+  .brand-mark::after {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.10), transparent 50%);
+    pointer-events: none;
+  }
+  .brand-mark svg { width: 20px; height: 20px; color: #fff; position: relative; z-index: 1; }
+  .brand-text {
+    line-height: 1.1;
+  }
+  .brand-text .name {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .brand-text .tag {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--ink-muted);
+    letter-spacing: 0.01em;
+    margin-top: 2px;
+  }
+
+  .user-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px 6px 6px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-pill);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-size: 13px;
+    color: var(--ink-2);
+    font-weight: 500;
+  }
+  .user-pill .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* Mode switch — refined pill */
+  .mode-switch {
+    display: flex;
+    gap: 4px;
+    padding: 5px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-pill);
+    margin: 32px auto 40px;
+    width: fit-content;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .mode-switch button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 24px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-pill);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-muted);
+    cursor: pointer;
+    transition: all 0.3s var(--ease);
+    letter-spacing: -0.01em;
+  }
+  .mode-switch button svg { width: 15px; height: 15px; }
+  .mode-switch button:hover { color: var(--ink-2); }
+  .mode-switch button.active {
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-deep) 100%);
+    color: #fff;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.10) inset,
+      0 8px 24px rgba(168, 85, 247, 0.40);
+  }
+
+  /* ===========================================================
+     CARD — universal glass panel
+     =========================================================== */
+  .card {
+    position: relative;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.04) inset,
+      0 32px 80px -20px rgba(0, 0, 0, 0.6);
+    margin-bottom: 22px;
+    overflow: hidden;
+    transition: transform 0.4s var(--ease), border-color 0.3s var(--ease);
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(168, 85, 247, 0.06), transparent 60%);
+    pointer-events: none;
+  }
+  .card-body { position: relative; padding: 32px 32px 30px; }
+  .card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .eyebrow {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--purple-light);
+    letter-spacing: 0.01em;
+    margin: 0;
+  }
+  .eyebrow-mono {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--ink-muted);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  /* ===========================================================
+     HERO — Patrimônio total
+     =========================================================== */
+  .hero-card {
+    position: relative;
+    background:
+      radial-gradient(ellipse 60% 80% at 100% 0%, rgba(236, 72, 153, 0.15), transparent 60%),
+      radial-gradient(ellipse 70% 90% at 0% 100%, rgba(168, 85, 247, 0.18), transparent 60%),
+      var(--card-bg-strong);
+    border: 1px solid var(--card-border-strong);
+    border-radius: var(--radius);
+    padding: 40px 36px 32px;
+    margin-bottom: 22px;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.06) inset,
+      0 40px 100px -30px rgba(168, 85, 247, 0.35),
+      0 32px 80px -20px rgba(0, 0, 0, 0.7);
+    overflow: hidden;
+  }
+  .hero-card::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 70%;
+    height: 140%;
+    background: radial-gradient(ellipse, rgba(168, 85, 247, 0.18), transparent 65%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .hero-eyebrow .label {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 17px;
+    color: var(--purple-light);
+    letter-spacing: 0.01em;
+  }
+  .hero-eyebrow .live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--gain);
+    box-shadow: 0 0 12px var(--gain);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+  .hero-amount {
+    position: relative;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 0.92;
+    letter-spacing: -0.045em;
+    margin-bottom: 18px;
+  }
+  .hero-amount .cur {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink-3);
+    letter-spacing: -0.02em;
+  }
+  .hero-amount .num {
+    font-size: clamp(56px, 13vw, 88px);
+    font-variant-numeric: tabular-nums;
+    background: linear-gradient(180deg, #ffffff 0%, #d8b4fe 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-meta-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 26px;
+  }
+  .return-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    background: var(--gain-soft);
+    border: 1px solid rgba(52, 225, 122, 0.30);
+    border-radius: var(--radius-pill);
+    font-family: 'Geist Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gain);
+    letter-spacing: -0.01em;
+  }
+  .return-pill.neg {
+    background: var(--loss-soft);
+    border-color: rgba(255, 94, 87, 0.30);
+    color: var(--loss);
+  }
+  .return-pill svg { width: 12px; height: 12px; }
+  .applied-text {
+    font-size: 13px;
+    color: var(--ink-3);
+    font-weight: 500;
+  }
+  .applied-text b {
+    color: var(--ink-2);
+    font-family: 'Geist Mono', monospace;
+    font-weight: 600;
+  }
+  .hero-actions {
+    position: relative;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding-top: 22px;
+    border-top: 1px solid var(--card-divider);
+  }
+  .hero-actions .updated {
+    margin-right: auto;
+    align-self: center;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-muted);
+  }
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 11px;
+    color: var(--ink-2);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s var(--ease);
+  }
+  .btn-ghost:hover {
+    background: rgba(168, 85, 247, 0.10);
+    border-color: rgba(168, 85, 247, 0.25);
+    color: var(--ink);
+    transform: translateY(-1px);
+  }
+  .btn-ghost svg { width: 13px; height: 13px; }
+  .btn-ghost.icon { padding: 9px; }
+  .btn-ghost.primary {
+    background: rgba(168, 85, 247, 0.15);
+    border-color: rgba(168, 85, 247, 0.30);
+    color: var(--purple-bright);
+  }
+
+  /* ===========================================================
+     GOAL CARD — the showpiece
+     =========================================================== */
+  .goal-card {
+    position: relative;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 100%, rgba(236, 72, 153, 0.10), transparent 60%),
+      radial-gradient(ellipse 70% 60% at 0% 0%, rgba(168, 85, 247, 0.14), transparent 60%),
+      linear-gradient(180deg, rgba(168, 85, 247, 0.06) 0%, rgba(124, 58, 237, 0.04) 100%);
+    border: 1px solid var(--card-border-strong);
+    border-radius: var(--radius);
+    padding: 36px 36px 32px;
+    margin-bottom: 22px;
+    overflow: hidden;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.06) inset,
+      0 40px 100px -30px rgba(124, 58, 237, 0.35),
+      0 32px 80px -20px rgba(0, 0, 0, 0.7);
+  }
+  .goal-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 6px;
+  }
+  .goal-head-left .eyebrow { margin-bottom: 8px; }
+  .goal-title {
+    font-family: 'Geist', sans-serif;
+    font-size: clamp(30px, 6vw, 42px);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    color: var(--ink);
+    line-height: 1;
+    margin: 0;
+  }
+  .goal-title .mute {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    color: var(--ink-3);
+    font-weight: 400;
+    font-size: 0.62em;
+    letter-spacing: 0;
+    margin-left: 6px;
+  }
+  .goal-subtitle {
+    font-size: 13px;
+    color: var(--ink-muted);
+    margin-top: 8px;
+    font-family: 'Geist Mono', monospace;
+    letter-spacing: 0.02em;
+  }
+  .goal-success {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .goal-success-pct {
+    font-family: 'Geist', sans-serif;
+    font-size: clamp(34px, 7vw, 46px);
+    font-weight: 700;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    color: var(--gain);
+  }
+  .goal-success-lbl {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--ink-muted);
+    margin-top: 6px;
+  }
+  .goal-edit {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    background: none;
+    border: none;
+    color: var(--ink-muted);
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0;
+  }
+  .goal-edit:hover { color: var(--purple-light); }
+  .goal-edit svg { width: 11px; height: 11px; }
+
+  .goal-chart {
+    margin: 24px -8px 18px;
+    height: 220px;
+  }
+  .goal-chart svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: visible;
+  }
+
+  .goal-legend {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-size: 11px;
+    color: var(--ink-3);
+    padding: 14px 0 16px;
+    border-top: 1px solid var(--card-divider);
+  }
+  .goal-legend .leg {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 500;
+    font-family: 'Geist Mono', monospace;
+    letter-spacing: 0.01em;
+  }
+  .goal-legend .sw {
+    width: 16px;
+    height: 3px;
+    border-radius: 2px;
+  }
+  .goal-legend .sw.real { background: linear-gradient(90deg, var(--purple), var(--pink)); box-shadow: 0 0 8px rgba(168, 85, 247, 0.5); }
+  .goal-legend .sw.req { background: var(--warn); }
+  .goal-legend .sw.goal { background: var(--gain); }
+  .goal-legend .sw.ytd { background: transparent; border-top: 2px dashed var(--purple-light); height: 0; }
+
+  .goal-narrative {
+    font-family: 'Instrument Serif', serif;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    padding: 18px 22px;
+    background: rgba(168, 85, 247, 0.06);
+    border: 1px solid var(--card-border);
+    border-left: 3px solid var(--purple);
+    border-radius: 14px;
+    margin-bottom: 22px;
+    font-style: italic;
+  }
+  .goal-narrative b {
+    font-family: 'Geist Mono', monospace;
+    font-style: normal;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .goal-narrative .pos { color: var(--gain); }
+  .goal-narrative .warn { color: var(--warn); }
+  .goal-narrative .neg { color: var(--loss); }
+
+  .goal-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .gs {
+    padding: 18px 16px;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid var(--card-divider);
+    border-radius: 16px;
+    text-align: left;
+  }
+  .gs-lbl {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+  }
+  .gs-val {
+    font-family: 'Geist Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .gs-val.pos { color: var(--gain); }
+  .gs-val.warn { color: var(--warn); }
+  .gs-val.neg { color: var(--loss); }
+  .gs-val .gs-u { font-size: 0.55em; color: var(--ink-muted); margin-left: 1px; }
+  .gs-sub {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-muted);
+    margin-top: 6px;
+    letter-spacing: 0.02em;
+  }
+
+  /* ===========================================================
+     YTD CARD — minimal
+     =========================================================== */
+  .ytd-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+  }
+  .ytd-block .ytd-lbl {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--purple-light);
+    margin-bottom: 14px;
+  }
+  .ytd-block .ytd-num {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .ytd-block .ytd-num .cur { font-size: 14px; color: var(--ink-3); font-weight: 600; }
+  .ytd-block .ytd-num .v { font-size: 36px; font-variant-numeric: tabular-nums; }
+  .ytd-block .ytd-sub {
+    font-size: 11px;
+    color: var(--ink-muted);
+    margin-top: 8px;
+    font-family: 'Geist Mono', monospace;
+  }
+  .ytd-block .ytd-progress {
+    margin-top: 14px;
+    height: 5px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .ytd-block .ytd-progress i {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--purple), var(--pink));
+    border-radius: 3px;
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
+  }
+
+  /* ===========================================================
+     CARTEIRA — grouped by category, expandable (Investidor10 style)
+     =========================================================== */
+  .cat-list { display: flex; flex-direction: column; gap: 6px; }
+  .cat-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto auto;
+    align-items: center;
+    gap: 18px;
+    padding: 18px 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid transparent;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.25s var(--ease);
+  }
+  .cat-row:hover {
+    background: rgba(168, 85, 247, 0.06);
+    border-color: var(--card-border);
+  }
+  .cat-row.expanded {
+    background: rgba(168, 85, 247, 0.05);
+    border-color: var(--card-border);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  .cat-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.18), rgba(124, 58, 237, 0.10));
+    border: 1px solid rgba(168, 85, 247, 0.20);
+    display: grid;
+    place-items: center;
+    color: var(--purple-light);
+  }
+  .cat-icon svg { width: 18px; height: 18px; }
+  .cat-info { min-width: 0; }
+  .cat-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    line-height: 1;
+    margin-bottom: 5px;
+  }
+  .cat-count {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-muted);
+    letter-spacing: 0.04em;
+  }
+  .cat-value {
+    font-family: 'Geist Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: right;
+    letter-spacing: -0.01em;
+    min-width: 110px;
+  }
+  .cat-pct {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-muted);
+    text-align: right;
+    margin-top: 3px;
+  }
+  .cat-appr {
+    font-family: 'Geist Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: right;
+    padding: 5px 10px;
+    border-radius: 8px;
+    min-width: 72px;
+  }
+  .cat-appr.pos { color: var(--gain); background: var(--gain-soft); }
+  .cat-appr.neg { color: var(--loss); background: var(--loss-soft); }
+  .cat-chevron {
+    color: var(--ink-muted);
+    transition: transform 0.3s var(--ease);
+  }
+  .cat-row.expanded .cat-chevron { transform: rotate(180deg); color: var(--purple-light); }
+
+  .cat-tickers {
+    display: none;
+    flex-direction: column;
+    gap: 1px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--card-border);
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    padding: 6px 8px 8px;
+    margin-top: -1px;
+    overflow: hidden;
+  }
+  .cat-row.expanded + .cat-tickers { display: flex; animation: slideDown 0.3s var(--ease); }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .ticker-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 14px;
+    padding: 11px 14px;
+    border-radius: 10px;
+    transition: background 0.15s;
+  }
+  .ticker-row:hover { background: rgba(168, 85, 247, 0.05); }
+  .ticker-name {
+    font-family: 'Geist Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-2);
+    letter-spacing: 0.01em;
+  }
+  .ticker-name span {
+    font-family: 'Geist', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    margin-left: 6px;
+    letter-spacing: 0;
+  }
+  .ticker-val {
+    font-family: 'Geist Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-2);
+    text-align: right;
+    min-width: 100px;
+  }
+  .ticker-appr {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: right;
+    min-width: 60px;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+  .ticker-appr.pos { color: var(--gain); background: var(--gain-soft); }
+  .ticker-appr.neg { color: var(--loss); background: var(--loss-soft); }
+
+  /* ===========================================================
+     DIVIDENDS BAR CHART
+     =========================================================== */
+  .div-chart { width: 100%; height: 200px; margin-top: 10px; }
+  .div-chart text {
+    fill: var(--ink-muted);
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .div-chart .bar {
+    fill: url(#barGrad);
+    transition: opacity 0.2s;
+  }
+  .div-chart .bar.current {
+    fill: url(#barGradCurr);
+  }
+  .div-chart .bar:hover { opacity: 0.85; }
+  .div-chart .bar-val {
+    fill: var(--ink-3);
+    font-size: 9px;
+    text-anchor: middle;
+  }
+
+  /* ===========================================================
+     YEARLY TABLE
+     =========================================================== */
+  .yearly-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .yearly-table th {
+    text-align: left;
+    padding: 0 14px 14px;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 12px;
+    color: var(--ink-muted);
+    border-bottom: 1px solid var(--card-divider);
+  }
+  .yearly-table th:not(:first-child) { text-align: right; }
+  .yearly-table td {
+    padding: 14px;
+    border-bottom: 1px solid var(--card-divider);
+    color: var(--ink-2);
+    font-family: 'Geist Mono', monospace;
+    font-weight: 500;
+  }
+  .yearly-table td:not(:first-child) { text-align: right; }
+  .yearly-table td:first-child {
+    font-weight: 700;
+    color: var(--ink);
+    font-family: 'Geist', sans-serif;
+  }
+  .yearly-table tr:last-child td { border-bottom: none; }
+  .yearly-table tr { transition: background 0.15s; }
+  .yearly-table tr:hover td { background: rgba(168, 85, 247, 0.04); }
+  .yearly-table .pos { color: var(--gain); font-weight: 700; }
+  .yearly-table .neg { color: var(--loss); font-weight: 700; }
+
+  /* ===========================================================
+     FOOTER
+     =========================================================== */
+  .footer-note {
+    text-align: center;
+    margin-top: 60px;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--ink-muted);
+    line-height: 1.7;
+  }
+  .footer-note .stars-icon { color: var(--purple-light); }
+
+  /* ===========================================================
+     ENTRANCE ANIMATION
+     =========================================================== */
+  .animate-in {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.8s var(--ease) forwards;
+  }
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-in:nth-child(1) { animation-delay: 0.05s; }
+  .animate-in:nth-child(2) { animation-delay: 0.15s; }
+  .animate-in:nth-child(3) { animation-delay: 0.25s; }
+  .animate-in:nth-child(4) { animation-delay: 0.35s; }
+  .animate-in:nth-child(5) { animation-delay: 0.45s; }
+  .animate-in:nth-child(6) { animation-delay: 0.55s; }
+  .animate-in:nth-child(7) { animation-delay: 0.65s; }
+
+  /* ===========================================================
+     RESPONSIVE
+     =========================================================== */
+  @media (max-width: 720px) {
+    .page { padding: 0 16px 100px; }
+    .topbar { padding: 16px 0; }
+    .hero-card { padding: 32px 24px 26px; }
+    .goal-card { padding: 28px 22px 24px; }
+    .card-body { padding: 26px 22px 24px; }
+    .ytd-grid { grid-template-columns: 1fr; gap: 26px; }
+    .goal-stats { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .gs { padding: 14px 10px; }
+    .gs-val { font-size: 17px; }
+    .cat-row {
+      grid-template-columns: auto 1fr auto auto;
+      gap: 12px;
+      padding: 14px 16px;
+    }
+    .cat-appr { display: none; }
+    .cat-value { min-width: auto; font-size: 13px; }
+    .brand-text .tag { display: none; }
+    .hero-amount .num { font-size: clamp(48px, 14vw, 72px); }
+    .ticker-val { min-width: 80px; font-size: 11px; }
+  }
+
+  /* ===========================================================
+     LOGIN SCREEN (separate from main app)
      =========================================================== */
   .login-screen {
     min-height: 100vh;
@@ -131,25 +990,26 @@
     justify-content: center;
     padding: 20px;
     position: relative;
-    z-index: 1;
+    z-index: 2;
     background:
       radial-gradient(ellipse 70% 50% at 50% 105%, #020820 0%, #020820 35%, transparent 70%),
       radial-gradient(ellipse 110% 80% at 50% 115%, #93c5fd 0%, #60a5fa 12%, #3b82f6 28%, #1d4ed8 50%, transparent 75%),
       linear-gradient(180deg, #020820 0%, #061233 30%, #0a1f5c 60%, #1e40af 100%);
   }
+  .login-screen.hide { display: none; }
   .login-card {
     position: relative;
     z-index: 2;
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.94);
     backdrop-filter: saturate(180%) blur(24px);
     -webkit-backdrop-filter: saturate(180%) blur(24px);
     border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 22px;
+    border-radius: 24px;
     padding: 52px 44px;
     max-width: 420px;
     width: 100%;
     text-align: center;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
     color: #0a0a0a;
   }
   .login-card .logo-big { width: 56px; height: 56px; margin: 0 auto 24px; display: grid; place-items: center; }
@@ -170,9 +1030,9 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s var(--ease);
+    font-family: inherit;
   }
   .btn-google:hover { background: #f5f5f7; border-color: #c7c7cc; transform: translateY(-1px); }
-  .btn-google:active { transform: translateY(0); }
   .btn-google svg { width: 20px; height: 20px; }
   .login-error {
     margin-top: 18px;
@@ -189,800 +1049,27 @@
   .login-foot { margin-top: 28px; font-size: 11px; color: #8e8e93; line-height: 1.6; }
 
   /* ===========================================================
-     APP SHELL
+     APP MODULE SHOW/HIDE
      =========================================================== */
-  .app { display: none; position: relative; z-index: 1; }
+  .app { display: none; }
   .app.show { display: block; }
-  .login-screen.hide { display: none; }
-
-  .shell {
-    max-width: 880px;
-    margin: 0 auto;
-    padding: 0 20px 80px;
-  }
-
-  /* TopBar */
-  .topbar {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 20px;
-    max-width: 880px;
-    margin: 0 auto;
-    background: rgba(10, 6, 18, 0.72);
-    backdrop-filter: saturate(180%) blur(24px);
-    -webkit-backdrop-filter: saturate(180%) blur(24px);
-    border-bottom: 1px solid var(--line);
-  }
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 17px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-  }
-  .brand-logo {
-    width: 32px;
-    height: 32px;
-    border-radius: 9px;
-    background: linear-gradient(135deg, var(--purple) 0%, var(--pink) 100%);
-    display: grid;
-    place-items: center;
-    box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4);
-  }
-  .brand-logo svg { width: 18px; height: 18px; color: #fff; }
-
-  .user-pill {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 6px 14px 6px 6px;
-    background: var(--surface-2);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-pill);
-    font-size: 13px;
-    color: var(--ink-2);
-    font-weight: 500;
-  }
-  .user-pill img {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-  .user-pill #userName {
-    max-width: 100px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .user-pill .logout {
-    background: none;
-    border: none;
-    color: var(--ink-dim);
-    cursor: pointer;
-    padding: 0 0 0 8px;
-    margin-left: 4px;
-    border-left: 1px solid var(--line);
-    display: flex;
-    align-items: center;
-  }
-  .user-pill .logout:hover { color: var(--purple-2); }
-  .user-pill .logout svg { width: 14px; height: 14px; }
-
-  /* TopBar (.top legacy) */
-  .top {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 18px 0;
-    margin: 0 0 8px;
-    background: rgba(10, 6, 18, 0.72);
-    backdrop-filter: saturate(180%) blur(24px);
-    -webkit-backdrop-filter: saturate(180%) blur(24px);
-    border-bottom: 1px solid var(--line);
-  }
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-  }
-  .brand .logo {
-    width: 32px;
-    height: 32px;
-    border-radius: 9px;
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  }
-  .brand .logo svg { display: block; border-radius: 9px; }
-  .brand h1 {
-    font-size: 17px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .brand h1 span {
-    font-weight: 500;
-    color: var(--ink-dim);
-    font-size: 13px;
-    margin-left: 4px;
-  }
-
-  .top-right {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-  }
-  .conn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--ink-dim);
-    padding: 5px 10px;
-    background: var(--surface-2);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-pill);
-  }
-  .conn::before {
-    content: "";
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--gain);
-    box-shadow: 0 0 8px var(--gain);
-  }
-  .conn.live::before { background: var(--gain); }
-
-  .user-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 5px 12px 5px 5px;
-    background: var(--surface-2);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-pill);
-    color: var(--ink-2);
-    font-size: 13px;
-    font-weight: 500;
-  }
-  .user-chip img {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    object-fit: cover;
-    background: var(--surface-3);
-  }
-  .user-chip .name {
-    max-width: 90px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .btn-logout {
-    background: var(--surface-2);
-    border: 1px solid var(--line);
-    color: var(--ink-muted);
-    padding: 7px 14px;
-    border-radius: var(--radius-pill);
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .btn-logout:hover { color: var(--ink); background: var(--surface-3); border-color: var(--line-strong); }
-
-  /* Mode switch */
-  .mode-switch {
-    display: flex;
-    gap: 6px;
-    padding: 4px;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-pill);
-    margin: 28px auto 36px;
-    width: fit-content;
-  }
-  .mode-switch button {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 22px;
-    background: transparent;
-    border: none;
-    border-radius: var(--radius-pill);
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ink-muted);
-    cursor: pointer;
-    transition: all 0.2s var(--ease);
-  }
-  .mode-switch button svg { width: 15px; height: 15px; }
-  .mode-switch button:hover { color: var(--ink); }
-  .mode-switch button.active {
-    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-deep) 100%);
-    color: #fff;
-    box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4);
-  }
-
-  /* Modules */
-  .module { display: none; animation: fadeUp 0.5s var(--ease); }
-  .module.active { display: block; }
-  @keyframes fadeUp {
+  .module { display: none; }
+  .module.active { display: block; animation: fadeUpModule 0.5s var(--ease); }
+  @keyframes fadeUpModule {
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
   /* ===========================================================
-     HERO (Patrimônio total)
-     =========================================================== */
-  .hero {
-    position: relative;
-    padding: 36px 28px 32px;
-    margin-bottom: 28px;
-    background: linear-gradient(180deg, rgba(168, 85, 247, 0.10) 0%, rgba(124, 58, 237, 0.04) 100%);
-    border: 1px solid var(--line-strong);
-    border-radius: var(--radius);
-    overflow: hidden;
-  }
-  .hero::before {
-    content: "";
-    position: absolute;
-    top: -40%;
-    right: -10%;
-    width: 60%;
-    height: 100%;
-    background: radial-gradient(ellipse, rgba(168, 85, 247, 0.18), transparent 65%);
-    pointer-events: none;
-  }
-  .hero-eyebrow {
-    position: relative;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--purple-2);
-    margin-bottom: 14px;
-  }
-  .hero-number {
-    position: relative;
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    font-family: 'Geist', sans-serif;
-    font-weight: 700;
-    color: var(--ink);
-    line-height: 0.95;
-    letter-spacing: -0.04em;
-    margin-bottom: 14px;
-  }
-  .hero-number .cur {
-    font-size: clamp(18px, 4vw, 24px);
-    font-weight: 600;
-    color: var(--ink-muted);
-  }
-  .hero-number #i10Equity {
-    font-size: clamp(48px, 11vw, 76px);
-    font-variant-numeric: tabular-nums;
-  }
-  .hero-sub {
-    position: relative;
-    font-size: 14px;
-    color: var(--ink-muted);
-    margin-bottom: 22px;
-    line-height: 1.5;
-  }
-  .hero-sub .pos { color: var(--gain); font-weight: 700; font-family: 'Geist Mono', monospace; font-size: 13px; padding: 3px 8px; background: var(--gain-soft); border-radius: 7px; }
-  .hero-sub .neg { color: var(--loss); font-weight: 700; font-family: 'Geist Mono', monospace; font-size: 13px; padding: 3px 8px; background: var(--loss-soft); border-radius: 7px; }
-
-  .hero-meta {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-    padding-top: 20px;
-    border-top: 1px solid var(--line);
-  }
-  .hero-updated {
-    font-size: 11px;
-    color: var(--ink-dim);
-    font-family: 'Geist Mono', monospace;
-  }
-  .hero-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-  .hero-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
-    background: var(--surface-2);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    color: var(--ink-2);
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.15s var(--ease);
-  }
-  .hero-btn:hover { background: var(--surface-3); border-color: var(--line-strong); color: var(--ink); }
-  .hero-btn svg { width: 13px; height: 13px; }
-  .hero-btn.primary {
-    background: var(--purple-soft);
-    border-color: rgba(168, 85, 247, 0.30);
-    color: var(--purple-2);
-  }
-  .hero-btn.primary:hover { background: rgba(168, 85, 247, 0.20); }
-  .hero-btn.icon { padding: 8px; }
-  .hero-btn:disabled { opacity: 0.5; cursor: wait; }
-
-  /* ===========================================================
-     YTD CARD
-     =========================================================== */
-  .ytd-card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 26px 28px;
-    margin-bottom: 28px;
-  }
-  .ytd-label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.10em;
-    text-transform: uppercase;
-    color: var(--ink-dim);
-    margin-bottom: 12px;
-  }
-  .ytd-amount {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-    font-family: 'Geist', sans-serif;
-    font-weight: 700;
-    color: var(--ink);
-    margin-bottom: 6px;
-    line-height: 1;
-    letter-spacing: -0.03em;
-  }
-  .ytd-amount .cur { font-size: 16px; color: var(--ink-muted); font-weight: 600; }
-  .ytd-amount #i10Dividends { font-size: clamp(36px, 8vw, 48px); font-variant-numeric: tabular-nums; }
-  .ytd-sub { font-size: 13px; color: var(--ink-muted); }
-
-  /* ===========================================================
-     GENERIC CARD
-     =========================================================== */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 26px 28px;
-    margin-bottom: 28px;
-  }
-  .card h3 {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ink-dim);
-    margin: 0 0 20px;
-  }
-  .card-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 18px;
-  }
-  .card-head h3 { margin: 0; }
-  .card-head button {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
-    background: var(--purple-soft);
-    border: 1px solid rgba(168, 85, 247, 0.30);
-    border-radius: 10px;
-    color: var(--purple-2);
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  .card-head button:hover { background: rgba(168, 85, 247, 0.20); }
-  .card-head button svg { width: 13px; height: 13px; }
-
-  /* ===========================================================
-     ASSET ROW SLIM (carteira)
-     =========================================================== */
-  .assets-list { display: flex; flex-direction: column; gap: 6px; }
-  .asset-row-slim {
-    display: grid;
-    grid-template-columns: 1fr auto auto;
-    align-items: center;
-    gap: 16px;
-    padding: 14px 18px;
-    background: var(--surface-2);
-    border: 1px solid transparent;
-    border-radius: 14px;
-    transition: all 0.15s var(--ease);
-  }
-  .asset-row-slim:hover {
-    background: var(--surface-3);
-    border-color: var(--line);
-  }
-  .asset-ticker-slim {
-    font-family: 'Geist Mono', monospace;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--ink);
-    letter-spacing: -0.01em;
-  }
-  .asset-value-slim {
-    font-family: 'Geist Mono', monospace;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--ink-2);
-    text-align: right;
-    min-width: 100px;
-  }
-  .asset-appr-slim {
-    font-family: 'Geist Mono', monospace;
-    font-size: 12px;
-    font-weight: 700;
-    text-align: right;
-    min-width: 70px;
-    padding: 5px 10px;
-    border-radius: 8px;
-  }
-  .asset-appr-slim.pos { color: var(--gain-deep); background: var(--gain-soft); }
-  .asset-appr-slim.neg { color: var(--loss); background: var(--loss-soft); }
-
-  /* ===========================================================
-     GOAL CARD V4 (Tracker style purple)
-     =========================================================== */
-  .goal-card {
-    position: relative;
-    border-radius: var(--radius);
-    overflow: hidden;
-    margin-bottom: 28px;
-    border: 1px solid rgba(168, 85, 247, 0.25);
-    background: linear-gradient(180deg, #15092a 0%, #0e0817 100%);
-    box-shadow: 0 12px 48px rgba(124, 58, 237, 0.25);
-  }
-  .goal-card-bg {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-      radial-gradient(ellipse 50% 40% at 100% 0%, rgba(236, 72, 153, 0.18), transparent 60%),
-      radial-gradient(ellipse 60% 50% at 0% 50%, rgba(168, 85, 247, 0.20), transparent 60%);
-  }
-  .goal-card-inner {
-    position: relative;
-    padding: 28px 28px 26px;
-  }
-  .goal-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 14px;
-  }
-  .goal-eyebrow {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--purple-2);
-  }
-  .goal-edit-btn {
-    width: 32px;
-    height: 32px;
-    border: 1px solid var(--line-strong);
-    background: rgba(168, 85, 247, 0.10);
-    color: var(--purple-2);
-    border-radius: 10px;
-    cursor: pointer;
-    display: grid;
-    place-items: center;
-    transition: all 0.15s var(--ease);
-  }
-  .goal-edit-btn:hover { background: rgba(168, 85, 247, 0.20); }
-
-  .goal-title-row {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 4px;
-  }
-  .goal-title {
-    font-size: clamp(28px, 7vw, 38px);
-    font-weight: 700;
-    letter-spacing: -0.035em;
-    color: var(--ink);
-    margin: 0;
-    line-height: 1;
-  }
-  .goal-title-mute {
-    color: var(--ink-muted);
-    font-weight: 600;
-    font-size: 0.65em;
-  }
-  .goal-success {
-    text-align: right;
-    flex-shrink: 0;
-  }
-  .goal-success-pct {
-    font-family: 'Geist Mono', monospace;
-    font-size: clamp(28px, 7vw, 38px);
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: -0.03em;
-  }
-  .status-ok .goal-success-pct { color: var(--gain); }
-  .status-warn .goal-success-pct { color: var(--warn); }
-  .status-bad .goal-success-pct { color: var(--loss); }
-  .goal-success-lbl {
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--ink-dim);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-top: 4px;
-  }
-  .goal-subtitle {
-    font-size: 13px;
-    color: var(--ink-muted);
-    margin-bottom: 24px;
-  }
-  .goal-dot-sep { color: var(--ink-dim); margin: 0 4px; }
-
-  .goal-chart {
-    margin: 0 -10px 14px;
-    height: 200px;
-  }
-  .goal-chart svg {
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
-
-  .goal-legend {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    font-size: 11px;
-    color: var(--ink-muted);
-    padding-top: 14px;
-    border-top: 1px solid var(--line);
-    margin-bottom: 18px;
-  }
-  .goal-legend .leg {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 500;
-  }
-  .goal-legend .sw {
-    width: 14px;
-    height: 3px;
-    border-radius: 2px;
-  }
-  .goal-legend .sw.real { background: linear-gradient(90deg, var(--purple), var(--pink)); }
-  .goal-legend .sw.req { background: var(--warn); }
-  .goal-legend .sw.goal { background: var(--gain); }
-  .goal-legend .sw.ytd { background: var(--purple-2); border: 1px dashed var(--purple-2); height: 0; padding: 0; width: 14px; }
-
-  .goal-narrative {
-    font-size: 14px;
-    line-height: 1.55;
-    color: var(--ink-2);
-    padding: 16px 18px;
-    background: rgba(168, 85, 247, 0.06);
-    border: 1px solid var(--line);
-    border-left: 3px solid var(--purple);
-    border-radius: 12px;
-    margin-bottom: 22px;
-  }
-  .goal-narrative b { color: var(--ink); font-weight: 700; }
-  .goal-narrative .num { font-family: 'Geist Mono', monospace; }
-  .goal-narrative .pos { color: var(--gain); }
-  .goal-narrative .warn { color: var(--warn); }
-  .goal-narrative .neg { color: var(--loss); }
-
-  .goal-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-  }
-  .gs-item {
-    padding: 16px 14px;
-    background: var(--surface-2);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    text-align: center;
-  }
-  .gs-lbl {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ink-dim);
-    margin-bottom: 8px;
-  }
-  .gs-val {
-    font-family: 'Geist Mono', monospace;
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--ink);
-    line-height: 1;
-    letter-spacing: -0.02em;
-  }
-  .gs-val.pos { color: var(--gain); }
-  .gs-val.neg { color: var(--loss); }
-  .gs-val.warn { color: var(--warn); }
-  .gs-val .gs-u { font-size: 0.6em; color: var(--ink-muted); margin-left: 1px; }
-  .gs-sub {
-    font-size: 10px;
-    color: var(--ink-dim);
-    margin-top: 6px;
-    font-family: 'Geist Mono', monospace;
-  }
-
-  /* Goal empty state */
-  .goal-empty {
-    padding: 16px 0 8px;
-    text-align: center;
-  }
-  .goal-empty-icon {
-    width: 72px;
-    height: 72px;
-    margin: 0 auto 18px;
-    border-radius: 20px;
-    background: var(--purple-soft);
-    border: 1px solid var(--line-strong);
-    display: grid;
-    place-items: center;
-    color: var(--purple-2);
-  }
-  .goal-empty-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--ink);
-    margin: 0 0 8px;
-    letter-spacing: -0.02em;
-  }
-  .goal-empty-body {
-    font-size: 13px;
-    color: var(--ink-muted);
-    line-height: 1.55;
-    margin: 0 auto 22px;
-    max-width: 320px;
-  }
-  .goal-empty-progress {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: var(--surface-2);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-pill);
-    margin-bottom: 18px;
-  }
-  .goal-empty-progress .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--surface-3);
-    border: 1px solid var(--line-strong);
-  }
-  .goal-empty-progress .dot.on {
-    background: var(--purple);
-    border-color: var(--purple);
-    box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
-  }
-  .goal-empty-progress .goal-empty-count {
-    font-family: 'Geist Mono', monospace;
-    font-size: 11px;
-    color: var(--ink-muted);
-    font-weight: 600;
-  }
-  .goal-empty-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 22px;
-    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-deep) 100%);
-    border: none;
-    color: #fff;
-    border-radius: 12px;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s var(--ease);
-    box-shadow: 0 6px 20px rgba(168, 85, 247, 0.35);
-  }
-  .goal-empty-cta:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(168, 85, 247, 0.5); }
-  .goal-loading { padding: 60px 20px; text-align: center; color: var(--ink-dim); font-size: 13px; }
-
-  /* ===========================================================
-     CHARTS (existing dividends + plChart)
-     =========================================================== */
-  .bar-chart { width: 100%; height: 220px; }
-  .bar-chart text { fill: var(--ink-dim); font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; }
-  .bar-chart .grid line { stroke: var(--line); stroke-dasharray: 2 4; }
-  .bar-chart .bar { transition: opacity 0.2s; }
-  .bar-chart .bar:hover { opacity: 0.85; cursor: pointer; }
-  .bar-chart .bar-label { fill: var(--ink-muted); font-size: 9px; }
-  .bar-chart .tooltip-group { pointer-events: none; }
-  .bar-chart .tooltip-bg { fill: var(--surface-3); stroke: var(--line-strong); }
-  .bar-chart .tooltip-text { fill: var(--ink); font-size: 10px; }
-
-  /* ===========================================================
-     YEARLY TABLE
-     =========================================================== */
-  .yearly-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  .yearly-table th {
-    text-align: left;
-    padding: 10px 12px;
-    color: var(--ink-dim);
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    border-bottom: 1px solid var(--line);
-  }
-  .yearly-table th:not(:first-child) { text-align: right; }
-  .yearly-table td {
-    padding: 12px;
-    border-bottom: 1px solid var(--line);
-    color: var(--ink-2);
-    font-family: 'Geist Mono', monospace;
-  }
-  .yearly-table td:not(:first-child) { text-align: right; }
-  .yearly-table td:first-child { font-weight: 700; color: var(--ink); }
-  .yearly-table tr { transition: background 0.15s; cursor: pointer; }
-  .yearly-table tr:hover td { background: var(--surface-2); }
-  .yearly-table .pos { color: var(--gain); font-weight: 700; }
-  .yearly-table .neg { color: var(--loss); font-weight: 700; }
-
-  /* ===========================================================
-     EXPENSES MODULE (kept from before, lightly themed dark)
+     EXPENSES MODULE — themed for cosmic dark
      =========================================================== */
   .section-head {
-    margin-bottom: 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
     flex-wrap: wrap;
+    margin-bottom: 24px;
   }
   .section-head h2 {
     font-size: 28px;
@@ -991,51 +1078,58 @@
     color: var(--ink);
     margin: 0 0 6px;
   }
-  .section-head .meta { font-size: 13px; color: var(--ink-muted); }
-
-  /* Expense hero */
+  .section-head .meta {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink-muted);
+  }
   .exp-hero {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 20px;
     flex-wrap: wrap;
-    padding: 32px 28px;
-    margin-bottom: 24px;
-    background: linear-gradient(180deg, rgba(168, 85, 247, 0.10) 0%, rgba(124, 58, 237, 0.04) 100%);
-    border: 1px solid var(--line-strong);
+    padding: 36px 32px;
+    margin-bottom: 22px;
+    background:
+      radial-gradient(ellipse 60% 80% at 100% 0%, rgba(236, 72, 153, 0.12), transparent 60%),
+      radial-gradient(ellipse 70% 90% at 0% 100%, rgba(168, 85, 247, 0.16), transparent 60%),
+      var(--card-bg-strong);
+    border: 1px solid var(--card-border-strong);
     border-radius: var(--radius);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 32px 80px -20px rgba(0, 0, 0, 0.6);
   }
   .exp-hero .left { flex: 1; min-width: 200px; }
   .exp-hero .label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.10em;
-    text-transform: uppercase;
-    color: var(--purple-2);
-    margin-bottom: 12px;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--purple-light);
+    margin-bottom: 14px;
   }
   .exp-hero .amt {
     display: flex;
     align-items: baseline;
-    gap: 6px;
-    font-family: 'Geist', sans-serif;
+    gap: 8px;
     font-weight: 700;
     color: var(--ink);
-    letter-spacing: -0.035em;
+    letter-spacing: -0.04em;
     line-height: 1;
     margin-bottom: 8px;
   }
-  .exp-hero .amt .cur { font-size: 18px; color: var(--ink-muted); font-weight: 600; }
-  .exp-hero .amt #expHeroAmt { font-size: clamp(40px, 9vw, 56px); font-variant-numeric: tabular-nums; }
-  .exp-hero .amt-sub { font-size: 13px; color: var(--ink-muted); }
-
+  .exp-hero .amt .cur { font-size: 20px; color: var(--ink-3); font-weight: 600; }
+  .exp-hero .amt #expHeroAmt { font-size: clamp(40px, 9vw, 60px); font-variant-numeric: tabular-nums; }
+  .exp-hero .amt-sub { font-size: 13px; color: var(--ink-muted); font-family: 'Geist Mono', monospace; }
   .month-nav {
     display: flex;
     align-items: center;
-    gap: 14px;
-    background: var(--surface-2);
-    border: 1px solid var(--line);
+    gap: 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--card-border);
     border-radius: var(--radius-pill);
     padding: 6px;
   }
@@ -1052,36 +1146,35 @@
     place-items: center;
     font-family: inherit;
   }
-  .month-nav button:hover { background: var(--surface-3); }
+  .month-nav button:hover { background: rgba(168, 85, 247, 0.15); color: var(--purple-light); }
   .month-nav .current {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--ink);
     min-width: 130px;
     text-align: center;
     text-transform: capitalize;
+    font-family: 'Geist Mono', monospace;
   }
-
-  /* Expense stats */
   .stats {
     display: grid;
-    gap: 12px;
-    margin-bottom: 28px;
+    gap: 10px;
+    margin-bottom: 22px;
   }
   .stats.three { grid-template-columns: repeat(3, 1fr); }
   .stat {
-    padding: 18px 20px;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-sm);
+    padding: 22px 22px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    backdrop-filter: blur(20px);
   }
   .stat .lbl {
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--ink-dim);
-    margin-bottom: 8px;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--ink-muted);
+    margin-bottom: 10px;
   }
   .stat .val {
     font-family: 'Geist Mono', monospace;
@@ -1096,99 +1189,75 @@
   .stat .sub {
     font-size: 11px;
     color: var(--ink-muted);
-    margin-top: 6px;
+    margin-top: 8px;
+    font-family: 'Geist Mono', monospace;
   }
+  .stat .sub .pos { color: var(--gain); }
+  .stat .sub .neg { color: var(--loss); }
 
-  /* Grid 2 cols */
   .grid-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
-    margin-bottom: 24px;
+    margin-bottom: 22px;
   }
 
-  /* Category list */
-  .cat-list { display: flex; flex-direction: column; gap: 10px; }
-  .cat-row {
+  .cat-list-exp { display: flex; flex-direction: column; gap: 12px; }
+  .cat-row-exp {
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
     gap: 12px;
-    padding: 10px 0;
+    padding: 6px 0;
   }
-  .cat-row .icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 9px;
-    background: var(--surface-2);
+  .cat-row-exp .icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    background: rgba(168, 85, 247, 0.12);
+    border: 1px solid var(--card-border);
     display: grid;
     place-items: center;
     font-size: 16px;
   }
-  .cat-row .name { font-size: 13px; font-weight: 600; color: var(--ink-2); }
-  .cat-row .val {
+  .cat-row-exp .name { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+  .cat-row-exp .val {
     font-family: 'Geist Mono', monospace;
     font-size: 13px;
     font-weight: 700;
     color: var(--ink);
   }
-  .cat-row .bar {
+  .cat-row-exp .bar {
     grid-column: 2 / 3;
     height: 4px;
-    background: var(--surface-3);
+    background: rgba(255,255,255,0.05);
     border-radius: 2px;
     overflow: hidden;
     margin-top: 6px;
   }
-  .cat-row .bar i {
+  .cat-row-exp .bar i {
     display: block;
     height: 100%;
     background: linear-gradient(90deg, var(--purple), var(--pink));
     border-radius: 2px;
+    box-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
   }
 
-  /* Expense table */
-  .table-wrap { overflow-x: auto; }
-  .exp-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  .exp-table th {
-    text-align: left;
-    padding: 10px 12px;
-    color: var(--ink-dim);
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    border-bottom: 1px solid var(--line);
-  }
-  .exp-table td {
-    padding: 12px;
-    border-bottom: 1px solid var(--line);
-    color: var(--ink-2);
-  }
-  .exp-table tr { transition: background 0.15s; cursor: pointer; }
-  .exp-table tr:hover td { background: var(--surface-2); }
-  .exp-table .amt { font-family: 'Geist Mono', monospace; font-weight: 700; color: var(--ink); text-align: right; }
-
-  /* Recent list */
-  #recentList { display: flex; flex-direction: column; gap: 10px; }
-  #recentList .recent-item {
+  #recentList { display: flex; flex-direction: column; gap: 4px; }
+  #recentList .recent-item, .recent-item {
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
     gap: 12px;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--line);
+    padding: 12px 8px;
+    border-bottom: 1px solid var(--card-divider);
   }
   #recentList .recent-item:last-child { border-bottom: none; }
   #recentList .icon {
     width: 32px;
     height: 32px;
     border-radius: 9px;
-    background: var(--surface-2);
+    background: rgba(168, 85, 247, 0.10);
     display: grid;
     place-items: center;
     font-size: 16px;
@@ -1201,28 +1270,35 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  #recentList .meta { font-size: 11px; color: var(--ink-dim); margin-top: 2px; font-family: 'Geist Mono', monospace; }
+  #recentList .meta { font-size: 11px; color: var(--ink-muted); margin-top: 2px; font-family: 'Geist Mono', monospace; }
   #recentList .amt { font-family: 'Geist Mono', monospace; font-size: 13px; font-weight: 700; color: var(--ink); }
 
-  .add-fab {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-deep) 100%);
-    color: #fff;
-    border: none;
-    display: grid;
-    place-items: center;
-    cursor: pointer;
-    box-shadow: 0 12px 32px rgba(168, 85, 247, 0.5);
-    z-index: 30;
-    transition: all 0.2s var(--ease);
+  .table-wrap { overflow-x: auto; }
+  .exp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
   }
-  .add-fab:hover { transform: scale(1.05); box-shadow: 0 16px 40px rgba(168, 85, 247, 0.6); }
-  .add-fab svg { width: 24px; height: 24px; }
+  .exp-table th {
+    text-align: left;
+    padding: 0 14px 14px;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 12px;
+    color: var(--ink-muted);
+    border-bottom: 1px solid var(--card-divider);
+  }
+  .exp-table td {
+    padding: 14px;
+    border-bottom: 1px solid var(--card-divider);
+    color: var(--ink-2);
+    font-family: 'Geist Mono', monospace;
+  }
+  .exp-table tr { transition: background 0.15s; cursor: pointer; }
+  .exp-table tr:hover td { background: rgba(168, 85, 247, 0.04); }
+  .exp-table .amt { font-family: 'Geist Mono', monospace; font-weight: 700; color: var(--ink); text-align: right; }
+  .exp-table tr:last-child td { border-bottom: none; }
 
   /* ===========================================================
      MODALS
@@ -1230,69 +1306,93 @@
   .modal-bg {
     position: fixed;
     inset: 0;
-    background: rgba(5, 2, 12, 0.72);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(3, 1, 6, 0.78);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 100;
     padding: 20px;
   }
-  .modal-bg.show { display: flex; animation: fadeIn 0.2s var(--ease); }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal-bg.show { display: flex; animation: fadeInModal 0.2s var(--ease); }
+  @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
   .modal {
-    background: var(--surface);
-    border: 1px solid var(--line-strong);
-    border-radius: 22px;
-    padding: 28px 26px;
-    max-width: 440px;
+    background: rgba(20, 12, 32, 0.95);
+    border: 1px solid var(--card-border-strong);
+    border-radius: 24px;
+    padding: 32px 30px;
+    max-width: 460px;
     width: 100%;
-    box-shadow: var(--shadow-2);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.08) inset,
+      0 40px 100px -20px rgba(0, 0, 0, 0.85),
+      0 0 0 1px rgba(168, 85, 247, 0.12);
     animation: modalUp 0.3s var(--ease);
     max-height: 90vh;
     overflow-y: auto;
+    color: var(--ink);
   }
-  @keyframes modalUp { from { opacity: 0; transform: translateY(20px) scale(0.96); } to { opacity: 1; transform: none; } }
+  @keyframes modalUp {
+    from { opacity: 0; transform: translateY(20px) scale(0.96); }
+    to { opacity: 1; transform: none; }
+  }
   .modal h3 {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
     color: var(--ink);
-    margin: 0 0 22px;
-    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+    letter-spacing: -0.025em;
   }
-  .modal .field { margin-bottom: 16px; }
-  .modal .field label {
-    display: block;
-    font-size: 11px;
-    font-weight: 700;
+  .modal .sub {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 13px;
     color: var(--ink-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 8px;
+    margin: 0 0 22px;
+  }
+  .modal .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .modal .field { display: flex; flex-direction: column; }
+  .modal .field.full { grid-column: 1 / -1; }
+  .modal .field label {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--ink-3);
+    margin-bottom: 6px;
   }
   .modal input, .modal select, .modal textarea {
     width: 100%;
     padding: 12px 14px;
-    background: var(--surface-2);
-    border: 1px solid var(--line-strong);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--card-border);
     border-radius: 12px;
     color: var(--ink);
-    font-family: inherit;
+    font-family: 'Geist', sans-serif;
     font-size: 14px;
-    transition: border-color 0.15s;
+    transition: all 0.15s;
   }
   .modal input:focus, .modal select:focus, .modal textarea:focus {
     outline: none;
     border-color: var(--purple);
-    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+    background: rgba(168, 85, 247, 0.06);
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.18);
   }
-  .modal-actions {
+  .modal select option { background: #140c20; color: var(--ink); }
+  .modal textarea { font-family: inherit; resize: vertical; }
+  .modal .modal-foot {
     display: flex;
+    align-items: center;
     gap: 10px;
-    justify-content: flex-end;
     margin-top: 24px;
   }
+  .modal .spacer { flex: 1; }
   .btn-primary {
     padding: 12px 22px;
     background: linear-gradient(135deg, var(--purple) 0%, var(--purple-deep) 100%);
@@ -1303,49 +1403,53 @@
     font-size: 13px;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 6px 16px rgba(168, 85, 247, 0.35);
-    transition: all 0.15s;
+    box-shadow: 0 8px 20px rgba(168, 85, 247, 0.40);
+    transition: all 0.15s var(--ease);
+    letter-spacing: -0.01em;
   }
-  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(168, 85, 247, 0.5); }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px rgba(168, 85, 247, 0.55);
+  }
   .btn-primary:disabled { opacity: 0.6; cursor: wait; transform: none; }
   .btn-secondary {
     padding: 12px 22px;
-    background: var(--surface-2);
-    color: var(--ink-muted);
-    border: 1px solid var(--line-strong);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--ink-3);
+    border: 1px solid var(--card-border);
     border-radius: 12px;
     font-family: inherit;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
+    transition: all 0.15s;
   }
-  .btn-secondary:hover { background: var(--surface-3); color: var(--ink); }
+  .btn-secondary:hover { background: rgba(255, 255, 255, 0.08); color: var(--ink); }
   .btn-danger {
     padding: 12px 22px;
     background: var(--loss-soft);
     color: var(--loss);
-    border: 1px solid rgba(255, 69, 58, 0.30);
+    border: 1px solid rgba(255, 94, 87, 0.30);
     border-radius: 12px;
     font-family: inherit;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    margin-right: auto;
   }
-  .btn-danger:hover { background: rgba(255, 69, 58, 0.20); }
+  .btn-danger:hover { background: rgba(255, 94, 87, 0.18); }
 
   /* ===========================================================
      TOAST
      =========================================================== */
   .toast {
     position: fixed;
-    bottom: 28px;
+    bottom: 32px;
     left: 50%;
     transform: translateX(-50%) translateY(20px);
-    background: var(--surface-3);
-    border: 1px solid var(--line-strong);
+    background: rgba(20, 12, 32, 0.95);
+    border: 1px solid var(--card-border-strong);
     color: var(--ink);
-    padding: 14px 22px;
+    padding: 14px 24px;
     border-radius: 14px;
     font-size: 13px;
     font-weight: 600;
@@ -1353,41 +1457,31 @@
     transition: all 0.3s var(--ease);
     pointer-events: none;
     z-index: 200;
-    box-shadow: var(--shadow-2);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 
-  /* ===========================================================
-     RESPONSIVE
-     =========================================================== */
-  @media (max-width: 640px) {
-    .shell { padding: 0 16px 80px; }
-    .topbar { padding: 14px 16px; }
-    .hero { padding: 28px 22px 26px; }
-    .ytd-card, .card, .goal-card-inner { padding: 22px 20px; }
-    .goal-stats { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .gs-item { padding: 12px 8px; }
-    .gs-val { font-size: 18px; }
-    .stats-grid { grid-template-columns: 1fr; }
-    .user-pill #userName { display: none; }
+  /* Mobile expense overrides */
+  @media (max-width: 720px) {
     .stats.three { grid-template-columns: 1fr; }
     .grid-2 { grid-template-columns: 1fr; }
-    .exp-hero { padding: 24px 20px; }
-    .exp-hero .month-nav { width: 100%; justify-content: space-between; }
-    .section-head { flex-direction: column; align-items: flex-start; }
+    .exp-hero { padding: 28px 22px; }
+    .modal { padding: 26px 22px; }
+    .modal .form-grid { grid-template-columns: 1fr; }
   }
 
-  @media (min-width: 900px) {
-    .shell, .topbar { max-width: 920px; }
-    .hero { padding: 44px 36px 36px; }
-    .goal-card-inner { padding: 36px 36px 32px; }
-    .ytd-card, .card { padding: 30px 36px; }
-  }
 </style>
 </head>
 <body>
 
-<!-- ============== LOGIN ============== -->
+<div class="cosmos">
+  <div class="stars"></div>
+</div>
+
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="logo-big" id="loginLogo">
@@ -1423,46 +1517,44 @@
   </div>
 </div>
 
-<!-- ============== APP ============== -->
 <div class="app" id="app">
-  <div class="shell">
+  <div class="page">
 
-    <header class="top">
+    <!-- ============ TOPBAR ============ -->
+    <div class="topbar">
       <div class="brand">
-        <div class="logo" id="headerLogo">
-          <svg width="32" height="32" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="headerLogoGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#a855f7"/>
-                <stop offset="100%" stop-color="#7c3aed"/>
-              </linearGradient>
-            </defs>
-            <rect x="0" y="0" width="120" height="120" rx="26" fill="url(#headerLogoGrad)"/>
-            <path d="M 36 28 L 36 88 L 78 88" stroke="#ffffff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-            <rect x="58" y="60" width="6" height="20" rx="2" fill="#ec4899"/>
-            <rect x="68" y="48" width="6" height="32" rx="2" fill="#ffffff"/>
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 3v18h18"/>
+            <path d="M7 14l4-4 4 4 5-5"/>
           </svg>
         </div>
-        <h1>Ledger <span>· personal finance</span></h1>
-      </div>
-      <div class="top-right">
-        <span class="conn live" id="connStatus">Connected</span>
-        <div class="user-chip">
-          <img id="userPhoto" alt="" />
-          <span class="name" id="userName">User</span>
+        <div class="brand-text">
+          <div class="name">Ledger</div>
+          <div class="tag">personal finance</div>
         </div>
-        <button class="btn-logout" id="btnLogout">Sign out</button>
       </div>
-    </header>
-
-    <div class="mode-switch">
-      <button data-mode="investments" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>Investimentos</button>
-      <button data-mode="expenses"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Despesas</button>
+      <div class="user-pill">
+        <img id="userPhoto" class="avatar" alt="" style="object-fit:cover" />
+        <span id="userName">User</span>
+        <button id="btnLogout" style="background:none;border:none;color:var(--ink-muted);cursor:pointer;padding:0 0 0 8px;margin-left:4px;border-left:1px solid var(--card-border);display:flex;align-items:center" title="Sair">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
     </div>
 
-    <!-- =========================================== -->
-    <!--               EXPENSES MODULE                -->
-    <!-- =========================================== -->
+    <!-- ============ MODE SWITCH ============ -->
+    <div class="mode-switch">
+      <button data-mode="investments" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        Investimentos
+      </button>
+      <button data-mode="expenses">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        Despesas
+      </button>
+    </div>
+
     <div class="module" id="moduleExpenses">
 
       <div class="section-head">
@@ -1527,104 +1619,140 @@
 
     </div>
 
-    <!-- =========================================== -->
-    <!--             INVESTMENTS MODULE               -->
-    <!-- =========================================== -->
+    <!-- ============ INVESTMENTS MODULE ============ -->
     <div class="module active" id="moduleInvestments">
 
-      <!-- HERO: Patrimônio total -->
-      <section class="hero">
-        <div class="hero-eyebrow">PATRIMONIO TOTAL</div>
-        <div class="hero-number">
+      <!-- HERO Patrimonio -->
+      <div class="hero-card animate-in">
+        <div class="hero-eyebrow">
+          <div class="live-dot"></div>
+          <div class="label">Patrimonio total</div>
+        </div>
+        <div class="hero-amount">
           <span class="cur">R$</span>
-          <span id="i10Equity">0</span>
+          <span class="num" id="i10Equity">0</span>
         </div>
-        <div class="hero-sub" id="i10EquitySub">Atualizacao manual</div>
-        <div class="hero-meta">
-          <span class="hero-updated" id="i10Updated">Ainda nao atualizado</span>
-          <div class="hero-actions">
-            <a href="https://investidor10.com.br/wallet/public/1986068?h=e7342357fda4facec345faeeaa80016d13d53afd" target="_blank" rel="noopener" class="hero-btn primary" id="i10PublicLink">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-              I10
-            </a>
-            <button class="hero-btn" id="btnSyncI10">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-              Sincronizar
-            </button>
-            <button class="hero-btn icon" id="btnEditI10" title="Editar valores">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            </button>
-            <button class="hero-btn icon" id="btnCfgI10" title="Configurar Worker">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            </button>
-          </div>
+        <div class="hero-meta-row" id="i10EquitySub">
+          <div class="applied-text">Atualizacao manual</div>
         </div>
-      </section>
-
-      <!-- GOAL CARD V4 (rendered by goal-projection.js into #goalCardV2) -->
-      <div id="goalCardV2"></div>
-
-      <!-- YTD CARD -->
-      <section class="ytd-card">
-        <div class="ytd-label">DIVIDENDOS YTD <span id="i10Year">2026</span></div>
-        <div class="ytd-amount">
-          <span class="cur">R$</span>
-          <span id="i10Dividends">0</span>
-        </div>
-        <div class="ytd-sub" id="i10DivSub">Proventos recebidos neste ano</div>
-      </section>
-
-      <!-- CARTEIRA -->
-      <section class="card">
-        <h3>Carteira</h3>
-        <div id="i10AssetsList" class="assets-list"></div>
-      </section>
-
-      <!-- DIVIDENDOS POR ANO -->
-      <section class="card">
-        <h3>Dividendos por ano</h3>
-        <div id="divChartWrap"></div>
-      </section>
-
-      <!-- PATRIMONIO POR ANO -->
-      <section class="card">
-        <h3>Patrimonio por ano</h3>
-        <div id="plChartWrap"></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
-          <span style="font-size:11px;color:var(--ink-dim);font-family:'Geist Mono',monospace">Crescimento total: <b id="plTotalGrowth" style="color:var(--ink-2)">-</b></span>
-          <span style="font-size:11px;color:var(--ink-dim);font-family:'Geist Mono',monospace">CAGR: <b id="plCagr" style="color:var(--ink-2)">-</b></span>
-          <span style="font-size:11px;color:var(--ink-dim);font-family:'Geist Mono',monospace">Desde <b id="plSinceFirst" style="color:var(--ink-2)">-</b></span>
-        </div>
-        <div style="display:none"><span id="plCagrPill"></span></div>
-      </section>
-
-      <!-- HISTORICO ANUAL -->
-      <section class="card">
-        <div class="card-head">
-          <h3>Historico anual</h3>
-          <button id="btnAddYear">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Ano
+        <div class="hero-actions">
+          <span class="updated" id="i10Updated">ainda nao atualizado</span>
+          <a href="https://investidor10.com.br/wallet/public/1986068?h=e7342357fda4facec345faeeaa80016d13d53afd" target="_blank" rel="noopener" class="btn-ghost" id="i10PublicLink">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            I10
+          </a>
+          <button class="btn-ghost primary" id="btnSyncI10">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Sincronizar
+          </button>
+          <button class="btn-ghost icon" id="btnEditI10" title="Editar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </button>
+          <button class="btn-ghost icon" id="btnCfgI10" title="Config Worker">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           </button>
         </div>
-        <table class="yearly-table">
-          <thead><tr><th>Ano</th><th>Patrimonio</th><th>Proventos</th><th>DY%</th><th>YoY</th></tr></thead>
-          <tbody id="yearlyBody"></tbody>
-        </table>
-        <div style="display:none">
-          <span id="divAllTime"></span><span id="divGoalPill"></span><span id="divYearsLeft"></span><span id="divProgress"></span>
-          <span id="goalRemaining"></span><span id="goalSub"></span><span id="goalYearsLeft"></span><span id="progressPct"></span><span id="progressSub"></span><span id="historyYears"></span>
+      </div>
+
+      <!-- GOAL CARD V4 (rendered by goal-projection.js into #goalCardV2) -->
+      <div id="goalCardV2" class="animate-in"></div>
+
+      <!-- YTD DUAL CARD -->
+      <div class="card animate-in">
+        <div class="card-body">
+          <div class="ytd-grid">
+            <div class="ytd-block">
+              <div class="ytd-lbl">dividendos YTD <span id="i10Year">2026</span></div>
+              <div class="ytd-num"><span class="cur">R$</span><span class="v" id="i10Dividends">0</span></div>
+              <div class="ytd-sub" id="i10DivSub">proventos recebidos neste ano</div>
+              <div class="ytd-progress"><i id="ytdProgressBar" style="width:0%"></i></div>
+            </div>
+            <div class="ytd-block">
+              <div class="ytd-lbl">total recebido all-time</div>
+              <div class="ytd-num"><span class="cur">R$</span><span class="v" id="divAllTime">0</span></div>
+              <div class="ytd-sub" id="divAllTimeSub">desde o primeiro ano</div>
+              <div class="ytd-progress"><i id="allTimeProgressBar" style="width:0%;background:linear-gradient(90deg,var(--gain),var(--purple-light))"></i></div>
+            </div>
+          </div>
         </div>
-      </section>
+      </div>
+
+      <!-- CARTEIRA AGRUPADA -->
+      <div class="card animate-in">
+        <div class="card-body">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">my portfolio</div>
+              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" id="i10AssetsCount">carregando...</div>
+            </div>
+            <div class="eyebrow-mono">VIA I10</div>
+          </div>
+          <div class="cat-list" id="i10AssetsList"></div>
+        </div>
+      </div>
+
+      <!-- DIVIDENDOS POR ANO -->
+      <div class="card animate-in">
+        <div class="card-body">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">dividends per year</div>
+              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace">historico anual de proventos</div>
+            </div>
+          </div>
+          <div id="divChartWrap"></div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-muted)">
+            <span>desde inicio: <b id="plTotalGrowth" style="color:var(--ink)">-</b></span>
+            <span>CAGR: <b id="plCagr" style="color:var(--ink)">-</b></span>
+            <span>desde <b id="plSinceFirst" style="color:var(--ink)">-</b></span>
+          </div>
+          <div style="display:none"><span id="plCagrPill"></span></div>
+        </div>
+      </div>
+
+      <!-- PATRIMONIO POR ANO -->
+      <div class="card animate-in">
+        <div class="card-body">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">net worth per year</div>
+              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace">evolucao do patrimonio</div>
+            </div>
+          </div>
+          <div id="plChartWrap"></div>
+        </div>
+      </div>
+
+      <!-- HISTORICO ANUAL -->
+      <div class="card animate-in">
+        <div class="card-body">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">yearly history</div>
+              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace">patrimonio + proventos por ano</div>
+            </div>
+            <button class="btn-ghost primary" id="btnAddYear">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Ano
+            </button>
+          </div>
+          <table class="yearly-table">
+            <thead><tr><th>Ano</th><th>Patrimonio</th><th>Proventos</th><th>DY</th><th>YoY</th></tr></thead>
+            <tbody id="yearlyBody"></tbody>
+          </table>
+          <div style="display:none">
+            <span id="goalRemaining"></span><span id="goalSub"></span><span id="goalYearsLeft"></span>
+            <span id="progressPct"></span><span id="progressSub"></span><span id="historyYears"></span>
+            <span id="divGoalPill"></span><span id="divYearsLeft"></span><span id="divProgress"></span>
+          </div>
+        </div>
+      </div>
 
     </div>
 
   </div>
 </div>
 
-<!-- ============== MODALS ============== -->
-
-<!-- Expense Modal -->
 <div class="modal-bg" id="expenseModal"><div class="modal">
   <h3 id="expenseModalTitle">Nova despesa</h3>
   <p class="sub">Registre um gasto. Categorias podem ser editadas no futuro.</p>
@@ -1654,7 +1782,6 @@
   </div>
 </div></div>
 
-<!-- I10 Edit Modal -->
 <div class="modal-bg" id="i10Modal"><div class="modal">
   <h3>Editar valores do Investidor10</h3>
   <p class="sub">Enquanto a automação não está pronta, atualize os valores manualmente. Abra o Investidor10 e copie os valores exatos.</p>
@@ -1669,7 +1796,6 @@
   </div>
 </div></div>
 
-<!-- I10 Sync Config Modal -->
 <div class="modal-bg" id="i10CfgModal"><div class="modal">
   <h3>Configurar sincronização I10</h3>
   <p class="sub">Cole a URL do seu Cloudflare Worker e o ID da sua carteira pública. A configuração é compartilhada entre os dois usuários via Firestore.</p>
@@ -1692,7 +1818,6 @@
   </div>
 </div></div>
 
-<!-- Yearly Modal -->
 <div class="modal-bg" id="yearlyModal"><div class="modal">
   <h3 id="yearlyModalTitle">Adicionar ano</h3>
   <p class="sub">Snapshot anual para gráficos de crescimento.</p>
@@ -1709,7 +1834,6 @@
   </div>
 </div></div>
 
-<!-- Goal Edit Modal (NEW) -->
 <div class="modal-bg" id="goalEditModal"><div class="modal">
   <h3>Editar meta de proventos</h3>
   <p class="sub">Defina o valor anual de proventos que quer atingir e o ano alvo. Compartilhado entre os dois usuários via Firestore.</p>
@@ -1734,7 +1858,6 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- ============ APP.JS INLINED ============ -->
 <script type="module">
 // ============================================================
 //  LEDGER - Personal Finance (app.js)
@@ -2061,27 +2184,28 @@ function renderInvestments() {
   $('i10Equity').textContent = (state.i10.equity || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
   if (state.i10.updatedAt) {
     const sourceTag = state.i10.source === 'investidor10-sync' ? ' · via I10' : ' · manual';
-    $('i10Updated').textContent = 'Atualizado: ' + formatDateTimeBR(state.i10.updatedAt) + sourceTag;
+    $('i10Updated').textContent = 'atualizado ' + formatDateTimeBR(state.i10.updatedAt) + sourceTag;
   } else {
-    $('i10Updated').textContent = 'Ainda não atualizado';
+    $('i10Updated').textContent = 'ainda nao atualizado';
   }
-  // Amt subtitle: show total return (valorização + dividendos) if synced
+  // Hero meta row: return pill + applied text
   const subEl = $('i10EquitySub');
   if (subEl) {
     if (state.i10.source === 'investidor10-sync' && state.i10.applied > 0) {
-      // Dividendos: YTD do I10 + histórico dos anos anteriores do Firestore
       const ytdDivs = +state.i10.dividends || 0;
       const pastDivs = state.yearly
         .filter(y => y.year < currentYear)
         .reduce((s, y) => s + (+y.divs || 0), 0);
       const totalDivs = ytdDivs + pastDivs;
-      // Retorno total = (patrimônio atual - aplicado + dividendos recebidos) / aplicado
       const totalReturn = ((state.i10.equity - state.i10.applied + totalDivs) / state.i10.applied) * 100;
       const sign = totalReturn >= 0 ? '+' : '';
-      const cls = totalReturn >= 0 ? 'pos' : 'neg';
-      subEl.innerHTML = `Aplicado ${fmtBRL0(state.i10.applied)} · <span class="${cls}">${sign}${totalReturn.toFixed(2)}%</span> <span style="opacity:.7;font-size:11px">(com dividendos)</span>`;
+      const arrow = totalReturn >= 0
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>';
+      const pillCls = totalReturn >= 0 ? 'return-pill' : 'return-pill neg';
+      subEl.innerHTML = `<div class="${pillCls}">${arrow}${sign}${totalReturn.toFixed(2)}% com dividendos</div><div class="applied-text">Aplicado <b>${fmtBRL0(state.i10.applied)}</b></div>`;
     } else {
-      subEl.textContent = 'Atualização manual · configure sync pra automático';
+      subEl.innerHTML = '<div class="applied-text">Atualizacao manual &middot; configure sync pra automatico</div>';
     }
   }
 
@@ -2127,6 +2251,48 @@ function renderInvestments() {
   // All-time dividends
   const allTime = state.yearly.reduce((s,y) => s + (+y.divs||0), 0);
   $('divAllTime').textContent = fmtBRL0(allTime);
+
+  // YTD progress bar (% of yearly goal)
+  const ytdProgressEl = document.getElementById('ytdProgressBar');
+  if (ytdProgressEl) {
+    const pct = state.dividendsYearlyGoal > 0
+      ? Math.min(100, ((state.i10.dividends || 0) / state.dividendsYearlyGoal) * 100)
+      : 0;
+    ytdProgressEl.style.width = pct.toFixed(1) + '%';
+  }
+
+  // All-time sub: "desde 2020 - X anos de historico"
+  const allTimeSubEl = document.getElementById('divAllTimeSub');
+  if (allTimeSubEl) {
+    if (sortedYearly.length > 0) {
+      const firstYear = sortedYearly[0].year;
+      const yearsCount = sortedYearly.length;
+      allTimeSubEl.textContent = `desde ${firstYear} · ${yearsCount} ${yearsCount === 1 ? 'ano' : 'anos'} de historico`;
+    } else {
+      allTimeSubEl.textContent = 'sem historico ainda';
+    }
+  }
+
+  // All-time progress bar (proporcional ao valor recebido vs uma meta acumulada simbolica)
+  const allTimeProgressEl = document.getElementById('allTimeProgressBar');
+  if (allTimeProgressEl) {
+    // 35% como visual fixo - representa "progresso da jornada"
+    const accumGoal = state.dividendsYearlyGoal * 5; // 5x meta anual como referencia visual
+    const pct = accumGoal > 0 ? Math.min(100, (allTime / accumGoal) * 100) : 0;
+    allTimeProgressEl.style.width = pct.toFixed(1) + '%';
+  }
+
+  // Carteira count: "X ativos · Y categorias"
+  const countEl = document.getElementById('i10AssetsCount');
+  if (countEl) {
+    const assets = state.i10.assets || [];
+    if (assets.length === 0) {
+      countEl.textContent = 'nenhum ativo sincronizado';
+    } else {
+      const cats = new Set(assets.map(a => inferCategory(a)));
+      countEl.textContent = `${assets.length} ativos · ${cats.size} ${cats.size === 1 ? 'categoria' : 'categorias'}`;
+    }
+  }
 
   // Pills
   $('divGoalPill').textContent = 'R$ 1M até ' + goalYear;
@@ -2289,26 +2455,167 @@ function renderYearlyTable() {
 // ============================================================
 //                I10 AUTO-SYNC (via Cloudflare Worker)
 // ============================================================
+// ============================================================
+//  Categoria inference (Brazilian market)
+// ============================================================
+const FII_WHITELIST = new Set([
+  'HGLG11','MXRF11','KNRI11','XPLG11','BCFF11','VISC11','HGRE11','KNCR11','VRTA11','BTLG11',
+  'IRDM11','RBRR11','RECT11','HGRU11','RZAK11','HFOF11','BBPO11','PVBI11','HGCR11','DEVA11',
+  'KNHY11','MALL11','BTCR11','RBRF11','KFOF11','RBRP11','GGRC11','JSRE11','TRXF11','VINO11',
+  'XPML11','RBVA11','VGIR11','XPCI11','HGBS11','VILG11','MGFF11','ALZR11','HSML11','PATC11',
+  'CPTS11','MFII11','RVBI11','RBED11','RZTR11','HABT11','RCRB11','MCCI11','BPFF11','XPIN11',
+  'OUJP11','BARI11','RBRY11','VGHF11','URPR11','VIUR11','VIFI11','LVBI11','SARE11','PORD11',
+]);
+
+const ETF_BR_WHITELIST = new Set([
+  'BOVA11','SMAL11','BOVV11','XBOV11','DIVO11','ECOO11','PIBB11','FIND11','GOVE11','ISUS11',
+  'MATB11','MOBI11','SMAC11','BBSD11','HASH11','BDIF11','BRAX11','SPXB11','XINA11',
+]);
+
+const ETF_INTL_WHITELIST = new Set([
+  'IVVB11','SPXI11','NASD11','ACWI11','EURP11','ASIA11','GOLD11','WRLD11','XFIX11','ASHR11',
+]);
+
+const CRYPTO_WHITELIST = new Set([
+  'BTC','ETH','SOL','ADA','XRP','BNB','DOGE','MATIC','DOT','LINK','LTC','BCH','XLM','TRX',
+  'UNI','ATOM','AVAX','NEAR','SHIB','PEPE','BTC11','ETHE11','BITH11',
+]);
+
+function inferCategory(asset) {
+  // 1. trust explicit field if present
+  if (asset.category) return asset.category;
+  if (asset.type) return asset.type;
+
+  const t = (asset.ticker || '').toUpperCase().trim();
+  if (!t) return 'Outros';
+
+  if (CRYPTO_WHITELIST.has(t) || /^(BTC|ETH)/.test(t)) return 'Criptomoedas';
+  if (/^TESOURO|^LFT|^LTN|^NTN/.test(t)) return 'Tesouro Direto';
+  if (ETF_INTL_WHITELIST.has(t)) return 'ETFs Internacionais';
+  if (ETF_BR_WHITELIST.has(t)) return 'ETFs Brasil';
+  if (FII_WHITELIST.has(t)) return 'FIIs';
+  if (/CDB|LCI|LCA|DEBENT/.test(t)) return 'Renda Fixa';
+  if (/FIA$|FIM$|FIC$|FUNDO/.test(t)) return 'Fundos de Investimento';
+
+  // Default for stock-like patterns (XXXX3, XXXX4, XXXX11 unknown)
+  if (/^[A-Z]{4}[0-9]{1,2}$/.test(t)) return 'Acoes';
+
+  return 'Outros';
+}
+
+const CATEGORY_ORDER = ['Acoes','FIIs','Renda Fixa','Tesouro Direto','Fundos de Investimento','ETFs Brasil','ETFs Internacionais','Criptomoedas','Outros'];
+
+const CATEGORY_ICONS = {
+  'Acoes':                   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><polyline points="7 14 11 10 15 14 19 10"/></svg>',
+  'FIIs':                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4 8 4v14"/><path d="M9 9h1m4 0h1m-6 4h1m4 0h1m-6 4h1m4 0h1"/></svg>',
+  'Renda Fixa':              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="7" y1="15" x2="9" y2="15"/></svg>',
+  'Tesouro Direto':          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 5v8l-8 5-8-5V8z"/><path d="M12 3v18"/></svg>',
+  'Fundos de Investimento':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
+  'ETFs Brasil':             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>',
+  'ETFs Internacionais':     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+  'Criptomoedas':            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 8h4.5a2.5 2.5 0 0 1 0 5H9V8zm0 5h5a2.5 2.5 0 0 1 0 5H9v-5z"/></svg>',
+  'Outros':                  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+};
+
+const CATEGORY_DISPLAY = {
+  'Acoes': 'Acoes',
+  'FIIs': 'FIIs',
+  'Renda Fixa': 'Renda Fixa',
+  'Tesouro Direto': 'Tesouro Direto',
+  'Fundos de Investimento': 'Fundos de Invest.',
+  'ETFs Brasil': 'ETFs Brasil',
+  'ETFs Internacionais': 'ETFs Intern.',
+  'Criptomoedas': 'Criptomoedas',
+  'Outros': 'Outros',
+};
+
+let _expandedCats = new Set(['Acoes']); // Acoes expanded by default
+
 function renderI10Assets() {
   const wrap = $('i10AssetsList');
   if (!wrap) return;
   const assets = state.i10.assets || [];
   if (assets.length === 0) {
-    wrap.innerHTML = `<div class="empty-table" style="padding:30px 10px"><h4>Nenhum ativo sincronizado</h4><p>Clique em "Sincronizar" pra importar sua carteira do Investidor 10.</p></div>`;
+    wrap.innerHTML = '<div style="padding:30px 10px;color:var(--ink-muted);text-align:center;font-size:13px"><b style="color:var(--ink-2);display:block;margin-bottom:6px">Nenhum ativo sincronizado</b>Clique em "Sincronizar" pra importar sua carteira do Investidor 10.</div>';
     return;
   }
-  // Ordena do maior pro menor por patrimônio no ativo
-  const sorted = [...assets].sort((a, b) => (+b.equity || 0) - (+a.equity || 0));
-  wrap.innerHTML = sorted.map(a => {
-    const appr = +a.appreciation || 0;
-    const apprCls = appr >= 0 ? 'pos' : 'neg';
-    const apprSign = appr >= 0 ? '+' : '';
-    return `<div class="asset-row-slim">
-      <div class="asset-ticker-slim">${a.ticker || '-'}</div>
-      <div class="asset-value-slim">${fmtBRL0(+a.equity || 0)}</div>
-      <div class="asset-appr-slim ${apprCls}">${apprSign}${appr.toFixed(1)}%</div>
-    </div>`;
+
+  // Group by category
+  const groups = {};
+  let totalEquity = 0;
+  for (const a of assets) {
+    const cat = inferCategory(a);
+    if (!groups[cat]) groups[cat] = { items: [], totalEquity: 0, totalApplied: 0 };
+    const eq = +a.equity || 0;
+    groups[cat].items.push(a);
+    groups[cat].totalEquity += eq;
+    groups[cat].totalApplied += (eq / (1 + (+a.appreciation || 0) / 100)) || 0;
+    totalEquity += eq;
+  }
+
+  // Sort categories: by CATEGORY_ORDER, then unknown
+  const orderedCats = CATEGORY_ORDER.filter(c => groups[c]);
+  for (const c of Object.keys(groups)) {
+    if (!orderedCats.includes(c)) orderedCats.push(c);
+  }
+
+  const html = orderedCats.map(catName => {
+    const g = groups[catName];
+    const totalCount = g.items.length;
+    const pctWallet = totalEquity > 0 ? (g.totalEquity / totalEquity) * 100 : 0;
+    // Aggregate appreciation: sum(equity) / sum(applied) - 1
+    const aggAppr = g.totalApplied > 0 ? ((g.totalEquity / g.totalApplied) - 1) * 100 : 0;
+    const apprCls = aggAppr >= 0 ? 'pos' : 'neg';
+    const apprSign = aggAppr >= 0 ? '+' : '';
+    const isExpanded = _expandedCats.has(catName);
+    const display = CATEGORY_DISPLAY[catName] || catName;
+    const icon = CATEGORY_ICONS[catName] || CATEGORY_ICONS['Outros'];
+
+    // Sort tickers within category by equity desc
+    const sortedItems = [...g.items].sort((a, b) => (+b.equity || 0) - (+a.equity || 0));
+
+    const tickersHtml = sortedItems.map(a => {
+      const appr = +a.appreciation || 0;
+      const tApprCls = appr >= 0 ? 'pos' : 'neg';
+      const tApprSign = appr >= 0 ? '+' : '';
+      return `<div class="ticker-row">
+        <div class="ticker-name">${a.ticker || '-'}</div>
+        <div class="ticker-val">${fmtBRL0(+a.equity || 0)}</div>
+        <div class="ticker-appr ${tApprCls}">${tApprSign}${appr.toFixed(1)}%</div>
+      </div>`;
+    }).join('');
+
+    return `<div class="cat-row${isExpanded ? ' expanded' : ''}" data-cat="${catName}">
+      <div class="cat-icon">${icon}</div>
+      <div class="cat-info">
+        <div class="cat-name">${display}</div>
+        <div class="cat-count">${totalCount} ${totalCount === 1 ? 'ATIVO' : 'ATIVOS'} &middot; ${pctWallet.toFixed(0)}% DA CARTEIRA</div>
+      </div>
+      <div>
+        <div class="cat-value">${fmtBRL0(g.totalEquity)}</div>
+        <div class="cat-pct">${pctWallet.toFixed(0)}%</div>
+      </div>
+      <div class="cat-appr ${apprCls}">${apprSign}${aggAppr.toFixed(2)}%</div>
+      <svg class="cat-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="cat-tickers">${tickersHtml}</div>`;
   }).join('');
+
+  wrap.innerHTML = html;
+
+  // Wire up expand/collapse
+  wrap.querySelectorAll('.cat-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const cat = row.dataset.cat;
+      if (_expandedCats.has(cat)) {
+        _expandedCats.delete(cat);
+        row.classList.remove('expanded');
+      } else {
+        _expandedCats.add(cat);
+        row.classList.add('expanded');
+      }
+    });
+  });
 }
 
 async function syncFromI10() {
@@ -2357,6 +2664,7 @@ async function syncFromI10() {
       earnings: +a.earnings_received || 0,
       image: a.image || '',
       url: a.url || '',
+      category: a.category || a.type || a.category_name || a.type_name || '',
     }));
 
     // Persist in Firestore - both users share via onSnapshot
@@ -2658,7 +2966,6 @@ onAuthStateChanged(auth, async (user) => {
 });
 </script>
 
-<!-- ============ GOAL-PROJECTION.JS INLINED (v4 Tracker visual) ============ -->
 <script type="module">
 // ============================================================
 //  GOAL PROJECTION v4 - Tracker visual (roxo) + CAGR + defensive
@@ -3176,5 +3483,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 </script>
+
 </body>
 </html>
