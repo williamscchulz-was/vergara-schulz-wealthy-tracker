@@ -6,6 +6,8 @@ import { initializeApp, getApps, getApp } from “https://www.gstatic.com/fireba
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from “https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js”;
 import { getFirestore, doc, setDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from “https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js”;
 
+window.__bootLog && window.__bootLog(‘app.js imports OK’);
+
 // –– Firebase ––
 const firebaseConfig = {
 apiKey: “AIzaSyA5zsPOxpOBPN8BVnJRIN0mIJ4gdlUntc8”,
@@ -19,6 +21,8 @@ const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
+
+window.__bootLog && window.__bootLog(‘firebase init OK’);
 
 // –– Paths ––
 const colExpenses = () => collection(db, “household”, “main”, “expenses”);
@@ -745,6 +749,8 @@ closeYearlyModal();
 // ============================================================
 //                 EVENT LISTENERS
 // ============================================================
+window.__bootLog && window.__bootLog(‘binding event listeners…’);
+
 // Mode switch
 document.querySelectorAll(’.mode-switch button’).forEach(b => {
 b.addEventListener(‘click’, () => switchMode(b.dataset.mode));
@@ -838,21 +844,27 @@ state.i10Cfg.walletId = data.walletId || ‘’;
 }
 function unsubscribeAll() { Object.values(unsub).forEach(fn => fn && fn()); unsub = {}; }
 
+window.__bootLog && window.__bootLog(‘listeners + firestore ready, binding auth…’);
+
 // ============================================================
 //                 AUTH
 // ============================================================
 $(‘btnLogin’).addEventListener(‘click’, async () => {
+window.__bootLog && window.__bootLog(‘btnLogin CLICKED’);
 console.log(’[auth] Login button clicked’);
 $(‘loginError’).classList.remove(‘show’);
 $(‘btnLoginText’).textContent = ‘Entrando…’;
 try {
+window.__bootLog && window.__bootLog(‘calling signInWithPopup…’);
 console.log(’[auth] Calling signInWithPopup…’);
 await signInWithPopup(auth, provider);
+window.__bootLog && window.__bootLog(‘signInWithPopup resolved OK’);
 console.log(’[auth] signInWithPopup resolved’);
 } catch (err) {
 console.error(’[auth] signInWithPopup error:’, err);
 const code = err.code || ‘unknown’;
 const msg = err.message || String(err);
+window.__bootLog && window.__bootLog(‘AUTH FAIL: [’ + code + ’] ’ + msg);
 $(‘loginError’).textContent = `[${code}] ${msg}`;
 $(‘loginError’).classList.add(‘show’);
 $(‘btnLoginText’).textContent = ‘Tentar novamente’;
@@ -860,7 +872,10 @@ $(‘btnLoginText’).textContent = ‘Tentar novamente’;
 });
 $(‘btnLogout’).addEventListener(‘click’, async () => { unsubscribeAll(); await signOut(auth); });
 
+window.__bootLog && window.__bootLog(‘btnLogin handler bound ✓’);
+
 onAuthStateChanged(auth, async (user) => {
+window.__bootLog && window.__bootLog(’auth state: ’ + (user ? ’LOGGED IN as ’ + user.email : ‘logged out’));
 if (user) {
 state.user = user;
 $(‘loginScreen’).classList.add(‘hide’);
