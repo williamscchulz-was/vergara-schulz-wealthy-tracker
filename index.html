@@ -2312,128 +2312,131 @@ function renderInvestments() {
 }
 
 function buildBarChart(years, values, opts = {}) {
-  const W = 780, H = 280, padL = 50, padR = 20, padT = 30, padB = 40;
+  const W = 780, H = 240, padL = 56, padR = 24, padT = 24, padB = 38;
   const innerW = W - padL - padR;
   const innerH = H - padT - padB;
   if (!years.length) {
-    return `<div class="empty-chart"><div class="ico">📊</div><h4>Sem dados</h4><p>Adicione anos no histórico para ver o gráfico.</p></div>`;
+    return '<div style="padding:40px 20px;text-align:center;color:var(--ink-muted);font-size:13px"><div style="font-family:Instrument Serif,serif;font-style:italic;font-size:15px;color:var(--ink-3);margin-bottom:6px">sem dados ainda</div>adicione anos no historico para ver o grafico</div>';
   }
   const maxData = Math.max(...values, 0);
-  const maxVal = opts.goal ? Math.max(maxData, opts.goal) : maxData;
-  const yMax = maxVal * 1.15 || 1;
+  const yMax = (maxData > 0 ? maxData * 1.18 : 1);
   const barSlot = innerW / years.length;
-  const barWidth = Math.min(barSlot * 0.6, 32);
+  const barWidth = Math.min(barSlot * 0.55, 38);
   const currentYearActual = new Date().getFullYear();
-  const color = opts.color || '#0071e3';
+  const gradId = opts.gradId || 'barGradPurple';
+  const gradIdCurrent = opts.gradIdCurrent || 'barGradPink';
+  const uniqueId = Math.random().toString(36).substr(2, 6);
+  const gid = gradId + uniqueId;
+  const gidC = gradIdCurrent + uniqueId;
 
-  let svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">`;
-  svg += `<defs>
-    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${color}" stop-opacity="1"/>
-      <stop offset="100%" stop-color="${color}" stop-opacity=".5"/>
-    </linearGradient>
-    <linearGradient id="barGradientCurrent" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${color}" stop-opacity="1"/>
-      <stop offset="100%" stop-color="${color}" stop-opacity=".7"/>
-    </linearGradient>
-  </defs>`;
+  let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" style="overflow:visible">';
+  svg += '<defs>';
+  svg += '<linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1">';
+  svg += '<stop offset="0%" stop-color="#a855f7" stop-opacity="0.95"/>';
+  svg += '<stop offset="100%" stop-color="#7c3aed" stop-opacity="0.65"/>';
+  svg += '</linearGradient>';
+  svg += '<linearGradient id="' + gidC + '" x1="0" y1="0" x2="0" y2="1">';
+  svg += '<stop offset="0%" stop-color="#ec4899" stop-opacity="1"/>';
+  svg += '<stop offset="100%" stop-color="#a855f7" stop-opacity="0.7"/>';
+  svg += '</linearGradient>';
+  svg += '<filter id="glowB' + uniqueId + '" x="-50%" y="-50%" width="200%" height="200%">';
+  svg += '<feGaussianBlur stdDeviation="3" result="b"/>';
+  svg += '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>';
+  svg += '</filter>';
+  svg += '</defs>';
 
+  // Grid horizontal
   for (let i = 0; i <= 4; i++) {
     const y = padT + (innerH * i / 4);
-    svg += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#f0f0f2" stroke-width="1"/>`;
-    const val = yMax * (4-i) / 4;
-    svg += `<text class="axis" x="${padL - 8}" y="${y + 4}" text-anchor="end">${shortMoney(val)}</text>`;
+    svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="2 4"/>';
+    const val = yMax * (4 - i) / 4;
+    svg += '<text x="' + (padL - 10) + '" y="' + (y + 4) + '" text-anchor="end" fill="#7d6e96" font-family="Geist Mono,monospace" font-size="10" font-weight="600">' + shortMoney(val) + '</text>';
   }
 
-  if (opts.goal) {
-    const goalY = padT + innerH - (opts.goal / yMax) * innerH;
-    svg += `<line class="goal-line" x1="${padL}" y1="${goalY}" x2="${W - padR}" y2="${goalY}"/>`;
-    svg += `<text class="goal-label" x="${W - padR - 4}" y="${goalY - 6}" text-anchor="end">Meta: ${shortMoney(opts.goal)}</text>`;
-  }
-
+  // Bars
   years.forEach((y, i) => {
     const v = values[i] || 0;
+    if (v <= 0) {
+      // Empty year - draw label only
+      const x = padL + barSlot * i + barSlot / 2;
+      svg += '<text x="' + x + '" y="' + (H - 14) + '" text-anchor="middle" fill="#4d4063" font-family="Geist Mono,monospace" font-size="10" font-weight="600">' + y + '</text>';
+      return;
+    }
     const barH = (v / yMax) * innerH;
     const x = padL + barSlot * i + (barSlot - barWidth) / 2;
     const barY = padT + innerH - barH;
     const isCurrent = y === currentYearActual;
-    const fillUrl = isCurrent ? 'url(#barGradientCurrent)' : 'url(#barGradient)';
-    const cls = isCurrent ? 'bar bar-current' : 'bar';
-    svg += `<rect class="${cls}" x="${x}" y="${barY}" width="${barWidth}" height="${barH}" rx="4" fill="${fillUrl}"><title>${y}: ${fmtBRL0(v)}</title></rect>`;
-    svg += `<text class="axis" x="${x + barWidth/2}" y="${H - 18}" text-anchor="middle">${y}</text>`;
+    const fillUrl = isCurrent ? 'url(#' + gidC + ')' : 'url(#' + gid + ')';
+    const yearColor = isCurrent ? '#c084fc' : '#7d6e96';
+    const yearWeight = isCurrent ? '700' : '600';
+    const yearLabel = isCurrent ? y + '*' : String(y);
+
+    svg += '<rect x="' + x + '" y="' + barY + '" width="' + barWidth + '" height="' + barH + '" rx="5" fill="' + fillUrl + '"' + (isCurrent ? ' filter="url(#glowB' + uniqueId + ')"' : '') + '><title>' + y + ': ' + fmtBRL0(v) + '</title></rect>';
+    // Value label above bar
+    const valColor = isCurrent ? '#f472b6' : '#b8a8d4';
+    svg += '<text x="' + (x + barWidth / 2) + '" y="' + (barY - 6) + '" text-anchor="middle" fill="' + valColor + '" font-family="Geist Mono,monospace" font-size="9" font-weight="700">' + shortMoney(v) + '</text>';
+    // Year label below
+    svg += '<text x="' + (x + barWidth / 2) + '" y="' + (H - 14) + '" text-anchor="middle" fill="' + yearColor + '" font-family="Geist Mono,monospace" font-size="10" font-weight="' + yearWeight + '">' + yearLabel + '</text>';
   });
 
-  // Tooltip for most recent non-zero year
-  let lastIdx = values.length - 1;
-  while (lastIdx >= 0 && !values[lastIdx]) lastIdx--;
-  if (lastIdx >= 0) {
-    const lastYear = years[lastIdx];
-    const lastVal = values[lastIdx];
-    const barH = (lastVal / yMax) * innerH;
-    const x = padL + barSlot * lastIdx + (barSlot - barWidth) / 2 + barWidth / 2;
-    const tipY = padT + innerH - barH - 14;
-    const labelText = `${lastYear}`;
-    const valueText = fmtBRL0(lastVal);
-    const textW = Math.max(labelText.length, valueText.length) * 6.5 + 20;
-    const tipX = Math.max(padL + textW/2, Math.min(W - padR - textW/2, x));
-    svg += `<g class="tooltip-group">
-      <rect class="tooltip-bg" x="${tipX - textW/2}" y="${tipY - 26}" width="${textW}" height="32" rx="6"/>
-      <text class="tooltip-text" x="${tipX}" y="${tipY - 13}" text-anchor="middle">${labelText}</text>
-      <text class="tooltip-value" x="${tipX}" y="${tipY + 1}" text-anchor="middle">${valueText}</text>
-    </g>`;
-  }
-
-  svg += `</svg>`;
-  return `<div class="bar-chart">${svg}</div>`;
+  svg += '</svg>';
+  return '<div style="width:100%;overflow:visible">' + svg + '</div>';
 }
 
 function renderDividendsChart() {
   const wrap = $('divChartWrap');
+  if (!wrap) return;
   const currentYear = new Date().getFullYear();
-  const goalYear = state.dividendsYearlyGoalYear;
-  const startYear = 2021;
-  const years = [];
-  for (let y = startYear; y <= goalYear; y++) years.push(y);
+  // Only show YEARS WITH DATA (history) + current year YTD if there's i10 sync
+  const histYears = [...state.yearly]
+    .filter(y => Number.isFinite(+y.year) && (+y.divs || 0) > 0)
+    .sort((a, b) => a.year - b.year);
 
-  const values = years.map(y => {
-    const yh = state.yearly.find(r => r.year === y);
-    if (yh) return +yh.divs || 0;
-    // For current year, use i10 value
-    if (y === currentYear) return +state.i10.dividends || 0;
-    return 0;
-  });
+  const years = histYears.map(y => y.year);
+  const values = histYears.map(y => +y.divs || 0);
 
-  wrap.innerHTML = buildBarChart(years, values, {
-    goal: state.dividendsYearlyGoal,
-    color: '#0071e3',
-  });
+  // Add current year (YTD) if not in history yet and has value
+  if (!years.includes(currentYear) && (state.i10.dividends || 0) > 0) {
+    years.push(currentYear);
+    values.push(+state.i10.dividends || 0);
+  }
+
+  // Need at least 1 year
+  if (years.length === 0) {
+    wrap.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--ink-muted);font-size:13px"><div style="font-family:Instrument Serif,serif;font-style:italic;font-size:15px;color:var(--ink-3);margin-bottom:6px">sem historico ainda</div>sincronize com I10 ou adicione anos manualmente</div>';
+    return;
+  }
+
+  wrap.innerHTML = buildBarChart(years, values, {});
 }
 
 function renderPLChart() {
   const wrap = $('plChartWrap');
+  if (!wrap) return;
   const currentYear = new Date().getFullYear();
-  const sortedYearly = [...state.yearly].filter(y => y.equity != null).sort((a,b) => a.year - b.year);
+  const sortedYearly = [...state.yearly]
+    .filter(y => Number.isFinite(+y.year) && Number.isFinite(+y.equity) && +y.equity > 0)
+    .sort((a, b) => a.year - b.year);
 
   if (sortedYearly.length === 0 && (!state.i10.equity || state.i10.equity <= 0)) {
-    wrap.innerHTML = `<div class="empty-chart"><div class="ico">📈</div><h4>Sem histórico de PL</h4><p>Adicione entradas anuais para ver o gráfico de evolução.</p></div>`;
+    wrap.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--ink-muted);font-size:13px"><div style="font-family:Instrument Serif,serif;font-style:italic;font-size:15px;color:var(--ink-3);margin-bottom:6px">sem historico de PL</div>sincronize com I10 para ver a evolucao</div>';
     return;
   }
 
   const years = sortedYearly.map(y => y.year);
   const values = sortedYearly.map(y => +y.equity || 0);
 
-  // Append current year from i10 if not already present
-  const hasCurrentYear = years.includes(currentYear);
-  if (!hasCurrentYear && state.i10.equity > 0) {
+  // Add or override current year with i10 value (always fresher)
+  const hasCurrent = years.includes(currentYear);
+  if (!hasCurrent && state.i10.equity > 0) {
     years.push(currentYear);
     values.push(state.i10.equity);
-  } else if (hasCurrentYear && state.i10.equity > 0) {
-    // Override current year with i10 value (more fresh)
+  } else if (hasCurrent && state.i10.equity > 0) {
     const idx = years.indexOf(currentYear);
     values[idx] = state.i10.equity;
   }
 
-  wrap.innerHTML = buildBarChart(years, values, { color: '#0071e3' });
+  wrap.innerHTML = buildBarChart(years, values, {});
 }
 
 function renderYearlyTable() {
