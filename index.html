@@ -538,6 +538,22 @@ body::before {
   .cat-appr { display: none; }
   .cat-tickers { padding-left: 42px; }
 }
+/* GOAL SIMULATOR */
+.status-pill { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: var(--radius-pill); font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 600; white-space: nowrap; transition: all 0.3s var(--ease-out); }
+.status-pill.green { background: var(--gain-soft); color: var(--gain); border: 1px solid rgba(52,225,122,0.25); }
+.status-pill.yellow { background: var(--warn-soft); color: var(--warn); border: 1px solid rgba(255,179,64,0.25); }
+.status-pill.red { background: var(--loss-soft); color: var(--loss); border: 1px solid rgba(255,94,87,0.25); }
+.status-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+.g-sliders { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 22px; }
+.g-sl { display: flex; flex-direction: column; gap: 6px; }
+.g-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.g-name { font-size: 11px; color: var(--ink-3); font-weight: 500; }
+.g-val { font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; color: var(--purple-light); }
+.g-sl input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: var(--bg-elevated-3); border-radius: 2px; outline: none; cursor: pointer; }
+.g-sl input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: var(--purple-light); border: 2px solid var(--bg-elevated); border-radius: 50%; cursor: pointer; box-shadow: 0 0 0 1px var(--purple), 0 4px 8px var(--purple-glow); transition: transform 0.2s var(--ease-back); }
+.g-sl input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+.g-sl input[type=range]::-moz-range-thumb { width: 16px; height: 16px; background: var(--purple-light); border: 2px solid var(--bg-elevated); border-radius: 50%; cursor: pointer; box-shadow: 0 0 0 1px var(--purple), 0 4px 8px var(--purple-glow); }
+@media (max-width: 600px) { .g-sliders { grid-template-columns: 1fr; gap: 16px; } }
 </style>
 </head>
 <body>
@@ -697,8 +713,37 @@ body::before {
         </div>
       </div>
 
-      <!-- GOAL CARD V4 (rendered by goal-projection.js into #goalCardV2) -->
-      <div id="goalCardV2" class="animate-in"></div>
+      <!-- GOAL SIMULATOR CARD -->
+      <div class="card animate-in" id="goalCardV2">
+        <div class="card-head">
+          <div>
+            <div class="eyebrow">META DE LONGO PRAZO</div>
+            <h2 style="font-size:22px;font-weight:700;color:var(--ink);letter-spacing:-0.02em;line-height:1.2;margin:6px 0 0">R$ <b style="color:var(--purple-light)">1 milhão</b> em proventos<br/>anuais até <b style="color:var(--purple-light)" id="gTargetYearLabel">2035</b></h2>
+          </div>
+          <div class="status-pill green" id="gStatusPill">
+            <span class="dot"></span>
+            <span id="gStatusText">no caminho</span>
+          </div>
+        </div>
+        <div style="margin:6px -8px 18px"><svg id="gChart" viewBox="0 0 700 300" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block;overflow:visible"></svg></div>
+        <p id="gNarrative" style="font-size:13px;color:var(--ink-2);line-height:1.6;margin:0 0 22px;padding:14px 16px;background:var(--bg-elevated-2);border-radius:12px;border:1px solid var(--border)"></p>
+        <div class="stats three" style="margin-bottom:22px">
+          <div class="stat"><div class="lbl">Meta atinge em</div><div class="val" id="gStatHit">-</div><div class="sub" id="gStatHitSub">-</div></div>
+          <div class="stat"><div class="lbl">PL em 2035</div><div class="val" id="gStatPL">-</div><div class="sub" id="gStatPLSub">-</div></div>
+          <div class="stat"><div class="lbl">Total aportado</div><div class="val" id="gStatApor">-</div><div class="sub">10 anos</div></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-top:18px;border-top:1px solid var(--border);margin-bottom:16px">
+          <div class="eyebrow">VARIÁVEIS</div>
+          <button class="btn-ghost" id="gBtnReset" style="padding:5px 12px;font-size:11px">Resetar</button>
+        </div>
+        <div class="g-sliders">
+          <div class="g-sl"><div class="g-top"><span class="g-name">Aporte mensal</span><span class="g-val" id="gvAporte">R$ 24.000</span></div><input type="range" id="gsAporte" min="0" max="100000" step="1000" value="24000"></div>
+          <div class="g-sl"><div class="g-top"><span class="g-name">Crescimento aporte</span><span class="g-val" id="gvCrescAporte">10,0%/ano</span></div><input type="range" id="gsCrescAporte" min="0" max="30" step="0.5" value="10"></div>
+          <div class="g-sl"><div class="g-top"><span class="g-name">DY esperado</span><span class="g-val" id="gvDY">8,0%</span></div><input type="range" id="gsDY" min="0" max="15" step="0.1" value="8"></div>
+          <div class="g-sl"><div class="g-top"><span class="g-name">Reinvestimento</span><span class="g-val" id="gvReinv">100%</span></div><input type="range" id="gsReinv" min="0" max="100" step="5" value="100"></div>
+          <div class="g-sl" style="grid-column:1/-1"><div class="g-top"><span class="g-name">Crescimento do dividendo (empresa)</span><span class="g-val" id="gvCrescDiv">6,0%/ano</span></div><input type="range" id="gsCrescDiv" min="0" max="15" step="0.5" value="6"></div>
+        </div>
+      </div>
 
       <!-- YTD DUAL CARD -->
       <div class="card animate-in">
@@ -2190,6 +2235,7 @@ function subscribeAll() {
   });
   unsub.yearly = onSnapshot(colYearly(), (snap) => {
     state.yearly = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    window.__ledgerYearly = state.yearly;
     if (state.mode === 'investments') renderInvestments();
   });
   unsub.config = onSnapshot(docConfig, (snap) => {
@@ -2201,6 +2247,7 @@ function subscribeAll() {
   unsub.i10 = onSnapshot(docI10, (snap) => {
     const data = snap.data() || {};
     state.i10.equity = +data.equity || 0;
+    window.__ledgerEquity = state.i10.equity;
     state.i10.dividends = +data.dividends || 0;
     state.i10.updatedAt = data.updatedAt?.toDate?.() || null;
     state.i10.year = data.year || new Date().getFullYear();
@@ -2281,11 +2328,11 @@ onAuthStateChanged(auth, async (user) => {
 
 <script type="module">
 // ============================================================
-//  GOAL PROJECTION v4 - Tracker visual (roxo) + CAGR + defensive
+//  GOAL SIMULATOR - 5 sliders, modelo iterativo, persistência Firestore
 // ============================================================
-import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getApps, getApp, initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, collection, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA5zsPOxpOBPN8BVnJRIN0mIJ4gdlUntc8",
@@ -2295,507 +2342,217 @@ const firebaseConfig = {
   messagingSenderId: "559892333696",
   appId: "1:559892333696:web:3272f0f8e86449f4885265"
 };
-
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const colYearly = () => collection(db, "household", "main", "dividendsYearly");
-const docConfig = doc(db, "household", "main", "config", "settings");
-const docI10    = doc(db, "household", "main", "config", "i10");
+const TARGET = 1000000;
+const TARGET_YEAR = 2035;
+const START_YEAR = 2026;
+const DEFAULTS = { aporte: 24000, crescAporte: 10, dy: 8, reinv: 100, crescDiv: 6 };
 
-const state = {
-  yearly: [],
-  i10Dividends: 0,
-  goalAmount: 1_000_000,
-  goalYear: 2035,
-  ready: false,
-  authReady: false,
-};
+let saveDebounce = null;
+let isLoadingFromFirestore = false;
+let userLoaded = false;
 
-let unsubFns = [];
+const $ = id => document.getElementById(id);
+const fmtBRL = v => 'R$ ' + Math.round(v).toLocaleString('pt-BR');
+const fmtBRLk = v => v >= 1e6 ? 'R$ ' + (v/1e6).toFixed(2).replace('.',',') + 'M' : 'R$ ' + Math.round(v/1000) + 'k';
 
-// ============================================================
-//  CAGR LOGIC - defensive
-// ============================================================
-function calculate() {
-  const currentYear = new Date().getFullYear();
+function getHistory() {
+  // Lê do window.__ledgerState que app.js expoe (yearly history)
+  const yearly = window.__ledgerYearly || [];
+  return yearly.filter(y => y.equity != null || y.divs != null).sort((a,b) => a.year - b.year)
+    .map(y => ({ year: y.year, equity: +y.equity || 0, divs: +y.divs || 0 }));
+}
 
-  // Filter: only complete years with valid positive divs
-  const completeYears = state.yearly
-    .filter(y => {
-      const yr = +y.year;
-      const dv = +y.divs;
-      return Number.isFinite(yr) && yr < currentYear && Number.isFinite(dv) && dv > 0;
-    })
-    .sort((a, b) => a.year - b.year);
+function getCurrentPL() {
+  return window.__ledgerEquity || 1795442;
+}
 
-  if (completeYears.length < 3) {
-    return {
-      ok: false,
-      reason: 'insufficient',
-      yearsCount: completeYears.length,
-      needed: 3,
-    };
+function simulate(p) {
+  const proj = [];
+  let pl = getCurrentPL();
+  let metaHitYear = null;
+  for (let year = START_YEAR; year <= TARGET_YEAR + 10; year++) {
+    const yrIndex = year - START_YEAR;
+    const aporteAnual = p.aporte * 12 * Math.pow(1 + p.crescAporte/100, yrIndex);
+    const dyAjustado = (p.dy/100) * Math.pow(1 + p.crescDiv/100, yrIndex);
+    const divsRecebidos = pl * dyAjustado;
+    const reinvestido = divsRecebidos * (p.reinv/100);
+    proj.push({ year, pl, divs: divsRecebidos, aporte: aporteAnual });
+    if (divsRecebidos >= TARGET && metaHitYear === null) metaHitYear = year;
+    pl = pl + aporteAnual + reinvestido;
   }
+  return { proj, metaHitYear };
+}
 
-  const sorted = completeYears;
-  const last = sorted[sorted.length - 1];
-  const first = sorted[0];
-  const yearsLeft = state.goalYear - last.year;
-
-  // Validate goal
-  if (!Number.isFinite(state.goalAmount) || state.goalAmount <= 0) {
-    return { ok: false, reason: 'no-goal' };
-  }
-  if (yearsLeft <= 0) {
-    return { ok: false, reason: 'goal-past' };
-  }
-
-  // CAGR necessario
-  let requiredCAGR;
-  try {
-    const ratio = state.goalAmount / last.divs;
-    requiredCAGR = Math.pow(ratio, 1 / yearsLeft) - 1;
-    if (!Number.isFinite(requiredCAGR)) throw new Error('non-finite');
-  } catch (e) {
-    return { ok: false, reason: 'calc-error' };
-  }
-
-  // CAGR realizado (last 3 years)
-  const trailSpan = Math.min(3, sorted.length - 1);
-  const trailStart = sorted[sorted.length - 1 - trailSpan];
-  let trailCAGR;
-  try {
-    if (trailStart.divs <= 0) throw new Error('zero start');
-    trailCAGR = Math.pow(last.divs / trailStart.divs, 1 / trailSpan) - 1;
-    if (!Number.isFinite(trailCAGR)) throw new Error('non-finite trail');
-  } catch (e) {
-    trailCAGR = 0;
-  }
-
-  const margin = trailCAGR - requiredCAGR;
-  let successPct, status;
-  if (margin >= 0.10)      { successPct = 95; status = 'ok'; }
-  else if (margin >= 0.03) { successPct = 88; status = 'ok'; }
-  else if (margin >= -0.02){ successPct = 75; status = 'ok'; }
-  else if (margin >= -0.08){ successPct = 55; status = 'warn'; }
-  else                     { successPct = 25; status = 'bad'; }
-
-  const progressPct = Math.min(100, (last.divs / state.goalAmount) * 100);
-
+function readSliders() {
   return {
-    ok: true,
-    history: sorted.map(y => ({ year: y.year, value: +y.divs })),
-    last: { year: last.year, value: +last.divs },
-    first: { year: first.year, value: +first.divs },
-    yearsLeft,
-    requiredCAGR,
-    trailCAGR,
-    trailSpan,
-    margin,
-    successPct,
-    status,
-    progressPct,
-    ytdValue: state.i10Dividends,
-    ytdYear: currentYear,
+    aporte: +$('gsAporte').value,
+    crescAporte: +$('gsCrescAporte').value,
+    dy: +$('gsDY').value,
+    reinv: +$('gsReinv').value,
+    crescDiv: +$('gsCrescDiv').value,
   };
 }
 
-// ============================================================
-//  FORMAT
-// ============================================================
-const fmt = {
-  money: v => {
-    if (!Number.isFinite(v)) return '-';
-    const abs = Math.abs(v);
-    if (abs >= 1_000_000) return (v / 1_000_000).toFixed(2).replace('.', ',') + 'M';
-    if (abs >= 1_000) return Math.round(v / 1_000) + 'k';
-    return Math.round(v).toString();
-  },
-  pct: (v, dec = 1) => {
-    if (!Number.isFinite(v)) return '-';
-    return (v * 100).toFixed(dec).replace('.', ',') + '%';
-  },
-  pctInt: v => {
-    if (!Number.isFinite(v)) return '-';
-    return Math.round(v * 100) + '%';
-  },
-};
-
-// ============================================================
-//  RENDER
-// ============================================================
-function render() {
-  const container = document.getElementById('goalCardV2');
-  if (!container) return;
-
-  if (!state.authReady) {
-    container.innerHTML = '<div class="goal-card"><div class="goal-loading">Carregando...</div></div>';
-    return;
-  }
-
-  const r = calculate();
-
-  if (!r.ok) {
-    renderEmptyState(container, r);
-    return;
-  }
-
-  renderFullCard(container, r);
-}
-
-function renderEmptyState(container, r) {
-  const yearsCount = r.yearsCount || 0;
-  const needed = r.needed || 3;
-  let title = 'Cadastre seu historico';
-  let body = 'Para calcular a projecao, precisamos de pelo menos 3 anos completos de dividendos.';
-
-  if (r.reason === 'no-goal') {
-    title = 'Defina sua meta';
-    body = 'Configure quanto quer receber em proventos anuais para acompanhar o progresso.';
-  } else if (r.reason === 'goal-past') {
-    title = 'Ano alvo invalido';
-    body = 'O ano alvo da meta esta no passado. Atualize a meta para um ano futuro.';
-  }
-
-  container.innerHTML = `
-    <div class="goal-card empty">
-      <div class="goal-card-bg"></div>
-      <div class="goal-card-inner">
-        <div class="goal-head">
-          <div class="goal-eyebrow">META DE LONGO PRAZO</div>
-          <button class="goal-edit-btn" id="goalEditBtn" aria-label="Editar meta">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-            </svg>
-          </button>
-        </div>
-        <h2 class="goal-title">R$ ${fmt.money(state.goalAmount)}/ano <span class="goal-title-mute">ate ${state.goalYear}</span></h2>
-
-        <div class="goal-empty">
-          <div class="goal-empty-icon">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 3v18h18"/>
-              <path d="M7 14l4-4 4 4 5-5"/>
-            </svg>
-          </div>
-          <h3 class="goal-empty-title">${title}</h3>
-          <p class="goal-empty-body">${body}</p>
-          ${(r.reason === 'insufficient' || !r.reason) ? `
-            <div class="goal-empty-progress">
-              ${Array.from({ length: needed }).map((_, i) => `<span class="dot ${i < yearsCount ? 'on' : ''}"></span>`).join('')}
-              <span class="goal-empty-count">${yearsCount} de ${needed}</span>
-            </div>
-            <button class="goal-empty-cta" onclick="document.getElementById('btnAddYear')?.click()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Adicionar ano
-            </button>
-          ` : ''}
-        </div>
-      </div>
-    </div>
-  `;
-
-  attachEditButton();
-}
-
-function renderFullCard(container, r) {
-  const chartSvg = buildChartSvg(r);
-  const narrative = buildNarrative(r);
-
-  container.innerHTML = `
-    <div class="goal-card status-${r.status}">
-      <div class="goal-card-bg"></div>
-      <div class="goal-card-inner">
-        <div class="goal-head">
-          <div class="goal-eyebrow">META DE LONGO PRAZO</div>
-          <button class="goal-edit-btn" id="goalEditBtn" aria-label="Editar meta">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-            </svg>
-          </button>
-        </div>
-
-        <div class="goal-title-row">
-          <h2 class="goal-title">R$ ${fmt.money(state.goalAmount)}<span class="goal-title-mute">/ano</span></h2>
-          <div class="goal-success">
-            <div class="goal-success-pct">${r.successPct}%</div>
-            <div class="goal-success-lbl">chance</div>
-          </div>
-        </div>
-        <div class="goal-subtitle">ate ${state.goalYear} <span class="goal-dot-sep">·</span> ${r.yearsLeft} ${r.yearsLeft === 1 ? 'ano' : 'anos'}</div>
-
-        <div class="goal-chart">${chartSvg}</div>
-
-        <div class="goal-legend">
-          <span class="leg"><span class="sw real"></span>Recebido</span>
-          <span class="leg"><span class="sw req"></span>Necessario</span>
-          <span class="leg"><span class="sw goal"></span>Meta</span>
-          ${r.ytdValue > 0 ? `<span class="leg"><span class="sw ytd"></span>YTD ${r.ytdYear}</span>` : ''}
-        </div>
-
-        <div class="goal-narrative">${narrative}</div>
-
-        <div class="goal-stats">
-          <div class="gs-item">
-            <div class="gs-lbl">Ritmo atual</div>
-            <div class="gs-val ${r.status === 'bad' ? 'neg' : r.status === 'warn' ? 'warn' : 'pos'}">${fmt.pctInt(r.trailCAGR)}</div>
-            <div class="gs-sub">ult. ${r.trailSpan} anos</div>
-          </div>
-          <div class="gs-item">
-            <div class="gs-lbl">Necessario</div>
-            <div class="gs-val warn">${fmt.pct(r.requiredCAGR, 1)}</div>
-            <div class="gs-sub">prox. ${r.yearsLeft} anos</div>
-          </div>
-          <div class="gs-item">
-            <div class="gs-lbl">Progresso</div>
-            <div class="gs-val">${r.progressPct.toFixed(1)}<span class="gs-u">%</span></div>
-            <div class="gs-sub">R$ ${fmt.money(r.last.value)}/ano</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  attachEditButton();
-}
-
-// ============================================================
-//  CHART SVG (Tracker style: gradient roxo + glow)
-// ============================================================
-function buildChartSvg(r) {
-  const W = 420, H = 200;
-  const padL = 12, padR = 12, padT = 18, padB = 26;
-  const innerW = W - padL - padR;
-  const innerH = H - padT - padB;
-
-  const firstYear = r.first.year;
-  const xMax = state.goalYear;
-  const yMax = Math.max(state.goalAmount * 1.10, r.last.value * 1.5);
-
-  const xScale = y => padL + ((y - firstYear) / (xMax - firstYear)) * innerW;
-  const yScale = v => padT + (1 - v / yMax) * innerH;
-  const baseY = padT + innerH;
-
-  // History smooth path (catmull-rom-ish)
-  const histPts = r.history.map(h => ({ x: xScale(h.year), y: yScale(h.value) }));
-  let histPath = `M ${histPts[0].x.toFixed(1)} ${histPts[0].y.toFixed(1)}`;
-  for (let i = 1; i < histPts.length; i++) {
-    const p0 = histPts[i - 1], p1 = histPts[i];
-    const cx = (p0.x + p1.x) / 2;
-    histPath += ` C ${cx.toFixed(1)} ${p0.y.toFixed(1)}, ${cx.toFixed(1)} ${p1.y.toFixed(1)}, ${p1.x.toFixed(1)} ${p1.y.toFixed(1)}`;
-  }
-  const histArea = histPath + ` L ${histPts[histPts.length-1].x.toFixed(1)} ${baseY.toFixed(1)} L ${histPts[0].x.toFixed(1)} ${baseY.toFixed(1)} Z`;
-
-  // Required trajectory (from last real point to goal)
-  const reqPts = [];
-  for (let y = r.last.year; y <= state.goalYear; y++) {
-    const dy = y - r.last.year;
-    const val = r.last.value * Math.pow(1 + r.requiredCAGR, dy);
-    reqPts.push(`${xScale(y).toFixed(1)} ${yScale(val).toFixed(1)}`);
-  }
-  const reqPath = `M ${reqPts.join(' L ')}`;
-
-  const goalY = yScale(state.goalAmount);
-  const nowX = xScale(r.last.year);
-  const nowY = yScale(r.last.value);
-  const goalX = xScale(state.goalYear);
-
-  // YTD ghost
-  let ytdMarker = '';
-  if (r.ytdValue > 0 && r.ytdYear > r.last.year && r.ytdYear <= state.goalYear) {
-    const ytdX = xScale(r.ytdYear);
-    const ytdY = yScale(r.ytdValue);
-    ytdMarker = `
-      <circle cx="${ytdX.toFixed(1)}" cy="${ytdY.toFixed(1)}" r="4" fill="rgba(255,255,255,.15)" stroke="#c084fc" stroke-width="1.5" stroke-dasharray="2 2"/>
-    `;
-  }
-
-  // X axis ticks
-  const span = state.goalYear - firstYear;
-  const tickYears = [firstYear, r.last.year, Math.round(firstYear + span / 2), state.goalYear]
-    .filter((v, i, a) => a.indexOf(v) === i)
-    .sort((a, b) => a - b);
-
-  return `
-    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id="lineG" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stop-color="#a855f7"/>
-          <stop offset="100%" stop-color="#ec4899"/>
-        </linearGradient>
-        <linearGradient id="areaG" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stop-color="#a855f7" stop-opacity=".35"/>
-          <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
-        </linearGradient>
-        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="4" result="b"/>
-          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-      </defs>
-
-      <!-- Goal line -->
-      <line x1="${padL}" y1="${goalY.toFixed(1)}" x2="${(W - padR).toFixed(1)}" y2="${goalY.toFixed(1)}" stroke="#30d158" stroke-width="1.2" stroke-dasharray="4 5" opacity=".5"/>
-      <text x="${padL + 4}" y="${(goalY - 6).toFixed(1)}" fill="#30d158" font-family="Geist Mono,monospace" font-size="9" font-weight="700" letter-spacing=".05em">META R$ ${fmt.money(state.goalAmount)}</text>
-
-      <!-- Required trajectory (amber dashed) -->
-      <path d="${reqPath}" fill="none" stroke="#ff9f0a" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="5 5" opacity=".7"/>
-
-      <!-- History area (gradient fill) -->
-      <path d="${histArea}" fill="url(#areaG)"/>
-
-      <!-- History line (gradient + glow) -->
-      <path d="${histPath}" fill="none" stroke="url(#lineG)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
-
-      ${ytdMarker}
-
-      <!-- Now point (purple glow) -->
-      <circle cx="${nowX.toFixed(1)}" cy="${nowY.toFixed(1)}" r="14" fill="none" stroke="#a855f7" stroke-width="1" opacity=".25"/>
-      <circle cx="${nowX.toFixed(1)}" cy="${nowY.toFixed(1)}" r="7" fill="#a855f7" opacity=".4"/>
-      <circle cx="${nowX.toFixed(1)}" cy="${nowY.toFixed(1)}" r="4" fill="#c084fc" stroke="#0a0612" stroke-width="2"/>
-
-      <!-- Goal point (green) -->
-      <circle cx="${goalX.toFixed(1)}" cy="${goalY.toFixed(1)}" r="10" fill="none" stroke="#30d158" stroke-width="1" opacity=".3"/>
-      <circle cx="${goalX.toFixed(1)}" cy="${goalY.toFixed(1)}" r="4" fill="#30d158" stroke="#0a0612" stroke-width="2"/>
-
-      <!-- X axis labels -->
-      ${tickYears.map(y => `<text x="${xScale(y).toFixed(1)}" y="${(baseY + 16).toFixed(1)}" fill="#6e5a82" font-family="Geist Mono,monospace" font-size="9" font-weight="600" text-anchor="middle">${y}</text>`).join('')}
-    </svg>
-  `;
-}
-
-// ============================================================
-//  NARRATIVE
-// ============================================================
-function buildNarrative(r) {
-  const realTxt = `<b class="num">${fmt.pctInt(r.trailCAGR)}/ano</b>`;
-  const reqTxt = `<b class="num">${fmt.pct(r.requiredCAGR, 1)}/ano</b>`;
-  const valTxt = `<b>R$ ${fmt.money(r.last.value)}/ano</b>`;
-
-  if (r.status === 'ok') {
-    if (r.margin >= 0.10) {
-      return `Voce recebeu ${valTxt} em ${r.last.year}, crescendo ${realTxt}. Para bater R$ ${fmt.money(state.goalAmount)}/ano em ${state.goalYear} basta manter ${reqTxt}. Esta <b class="pos">bem a frente</b>.`;
-    } else if (r.margin >= 0.03) {
-      return `Crescendo ${realTxt} e precisando de ${reqTxt} para a meta em ${state.goalYear}. Esta <b class="pos">no azul</b> com folga.`;
-    } else {
-      return `Esta <b class="pos">quase no ritmo</b>: cresce ${realTxt}, precisa de ${reqTxt}. Sem muita folga, mas dentro.`;
-    }
-  } else if (r.status === 'warn') {
-    return `Ritmo atual de ${realTxt} esta <b class="warn">abaixo</b> do necessario (${reqTxt}) para a meta em ${state.goalYear}. Precisa acelerar.`;
-  } else {
-    return `Ritmo de ${realTxt} esta <b class="neg">bem abaixo</b> do necessario (${reqTxt}). A meta de ${state.goalYear} nao sera atingida nesse ritmo.`;
-  }
-}
-
-// ============================================================
-//  EVENT HANDLERS
-// ============================================================
-function attachEditButton() {
-  const btn = document.getElementById('goalEditBtn');
-  if (!btn) return;
-  btn.addEventListener('click', openGoalEditModal);
-}
-
-function openGoalEditModal() {
-  const modal = document.getElementById('goalEditModal');
-  if (!modal) return;
-  document.getElementById('goalAmountInput').value = state.goalAmount;
-  document.getElementById('goalYearInput').value = state.goalYear;
-  modal.classList.add('show');
-  setTimeout(() => document.getElementById('goalAmountInput').focus(), 50);
-}
-
-function closeGoalEditModal() {
-  document.getElementById('goalEditModal')?.classList.remove('show');
-}
-
-async function saveGoalEdit() {
-  const amount = parseFloat(document.getElementById('goalAmountInput').value);
-  const year = parseInt(document.getElementById('goalYearInput').value);
-  if (!(amount > 0)) { showToast('Valor invalido'); return; }
-  if (!(year >= 2026 && year <= 2099)) { showToast('Ano invalido'); return; }
-
-  const btn = document.getElementById('goalEditSave');
-  try {
-    btn.disabled = true; btn.textContent = 'Salvando...';
-    await setDoc(docConfig, {
-      dividendsYearlyGoal: amount,
-      dividendsYearlyGoalYear: year,
-      updatedAt: serverTimestamp(),
-    }, { merge: true });
-    closeGoalEditModal();
-    showToast('Meta atualizada');
-  } catch (err) {
-    console.error('[goal] save error:', err);
-    showToast('Erro ao salvar');
-  } finally {
-    btn.disabled = false; btn.textContent = 'Salvar';
-  }
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  if (!t) return;
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2600);
-}
-
-// ============================================================
-//  AUTH-GATED LISTENERS
-// ============================================================
-function activateListeners() {
-  console.log('[goal] activating Firestore listeners');
-  const u1 = onSnapshot(colYearly(), (snap) => {
-    state.yearly = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    state.ready = true;
-    render();
-  }, (err) => console.error('[goal] yearly listener error:', err));
-
-  const u2 = onSnapshot(docConfig, (snap) => {
-    const data = snap.data() || {};
-    if (typeof data.dividendsYearlyGoal === 'number') state.goalAmount = data.dividendsYearlyGoal;
-    if (typeof data.dividendsYearlyGoalYear === 'number') state.goalYear = data.dividendsYearlyGoalYear;
-    if (state.ready) render();
-  }, (err) => console.error('[goal] config listener error:', err));
-
-  const u3 = onSnapshot(docI10, (snap) => {
-    const data = snap.data() || {};
-    state.i10Dividends = +data.dividends || 0;
-    if (state.ready) render();
-  }, (err) => console.error('[goal] i10 listener error:', err));
-
-  unsubFns = [u1, u2, u3];
-}
-
-function deactivateListeners() {
-  unsubFns.forEach(fn => fn && fn());
-  unsubFns = [];
-  state.ready = false;
-}
-
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    state.authReady = true;
-    activateListeners();
-  } else {
-    state.authReady = false;
-    deactivateListeners();
-    render();
-  }
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('goalEditCancel')?.addEventListener('click', closeGoalEditModal);
-  document.getElementById('goalEditSave')?.addEventListener('click', saveGoalEdit);
-  document.getElementById('goalEditModal')?.addEventListener('click', e => {
-    if (e.target.id === 'goalEditModal') closeGoalEditModal();
-  });
+function applyParams(p) {
+  isLoadingFromFirestore = true;
+  $('gsAporte').value = p.aporte;
+  $('gsCrescAporte').value = p.crescAporte;
+  $('gsDY').value = p.dy;
+  $('gsReinv').value = p.reinv;
+  $('gsCrescDiv').value = p.crescDiv;
+  isLoadingFromFirestore = false;
   render();
+}
+
+function saveParams(p) {
+  if (saveDebounce) clearTimeout(saveDebounce);
+  saveDebounce = setTimeout(async () => {
+    try {
+      await setDoc(doc(db, 'household', 'main', 'config', 'goalParams'), p, { merge: true });
+    } catch (err) { console.warn('saveParams failed:', err); }
+  }, 600);
+}
+
+function render() {
+  const p = readSliders();
+  $('gvAporte').textContent = fmtBRL(p.aporte);
+  $('gvCrescAporte').textContent = p.crescAporte.toFixed(1).replace('.',',') + '%/ano';
+  $('gvDY').textContent = p.dy.toFixed(1).replace('.',',') + '%';
+  $('gvReinv').textContent = p.reinv + '%';
+  $('gvCrescDiv').textContent = p.crescDiv.toFixed(1).replace('.',',') + '%/ano';
+
+  const { proj, metaHitYear } = simulate(p);
+
+  let cls, txt;
+  if (metaHitYear === null || metaHitYear > TARGET_YEAR) { cls='red'; txt='fora do prazo'; }
+  else if (metaHitYear <= TARGET_YEAR-2) { cls='green'; txt='no caminho'; }
+  else { cls='yellow'; txt='apertado'; }
+  $('gStatusPill').className = 'status-pill ' + cls;
+  $('gStatusText').textContent = txt;
+
+  $('gStatHit').textContent = metaHitYear || '> '+TARGET_YEAR;
+  if (metaHitYear) {
+    const d = TARGET_YEAR - metaHitYear;
+    $('gStatHitSub').textContent = d > 0 ? d+' anos antes' : (d < 0 ? Math.abs(d)+' anos depois' : 'no prazo');
+  } else $('gStatHitSub').textContent = 'nao atinge';
+
+  const pAt = proj.find(x => x.year === TARGET_YEAR);
+  $('gStatPL').textContent = fmtBRLk(pAt?.pl || 0);
+  $('gStatPLSub').textContent = pAt?.divs ? fmtBRLk(pAt.divs)+'/ano' : '-';
+
+  let totApor = 0;
+  for (const px of proj) { if (px.year > TARGET_YEAR) break; totApor += px.aporte; }
+  $('gStatApor').textContent = fmtBRLk(totApor);
+
+  if (metaHitYear && metaHitYear <= TARGET_YEAR) {
+    const yrs = TARGET_YEAR - metaHitYear;
+    const phrase = yrs > 0 ? 'Voce atinge a meta em <b>'+metaHitYear+'</b>, <span style="color:var(--purple-light);font-weight:600">'+yrs+' '+(yrs===1?'ano':'anos')+' antes</span> do prazo.' : 'Voce bate a meta exatamente em <b>'+TARGET_YEAR+'</b>.';
+    $('gNarrative').innerHTML = phrase + ' Aporte de '+fmtBRL(p.aporte)+'/mes cresce '+p.crescAporte+'%/ano. Carteira termina '+TARGET_YEAR+' valendo <b>'+fmtBRLk(pAt.pl)+'</b>.';
+  } else if (metaHitYear) {
+    const yrs = metaHitYear - TARGET_YEAR;
+    $('gNarrative').innerHTML = 'Voce atinge R$ 1M/ano apenas em <b>'+metaHitYear+'</b>, <span style="color:var(--loss);font-weight:600">'+yrs+' '+(yrs===1?'ano':'anos')+' depois</span> do prazo. Aumente o aporte ou DY esperado.';
+  } else {
+    $('gNarrative').innerHTML = 'Com essas variaveis voce <b>nao atinge</b> a meta. Aumente o aporte, DY ou reinvestimento.';
+  }
+
+  drawChart(proj, metaHitYear);
+  if (!isLoadingFromFirestore && userLoaded) saveParams(p);
+}
+
+function drawChart(proj, metaHitYear) {
+  const W=700, H=300, padL=50, padR=30, padT=30, padB=36;
+  const innerW=W-padL-padR, innerH=H-padT-padB;
+  const history = getHistory();
+  const realDivs = history.length ? history : [{year:2020,divs:0},{year:2025,divs:67557}];
+  const projDivs = proj.filter(p => p.year <= TARGET_YEAR).map(p => ({year:p.year, divs:p.divs}));
+  const minYear=2020, maxYear=TARGET_YEAR;
+  const maxDivs = Math.max(TARGET*1.1, ...realDivs.map(d=>d.divs), ...projDivs.map(d=>d.divs));
+  const xS = y => padL + ((y-minYear)/(maxYear-minYear))*innerW;
+  const yS = v => padT + innerH - (v/maxDivs)*innerH;
+
+  let svg = '<defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5d2680"/><stop offset="1" stop-color="#E3A2EE"/></linearGradient><filter id="gl"><feGaussianBlur stdDeviation="3"/></filter></defs>';
+
+  // grid Y
+  for (const t of [0, 250000, 500000, 750000, 1000000]) {
+    const y = yS(t);
+    svg += '<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>';
+    svg += '<text x="'+(padL-8)+'" y="'+(y+3)+'" text-anchor="end" fill="#6b6473" font-family="Geist Mono, monospace" font-size="9">'+(t===0?'0':(t/1000)+'k')+'</text>';
+  }
+  // X labels
+  for (const t of [2020,2025,2030,2035]) {
+    svg += '<text x="'+xS(t)+'" y="'+(H-padB+18)+'" text-anchor="middle" fill="#6b6473" font-family="Geist Mono, monospace" font-size="10">'+t+'</text>';
+  }
+  // target line
+  const yT = yS(TARGET);
+  svg += '<line x1="'+padL+'" y1="'+yT+'" x2="'+(W-padR)+'" y2="'+yT+'" stroke="#34e17a" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.7"/>';
+  svg += '<text x="'+(W-padR-4)+'" y="'+(yT-8)+'" text-anchor="end" fill="#34e17a" font-weight="600" font-family="Geist Mono, monospace" font-size="10">META R$ 1M</text>';
+
+  // real line
+  const rPts = realDivs.map(d => xS(d.year)+','+yS(d.divs)).join(' ');
+  svg += '<polyline points="'+rPts+'" fill="none" stroke="url(#lg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.4" filter="url(#gl)"/>';
+  svg += '<polyline points="'+rPts+'" fill="none" stroke="url(#lg)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+
+  // projection
+  const lastReal = realDivs[realDivs.length-1];
+  const pPts = [xS(lastReal.year)+','+yS(lastReal.divs), ...projDivs.map(d => xS(d.year)+','+yS(d.divs))].join(' ');
+  svg += '<polyline points="'+pPts+'" fill="none" stroke="#AC5FDB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="5 4" opacity="0.85"/>';
+
+  // dots real
+  for (const d of realDivs) svg += '<circle cx="'+xS(d.year)+'" cy="'+yS(d.divs)+'" r="3.5" fill="#E3A2EE" stroke="#1a181d" stroke-width="2"/>';
+
+  // meta hit dot
+  if (metaHitYear && metaHitYear <= TARGET_YEAR) {
+    const hit = proj.find(p => p.year === metaHitYear);
+    if (hit) {
+      const hx=xS(hit.year), hy=yS(hit.divs);
+      svg += '<circle cx="'+hx+'" cy="'+hy+'" r="9" fill="#34e17a" opacity="0.2"/>';
+      svg += '<circle cx="'+hx+'" cy="'+hy+'" r="5" fill="#34e17a" stroke="#1a181d" stroke-width="2"/>';
+    }
+  }
+  // final 2035
+  const f = proj.find(p => p.year === TARGET_YEAR);
+  if (f) svg += '<circle cx="'+xS(f.year)+'" cy="'+yS(f.divs)+'" r="4" fill="#AC5FDB" stroke="#1a181d" stroke-width="2"/>';
+
+  $('gChart').innerHTML = svg;
+}
+
+// Wire sliders
+['gsAporte','gsCrescAporte','gsDY','gsReinv','gsCrescDiv'].forEach(id => {
+  $(id).addEventListener('input', render);
+});
+$('gBtnReset').addEventListener('click', () => { applyParams(DEFAULTS); });
+
+// Auth + Firestore params load
+onAuthStateChanged(auth, (user) => {
+  if (!user) return;
+  userLoaded = true;
+  onSnapshot(doc(db, 'household', 'main', 'config', 'goalParams'), (snap) => {
+    if (snap.exists()) {
+      const d = snap.data();
+      applyParams({
+        aporte: d.aporte ?? DEFAULTS.aporte,
+        crescAporte: d.crescAporte ?? DEFAULTS.crescAporte,
+        dy: d.dy ?? DEFAULTS.dy,
+        reinv: d.reinv ?? DEFAULTS.reinv,
+        crescDiv: d.crescDiv ?? DEFAULTS.crescDiv,
+      });
+    } else {
+      render();
+    }
+  });
 });
 
+// Re-render when app.js updates yearly/equity (poll every 1.5s, lightweight)
+setInterval(() => { if (userLoaded) drawChart(simulate(readSliders()).proj, simulate(readSliders()).metaHitYear); }, 1500);
+
+// Initial render with defaults
+render();
 </script>
+
 
 </body>
 </html>
