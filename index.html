@@ -1731,10 +1731,16 @@
               <div class="eyebrow">yearly history</div>
               <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace">patrimonio + proventos por ano</div>
             </div>
-            <button class="btn-ghost primary" id="btnAddYear">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Ano
-            </button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn-ghost" id="btnImportHistory" title="Importar historico de PL e dividendos do Investidor10">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                I10
+              </button>
+              <button class="btn-ghost primary" id="btnAddYear">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Ano
+              </button>
+            </div>
           </div>
           <table class="yearly-table">
             <thead><tr><th>Ano</th><th>Patrimonio</th><th>Proventos</th><th>DY</th><th>YoY</th></tr></thead>
@@ -2481,6 +2487,9 @@ const CRYPTO_WHITELIST = new Set([
   'UNI','ATOM','AVAX','NEAR','SHIB','PEPE','BTC11','ETHE11','BITH11',
 ]);
 
+// Map ticker -> category populated from /i10/diversification (real data from I10)
+let _i10TickerCategory = {};
+
 function inferCategory(asset) {
   // 1. trust explicit field if present
   if (asset.category) return asset.category;
@@ -2489,6 +2498,10 @@ function inferCategory(asset) {
   const t = (asset.ticker || '').toUpperCase().trim();
   if (!t) return 'Outros';
 
+  // 2. use real category from /i10/diversification if available
+  if (_i10TickerCategory[t]) return _i10TickerCategory[t];
+
+  // 3. fallback regex/whitelist
   if (CRYPTO_WHITELIST.has(t) || /^(BTC|ETH)/.test(t)) return 'Criptomoedas';
   if (/^TESOURO|^LFT|^LTN|^NTN/.test(t)) return 'Tesouro Direto';
   if (ETF_INTL_WHITELIST.has(t)) return 'ETFs Internacionais';
@@ -2634,12 +2647,28 @@ async function syncFromI10() {
   try {
     const year = new Date().getFullYear();
     const base = workerUrl.replace(/\/+$/, ''); // remove trailing slash
-    const res = await fetch(`${base}/i10/all/${encodeURIComponent(walletId)}?year=${year}`, {
-      method: 'GET',
-      headers: { 'Accept': 'application/json' },
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const payload = await res.json();
+    // Try /i10/full first (worker v2). Fallback to /i10/all (worker v1).
+    let payload;
+    let usedFull = false;
+    try {
+      const resFull = await fetch(`${base}/i10/full/${encodeURIComponent(walletId)}?year=${year}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+      });
+      if (resFull.ok) {
+        payload = await resFull.json();
+        if (payload && !payload.error) usedFull = true;
+      }
+    } catch (_) { /* fallback below */ }
+
+    if (!usedFull) {
+      const res = await fetch(`${base}/i10/all/${encodeURIComponent(walletId)}?year=${year}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      payload = await res.json();
+    }
 
     // Parse metrics (equity, applied, variation, profit_twr)
     const m = payload.metrics || {};
@@ -2651,21 +2680,31 @@ async function syncFromI10() {
     // Parse earnings (sum of dividends YTD)
     const dividends = parseFloat(payload.earnings?.sum) || 0;
 
+    // Populate global ticker->category map from /i10/full diversification
+    if (payload.diversification?.tickerToCategory) {
+      _i10TickerCategory = payload.diversification.tickerToCategory;
+    }
+
     // Parse actives (list of tickers)
     const rawAssets = Array.isArray(payload.actives?.data) ? payload.actives.data : [];
-    const assets = rawAssets.map(a => ({
-      ticker: a.ticker || a.ticker_name || '',
-      quantity: +a.quantity || 0,
-      avgPrice: +a.avg_price || 0,
-      currentPrice: parseFloat(a.current_price) || 0,
-      equity: +a.equity_total || parseFloat(a.equity_brl) || 0,
-      appreciation: +a.appreciation || 0,
-      percentWallet: +a.percent_wallet || 0,
-      earnings: +a.earnings_received || 0,
-      image: a.image || '',
-      url: a.url || '',
-      category: a.category || a.type || a.category_name || a.type_name || '',
-    }));
+    const assets = rawAssets.map(a => {
+      const ticker = a.ticker || a.ticker_name || '';
+      const tickerUpper = ticker.toUpperCase().trim();
+      return {
+        ticker,
+        quantity: +a.quantity || 0,
+        avgPrice: +a.avg_price || 0,
+        currentPrice: parseFloat(a.current_price) || 0,
+        equity: +a.equity_total || parseFloat(a.equity_brl) || 0,
+        appreciation: +a.appreciation || 0,
+        percentWallet: +a.percent_wallet || 0,
+        earnings: +a.earnings_received || 0,
+        image: a.image || '',
+        url: a.url || '',
+        // Use real category from diversification if available, else from asset payload, else regex fallback later
+        category: _i10TickerCategory[tickerUpper] || a.category || a.type || a.category_name || a.type_name || '',
+      };
+    });
 
     // Persist in Firestore - both users share via onSnapshot
     await setDoc(docI10, {
@@ -2676,17 +2715,95 @@ async function syncFromI10() {
       profitTwr,
       assets,
       year,
+      tickerCategories: _i10TickerCategory,
       updatedAt: serverTimestamp(),
       updatedBy: (state.user?.displayName || 'unknown') + ' (auto)',
       source: 'investidor10-sync',
     }, { merge: true });
 
-    showToast(`✓ Sincronizado · ${assets.length} ativos`);
+    // If /i10/full returned yearly data, auto-import it to dividendsYearly collection
+    if (usedFull && payload.yearly?.years && Array.isArray(payload.yearly.years)) {
+      const imported = await importYearlyData(payload.yearly.years);
+      showToast(`Sincronizado: ${assets.length} ativos, ${imported} anos`);
+    } else {
+      showToast(`Sincronizado: ${assets.length} ativos`);
+    }
   } catch (err) {
     console.error('I10 sync error:', err);
     showToast('Falha ao sincronizar: ' + (err.message || 'erro desconhecido'));
   } finally {
     state.i10Syncing = false;
+    if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
+  }
+}
+
+// ============================================================
+//  IMPORT YEARLY HISTORY FROM I10
+// ============================================================
+// Imports/updates documents in dividendsYearly collection.
+// Each year doc uses String(year) as ID to ensure idempotency.
+// Skips current year (managed by daily sync) and skips years with zero divs AND zero equity.
+async function importYearlyData(yearsArray) {
+  const currentYear = new Date().getFullYear();
+  let imported = 0;
+  for (const row of yearsArray) {
+    const year = parseInt(row.year, 10);
+    if (!Number.isFinite(year)) continue;
+    if (year >= currentYear) continue; // current year managed by daily I10 sync
+    const equity = Number.isFinite(+row.equity) ? +row.equity : null;
+    const divs = Number.isFinite(+row.divs) ? +row.divs : 0;
+    // Skip empty years
+    if ((!equity || equity === 0) && divs === 0) continue;
+    try {
+      const docRef = doc(db, 'household', 'main', 'dividendsYearly', String(year));
+      await setDoc(docRef, {
+        year,
+        equity,
+        divs,
+        applied: Number.isFinite(+row.applied) ? +row.applied : null,
+        flow: Number.isFinite(+row.flow) ? +row.flow : null,
+        updatedAt: serverTimestamp(),
+        updatedBy: (state.user?.displayName || state.user?.email || 'unknown') + ' (i10-import)',
+        source: 'investidor10-yearly-import',
+      }, { merge: true });
+      imported++;
+    } catch (e) {
+      console.error('importYearlyData error for', year, e);
+    }
+  }
+  return imported;
+}
+
+async function importHistoryFromI10() {
+  const { workerUrl, walletId } = state.i10Cfg;
+  if (!workerUrl || !walletId) {
+    showToast('Configure o Worker e Wallet ID primeiro');
+    openI10ConfigModal();
+    return;
+  }
+  const btn = $('btnImportHistory');
+  const originalHTML = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = 'Importando...'; }
+  try {
+    const base = workerUrl.replace(/\/+$/, '');
+    const res = await fetch(`${base}/i10/yearly/${encodeURIComponent(walletId)}`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const payload = await res.json();
+    if (payload.error) throw new Error(payload.error);
+    const years = Array.isArray(payload.years) ? payload.years : [];
+    if (years.length === 0) {
+      showToast('Nenhum ano retornado pelo I10');
+      return;
+    }
+    const imported = await importYearlyData(years);
+    showToast(`Importado: ${imported} ${imported === 1 ? 'ano' : 'anos'} do I10`);
+  } catch (err) {
+    console.error('importHistoryFromI10 error:', err);
+    showToast('Falha ao importar: ' + (err.message || 'erro desconhecido'));
+  } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
   }
 }
@@ -2853,6 +2970,7 @@ $('i10Modal').addEventListener('click', e => { if (e.target.id === 'i10Modal') c
 
 // I10 Sync button + Config modal
 $('btnSyncI10')?.addEventListener('click', syncFromI10);
+$('btnImportHistory')?.addEventListener('click', importHistoryFromI10);
 $('btnCfgI10')?.addEventListener('click', openI10ConfigModal);
 $('i10CfgCancel')?.addEventListener('click', closeI10ConfigModal);
 $('i10CfgSave')?.addEventListener('click', saveI10Config);
@@ -2904,6 +3022,10 @@ function subscribeAll() {
     state.i10.variation = +data.variation || 0;
     state.i10.profitTwr = +data.profitTwr || 0;
     state.i10.source = data.source || null;
+    // Restore ticker->category map persisted by syncFromI10
+    if (data.tickerCategories && typeof data.tickerCategories === 'object') {
+      _i10TickerCategory = data.tickerCategories;
+    }
     if (state.mode === 'investments') renderInvestments();
   });
   unsub.i10Cfg = onSnapshot(docI10Cfg, (snap) => {
