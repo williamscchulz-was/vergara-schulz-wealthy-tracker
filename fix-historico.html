@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#050309" />
+<title>Ledger - Consolidar histórico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  :root {
+    --bg: #050309;
+    --card-bg: rgba(255,255,255,0.025);
+    --card-border: rgba(168,85,247,0.18);
+    --ink: #faf7ff;
+    --ink-2: #e8dfff;
+    --ink-3: #b8a8d4;
+    --ink-muted: #7d6e96;
+    --purple: #a855f7;
+    --purple-light: #c084fc;
+    --purple-deep: #7c3aed;
+    --pink: #ec4899;
+    --gain: #34e17a;
+    --gain-soft: rgba(52,225,122,0.12);
+    --loss: #ff5e57;
+    --loss-soft: rgba(255,94,87,0.12);
+    --warn: #ffb340;
+    --warn-soft: rgba(255,179,64,0.12);
+  }
+  body {
+    font-family: 'Geist', -apple-system, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    padding: 24px 20px 60px;
+    line-height: 1.5;
+    position: relative;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 70% 50% at 75% -10%, rgba(168,85,247,0.30), transparent 55%),
+      radial-gradient(ellipse 60% 45% at 15% 25%, rgba(236,72,153,0.16), transparent 55%),
+      radial-gradient(ellipse 100% 70% at 50% 110%, rgba(124,58,237,0.18), transparent 65%),
+      linear-gradient(180deg, #050309 0%, #08051a 50%, #050309 100%);
+  }
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .brand-mark {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 18px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #a855f7 0%, #7c3aed 50%, #ec4899 100%);
+    display: grid;
+    place-items: center;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.10), 0 12px 36px rgba(168,85,247,0.45);
+  }
+  .brand-mark svg { width: 30px; height: 30px; color: #fff; }
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    margin: 0 0 8px;
+  }
+  .sub {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--purple-light);
+    margin: 0;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 32px 80px -20px rgba(0,0,0,0.6);
+    padding: 28px 26px;
+    margin-bottom: 18px;
+  }
+
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple), var(--purple-deep));
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    margin-right: 10px;
+    flex-shrink: 0;
+  }
+  .step-title {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 14px;
+    letter-spacing: -0.01em;
+  }
+
+  table.preview {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Geist Mono', monospace;
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  table.preview th {
+    text-align: left;
+    padding: 0 8px 10px;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ink-muted);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  table.preview th:not(:first-child) { text-align: right; }
+  table.preview td {
+    padding: 10px 8px;
+    color: var(--ink-2);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  table.preview td:not(:first-child) { text-align: right; }
+  table.preview td:first-child {
+    font-weight: 700;
+    color: var(--ink);
+  }
+  table.preview tr:last-child td { border-bottom: none; }
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 16px 22px;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Geist', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16,1,0.3,1);
+    letter-spacing: -0.01em;
+    margin-top: 6px;
+  }
+  button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+  .btn-google {
+    background: #fff;
+    color: #0a0a0a;
+    border: 1px solid #e5e5e7;
+  }
+  .btn-google:hover:not(:disabled) {
+    background: #f5f5f7;
+    transform: translateY(-1px);
+  }
+  .btn-google svg { width: 20px; height: 20px; }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-deep) 100%);
+    color: #fff;
+    box-shadow: 0 12px 32px rgba(168,85,247,0.45);
+  }
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 44px rgba(168,85,247,0.6);
+  }
+  .btn-danger {
+    background: linear-gradient(135deg, var(--loss), #d32f2f);
+    color: #fff;
+    box-shadow: 0 12px 32px rgba(255,94,87,0.40);
+  }
+  .btn-danger:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 44px rgba(255,94,87,0.55);
+  }
+
+  .status {
+    font-family: 'Geist Mono', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: rgba(0,0,0,0.40);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: var(--ink-3);
+    max-height: 320px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-top: 14px;
+    display: none;
+  }
+  .status.show { display: block; }
+  .status .ok { color: var(--gain); }
+  .status .err { color: var(--loss); }
+  .status .info { color: var(--purple-light); }
+  .status .warn { color: var(--warn); }
+
+  .user-info {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: rgba(52,225,122,0.08);
+    border: 1px solid rgba(52,225,122,0.25);
+    border-radius: 12px;
+    color: var(--ink);
+    font-size: 13px;
+    margin-bottom: 14px;
+  }
+  .user-info.show { display: flex; }
+  .user-info img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+  .user-info b { color: var(--gain); font-weight: 700; }
+
+  .alert {
+    padding: 14px 16px;
+    background: var(--warn-soft);
+    border: 1px solid rgba(255,179,64,0.30);
+    border-radius: 12px;
+    color: var(--warn);
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 14px;
+  }
+  .alert b { color: #ffd584; }
+
+  .summary {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: rgba(168,85,247,0.08);
+    border: 1px solid rgba(168,85,247,0.25);
+    border-radius: 10px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-3);
+    display: none;
+  }
+  .summary.show { display: block; }
+  .summary b { color: var(--purple-light); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="header">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+        <polyline points="21 4 12 13 9 10"/>
+      </svg>
+    </div>
+    <h1>Consolidar histórico</h1>
+    <p class="sub">apaga duplicatas + recria com PL e dividendos certos</p>
+  </div>
+
+  <!-- Step 1: Login -->
+  <div class="card">
+    <div class="step-title"><span class="step-num">1</span>Faça login com Google</div>
+    <div id="userInfo" class="user-info">
+      <img id="userPhoto" alt="" />
+      <span>Logado como <b id="userEmail"></b></span>
+    </div>
+    <button id="btnLogin" class="btn-google">
+      <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      <span id="btnLoginText">Sign in with Google</span>
+    </button>
+  </div>
+
+  <!-- Step 2: Preview -->
+  <div class="card">
+    <div class="step-title"><span class="step-num">2</span>Confira o resultado final</div>
+    <table class="preview">
+      <thead>
+        <tr><th>Ano</th><th>Patrimônio</th><th>Proventos</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>2020</td><td>R$ 22.791</td><td>R$ 0</td></tr>
+        <tr><td>2021</td><td>R$ 90.580</td><td>R$ 808,26</td></tr>
+        <tr><td>2022</td><td>R$ 107.871</td><td>R$ 7.009,52</td></tr>
+        <tr><td>2023</td><td>R$ 279.644</td><td>R$ 10.026,16</td></tr>
+        <tr><td>2024</td><td>R$ 636.149</td><td>R$ 32.280,52</td></tr>
+        <tr><td>2025</td><td>R$ 1.139.512</td><td>R$ 67.557,40</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Step 3: Action -->
+  <div class="card">
+    <div class="step-title"><span class="step-num">3</span>Apagar duplicatas e recriar</div>
+    <div class="alert">
+      ⚠️ Esta ação <b>apaga TODOS</b> os documentos atuais em <code>dividendsYearly</code> e recria com os 6 anos da tabela acima. <b>Não dá pra desfazer</b> — mas os valores acima são os definitivos.
+    </div>
+    <button id="btnAnalyze" class="btn-primary" disabled>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Analisar o que existe agora
+    </button>
+    <div id="summary" class="summary"></div>
+    <button id="btnExecute" class="btn-danger" disabled style="display:none">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      Apagar tudo e recriar
+    </button>
+    <div id="status" class="status"></div>
+  </div>
+
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA5zsPOxpOBPN8BVnJRIN0mIJ4gdlUntc8",
+    authDomain: "wealthy-tracker-68658.firebaseapp.com",
+    projectId: "wealthy-tracker-68658",
+    storageBucket: "wealthy-tracker-68658.firebasestorage.app",
+    messagingSenderId: "559892333696",
+    appId: "1:559892333696:web:3272f0f8e86449f4885265"
+  };
+
+  // Definitive values
+  const FINAL = [
+    { year: 2020, equity:    22791,    divs:        0    },
+    { year: 2021, equity:    90579.73, divs:      808.26 },
+    { year: 2022, equity:   107870.60, divs:     7009.52 },
+    { year: 2023, equity:   279644.42, divs:    10026.16 },
+    { year: 2024, equity:   636148.75, divs:    32280.52 },
+    { year: 2025, equity:  1139511.53, divs:    67557.40 },
+  ];
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
+
+  const $ = id => document.getElementById(id);
+  const status = $('status');
+  let existingDocs = [];
+
+  function log(msg, cls) {
+    status.classList.add('show');
+    const span = cls ? `<span class="${cls}">${msg}</span>` : msg;
+    status.innerHTML += span + '\n';
+    status.scrollTop = status.scrollHeight;
+  }
+
+  function clearLog() {
+    status.innerHTML = '';
+    status.classList.remove('show');
+  }
+
+  $('btnLogin').addEventListener('click', async () => {
+    $('btnLoginText').textContent = 'Entrando...';
+    $('btnLogin').disabled = true;
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (err) {
+      $('btnLoginText').textContent = 'Sign in with Google';
+      $('btnLogin').disabled = false;
+      log('Erro no login: ' + (err.message || err.code), 'err');
+    }
+  });
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      $('btnLogin').style.display = 'none';
+      $('userInfo').classList.add('show');
+      $('userEmail').textContent = user.email;
+      if (user.photoURL) $('userPhoto').src = user.photoURL;
+      $('btnAnalyze').disabled = false;
+    } else {
+      $('btnLogin').style.display = 'flex';
+      $('btnLogin').disabled = false;
+      $('btnLoginText').textContent = 'Sign in with Google';
+      $('userInfo').classList.remove('show');
+      $('btnAnalyze').disabled = true;
+      $('btnExecute').disabled = true;
+      $('btnExecute').style.display = 'none';
+    }
+  });
+
+  $('btnAnalyze').addEventListener('click', async () => {
+    if (!auth.currentUser) return;
+    clearLog();
+    log('Analisando documentos existentes em dividendsYearly...', 'info');
+    log('');
+
+    try {
+      const colRef = collection(db, 'household', 'main', 'dividendsYearly');
+      const snap = await getDocs(colRef);
+      existingDocs = [];
+      snap.forEach(d => {
+        existingDocs.push({ id: d.id, ...d.data() });
+      });
+
+      log('Total de documentos encontrados: ' + existingDocs.length, 'warn');
+      log('');
+
+      const sorted = [...existingDocs].sort((a, b) => (a.year || 0) - (b.year || 0));
+      for (const d of sorted) {
+        const eq = (typeof d.equity === 'number' && d.equity > 0)
+          ? 'R$ ' + d.equity.toLocaleString('pt-BR', { maximumFractionDigits: 0 })
+          : '-';
+        const dv = (typeof d.divs === 'number' && d.divs > 0)
+          ? 'R$ ' + d.divs.toLocaleString('pt-BR', { minimumFractionDigits: 2 })
+          : '-';
+        log('  ' + (d.year || '?') + '  PL=' + eq + '  div=' + dv + '  [id=' + d.id + ']');
+      }
+      log('');
+      log('✓ Análise concluída. Pronto pra apagar e recriar.', 'ok');
+
+      // Show summary + execute button
+      const summary = $('summary');
+      summary.classList.add('show');
+      summary.innerHTML = `Vai apagar <b>${existingDocs.length}</b> documentos e criar <b>6</b> novos (2020-2025).<br/>O ano <b>2026</b> não é tocado — continua sendo gerenciado pelo I10 sync.`;
+
+      $('btnExecute').style.display = 'flex';
+      $('btnExecute').disabled = false;
+    } catch (err) {
+      log('Erro ao analisar: ' + (err.message || err.code), 'err');
+    }
+  });
+
+  $('btnExecute').addEventListener('click', async () => {
+    if (!auth.currentUser) return;
+    if (!confirm('Confirma? Vai apagar ' + existingDocs.length + ' documentos e recriar 6 novos. Não dá pra desfazer.')) return;
+
+    const btn = $('btnExecute');
+    btn.disabled = true;
+    btn.textContent = 'Executando...';
+    clearLog();
+
+    try {
+      // Step A: Delete all existing
+      log('Apagando ' + existingDocs.length + ' documentos antigos...', 'warn');
+      let delOk = 0, delFail = 0;
+      for (const d of existingDocs) {
+        try {
+          await deleteDoc(doc(db, 'household', 'main', 'dividendsYearly', d.id));
+          delOk++;
+        } catch (err) {
+          log('  ✗ falhou apagar ' + d.id + ': ' + (err.message || err.code), 'err');
+          delFail++;
+        }
+      }
+      log('  ✓ Apagados: ' + delOk + (delFail > 0 ? ', falhas: ' + delFail : ''), 'ok');
+      log('');
+
+      // Step B: Create new with year as ID
+      log('Criando 6 documentos novos (2020-2025)...', 'info');
+      let crOk = 0, crFail = 0;
+      for (const row of FINAL) {
+        try {
+          const docRef = doc(db, 'household', 'main', 'dividendsYearly', String(row.year));
+          await setDoc(docRef, {
+            year: row.year,
+            equity: row.equity,
+            divs: row.divs,
+            updatedAt: serverTimestamp(),
+            updatedBy: (auth.currentUser.displayName || auth.currentUser.email) + ' (consolidate script)',
+            source: 'manual-consolidated',
+          });
+          const eqStr = row.equity > 0 ? 'R$ ' + row.equity.toLocaleString('pt-BR', { maximumFractionDigits: 0 }) : '-';
+          const dvStr = row.divs > 0 ? 'R$ ' + row.divs.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '-';
+          log('  ✓ ' + row.year + '  PL=' + eqStr + '  div=' + dvStr, 'ok');
+          crOk++;
+        } catch (err) {
+          log('  ✗ ' + row.year + ': ' + (err.message || err.code), 'err');
+          crFail++;
+        }
+      }
+      log('');
+
+      if (delFail === 0 && crFail === 0) {
+        log('🎉 Consolidação completa', 'ok');
+        log(delOk + ' apagados, ' + crOk + ' recriados', 'ok');
+        log('');
+        log('Volte pro app Ledger e recarregue.', 'info');
+        btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Concluído';
+      } else {
+        log('⚠ Houve falhas. Veja erros acima.', 'err');
+        btn.disabled = false;
+        btn.innerHTML = 'Tentar novamente';
+      }
+    } catch (err) {
+      log('Erro fatal: ' + (err.message || err.code), 'err');
+      btn.disabled = false;
+      btn.innerHTML = 'Tentar novamente';
+    }
+  });
+</script>
+
+</body>
+</html>
