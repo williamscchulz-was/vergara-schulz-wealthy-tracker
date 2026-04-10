@@ -1,5 +1,5 @@
 // ============================================================
-//  GOAL PROJECTION — Ledger feature (independent module)
+//  GOAL PROJECTION — ok Ledger feature (independent module)
 //  v3: CAGR realizado vs necessário, com empty state e ponto YTD
 // ============================================================
 import { initializeApp, getApps, getApp } from “https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js”;
