@@ -8,7 +8,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Ledger" />
 <link rel="manifest" href="manifest.json" />
-<link rel="apple-touch-icon" href="icon512.png" />
+<link rel="icon" type="image/svg+xml" href="icon.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png" />
+<link rel="shortcut icon" href="favicon.ico" />
+<link rel="apple-touch-icon" href="icon-180.png" />
 <title>Ledger</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -126,7 +130,7 @@ body::before {
   transition: transform 0.3s var(--ease-back), box-shadow 0.3s var(--ease-out);
 }
 .brand-mark:hover { transform: rotate(-6deg) scale(1.05); box-shadow: 0 0 0 1px rgba(255,255,255,0.15), 0 8px 20px var(--purple-glow); }
-.brand-mark svg { width: 20px; height: 20px; color: #fff; }
+.brand-mark svg { width: 28px; height: 28px; }
 .brand-text .name { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
 .brand-text .tag { font-size: 11px; color: var(--ink-muted); margin-top: 1px; }
 
@@ -416,7 +420,7 @@ body::before {
 .login-screen.hide { display: none; }
 .login-card { background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 44px 38px; max-width: 400px; width: 100%; text-align: center; box-shadow: var(--shadow-lg), 0 0 60px rgba(172,95,219,0.15); animation: fadeUp 0.6s var(--ease-back); }
 .login-card .logo-big { width: 56px; height: 56px; margin: 0 auto 24px; border-radius: 16px; background: linear-gradient(135deg, var(--purple), var(--purple-deep)); display: grid; place-items: center; box-shadow: 0 8px 24px var(--purple-glow); }
-.login-card .logo-big svg { width: 28px; height: 28px; color: #fff; }
+.login-card .logo-big svg { width: 44px; height: 44px; }
 .login-card h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 8px; color: var(--ink); }
 .login-card p { font-size: 13px; color: var(--ink-3); margin: 0 0 28px; line-height: 1.6; }
 .btn-google { display: inline-flex; align-items: center; gap: 12px; padding: 13px 22px; border: 1px solid var(--border-2); border-radius: var(--radius); background: var(--bg-elevated-2); color: var(--ink); font-size: 14px; font-weight: 500; width: 100%; justify-content: center; cursor: pointer; transition: all 0.2s var(--ease-out); font-family: inherit; }
@@ -541,25 +545,9 @@ body::before {
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="logo-big" id="loginLogo">
-      <svg width="56" height="56" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="loginLogoGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#0a0a0a"/>
-            <stop offset="100%" stop-color="#2d2d30"/>
-          </linearGradient>
-        </defs>
-        <rect x="0" y="0" width="120" height="120" rx="26" fill="url(#loginLogoGrad)"/>
-        <g opacity="0.08" stroke="#ffffff" stroke-width="1">
-          <line x1="30" y1="24" x2="30" y2="96"/>
-          <line x1="50" y1="24" x2="50" y2="96"/>
-          <line x1="70" y1="24" x2="70" y2="96"/>
-          <line x1="90" y1="24" x2="90" y2="96"/>
-          <line x1="24" y1="60" x2="96" y2="60"/>
-        </g>
-        <path d="M 36 28 L 36 88 L 78 88" stroke="#ffffff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        <rect x="48" y="70" width="5" height="10" rx="1.5" fill="#64d2ff" opacity="0.9"/>
-        <rect x="58" y="60" width="5" height="20" rx="1.5" fill="#30d158" opacity="0.9"/>
-        <rect x="68" y="48" width="5" height="32" rx="1.5" fill="#0071e3"/>
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <rect x="30" y="22" width="14" height="56" rx="3" fill="#fafafa"/>
+        <rect x="30" y="64" width="44" height="14" rx="3" fill="#E3A2EE"/>
       </svg>
     </div>
     <h2>Ledger</h2>
@@ -579,9 +567,9 @@ body::before {
     <div class="topbar">
       <div class="brand">
         <div class="brand-mark">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 3v18h18"/>
-            <path d="M7 14l4-4 4 4 5-5"/>
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <rect x="30" y="22" width="14" height="56" rx="3" fill="#fafafa"/>
+            <rect x="30" y="64" width="44" height="14" rx="3" fill="#E3A2EE"/>
           </svg>
         </div>
         <div class="brand-text">

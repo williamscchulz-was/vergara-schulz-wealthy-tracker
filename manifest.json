@@ -1,40 +1,31 @@
 {
-  "name": "Ledger — Personal Finance",
+  "name": "Ledger - Personal Finance",
   "short_name": "Ledger",
-  "description": "Controle de despesas e investimentos para W + F",
-  "start_url": "./",
-  "scope": "./",
+  "description": "Ferramenta de finanças pessoais e investimentos",
+  "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f5f5f7",
-  "theme_color": "#0a0a0a",
+  "background_color": "#1a181d",
+  "theme_color": "#1a181d",
   "lang": "pt-BR",
-  "dir": "ltr",
-  "categories": ["finance", "productivity"],
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "any"
-    },
-    {
-      "src": "icons/icon-maskable-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "icons/icon-maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
     }
   ]
 }
