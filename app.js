@@ -2,7 +2,7 @@
 //  LEDGER — Personal Finance (app.js)
 //  Modules: Expenses + Investments (I10 link)
 // ============================================================
-import { initializeApp } from “https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js”;
+import { initializeApp, getApps, getApp } from “https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js”;
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from “https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js”;
 import { getFirestore, doc, setDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from “https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js”;
 
@@ -15,7 +15,7 @@ storageBucket: “wealthy-tracker-68658.firebasestorage.app”,
 messagingSenderId: “559892333696”,
 appId: “1:559892333696:web:3272f0f8e86449f4885265”
 };
-const app = initializeApp(firebaseConfig);
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
@@ -842,14 +842,20 @@ function unsubscribeAll() { Object.values(unsub).forEach(fn => fn && fn()); unsu
 //                 AUTH
 // ============================================================
 $(‘btnLogin’).addEventListener(‘click’, async () => {
+console.log(’[auth] Login button clicked’);
 $(‘loginError’).classList.remove(‘show’);
 $(‘btnLoginText’).textContent = ‘Entrando…’;
-try { await signInWithPopup(auth, provider); }
-catch (err) {
-console.error(err);
-$(‘loginError’).textContent = ’Erro ao entrar: ’ + (err.message || err.code);
+try {
+console.log(’[auth] Calling signInWithPopup…’);
+await signInWithPopup(auth, provider);
+console.log(’[auth] signInWithPopup resolved’);
+} catch (err) {
+console.error(’[auth] signInWithPopup error:’, err);
+const code = err.code || ‘unknown’;
+const msg = err.message || String(err);
+$(‘loginError’).textContent = `[${code}] ${msg}`;
 $(‘loginError’).classList.add(‘show’);
-$(‘btnLoginText’).textContent = ‘Entrar com Google’;
+$(‘btnLoginText’).textContent = ‘Tentar novamente’;
 }
 });
 $(‘btnLogout’).addEventListener(‘click’, async () => { unsubscribeAll(); await signOut(auth); });
@@ -868,8 +874,8 @@ lastSeenAt: serverTimestamp(),
 uid: user.uid,
 }, { merge: true });
 subscribeAll();
-// Default mode: expenses
-switchMode(‘expenses’);
+// Default mode: investments
+switchMode(‘investments’);
 } catch (err) {
 console.error(‘Firestore error:’, err);
 }
