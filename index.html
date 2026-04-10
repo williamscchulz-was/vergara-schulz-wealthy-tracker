@@ -1,61 +1,23 @@
 <!doctype html>
-
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Ledger — Personal Finance</title>
 
-<!-- ============== DEBUG: error capture (visible on screen) ============== -->
-
-<script>
-  (function() {
-    function showError(label, msg) {
-      var d = document.createElement('div');
-      d.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#d70015;color:white;padding:14px 16px;font-size:12px;line-height:1.4;z-index:99999;font-family:ui-monospace,Menlo,monospace;word-break:break-word;white-space:pre-wrap;border-bottom:2px solid #fff;box-shadow:0 4px 16px rgba(0,0,0,.4);max-height:60vh;overflow-y:auto;';
-      d.textContent = '[' + label + '] ' + msg;
-      d.onclick = function() { d.remove(); };
-      (document.body || document.documentElement).appendChild(d);
-    }
-    window.addEventListener('error', function(e) {
-      showError('JS ERROR', (e.message || 'unknown') + ' @ ' + (e.filename || '?').split('/').pop() + ':' + (e.lineno || '?'));
-    });
-    window.addEventListener('unhandledrejection', function(e) {
-      var r = e.reason;
-      var msg = r && r.message ? r.message : (r && r.code ? r.code : String(r));
-      showError('PROMISE FAIL', msg);
-    });
-    // Boot log
-    window.__bootLog = function(stage) {
-      var b = document.getElementById('bootLog');
-      if (!b) {
-        b = document.createElement('div');
-        b.id = 'bootLog';
-        b.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.85);color:#0f0;padding:8px 12px;font-size:10px;line-height:1.3;z-index:99998;font-family:ui-monospace,Menlo,monospace;max-height:30vh;overflow-y:auto;';
-        b.onclick = function() { b.remove(); };
-        (document.body || document.documentElement).appendChild(b);
-      }
-      b.textContent += '✓ ' + stage + '\n';
-    };
-  })();
-</script>
-
 <meta name="description" content="Controle de despesas e investimentos · W + F" />
 
 <!-- PWA manifest -->
-
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#0a0a0a" />
 <meta name="background-color" content="#f5f5f7" />
 
 <!-- Favicons -->
-
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
 <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png" />
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' rx='26' fill='%230a0a0a'/%3E%3Cpath d='M 36 28 L 36 88 L 78 88' stroke='%23fff' stroke-width='12' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Crect x='68' y='48' width='7' height='32' rx='2' fill='%230071e3'/%3E%3C/svg%3E" />
 
 <!-- iOS / Apple Touch -->
-
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -64,7 +26,6 @@
 <meta name="application-name" content="Ledger" />
 
 <!-- Open Graph (preview in WhatsApp, Telegram, Twitter, etc) -->
-
 <meta property="og:type" content="website" />
 <meta property="og:title" content="Ledger — Personal Finance" />
 <meta property="og:description" content="Controle de despesas e investimentos · W + F" />
@@ -77,760 +38,1356 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <style>
-  :root{
-    --bg:#f5f5f7;
-    --surface:#ffffff;
-    --surface-2:#fbfbfd;
-    --ink:#0a0a0a;
-    --ink-2:#1d1d1f;
-    --muted:#6e6e73;
-    --muted-2:#a1a1a6;
-    --line:#f0f0f2;
-    --line-2:#e5e5ea;
-    --accent:#0071e3;
-    --accent-soft:#e8f1ff;
-    --gain:#30d158;
-    --gain-deep:#1e8e3e;
-    --gain-soft:#e8f8ed;
-    --loss:#ff3b30;
-    --loss-soft:#ffebe9;
-    --gold:#ff9500;
-    --gold-soft:#fff4e5;
-    --purple:#af52de;
-    --purple-soft:#f7ecff;
-    --teal:#64d2ff;
-    --teal-soft:#e5f7ff;
-    --pink:#ff375f;
-    --pink-soft:#ffe8ee;
-    --radius:18px;
-    --radius-sm:12px;
-    --shadow-1:0 1px 3px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.03);
-    --shadow-2:0 4px 16px rgba(0,0,0,.06), 0 2px 6px rgba(0,0,0,.04);
-    --ease:cubic-bezier(0.16, 1, 0.3, 1);
+  /* ===========================================================
+     LEDGER v3 - Apple refined dark + Nubank purple
+     =========================================================== */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: #0a0612;
+    color: #f5f0ff;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'cv11', 'ss03';
+    overflow-x: hidden;
+    min-height: 100vh;
   }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{
-    color:var(--ink-2);
-    font-family:'Geist',-apple-system,BlinkMacSystemFont,ui-sans-serif,sans-serif;
-    -webkit-font-smoothing:antialiased;font-feature-settings:"ss01","cv11";
-    letter-spacing:-0.011em;
-    min-height:100vh;
+
+  :root {
+    /* Surfaces */
+    --bg: #0a0612;
+    --bg-2: #0e0817;
+    --surface: #130a20;
+    --surface-2: #1a1230;
+    --surface-3: #221838;
+    --line: rgba(168, 85, 247, 0.10);
+    --line-strong: rgba(168, 85, 247, 0.20);
+
+    /* Ink */
+    --ink: #f5f0ff;
+    --ink-2: #e0d4f5;
+    --ink-muted: #9b8cb8;
+    --ink-dim: #6e5a8a;
+
+    /* Brand */
+    --purple: #a855f7;
+    --purple-2: #c084fc;
+    --purple-deep: #7c3aed;
+    --purple-soft: rgba(168, 85, 247, 0.14);
+    --pink: #ec4899;
+    --pink-soft: rgba(236, 72, 153, 0.14);
+
+    /* Semantic */
+    --gain: #30d158;
+    --gain-soft: rgba(48, 209, 88, 0.14);
+    --gain-deep: #4ade80;
+    --loss: #ff453a;
+    --loss-soft: rgba(255, 69, 58, 0.14);
+    --warn: #ff9f0a;
+    --warn-soft: rgba(255, 159, 10, 0.14);
+
+    /* Effects */
+    --radius: 24px;
+    --radius-sm: 16px;
+    --radius-pill: 999px;
+    --shadow-1: 0 4px 20px rgba(0, 0, 0, 0.4);
+    --shadow-2: 0 12px 48px rgba(0, 0, 0, 0.5);
+    --shadow-purple: 0 12px 60px rgba(168, 85, 247, 0.35);
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
   }
-  body{
-    position:relative;
-    background:#f5f5f7;
-  }
-  /* Global Arco gradient layer (fades out after ~780px) */
-  body::before{
-    content:"";
-    position:fixed;
-    top:0;left:0;right:0;
-    height:820px;
-    pointer-events:none;
-    z-index:0;
+
+  /* Atmospheric background */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
     background:
-      linear-gradient(180deg,
-        rgba(245,245,247,0) 0%,
-        rgba(245,245,247,0) 60%,
-        rgba(245,245,247,.75) 85%,
-        #f5f5f7 100%),
-      radial-gradient(ellipse 160% 85% at 50% 25%,
-        #e8f4ff 0%,
-        #b4dcff 12%,
-        #6cb0ff 28%,
-        #2563eb 48%,
-        #1d4ed8 65%,
-        #0a1f5c 85%,
-        #030a2e 100%);
+      radial-gradient(ellipse 60% 40% at 80% 0%, rgba(168, 85, 247, 0.18), transparent 60%),
+      radial-gradient(ellipse 50% 35% at 20% 30%, rgba(236, 72, 153, 0.08), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 50% 100%, rgba(124, 58, 237, 0.10), transparent 70%);
   }
-  body::after{
-    content:"";
-    position:fixed;
-    top:0;left:0;right:0;
-    height:820px;
-    pointer-events:none;
-    z-index:0;
-    opacity:.05;
-    mix-blend-mode:overlay;
-    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.025;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
-  /* Everything sits above the gradient */
-  .app, .login-screen, .toast, .modal-bg{position:relative;z-index:1}
-  /* PWA standalone mode: respect iOS safe areas (notch, home bar) */
-  @media (display-mode: standalone) {
-    body {
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
-      padding-left: env(safe-area-inset-left);
-      padding-right: env(safe-area-inset-right);
-    }
+
+  /* ===========================================================
+     LOGIN
+     =========================================================== */
+  .login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+    background:
+      radial-gradient(ellipse 70% 50% at 50% 105%, #020820 0%, #020820 35%, transparent 70%),
+      radial-gradient(ellipse 110% 80% at 50% 115%, #93c5fd 0%, #60a5fa 12%, #3b82f6 28%, #1d4ed8 50%, transparent 75%),
+      linear-gradient(180deg, #020820 0%, #061233 30%, #0a1f5c 60%, #1e40af 100%);
   }
-  .mono{font-family:'Geist Mono',ui-monospace,monospace;font-feature-settings:"zero"}
-  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;transition:all .25s var(--ease)}
-  input,select,textarea{font-family:inherit;font-size:14px}
+  .login-card {
+    position: relative;
+    z-index: 2;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: saturate(180%) blur(24px);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 22px;
+    padding: 52px 44px;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    color: #0a0a0a;
+  }
+  .login-card .logo-big { width: 56px; height: 56px; margin: 0 auto 24px; display: grid; place-items: center; }
+  .login-card h2 { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; margin: 0 0 8px; color: #0a0a0a; }
+  .login-card p { font-size: 14px; color: #6b6b6b; margin: 0 0 32px; line-height: 1.55; }
+  .btn-google {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 22px;
+    border: 1px solid #e5e5e7;
+    border-radius: 14px;
+    background: #fff;
+    color: #0a0a0a;
+    font-size: 15px;
+    font-weight: 600;
+    width: 100%;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s var(--ease);
+  }
+  .btn-google:hover { background: #f5f5f7; border-color: #c7c7cc; transform: translateY(-1px); }
+  .btn-google:active { transform: translateY(0); }
+  .btn-google svg { width: 20px; height: 20px; }
+  .login-error {
+    margin-top: 18px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 69, 58, 0.10);
+    color: #d70015;
+    font-size: 13px;
+    text-align: left;
+    display: none;
+    word-break: break-word;
+  }
+  .login-error.show { display: block; }
+  .login-foot { margin-top: 28px; font-size: 11px; color: #8e8e93; line-height: 1.6; }
 
-/* === LOGIN === */
-.login-screen{
-min-height:100vh;
-display:flex;align-items:center;justify-content:center;
-padding:20px;
-position:relative;
-overflow:hidden;
-background:
-radial-gradient(ellipse 70% 50% at 50% 105%,
-#020820 0%,
-#020820 35%,
-transparent 70%),
-radial-gradient(ellipse 110% 80% at 50% 115%,
-#93c5fd 0%,
-#60a5fa 12%,
-#3b82f6 28%,
-#1d4ed8 50%,
-transparent 75%),
-linear-gradient(180deg,
-#020820 0%,
-#061233 30%,
-#0a1f5c 60%,
-#1e40af 100%);
-}
-/* Grain overlay */
-/* Grain overlay */
-.login-screen::before{
-content:””;
-position:absolute;
-inset:0;
-pointer-events:none;
-opacity:.05;
-mix-blend-mode:overlay;
-background-image:url(“data:image/svg+xml,%3Csvg viewBox=‘0 0 200 200’ xmlns=‘http://www.w3.org/2000/svg’%3E%3Cfilter id=‘n’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.85’ numOctaves=‘3’/%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23n)’/%3E%3C/svg%3E”);
-}
-.login-card{
-position:relative;
-z-index:2;
-background:rgba(255,255,255,.92);
-backdrop-filter:saturate(180%) blur(24px);
--webkit-backdrop-filter:saturate(180%) blur(24px);
-border:1px solid rgba(255,255,255,.5);
-border-radius:22px;
-padding:52px 44px;
-max-width:420px;
-width:100%;
-text-align:center;
-box-shadow:0 20px 60px rgba(0,0,0,.3);
-}
-.login-card .logo-big{width:56px;height:56px;margin:0 auto 24px;display:grid;place-items:center}
-.login-card .logo-big svg{display:block;border-radius:14px;box-shadow:var(–shadow-1)}
-.login-card h2{font-size:26px;font-weight:600;letter-spacing:-0.025em;margin-bottom:8px}
-.login-card p{font-size:14px;color:var(–muted);margin-bottom:32px;line-height:1.55}
-.btn-google{display:inline-flex;align-items:center;gap:10px;padding:13px 22px;border:1px solid var(–line-2);border-radius:12px;background:var(–surface);font-size:14px;font-weight:500;width:100%;justify-content:center}
-.btn-google:hover{border-color:var(–ink-2);background:var(–surface-2)}
-.btn-google svg{width:18px;height:18px}
-.login-error{margin-top:18px;padding:12px;border-radius:10px;background:var(–loss-soft);color:var(–loss);font-size:13px;display:none}
-.login-error.show{display:block}
-.login-foot{margin-top:28px;font-size:11px;color:var(–muted-2);line-height:1.6}
+  /* ===========================================================
+     APP SHELL
+     =========================================================== */
+  .app { display: none; position: relative; z-index: 1; }
+  .app.show { display: block; }
+  .login-screen.hide { display: none; }
 
-/* === APP === */
-.app{display:none}
-.app.show{display:block}
-.login-screen.hide{display:none}
-.shell{max-width:1200px;margin:0 auto;padding:28px 28px 100px}
+  .shell {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+  }
 
-.top{display:flex;align-items:center;justify-content:space-between;padding-bottom:20px;margin-bottom:8px;gap:14px;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:10px}
-.brand .logo{width:30px;height:30px;display:grid;place-items:center}
-.brand .logo svg{display:block;border-radius:9px;box-shadow:0 4px 12px rgba(0,0,0,.25)}
-.brand h1{font-size:16px;font-weight:600;letter-spacing:-0.018em;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.15)}
-.brand h1 span{color:rgba(255,255,255,.72);font-weight:400}
-.top-right{display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,.82);flex-wrap:wrap}
-.user-chip{display:inline-flex;align-items:center;gap:9px;padding:5px 12px 5px 5px;border:1px solid rgba(255,255,255,.22);border-radius:99px;font-size:12px;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff}
-.user-chip img{width:24px;height:24px;border-radius:50%}
-.user-chip .name{color:#fff;font-weight:500}
-.btn-logout{padding:7px 13px;border:1px solid rgba(255,255,255,.22);border-radius:9px;font-size:12px;background:rgba(255,255,255,.12);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff}
-.btn-logout:hover{border-color:#fff;background:rgba(255,255,255,.22)}
+  /* TopBar */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    max-width: 880px;
+    margin: 0 auto;
+    background: rgba(10, 6, 18, 0.72);
+    backdrop-filter: saturate(180%) blur(24px);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .brand-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--pink) 100%);
+    display: grid;
+    place-items: center;
+    box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4);
+  }
+  .brand-logo svg { width: 18px; height: 18px; color: #fff; }
 
-/* === MODE SWITCH (Investments / Expenses) === */
-.mode-switch{
-display:inline-flex;gap:4px;
-background:rgba(255,255,255,.15);
-backdrop-filter:saturate(180%) blur(20px);
--webkit-backdrop-filter:saturate(180%) blur(20px);
-border:1px solid rgba(255,255,255,.22);
-border-radius:14px;padding:5px;
-margin-bottom:32px;
-box-shadow:0 4px 16px rgba(0,0,0,.1);
-}
-.mode-switch button{
-padding:11px 24px;font-size:14px;font-weight:600;
-color:rgba(255,255,255,.7);
-border-radius:10px;letter-spacing:-0.01em;
-display:inline-flex;align-items:center;gap:8px;
-}
-.mode-switch button:hover{color:#fff}
-.mode-switch button.active{
-background:rgba(255,255,255,.92);
-color:#0a0a0a;
-box-shadow:0 2px 8px rgba(0,0,0,.15);
-}
-.mode-switch button svg{width:16px;height:16px}
+  .user-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px 6px 6px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    font-size: 13px;
+    color: var(--ink-2);
+    font-weight: 500;
+  }
+  .user-pill img {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .user-pill #userName {
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .user-pill .logout {
+    background: none;
+    border: none;
+    color: var(--ink-dim);
+    cursor: pointer;
+    padding: 0 0 0 8px;
+    margin-left: 4px;
+    border-left: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+  }
+  .user-pill .logout:hover { color: var(--purple-2); }
+  .user-pill .logout svg { width: 14px; height: 14px; }
 
-/* === MODULES === */
-.module{display:none;animation:fade .35s var(–ease)}
-.module.active{display:block}
-@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  /* TopBar (.top legacy) */
+  .top {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 0;
+    margin: 0 0 8px;
+    background: rgba(10, 6, 18, 0.72);
+    backdrop-filter: saturate(180%) blur(24px);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+  .brand .logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+  .brand .logo svg { display: block; border-radius: 9px; }
+  .brand h1 {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .brand h1 span {
+    font-weight: 500;
+    color: var(--ink-dim);
+    font-size: 13px;
+    margin-left: 4px;
+  }
 
-/* === SECTION HEAD === */
-.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:14px}
-.section-head h2{font-size:28px;font-weight:600;letter-spacing:-0.03em;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.2)}
-.section-head .meta{font-size:13px;color:rgba(255,255,255,.78);margin-top:4px}
-/* On Expenses tab (no gradient area), revert to dark text */
-#moduleExpenses .section-head h2{color:var(–ink-2);text-shadow:none}
-#moduleExpenses .section-head .meta{color:var(–muted)}
+  .top-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .conn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-dim);
+    padding: 5px 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+  }
+  .conn::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gain);
+    box-shadow: 0 0 8px var(--gain);
+  }
+  .conn.live::before { background: var(--gain); }
 
-/* === BUTTONS === */
-.btn-primary{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:var(–ink-2);color:#fff;border-radius:12px;font-size:13px;font-weight:600;border:1px solid var(–ink-2);box-shadow:var(–shadow-1)}
-.btn-primary:hover{background:#000;transform:translateY(-1px);box-shadow:var(–shadow-2)}
-.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.btn-secondary{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;background:var(–surface);border:1px solid var(–line-2);color:var(–ink-2);border-radius:12px;font-size:13px;font-weight:500}
-.btn-secondary:hover{border-color:var(–ink-2);transform:translateY(-1px)}
-.btn-danger{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;background:var(–loss-soft);border:1px solid #ffc5c0;color:var(–loss);border-radius:12px;font-size:13px;font-weight:500}
-.btn-danger:hover{background:#ffdbd7}
+  .user-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px 5px 5px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    color: var(--ink-2);
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .user-chip img {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--surface-3);
+  }
+  .user-chip .name {
+    max-width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .btn-logout {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--ink-muted);
+    padding: 7px 14px;
+    border-radius: var(--radius-pill);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-logout:hover { color: var(--ink); background: var(--surface-3); border-color: var(--line-strong); }
 
-/* === CARD === */
-.card{background:var(–surface);border:1px solid var(–line-2);border-radius:var(–radius);padding:30px;box-shadow:var(–shadow-1);transition:box-shadow .3s var(–ease)}
-.card:hover{box-shadow:var(–shadow-2)}
-.card-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
-.card-head h3{font-size:16px;font-weight:600;letter-spacing:-0.015em;color:var(–ink-2)}
-.card-head .meta{font-size:12px;color:var(–muted);margin-top:4px}
+  /* Mode switch */
+  .mode-switch {
+    display: flex;
+    gap: 6px;
+    padding: 4px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    margin: 28px auto 36px;
+    width: fit-content;
+  }
+  .mode-switch button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-pill);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-muted);
+    cursor: pointer;
+    transition: all 0.2s var(--ease);
+  }
+  .mode-switch button svg { width: 15px; height: 15px; }
+  .mode-switch button:hover { color: var(--ink); }
+  .mode-switch button.active {
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-deep) 100%);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4);
+  }
 
-/* === STATS === */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:32px}
-.stats.three{grid-template-columns:repeat(3,1fr)}
-.stat{background:var(–surface);border:1px solid var(–line-2);border-radius:var(–radius);padding:24px 26px;box-shadow:var(–shadow-1);transition:all .3s var(–ease)}
-.stat:hover{transform:translateY(-2px);box-shadow:var(–shadow-2)}
-.stat .lbl{font-size:12px;color:var(–muted);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;font-weight:500}
-.stat .lbl .dot{width:8px;height:8px;border-radius:50%}
-.stat .val{font-size:26px;font-weight:600;letter-spacing:-0.025em;margin-bottom:6px;color:var(–ink-2)}
-.stat .sub{font-size:12px;color:var(–muted)}
-.stat .sub.up{color:var(–gain-deep)}
-.stat .sub.dn{color:var(–loss)}
+  /* Modules */
+  .module { display: none; animation: fadeUp 0.5s var(--ease); }
+  .module.active { display: block; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
-/* === GOAL PILLS === */
-.goal-pills{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
-.goal-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:var(–surface-2);border:1px solid var(–line-2);border-radius:99px;font-size:12px}
-.goal-pill b{color:var(–ink-2);font-weight:600}
-.goal-pill .lbl{color:var(–muted)}
-.goal-pill.accent{background:var(–accent-soft);border-color:#b8d4ff}
-.goal-pill.accent b{color:var(–accent)}
-.goal-pill.gain{background:var(–gain-soft);border-color:#b8e7c5}
-.goal-pill.gain b{color:var(–gain-deep)}
+  /* ===========================================================
+     HERO (Patrimônio total)
+     =========================================================== */
+  .hero {
+    position: relative;
+    padding: 36px 28px 32px;
+    margin-bottom: 28px;
+    background: linear-gradient(180deg, rgba(168, 85, 247, 0.10) 0%, rgba(124, 58, 237, 0.04) 100%);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 60%;
+    height: 100%;
+    background: radial-gradient(ellipse, rgba(168, 85, 247, 0.18), transparent 65%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    position: relative;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--purple-2);
+    margin-bottom: 14px;
+  }
+  .hero-number {
+    position: relative;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-family: 'Geist', sans-serif;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    margin-bottom: 14px;
+  }
+  .hero-number .cur {
+    font-size: clamp(18px, 4vw, 24px);
+    font-weight: 600;
+    color: var(--ink-muted);
+  }
+  .hero-number #i10Equity {
+    font-size: clamp(48px, 11vw, 76px);
+    font-variant-numeric: tabular-nums;
+  }
+  .hero-sub {
+    position: relative;
+    font-size: 14px;
+    color: var(--ink-muted);
+    margin-bottom: 22px;
+    line-height: 1.5;
+  }
+  .hero-sub .pos { color: var(--gain); font-weight: 700; font-family: 'Geist Mono', monospace; font-size: 13px; padding: 3px 8px; background: var(--gain-soft); border-radius: 7px; }
+  .hero-sub .neg { color: var(--loss); font-weight: 700; font-family: 'Geist Mono', monospace; font-size: 13px; padding: 3px 8px; background: var(--loss-soft); border-radius: 7px; }
 
-/* === BAR CHART === */
-.bar-chart{height:280px;position:relative;margin-top:12px}
-.bar-chart svg{width:100%;height:100%;overflow:visible}
-.bar-chart .goal-line{stroke:var(–accent);stroke-width:1.5;stroke-dasharray:4 4;opacity:.6}
-.bar-chart .axis{font-family:‘Geist Mono’,monospace;font-size:10px;fill:var(–muted-2);font-weight:500}
-.bar-chart .bar{transition:all .3s var(–ease);cursor:pointer}
-.bar-chart .bar:hover{opacity:.85}
-.bar-chart .bar-current{filter:drop-shadow(0 2px 4px rgba(0,113,227,.3))}
-.bar-chart .tooltip-group{pointer-events:none}
-.bar-chart .tooltip-bg{fill:var(–ink-2);rx:6}
-.bar-chart .tooltip-text{fill:#fff;font-size:11px;font-weight:600;font-family:‘Geist’,sans-serif}
-.bar-chart .tooltip-value{fill:#fff;font-size:13px;font-weight:700;font-family:‘Geist Mono’,monospace}
-.bar-chart .goal-label{fill:var(–accent);font-size:10px;font-weight:600;font-family:‘Geist’,sans-serif}
-.empty-chart{display:flex;flex-direction:column;align-items:center;justify-content:center;height:280px;color:var(–muted);text-align:center;gap:8px}
-.empty-chart .ico{font-size:32px;opacity:.4}
-.empty-chart h4{font-size:14px;font-weight:600;color:var(–ink-2)}
-.empty-chart p{font-size:12px;max-width:320px;line-height:1.5}
+  .hero-meta {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+  .hero-updated {
+    font-size: 11px;
+    color: var(--ink-dim);
+    font-family: 'Geist Mono', monospace;
+  }
+  .hero-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .hero-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--ink-2);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s var(--ease);
+  }
+  .hero-btn:hover { background: var(--surface-3); border-color: var(--line-strong); color: var(--ink); }
+  .hero-btn svg { width: 13px; height: 13px; }
+  .hero-btn.primary {
+    background: var(--purple-soft);
+    border-color: rgba(168, 85, 247, 0.30);
+    color: var(--purple-2);
+  }
+  .hero-btn.primary:hover { background: rgba(168, 85, 247, 0.20); }
+  .hero-btn.icon { padding: 8px; }
+  .hero-btn:disabled { opacity: 0.5; cursor: wait; }
 
-/* === I10 HERO CARD (glass over global gradient) === */
-.i10-hero{
-background:rgba(5,15,50,.32);
-position:relative;
-border:1px solid rgba(255,255,255,.14);
-border-radius:var(–radius);padding:36px 40px;margin-bottom:24px;
-color:#fff;
-box-shadow:0 20px 60px rgba(5,15,50,.35), inset 0 1px 0 rgba(255,255,255,.1);
-backdrop-filter:saturate(140%) blur(20px);
--webkit-backdrop-filter:saturate(140%) blur(20px);
-display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;
-overflow:hidden;
-}
-.i10-hero .left{flex:1;min-width:260px}
-.i10-hero .label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.85;font-weight:600;margin-bottom:10px}
-.i10-hero .amt{font-size:56px;font-weight:600;letter-spacing:-0.035em;line-height:1;margin-bottom:8px}
-.i10-hero .amt .cur{font-size:24px;opacity:.7;vertical-align:top;margin-right:6px;font-weight:500}
-.i10-hero .amt-sub{font-size:13px;opacity:.85;margin-top:10px}
-.i10-hero .right{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
-.i10-hero .link-btn{
-display:inline-flex;align-items:center;gap:8px;padding:11px 18px;
-background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
-color:#fff;border-radius:11px;font-size:13px;font-weight:600;
-text-decoration:none;backdrop-filter:blur(10px);
-}
-.i10-hero .link-btn:hover{background:rgba(255,255,255,.22);transform:translateY(-1px)}
-.i10-hero .edit-btn{
-display:inline-flex;align-items:center;gap:6px;padding:7px 13px;
-background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
-color:#fff;border-radius:8px;font-size:11px;font-weight:500;
-}
-.i10-hero .edit-btn:hover{background:rgba(255,255,255,.2);cursor:pointer}
-.i10-hero .sync-btn{
-display:inline-flex;align-items:center;gap:8px;padding:11px 18px;
-background:rgba(48,209,88,.22);border:1px solid rgba(48,209,88,.5);
-color:#fff;border-radius:11px;font-size:13px;font-weight:600;
-cursor:pointer;transition:all .15s var(–ease);
-}
-.i10-hero .sync-btn:hover:not(:disabled){background:rgba(48,209,88,.32);transform:translateY(-1px)}
-.i10-hero .sync-btn:disabled{opacity:.55;cursor:wait;transform:none}
-.i10-hero .btn-row{display:flex;gap:6px;align-items:center}
-.i10-hero .edit-btn.cfg{padding:7px 10px;min-width:auto}
-.i10-hero .updated{font-size:11px;opacity:.75;font-family:‘Geist Mono’,monospace}
-.i10-hero .amt-sub .pos{color:#34e17a;font-weight:600}
-.i10-hero .amt-sub .neg{color:#ff6b5e;font-weight:600}
+  /* ===========================================================
+     YTD CARD
+     =========================================================== */
+  .ytd-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 26px 28px;
+    margin-bottom: 28px;
+  }
+  .ytd-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 12px;
+  }
+  .ytd-amount {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-family: 'Geist', sans-serif;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 6px;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .ytd-amount .cur { font-size: 16px; color: var(--ink-muted); font-weight: 600; }
+  .ytd-amount #i10Dividends { font-size: clamp(36px, 8vw, 48px); font-variant-numeric: tabular-nums; }
+  .ytd-sub { font-size: 13px; color: var(--ink-muted); }
 
-/* Assets list (synced from I10) */
-.assets-list{display:flex;flex-direction:column;gap:8px}
-.asset-row{
-padding:14px 16px;background:var(–surface-2);border:1px solid var(–line);
-border-radius:var(–radius-sm);transition:all .15s var(–ease);
-}
-.asset-row:hover{border-color:var(–line-2);transform:translateY(-1px);box-shadow:var(–shadow-1)}
-.asset-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px}
-.asset-ticker{display:flex;flex-direction:column;gap:3px;min-width:0}
-.asset-ticker .tk{font-size:15px;font-weight:700;color:var(–ink);letter-spacing:-0.01em}
-.asset-ticker .qty{font-size:11px;color:var(–muted);font-family:‘Geist Mono’,monospace}
-.asset-values{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
-.asset-equity{font-size:15px;font-weight:600;color:var(–ink-2);font-family:‘Geist Mono’,monospace;letter-spacing:-0.01em}
-.asset-appr{font-size:11px;font-weight:600;font-family:‘Geist Mono’,monospace}
-.asset-appr.pos{color:var(–gain-deep)}
-.asset-appr.neg{color:var(–loss)}
-.asset-bar{height:5px;background:var(–line);border-radius:3px;overflow:hidden;margin:8px 0}
-.asset-bar i{display:block;height:100%;background:linear-gradient(90deg,var(–accent),#4ea3ff);transition:width .5s var(–ease)}
-.asset-foot{display:flex;justify-content:space-between;font-size:11px;color:var(–muted);font-family:‘Geist Mono’,monospace}
+  /* ===========================================================
+     GENERIC CARD
+     =========================================================== */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 26px 28px;
+    margin-bottom: 28px;
+  }
+  .card h3 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 0 0 20px;
+  }
+  .card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .card-head h3 { margin: 0; }
+  .card-head button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--purple-soft);
+    border: 1px solid rgba(168, 85, 247, 0.30);
+    border-radius: 10px;
+    color: var(--purple-2);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .card-head button:hover { background: rgba(168, 85, 247, 0.20); }
+  .card-head button svg { width: 13px; height: 13px; }
 
-/* === ASSET ROW SLIM (ticker · valor · %) === */
-.asset-row-slim{
-display:grid;
-grid-template-columns:1fr auto auto;
-align-items:center;
-gap:16px;
-padding:14px 18px;
-background:var(–surface);
-border:1px solid var(–line);
-border-radius:12px;
-transition:all .15s var(–ease);
-}
-.asset-row-slim:hover{
-border-color:var(–line-2);
-transform:translateY(-1px);
-box-shadow:var(–shadow-1);
-}
-.asset-ticker-slim{
-font-size:14px;
-font-weight:700;
-color:var(–ink);
-letter-spacing:-0.01em;
-font-family:‘Geist Mono’,monospace;
-}
-.asset-value-slim{
-font-size:14px;
-font-weight:600;
-color:var(–ink-2);
-font-family:‘Geist Mono’,monospace;
-letter-spacing:-0.01em;
-text-align:right;
-min-width:90px;
-}
-.asset-appr-slim{
-font-size:13px;
-font-weight:600;
-font-family:‘Geist Mono’,monospace;
-text-align:right;
-min-width:60px;
-padding:4px 9px;
-border-radius:7px;
-}
-.asset-appr-slim.pos{color:var(–gain-deep);background:var(–gain-soft)}
-.asset-appr-slim.neg{color:var(–loss);background:var(–loss-soft)}
+  /* ===========================================================
+     ASSET ROW SLIM (carteira)
+     =========================================================== */
+  .assets-list { display: flex; flex-direction: column; gap: 6px; }
+  .asset-row-slim {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 18px;
+    background: var(--surface-2);
+    border: 1px solid transparent;
+    border-radius: 14px;
+    transition: all 0.15s var(--ease);
+  }
+  .asset-row-slim:hover {
+    background: var(--surface-3);
+    border-color: var(--line);
+  }
+  .asset-ticker-slim {
+    font-family: 'Geist Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .asset-value-slim {
+    font-family: 'Geist Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-2);
+    text-align: right;
+    min-width: 100px;
+  }
+  .asset-appr-slim {
+    font-family: 'Geist Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: right;
+    min-width: 70px;
+    padding: 5px 10px;
+    border-radius: 8px;
+  }
+  .asset-appr-slim.pos { color: var(--gain-deep); background: var(--gain-soft); }
+  .asset-appr-slim.neg { color: var(--loss); background: var(--loss-soft); }
 
-.i10-secondary{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:32px}
-.i10-card{
-background:var(–surface);border:1px solid var(–line-2);
-border-radius:var(–radius);padding:26px 28px;box-shadow:var(–shadow-1);
-}
-.i10-card .label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(–muted);font-weight:600;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
-.i10-card .label .edit-link{font-size:10px;color:var(–accent);font-weight:500;text-transform:none;letter-spacing:0}
-.i10-card .val{font-size:34px;font-weight:600;letter-spacing:-0.03em;color:var(–ink-2);margin-bottom:4px}
-.i10-card .val .cur{font-size:16px;color:var(–muted);vertical-align:top;margin-right:4px;font-weight:500}
-.i10-card .sub{font-size:12px;color:var(–muted)}
+  /* ===========================================================
+     GOAL CARD V4 (Tracker style purple)
+     =========================================================== */
+  .goal-card {
+    position: relative;
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 28px;
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    background: linear-gradient(180deg, #15092a 0%, #0e0817 100%);
+    box-shadow: 0 12px 48px rgba(124, 58, 237, 0.25);
+  }
+  .goal-card-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 50% 40% at 100% 0%, rgba(236, 72, 153, 0.18), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 0% 50%, rgba(168, 85, 247, 0.20), transparent 60%);
+  }
+  .goal-card-inner {
+    position: relative;
+    padding: 28px 28px 26px;
+  }
+  .goal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .goal-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--purple-2);
+  }
+  .goal-edit-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--line-strong);
+    background: rgba(168, 85, 247, 0.10);
+    color: var(--purple-2);
+    border-radius: 10px;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: all 0.15s var(--ease);
+  }
+  .goal-edit-btn:hover { background: rgba(168, 85, 247, 0.20); }
 
-/* === YEARLY TABLE === */
-.yearly-table{width:100%;border-collapse:collapse}
-.yearly-table th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(–muted);font-weight:600;padding:0 12px 12px;text-align:right;border-bottom:1px solid var(–line)}
-.yearly-table th:first-child{text-align:left}
-.yearly-table td{padding:14px 12px;border-bottom:1px solid var(–line);font-size:13px;text-align:right;font-family:‘Geist Mono’,monospace}
-.yearly-table td:first-child{font-family:‘Geist’,sans-serif;font-weight:600;text-align:left;color:var(–ink-2)}
-.yearly-table tr:last-child td{border-bottom:none}
-.yearly-table tr{cursor:pointer;transition:background .12s}
-.yearly-table tr:hover{background:var(–surface-2)}
+  .goal-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 4px;
+  }
+  .goal-title {
+    font-size: clamp(28px, 7vw, 38px);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1;
+  }
+  .goal-title-mute {
+    color: var(--ink-muted);
+    font-weight: 600;
+    font-size: 0.65em;
+  }
+  .goal-success {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .goal-success-pct {
+    font-family: 'Geist Mono', monospace;
+    font-size: clamp(28px, 7vw, 38px);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .status-ok .goal-success-pct { color: var(--gain); }
+  .status-warn .goal-success-pct { color: var(--warn); }
+  .status-bad .goal-success-pct { color: var(--loss); }
+  .goal-success-lbl {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--ink-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .goal-subtitle {
+    font-size: 13px;
+    color: var(--ink-muted);
+    margin-bottom: 24px;
+  }
+  .goal-dot-sep { color: var(--ink-dim); margin: 0 4px; }
 
-/* === EXPENSES === */
-.exp-hero{
-background:linear-gradient(135deg,#ff375f,#ff6b9c);
-border-radius:var(–radius);padding:36px 40px;margin-bottom:24px;
-color:#fff;box-shadow:0 8px 32px rgba(255,55,95,.2);
-display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;
-}
-.exp-hero .left{flex:1;min-width:260px}
-.exp-hero .label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.85;font-weight:600;margin-bottom:10px}
-.exp-hero .amt{font-size:56px;font-weight:600;letter-spacing:-0.035em;line-height:1;margin-bottom:8px}
-.exp-hero .amt .cur{font-size:24px;opacity:.7;vertical-align:top;margin-right:6px;font-weight:500}
-.exp-hero .amt-sub{font-size:13px;opacity:.85;margin-top:10px}
+  .goal-chart {
+    margin: 0 -10px 14px;
+    height: 200px;
+  }
+  .goal-chart svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
 
-.month-nav{display:flex;align-items:center;gap:10px}
-.month-nav button{
-width:36px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,.3);
-background:rgba(255,255,255,.15);color:#fff;font-size:16px;
-}
-.month-nav button:hover{background:rgba(255,255,255,.25)}
-.month-nav .current{font-size:15px;font-weight:600;color:#fff;padding:0 8px}
+  .goal-legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 11px;
+    color: var(--ink-muted);
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    margin-bottom: 18px;
+  }
+  .goal-legend .leg {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+  }
+  .goal-legend .sw {
+    width: 14px;
+    height: 3px;
+    border-radius: 2px;
+  }
+  .goal-legend .sw.real { background: linear-gradient(90deg, var(--purple), var(--pink)); }
+  .goal-legend .sw.req { background: var(--warn); }
+  .goal-legend .sw.goal { background: var(--gain); }
+  .goal-legend .sw.ytd { background: var(--purple-2); border: 1px dashed var(--purple-2); height: 0; padding: 0; width: 14px; }
 
-/* expense table */
-.exp-table{width:100%;border-collapse:collapse;min-width:620px}
-.exp-table th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(–muted);font-weight:600;padding:0 14px 14px;text-align:right;border-bottom:1px solid var(–line);white-space:nowrap}
-.exp-table th:first-child,.exp-table th:nth-child(2),.exp-table th:nth-child(3){text-align:left}
-.exp-table td{padding:16px 14px;font-size:13px;text-align:right;border-bottom:1px solid var(–line);white-space:nowrap}
-.exp-table td:first-child{text-align:left;font-weight:500;color:var(–ink-2);width:92px}
-.exp-table td:nth-child(2){text-align:left;color:var(–ink-2);font-weight:500}
-.exp-table td:nth-child(3){text-align:left;color:var(–muted)}
-.exp-table tr:last-child td{border-bottom:none}
-.exp-table tr[data-id]{cursor:pointer;transition:background .12s}
-.exp-table tr[data-id]:hover{background:var(–surface-2)}
-.table-wrap{overflow-x:auto;margin:0 -8px}
+  .goal-narrative {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    padding: 16px 18px;
+    background: rgba(168, 85, 247, 0.06);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--purple);
+    border-radius: 12px;
+    margin-bottom: 22px;
+  }
+  .goal-narrative b { color: var(--ink); font-weight: 700; }
+  .goal-narrative .num { font-family: 'Geist Mono', monospace; }
+  .goal-narrative .pos { color: var(--gain); }
+  .goal-narrative .warn { color: var(--warn); }
+  .goal-narrative .neg { color: var(--loss); }
 
-.cat-pill{
-display:inline-flex;align-items:center;gap:6px;padding:4px 10px;
-border-radius:99px;font-size:11px;font-weight:600;
-}
-.cat-pill .dot{width:7px;height:7px;border-radius:50%}
+  .goal-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .gs-item {
+    padding: 16px 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    text-align: center;
+  }
+  .gs-lbl {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 8px;
+  }
+  .gs-val {
+    font-family: 'Geist Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .gs-val.pos { color: var(--gain); }
+  .gs-val.neg { color: var(--loss); }
+  .gs-val.warn { color: var(--warn); }
+  .gs-val .gs-u { font-size: 0.6em; color: var(--ink-muted); margin-left: 1px; }
+  .gs-sub {
+    font-size: 10px;
+    color: var(--ink-dim);
+    margin-top: 6px;
+    font-family: 'Geist Mono', monospace;
+  }
 
-.empty-table{text-align:center;padding:70px 20px;color:var(–muted)}
-.empty-table h4{font-size:15px;font-weight:600;color:var(–ink-2);margin-bottom:6px}
-.empty-table p{font-size:13px;margin-bottom:20px}
+  /* Goal empty state */
+  .goal-empty {
+    padding: 16px 0 8px;
+    text-align: center;
+  }
+  .goal-empty-icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 18px;
+    border-radius: 20px;
+    background: var(--purple-soft);
+    border: 1px solid var(--line-strong);
+    display: grid;
+    place-items: center;
+    color: var(--purple-2);
+  }
+  .goal-empty-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+  }
+  .goal-empty-body {
+    font-size: 13px;
+    color: var(--ink-muted);
+    line-height: 1.55;
+    margin: 0 auto 22px;
+    max-width: 320px;
+  }
+  .goal-empty-progress {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    margin-bottom: 18px;
+  }
+  .goal-empty-progress .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--surface-3);
+    border: 1px solid var(--line-strong);
+  }
+  .goal-empty-progress .dot.on {
+    background: var(--purple);
+    border-color: var(--purple);
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
+  }
+  .goal-empty-progress .goal-empty-count {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-muted);
+    font-weight: 600;
+  }
+  .goal-empty-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 22px;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-deep) 100%);
+    border: none;
+    color: #fff;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s var(--ease);
+    box-shadow: 0 6px 20px rgba(168, 85, 247, 0.35);
+  }
+  .goal-empty-cta:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(168, 85, 247, 0.5); }
+  .goal-loading { padding: 60px 20px; text-align: center; color: var(--ink-dim); font-size: 13px; }
 
-/* Category breakdown */
-.cat-list{display:flex;flex-direction:column;gap:14px;margin-top:6px}
-.cat-row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
-.cat-row .name{display:flex;align-items:center;gap:9px;font-size:13px;color:var(–ink-2);font-weight:500}
-.cat-row .name .dot{width:10px;height:10px;border-radius:50%}
-.cat-row .bar-wrap{height:8px;background:var(–line);border-radius:4px;overflow:hidden;min-width:80px}
-.cat-row .bar-wrap i{display:block;height:100%;transition:width .4s var(–ease)}
-.cat-row .v{font-family:‘Geist Mono’,monospace;font-size:12px;color:var(–muted);min-width:100px;text-align:right}
-.cat-row .v b{color:var(–ink-2);font-weight:600;margin-right:6px}
+  /* ===========================================================
+     CHARTS (existing dividends + plChart)
+     =========================================================== */
+  .bar-chart { width: 100%; height: 220px; }
+  .bar-chart text { fill: var(--ink-dim); font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; }
+  .bar-chart .grid line { stroke: var(--line); stroke-dasharray: 2 4; }
+  .bar-chart .bar { transition: opacity 0.2s; }
+  .bar-chart .bar:hover { opacity: 0.85; cursor: pointer; }
+  .bar-chart .bar-label { fill: var(--ink-muted); font-size: 9px; }
+  .bar-chart .tooltip-group { pointer-events: none; }
+  .bar-chart .tooltip-bg { fill: var(--surface-3); stroke: var(--line-strong); }
+  .bar-chart .tooltip-text { fill: var(--ink); font-size: 10px; }
 
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}
+  /* ===========================================================
+     YEARLY TABLE
+     =========================================================== */
+  .yearly-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .yearly-table th {
+    text-align: left;
+    padding: 10px 12px;
+    color: var(--ink-dim);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--line);
+  }
+  .yearly-table th:not(:first-child) { text-align: right; }
+  .yearly-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-2);
+    font-family: 'Geist Mono', monospace;
+  }
+  .yearly-table td:not(:first-child) { text-align: right; }
+  .yearly-table td:first-child { font-weight: 700; color: var(--ink); }
+  .yearly-table tr { transition: background 0.15s; cursor: pointer; }
+  .yearly-table tr:hover td { background: var(--surface-2); }
+  .yearly-table .pos { color: var(--gain); font-weight: 700; }
+  .yearly-table .neg { color: var(--loss); font-weight: 700; }
 
-/* === MODAL === */
-.modal-bg{position:fixed;inset:0;background:rgba(10,10,10,.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
-.modal-bg.show{display:flex;animation:fade .2s var(–ease)}
-.modal{background:var(–surface);border-radius:22px;padding:30px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.18);max-height:90vh;overflow-y:auto;animation:slideUp .35s var(–ease)}
-@keyframes slideUp{from{opacity:0;transform:translateY(20px) scale(.96)}to{opacity:1;transform:none}}
-.modal h3{font-size:20px;font-weight:600;margin-bottom:6px;letter-spacing:-0.02em}
-.modal .sub{font-size:13px;color:var(–muted);margin-bottom:24px;line-height:1.5}
-.modal-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:26px;flex-wrap:wrap}
-.modal-foot .spacer{flex:1}
+  /* ===========================================================
+     EXPENSES MODULE (kept from before, lightly themed dark)
+     =========================================================== */
+  .section-head {
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .section-head h2 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    margin: 0 0 6px;
+  }
+  .section-head .meta { font-size: 13px; color: var(--ink-muted); }
 
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.field{display:flex;flex-direction:column;gap:6px}
-.field.full{grid-column:1/-1}
-.field label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(–muted);font-weight:600}
-.field input,.field select,.field textarea{padding:11px 14px;border:1px solid var(–line-2);border-radius:10px;background:var(–surface);outline:none;color:var(–ink-2);width:100%;transition:all .2s var(–ease);font-family:inherit}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(–accent);box-shadow:0 0 0 4px var(–accent-soft)}
-.field input::placeholder,.field textarea::placeholder{color:var(–muted-2)}
-.field .hint{font-size:11px;color:var(–muted-2);margin-top:2px}
+  /* Expense hero */
+  .exp-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 32px 28px;
+    margin-bottom: 24px;
+    background: linear-gradient(180deg, rgba(168, 85, 247, 0.10) 0%, rgba(124, 58, 237, 0.04) 100%);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+  }
+  .exp-hero .left { flex: 1; min-width: 200px; }
+  .exp-hero .label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--purple-2);
+    margin-bottom: 12px;
+  }
+  .exp-hero .amt {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-family: 'Geist', sans-serif;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.035em;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .exp-hero .amt .cur { font-size: 18px; color: var(--ink-muted); font-weight: 600; }
+  .exp-hero .amt #expHeroAmt { font-size: clamp(40px, 9vw, 56px); font-variant-numeric: tabular-nums; }
+  .exp-hero .amt-sub { font-size: 13px; color: var(--ink-muted); }
 
-.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(–ink-2);color:#fff;padding:13px 22px;border-radius:12px;font-size:13px;font-weight:600;opacity:0;transition:all .3s var(–ease);pointer-events:none;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.2)}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .month-nav {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    padding: 6px;
+  }
+  .month-nav button {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: var(--ink-2);
+    font-size: 20px;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-family: inherit;
+  }
+  .month-nav button:hover { background: var(--surface-3); }
+  .month-nav .current {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    min-width: 130px;
+    text-align: center;
+    text-transform: capitalize;
+  }
 
-.conn{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(–muted)}
-.conn::before{content:””;width:6px;height:6px;border-radius:50%;background:var(–muted-2)}
-.conn.live::before{background:var(–gain);box-shadow:0 0 0 0 rgba(48,209,88,.4);animation:pulse 2.2s infinite}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(48,209,88,.4)}70%{box-shadow:0 0 0 6px rgba(48,209,88,0)}100%{box-shadow:0 0 0 0 rgba(48,209,88,0)}}
+  /* Expense stats */
+  .stats {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .stats.three { grid-template-columns: repeat(3, 1fr); }
+  .stat {
+    padding: 18px 20px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+  }
+  .stat .lbl {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-dim);
+    margin-bottom: 8px;
+  }
+  .stat .val {
+    font-family: 'Geist Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .stat .val.pos { color: var(--gain); }
+  .stat .val.neg { color: var(--loss); }
+  .stat .sub {
+    font-size: 11px;
+    color: var(--ink-muted);
+    margin-top: 6px;
+  }
 
-@media (max-width:900px){
-.stats{grid-template-columns:repeat(2,1fr)}
-.stats.three{grid-template-columns:1fr}
-.grid-2{grid-template-columns:1fr}
-.i10-secondary{grid-template-columns:1fr}
-.i10-hero .amt,.exp-hero .amt{font-size:42px}
-}
-@media (max-width:600px){
-.shell{padding:20px}
-.mode-switch{width:100%}
-.mode-switch button{flex:1;justify-content:center;padding:11px 12px}
-.stats{grid-template-columns:1fr}
-.form-grid{grid-template-columns:1fr}
-.i10-hero .amt,.exp-hero .amt{font-size:36px}
-.i10-card .val{font-size:28px}
-}
-/* ============================================== */
-/*           GOAL CARD V2 (CAGR-based)            */
-/* ============================================== */
-.goal-v2{
-background:var(–surface);
-border:1px solid var(–line-2);
-border-radius:22px;
-padding:24px 22px 20px;
-box-shadow:var(–shadow-1);
-margin-bottom:24px;
-position:relative;
-overflow:hidden;
-}
-/* Status-colored accent band at top */
-.goal-v2::before{
-content:””;
-position:absolute;
-top:0;left:0;right:0;
-height:3px;
-background:var(–accent);
-transition:background .4s var(–ease);
-}
-.goal-v2.status-ok::before{background:#1e8e3e}
-.goal-v2.status-warn::before{background:#b25e00}
-.goal-v2.status-bad::before{background:#d70015}
+  /* Grid 2 cols */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
 
-.goal-v2 .head{
-display:flex;align-items:flex-start;justify-content:space-between;
-margin-bottom:22px;gap:12px;
-}
-.goal-v2 .head .left{flex:1;min-width:0}
-.goal-v2 .head .lbl{
-font-size:11px;text-transform:uppercase;letter-spacing:0.09em;
-color:var(–muted);font-weight:600;margin-bottom:6px;
-display:flex;align-items:center;gap:6px;
-}
-.goal-v2 .head h3{
-font-size:18px;font-weight:600;color:var(–ink);
-letter-spacing:-0.02em;line-height:1.2;
-}
-.goal-v2 .head .right{
-text-align:right;flex-shrink:0;
-display:flex;flex-direction:column;align-items:flex-end;gap:6px;
-}
-.goal-v2 .head .edit-btn-v2{
-width:30px;height:30px;border-radius:8px;
-background:var(–surface-3);
-border:1px solid var(–line-2);
-display:grid;place-items:center;
-color:var(–muted);cursor:pointer;
-margin-bottom:2px;
-transition:all .2s var(–ease);
-}
-.goal-v2 .head .edit-btn-v2:hover{color:var(–ink);border-color:var(–ink-2)}
-.goal-v2 .head .edit-btn-v2:active{transform:scale(.94)}
+  /* Category list */
+  .cat-list { display: flex; flex-direction: column; gap: 10px; }
+  .cat-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+  }
+  .cat-row .icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--surface-2);
+    display: grid;
+    place-items: center;
+    font-size: 16px;
+  }
+  .cat-row .name { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+  .cat-row .val {
+    font-family: 'Geist Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .cat-row .bar {
+    grid-column: 2 / 3;
+    height: 4px;
+    background: var(--surface-3);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  .cat-row .bar i {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--purple), var(--pink));
+    border-radius: 2px;
+  }
 
-.success-badge{display:flex;flex-direction:column;align-items:flex-end}
-.success-badge .pct{
-font-size:30px;font-weight:600;
-letter-spacing:-0.028em;line-height:1;
-font-family:‘Geist Mono’,monospace;
-color:var(–accent);
-}
-.goal-v2.status-ok .success-badge .pct{color:#1e8e3e}
-.goal-v2.status-warn .success-badge .pct{color:#b25e00}
-.goal-v2.status-bad .success-badge .pct{color:#d70015}
-.success-badge .lbl2{
-font-size:9px;text-transform:uppercase;letter-spacing:0.08em;
-color:var(–muted);font-weight:600;margin-top:4px;
-}
+  /* Expense table */
+  .table-wrap { overflow-x: auto; }
+  .exp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .exp-table th {
+    text-align: left;
+    padding: 10px 12px;
+    color: var(--ink-dim);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--line);
+  }
+  .exp-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-2);
+  }
+  .exp-table tr { transition: background 0.15s; cursor: pointer; }
+  .exp-table tr:hover td { background: var(--surface-2); }
+  .exp-table .amt { font-family: 'Geist Mono', monospace; font-weight: 700; color: var(--ink); text-align: right; }
 
-.goal-v2 .chart{margin:0 -4px 18px;height:190px;position:relative}
-.goal-v2 .chart svg{width:100%;height:100%;display:block;overflow:visible}
-.goal-v2 .chart .area-real{fill:url(#realGradV2)}
-.goal-v2 .chart .line-real{
-fill:none;stroke:var(–accent);stroke-width:2.4;
-stroke-linecap:round;stroke-linejoin:round;
-}
-.goal-v2 .chart .line-req{
-fill:none;stroke:#b25e00;stroke-width:2;
-stroke-linecap:round;stroke-linejoin:round;
-stroke-dasharray:4 4;opacity:.75;
-}
-.goal-v2 .chart .goal-line-h{
-stroke:#1e8e3e;stroke-width:1.5;
-stroke-dasharray:3 4;opacity:.55;
-}
-.goal-v2 .chart .goal-lbl-txt{
-fill:#1e8e3e;font-size:9px;
-font-family:‘Geist Mono’,monospace;
-font-weight:700;letter-spacing:0.04em;
-}
-.goal-v2 .chart .axis{
-fill:#a1a1a6;font-size:9px;
-font-family:‘Geist Mono’,monospace;font-weight:500;
-}
-.goal-v2 .chart .gridline{
-stroke:#ececef;stroke-width:1;
-}
-.goal-v2 .chart .now-dot-outer{fill:var(–accent);opacity:.2}
-.goal-v2 .chart .now-dot{
-fill:#fff;stroke:var(–accent);stroke-width:2.5;
-}
-.goal-v2 .chart .goal-dot-outer{fill:#1e8e3e;opacity:.2}
-.goal-v2 .chart .goal-dot{
-fill:#fff;stroke:#1e8e3e;stroke-width:2.5;
-}
+  /* Recent list */
+  #recentList { display: flex; flex-direction: column; gap: 10px; }
+  #recentList .recent-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  #recentList .recent-item:last-child { border-bottom: none; }
+  #recentList .icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--surface-2);
+    display: grid;
+    place-items: center;
+    font-size: 16px;
+  }
+  #recentList .desc {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  #recentList .meta { font-size: 11px; color: var(--ink-dim); margin-top: 2px; font-family: 'Geist Mono', monospace; }
+  #recentList .amt { font-family: 'Geist Mono', monospace; font-size: 13px; font-weight: 700; color: var(--ink); }
 
-.goal-v2 .legend{
-display:flex;gap:14px;
-margin-bottom:16px;padding-bottom:14px;
-border-bottom:1px solid #ececef;
-font-size:11px;color:var(–muted);
-flex-wrap:wrap;
-}
-.goal-v2 .legend .leg{display:inline-flex;align-items:center;gap:6px}
-.goal-v2 .legend .sw{width:14px;height:3px;border-radius:99px}
-.goal-v2 .legend .sw.real{background:var(–accent)}
-.goal-v2 .legend .sw.req{
-background:repeating-linear-gradient(90deg,#b25e00 0,#b25e00 3px,transparent 3px,transparent 6px);
-}
-.goal-v2 .legend .sw.goal{
-background:repeating-linear-gradient(90deg,#1e8e3e 0,#1e8e3e 3px,transparent 3px,transparent 6px);
-}
-.goal-v2 .legend .sw.ytd{
-background:repeating-linear-gradient(90deg,var(–accent) 0,var(–accent) 2px,transparent 2px,transparent 4px);
-opacity:.6;
-}
+  .add-fab {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-deep) 100%);
+    color: #fff;
+    border: none;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    box-shadow: 0 12px 32px rgba(168, 85, 247, 0.5);
+    z-index: 30;
+    transition: all 0.2s var(--ease);
+  }
+  .add-fab:hover { transform: scale(1.05); box-shadow: 0 16px 40px rgba(168, 85, 247, 0.6); }
+  .add-fab svg { width: 24px; height: 24px; }
 
-.goal-v2 .narrative{
-background:#fbfbfd;border:1px solid #ececef;
-border-left-width:3px;border-radius:10px;
-padding:13px 16px;margin-bottom:14px;
-font-size:13px;line-height:1.55;color:#1d1d1f;
-transition:border-left-color .4s var(–ease);
-}
-.goal-v2.status-ok .narrative{border-left-color:#1e8e3e}
-.goal-v2.status-warn .narrative{border-left-color:#b25e00}
-.goal-v2.status-bad .narrative{border-left-color:#d70015}
-.goal-v2 .narrative b{color:#0a0a0a;font-weight:600}
-.goal-v2 .narrative .pos{color:#1e8e3e;font-weight:600}
-.goal-v2 .narrative .neg{color:#d70015;font-weight:600}
-.goal-v2 .narrative .warn{color:#b25e00;font-weight:600}
-.goal-v2 .narrative .num{
-font-family:‘Geist Mono’,monospace;font-weight:600;
-}
+  /* ===========================================================
+     MODALS
+     =========================================================== */
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 2, 12, 0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+  }
+  .modal-bg.show { display: flex; animation: fadeIn 0.2s var(--ease); }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: 22px;
+    padding: 28px 26px;
+    max-width: 440px;
+    width: 100%;
+    box-shadow: var(--shadow-2);
+    animation: modalUp 0.3s var(--ease);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  @keyframes modalUp { from { opacity: 0; transform: translateY(20px) scale(0.96); } to { opacity: 1; transform: none; } }
+  .modal h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 22px;
+    letter-spacing: -0.02em;
+  }
+  .modal .field { margin-bottom: 16px; }
+  .modal .field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+  .modal input, .modal select, .modal textarea {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 14px;
+    transition: border-color 0.15s;
+  }
+  .modal input:focus, .modal select:focus, .modal textarea:focus {
+    outline: none;
+    border-color: var(--purple);
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+  }
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 24px;
+  }
+  .btn-primary {
+    padding: 12px 22px;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-deep) 100%);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(168, 85, 247, 0.35);
+    transition: all 0.15s;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(168, 85, 247, 0.5); }
+  .btn-primary:disabled { opacity: 0.6; cursor: wait; transform: none; }
+  .btn-secondary {
+    padding: 12px 22px;
+    background: var(--surface-2);
+    color: var(--ink-muted);
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-secondary:hover { background: var(--surface-3); color: var(--ink); }
+  .btn-danger {
+    padding: 12px 22px;
+    background: var(--loss-soft);
+    color: var(--loss);
+    border: 1px solid rgba(255, 69, 58, 0.30);
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: auto;
+  }
+  .btn-danger:hover { background: rgba(255, 69, 58, 0.20); }
 
-.goal-v2 .stats-row{
-display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;
-background:#fbfbfd;border:1px solid #ececef;
-border-radius:12px;overflow:hidden;margin-bottom:14px;
-}
-.goal-v2 .stats-row .item{
-padding:13px 10px;border-right:1px solid #ececef;text-align:center;
-}
-.goal-v2 .stats-row .item:last-child{border-right:none}
-.goal-v2 .stats-row .item .lbl3{
-font-size:9px;text-transform:uppercase;letter-spacing:0.08em;
-color:var(–muted);font-weight:600;margin-bottom:6px;
-}
-.goal-v2 .stats-row .item .val3{
-font-size:17px;font-weight:700;color:#0a0a0a;
-letter-spacing:-0.02em;line-height:1;
-font-family:‘Geist Mono’,monospace;
-}
-.goal-v2 .stats-row .item .val3 .u{font-size:10px;color:var(–muted);font-weight:500}
-.goal-v2 .stats-row .item .val3.pos{color:#1e8e3e}
-.goal-v2 .stats-row .item .val3.warn{color:#b25e00}
-.goal-v2 .stats-row .item .val3.neg{color:#d70015}
-.goal-v2 .stats-row .item .sub3{
-font-size:9px;color:var(–muted);margin-top:4px;
-}
+  /* ===========================================================
+     TOAST
+     =========================================================== */
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface-3);
+    border: 1px solid var(--line-strong);
+    color: var(--ink);
+    padding: 14px 22px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0;
+    transition: all 0.3s var(--ease);
+    pointer-events: none;
+    z-index: 200;
+    box-shadow: var(--shadow-2);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-.goal-v2 .foot{
-display:flex;align-items:center;justify-content:space-between;
-padding-top:4px;font-size:11px;color:var(–muted);
-}
-.goal-v2 .foot .progress-line{
-display:flex;align-items:center;gap:6px;
-font-family:‘Geist Mono’,monospace;
-}
-.goal-v2 .foot .info-btn-v2{
-display:flex;align-items:center;gap:5px;
-color:var(–muted);background:none;border:none;
-font-family:‘Geist Mono’,monospace;font-size:10px;cursor:pointer;
-padding:4px 6px;margin-right:-6px;
-}
-.goal-v2 .foot .info-btn-v2:hover{color:var(–ink-2)}
+  /* ===========================================================
+     RESPONSIVE
+     =========================================================== */
+  @media (max-width: 640px) {
+    .shell { padding: 0 16px 80px; }
+    .topbar { padding: 14px 16px; }
+    .hero { padding: 28px 22px 26px; }
+    .ytd-card, .card, .goal-card-inner { padding: 22px 20px; }
+    .goal-stats { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .gs-item { padding: 12px 8px; }
+    .gs-val { font-size: 18px; }
+    .stats-grid { grid-template-columns: 1fr; }
+    .user-pill #userName { display: none; }
+    .stats.three { grid-template-columns: 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .exp-hero { padding: 24px 20px; }
+    .exp-hero .month-nav { width: 100%; justify-content: space-between; }
+    .section-head { flex-direction: column; align-items: flex-start; }
+  }
 
-.algo-info-v2{
-background:#fbfbfd;border:1px solid #ececef;border-radius:10px;
-padding:14px 16px;margin-top:12px;
-font-size:11px;line-height:1.6;color:var(–muted);
-display:none;
-}
-.algo-info-v2.show{display:block}
-.algo-info-v2 h4{
-font-size:11px;color:#1d1d1f;text-transform:uppercase;
-letter-spacing:0.08em;font-weight:600;margin-bottom:8px;
-}
-.algo-info-v2 p{margin-bottom:6px}
-.algo-info-v2 p:last-child{margin-bottom:0}
-.algo-info-v2 code{
-font-family:‘Geist Mono’,monospace;background:#f0f0f3;
-padding:1px 5px;border-radius:4px;font-size:10px;color:#1d1d1f;
-}
-
-/* === EMPTY STATE === */
-.goal-v2 .empty-state{
-padding:32px 20px 24px;text-align:center;
-}
-.goal-v2 .empty-state .empty-icon{
-width:60px;height:60px;
-margin:0 auto 14px;
-background:var(–accent-soft);
-border:1px solid var(–accent-line);
-border-radius:16px;
-display:grid;place-items:center;
-color:var(–accent);
-}
-.goal-v2 .empty-state h4{
-font-size:16px;font-weight:600;color:#0a0a0a;
-letter-spacing:-0.018em;margin-bottom:8px;
-}
-.goal-v2 .empty-state p{
-font-size:13px;color:var(–muted);
-margin-bottom:20px;line-height:1.55;
-}
-.goal-v2 .empty-state .empty-cta{
-display:inline-flex;align-items:center;gap:7px;
-padding:11px 20px;
-background:#0a0a0a;color:#fff;
-border-radius:11px;font-size:13px;font-weight:600;
-border:none;font-family:inherit;cursor:pointer;
-transition:all .2s var(–ease);
-}
-.goal-v2 .empty-state .empty-cta:hover{transform:translateY(-1px)}
-.goal-v2 .empty-state .empty-cta:active{transform:scale(.97)}
-.goal-v2 .empty-state .empty-progress{
-display:flex;justify-content:center;gap:8px;
-margin-top:18px;
-}
-.goal-v2 .empty-state .empty-progress .dot{
-width:8px;height:8px;border-radius:50%;
-background:var(–surface-3);
-border:1px solid var(–line-2);
-}
-.goal-v2 .empty-state .empty-progress .dot.filled{
-background:var(–accent);
-border-color:var(–accent);
-}
-
+  @media (min-width: 900px) {
+    .shell, .topbar { max-width: 920px; }
+    .hero { padding: 44px 36px 36px; }
+    .goal-card-inner { padding: 36px 36px 32px; }
+    .ytd-card, .card { padding: 30px 36px; }
+  }
 </style>
 </head>
 <body>
 
 <!-- ============== LOGIN ============== -->
-
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="logo-big" id="loginLogo">
@@ -867,245 +1424,200 @@ border-color:var(–accent);
 </div>
 
 <!-- ============== APP ============== -->
-
 <div class="app" id="app">
   <div class="shell">
 
-```
-<header class="top">
-  <div class="brand">
-    <div class="logo" id="headerLogo">
-      <svg width="30" height="30" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="headerLogoGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#0a0a0a"/>
-            <stop offset="100%" stop-color="#2d2d30"/>
-          </linearGradient>
-        </defs>
-        <rect x="0" y="0" width="120" height="120" rx="26" fill="url(#headerLogoGrad)"/>
-        <path d="M 36 28 L 36 88 L 78 88" stroke="#ffffff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        <rect x="58" y="60" width="6" height="20" rx="2" fill="#30d158"/>
-        <rect x="68" y="48" width="6" height="32" rx="2" fill="#0071e3"/>
-      </svg>
-    </div>
-    <h1>Ledger <span>· personal finance</span></h1>
-  </div>
-  <div class="top-right">
-    <span class="conn live" id="connStatus">Connected</span>
-    <div class="user-chip">
-      <img id="userPhoto" alt="" />
-      <span class="name" id="userName">User</span>
-    </div>
-    <button class="btn-logout" id="btnLogout">Sign out</button>
-  </div>
-</header>
-
-<div class="mode-switch">
-  <button data-mode="investments" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>Investimentos</button>
-  <button data-mode="expenses"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Despesas</button>
-</div>
-
-<!-- =========================================== -->
-<!--               EXPENSES MODULE                -->
-<!-- =========================================== -->
-<div class="module" id="moduleExpenses">
-
-  <div class="section-head">
-    <div>
-      <h2>Despesas</h2>
-      <div class="meta">Controle mensal de gastos</div>
-    </div>
-    <button class="btn-primary" id="btnAddExpense">+ Nova despesa</button>
-  </div>
-
-  <div class="exp-hero">
-    <div class="left">
-      <div class="label">Total do mês</div>
-      <div class="amt"><span class="cur">R$</span><span id="expHeroAmt">0</span></div>
-      <div class="amt-sub" id="expHeroSub">Nenhuma despesa registrada ainda</div>
-    </div>
-    <div class="month-nav">
-      <button id="btnPrevMonth" title="Mês anterior">‹</button>
-      <span class="current" id="currentMonthLabel">Abril 2026</span>
-      <button id="btnNextMonth" title="Próximo mês">›</button>
-    </div>
-  </div>
-
-  <div class="stats three">
-    <div class="stat">
-      <div class="lbl">Despesas este mês</div>
-      <div class="val" id="expCount">0</div>
-      <div class="sub">Lançamentos registrados</div>
-    </div>
-    <div class="stat">
-      <div class="lbl">vs mês anterior</div>
-      <div class="val" id="expVsPrev">—</div>
-      <div class="sub" id="expVsPrevSub">Comparação</div>
-    </div>
-    <div class="stat">
-      <div class="lbl">Maior despesa</div>
-      <div class="val" id="expBiggest">—</div>
-      <div class="sub" id="expBiggestSub">—</div>
-    </div>
-  </div>
-
-  <div class="grid-2" style="margin-top:0">
-    <div class="card">
-      <div class="card-head"><h3>Por categoria</h3><div class="meta">Distribuição do mês</div></div>
-      <div class="cat-list" id="catList"></div>
-    </div>
-    <div class="card">
-      <div class="card-head"><h3>Lançamentos recentes</h3><div class="meta" id="recentMeta">Últimas 6 despesas</div></div>
-      <div id="recentList"></div>
-    </div>
-  </div>
-
-  <div class="card" style="margin-top:20px">
-    <div class="card-head"><h3>Todas as despesas do mês</h3><div class="meta">Clique em uma linha para editar</div></div>
-    <div class="table-wrap">
-      <table class="exp-table">
-        <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th></th></tr></thead>
-        <tbody id="expBody"></tbody>
-      </table>
-    </div>
-  </div>
-
-</div>
-
-<!-- =========================================== -->
-<!--             INVESTMENTS MODULE               -->
-<!-- =========================================== -->
-<div class="module active" id="moduleInvestments">
-
-  <div class="section-head">
-    <div>
-      <h2>Investimentos</h2>
-      <div class="meta">Visão consolidada · dados do Investidor10</div>
-    </div>
-  </div>
-
-  <div class="i10-hero">
-    <div class="left">
-      <div class="label">Patrimônio total</div>
-      <div class="amt"><span class="cur">R$</span><span id="i10Equity">0</span></div>
-      <div class="amt-sub" id="i10EquitySub">Atualizado manualmente · automação em breve</div>
-    </div>
-    <div class="right">
-      <a href="https://investidor10.com.br/wallet/public/1986068?h=e7342357fda4facec345faeeaa80016d13d53afd" target="_blank" rel="noopener" class="link-btn" id="i10PublicLink">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-        Abrir no Investidor10
-      </a>
-      <button class="sync-btn" id="btnSyncI10" title="Sincronizar automaticamente do Investidor 10">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-        Sincronizar
-      </button>
-      <div class="btn-row">
-        <button class="edit-btn" id="btnEditI10">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          Editar
-        </button>
-        <button class="edit-btn cfg" id="btnCfgI10" title="Configurar Worker URL e Wallet ID">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        </button>
+    <header class="top">
+      <div class="brand">
+        <div class="logo" id="headerLogo">
+          <svg width="32" height="32" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="headerLogoGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#a855f7"/>
+                <stop offset="100%" stop-color="#7c3aed"/>
+              </linearGradient>
+            </defs>
+            <rect x="0" y="0" width="120" height="120" rx="26" fill="url(#headerLogoGrad)"/>
+            <path d="M 36 28 L 36 88 L 78 88" stroke="#ffffff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <rect x="58" y="60" width="6" height="20" rx="2" fill="#ec4899"/>
+            <rect x="68" y="48" width="6" height="32" rx="2" fill="#ffffff"/>
+          </svg>
+        </div>
+        <h1>Ledger <span>· personal finance</span></h1>
       </div>
-      <div class="updated" id="i10Updated">Última atualização: —</div>
-    </div>
-  </div>
-
-  <div class="i10-secondary">
-    <div class="i10-card">
-      <div class="label">
-        <span>Dividendos YTD <span id="i10Year">2026</span></span>
+      <div class="top-right">
+        <span class="conn live" id="connStatus">Connected</span>
+        <div class="user-chip">
+          <img id="userPhoto" alt="" />
+          <span class="name" id="userName">User</span>
+        </div>
+        <button class="btn-logout" id="btnLogout">Sign out</button>
       </div>
-      <div class="val"><span class="cur">R$</span><span id="i10Dividends">0</span></div>
-      <div class="sub" id="i10DivSub">Proventos recebidos neste ano</div>
-    </div>
-  </div>
+    </header>
 
-  <!-- ============ NEW GOAL CARD (populated by goal-projection.js) ============ -->
-  <div id="goalCardV2"></div>
-  <!-- Hidden legacy elements (preserved so app.js can still write to them without errors) -->
-  <div style="display:none">
-    <span id="goalRemaining">0</span>
-    <span id="goalSub"></span>
-    <span id="goalYearsLeft">—</span>
-  </div>
+    <div class="mode-switch">
+      <button data-mode="investments" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>Investimentos</button>
+      <button data-mode="expenses"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Despesas</button>
+    </div>
 
-  <div class="stats">
-    <div class="stat">
-      <div class="lbl">Progresso da meta</div>
-      <div class="val" id="progressPct">0%</div>
-      <div class="sub" id="progressSub">Dividendos YTD ÷ R$ 1M</div>
-    </div>
-    <div class="stat">
-      <div class="lbl">Anos de histórico</div>
-      <div class="val" id="historyYears">0</div>
-      <div class="sub">Dados anuais registrados</div>
-    </div>
-    <div class="stat">
-      <div class="lbl">PL desde 2020</div>
-      <div class="val" id="plTotalGrowth">—</div>
-      <div class="sub" id="plCagr">—</div>
-    </div>
-    <div class="stat">
-      <div class="lbl">Total recebido</div>
-      <div class="val" id="divAllTime">R$ 0</div>
-      <div class="sub">Proventos de todos os anos</div>
-    </div>
-  </div>
+    <!-- =========================================== -->
+    <!--               EXPENSES MODULE                -->
+    <!-- =========================================== -->
+    <div class="module" id="moduleExpenses">
 
-  <div class="card" id="i10AssetsCard" style="margin-bottom:20px">
-    <div class="card-head">
-      <div>
-        <h3>Ativos da carteira</h3>
-        <div class="meta">Sincronizado do Investidor 10 · ordenado por patrimônio</div>
+      <div class="section-head">
+        <div>
+          <h2>Despesas</h2>
+          <div class="meta">Controle mensal de gastos</div>
+        </div>
+        <button class="btn-primary" id="btnAddExpense">+ Nova despesa</button>
       </div>
-    </div>
-    <div id="i10AssetsList" class="assets-list"></div>
-  </div>
 
-  <div class="card" style="margin-bottom:20px">
-    <div class="card-head">
-      <div>
-        <h3>Dividendos anuais</h3>
-        <div class="meta">Histórico + meta R$ 1M até 2035</div>
+      <div class="exp-hero">
+        <div class="left">
+          <div class="label">Total do mês</div>
+          <div class="amt"><span class="cur">R$</span><span id="expHeroAmt">0</span></div>
+          <div class="amt-sub" id="expHeroSub">Nenhuma despesa registrada ainda</div>
+        </div>
+        <div class="month-nav">
+          <button id="btnPrevMonth" title="Mês anterior">‹</button>
+          <span class="current" id="currentMonthLabel">Abril 2026</span>
+          <button id="btnNextMonth" title="Próximo mês">›</button>
+        </div>
       </div>
-      <div class="goal-pills">
-        <div class="goal-pill accent"><span class="lbl">Meta</span><b id="divGoalPill">R$ 1M</b></div>
-        <div class="goal-pill"><span class="lbl">Faltam</span><b id="divYearsLeft">—</b></div>
-        <div class="goal-pill gain"><span class="lbl">Progresso</span><b id="divProgress">0%</b></div>
-      </div>
-    </div>
-    <div id="divChartWrap"></div>
-  </div>
 
-  <div class="card" style="margin-bottom:20px">
-    <div class="card-head">
-      <div>
-        <h3>Patrimônio líquido anual</h3>
-        <div class="meta">Evolução do PL ao longo dos anos</div>
+      <div class="stats three">
+        <div class="stat">
+          <div class="lbl">Despesas este mês</div>
+          <div class="val" id="expCount">0</div>
+          <div class="sub">Lançamentos registrados</div>
+        </div>
+        <div class="stat">
+          <div class="lbl">vs mês anterior</div>
+          <div class="val" id="expVsPrev">—</div>
+          <div class="sub" id="expVsPrevSub">Comparação</div>
+        </div>
+        <div class="stat">
+          <div class="lbl">Maior despesa</div>
+          <div class="val" id="expBiggest">—</div>
+          <div class="sub" id="expBiggestSub">—</div>
+        </div>
       </div>
-      <div class="goal-pills">
-        <div class="goal-pill"><span class="lbl">Desde início</span><b id="plSinceFirst">—</b></div>
-        <div class="goal-pill gain"><span class="lbl">CAGR</span><b id="plCagrPill">—</b></div>
+
+      <div class="grid-2" style="margin-top:0">
+        <div class="card">
+          <div class="card-head"><h3>Por categoria</h3><div class="meta">Distribuição do mês</div></div>
+          <div class="cat-list" id="catList"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Lançamentos recentes</h3><div class="meta" id="recentMeta">Últimas 6 despesas</div></div>
+          <div id="recentList"></div>
+        </div>
       </div>
-    </div>
-    <div id="plChartWrap"></div>
-  </div>
 
-  <div class="card">
-    <div class="card-head">
-      <h3>Histórico anual</h3>
-      <button class="btn-secondary" id="btnAddYear" style="padding:8px 14px;font-size:12px">+ Adicionar ano</button>
-    </div>
-    <table class="yearly-table">
-      <thead><tr><th>Ano</th><th>Patrimônio</th><th>Proventos</th><th>DY%</th><th>YoY</th></tr></thead>
-      <tbody id="yearlyBody"></tbody>
-    </table>
-  </div>
+      <div class="card" style="margin-top:20px">
+        <div class="card-head"><h3>Todas as despesas do mês</h3><div class="meta">Clique em uma linha para editar</div></div>
+        <div class="table-wrap">
+          <table class="exp-table">
+            <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th></th></tr></thead>
+            <tbody id="expBody"></tbody>
+          </table>
+        </div>
+      </div>
 
-</div>
-```
+    </div>
+
+    <!-- =========================================== -->
+    <!--             INVESTMENTS MODULE               -->
+    <!-- =========================================== -->
+    <div class="module active" id="moduleInvestments">
+
+      <!-- HERO: Patrimônio total -->
+      <section class="hero">
+        <div class="hero-eyebrow">PATRIMONIO TOTAL</div>
+        <div class="hero-number">
+          <span class="cur">R$</span>
+          <span id="i10Equity">0</span>
+        </div>
+        <div class="hero-sub" id="i10EquitySub">Atualizacao manual</div>
+        <div class="hero-meta">
+          <span class="hero-updated" id="i10Updated">Ainda nao atualizado</span>
+          <div class="hero-actions">
+            <a href="https://investidor10.com.br/wallet/public/1986068?h=e7342357fda4facec345faeeaa80016d13d53afd" target="_blank" rel="noopener" class="hero-btn primary" id="i10PublicLink">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              I10
+            </a>
+            <button class="hero-btn" id="btnSyncI10">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              Sincronizar
+            </button>
+            <button class="hero-btn icon" id="btnEditI10" title="Editar valores">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            </button>
+            <button class="hero-btn icon" id="btnCfgI10" title="Configurar Worker">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- GOAL CARD V4 (rendered by goal-projection.js into #goalCardV2) -->
+      <div id="goalCardV2"></div>
+
+      <!-- YTD CARD -->
+      <section class="ytd-card">
+        <div class="ytd-label">DIVIDENDOS YTD <span id="i10Year">2026</span></div>
+        <div class="ytd-amount">
+          <span class="cur">R$</span>
+          <span id="i10Dividends">0</span>
+        </div>
+        <div class="ytd-sub" id="i10DivSub">Proventos recebidos neste ano</div>
+      </section>
+
+      <!-- CARTEIRA -->
+      <section class="card">
+        <h3>Carteira</h3>
+        <div id="i10AssetsList" class="assets-list"></div>
+      </section>
+
+      <!-- DIVIDENDOS POR ANO -->
+      <section class="card">
+        <h3>Dividendos por ano</h3>
+        <div id="divChartWrap"></div>
+      </section>
+
+      <!-- PATRIMONIO POR ANO -->
+      <section class="card">
+        <h3>Patrimonio por ano</h3>
+        <div id="plChartWrap"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+          <span style="font-size:11px;color:var(--ink-dim);font-family:'Geist Mono',monospace">Crescimento total: <b id="plTotalGrowth" style="color:var(--ink-2)">-</b></span>
+          <span style="font-size:11px;color:var(--ink-dim);font-family:'Geist Mono',monospace">CAGR: <b id="plCagr" style="color:var(--ink-2)">-</b></span>
+          <span style="font-size:11px;color:var(--ink-dim);font-family:'Geist Mono',monospace">Desde <b id="plSinceFirst" style="color:var(--ink-2)">-</b></span>
+        </div>
+        <div style="display:none"><span id="plCagrPill"></span></div>
+      </section>
+
+      <!-- HISTORICO ANUAL -->
+      <section class="card">
+        <div class="card-head">
+          <h3>Historico anual</h3>
+          <button id="btnAddYear">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ano
+          </button>
+        </div>
+        <table class="yearly-table">
+          <thead><tr><th>Ano</th><th>Patrimonio</th><th>Proventos</th><th>DY%</th><th>YoY</th></tr></thead>
+          <tbody id="yearlyBody"></tbody>
+        </table>
+        <div style="display:none">
+          <span id="divAllTime"></span><span id="divGoalPill"></span><span id="divYearsLeft"></span><span id="divProgress"></span>
+          <span id="goalRemaining"></span><span id="goalSub"></span><span id="goalYearsLeft"></span><span id="progressPct"></span><span id="progressSub"></span><span id="historyYears"></span>
+        </div>
+      </section>
+
+    </div>
 
   </div>
 </div>
@@ -1113,7 +1625,6 @@ border-color:var(–accent);
 <!-- ============== MODALS ============== -->
 
 <!-- Expense Modal -->
-
 <div class="modal-bg" id="expenseModal"><div class="modal">
   <h3 id="expenseModalTitle">Nova despesa</h3>
   <p class="sub">Registre um gasto. Categorias podem ser editadas no futuro.</p>
@@ -1144,7 +1655,6 @@ border-color:var(–accent);
 </div></div>
 
 <!-- I10 Edit Modal -->
-
 <div class="modal-bg" id="i10Modal"><div class="modal">
   <h3>Editar valores do Investidor10</h3>
   <p class="sub">Enquanto a automação não está pronta, atualize os valores manualmente. Abra o Investidor10 e copie os valores exatos.</p>
@@ -1160,7 +1670,6 @@ border-color:var(–accent);
 </div></div>
 
 <!-- I10 Sync Config Modal -->
-
 <div class="modal-bg" id="i10CfgModal"><div class="modal">
   <h3>Configurar sincronização I10</h3>
   <p class="sub">Cole a URL do seu Cloudflare Worker e o ID da sua carteira pública. A configuração é compartilhada entre os dois usuários via Firestore.</p>
@@ -1184,7 +1693,6 @@ border-color:var(–accent);
 </div></div>
 
 <!-- Yearly Modal -->
-
 <div class="modal-bg" id="yearlyModal"><div class="modal">
   <h3 id="yearlyModalTitle">Adicionar ano</h3>
   <p class="sub">Snapshot anual para gráficos de crescimento.</p>
@@ -1202,7 +1710,6 @@ border-color:var(–accent);
 </div></div>
 
 <!-- Goal Edit Modal (NEW) -->
-
 <div class="modal-bg" id="goalEditModal"><div class="modal">
   <h3>Editar meta de proventos</h3>
   <p class="sub">Defina o valor anual de proventos que quer atingir e o ano alvo. Compartilhado entre os dois usuários via Firestore.</p>
@@ -1228,7 +1735,6 @@ border-color:var(–accent);
 <div class="toast" id="toast"></div>
 
 <!-- ============ APP.JS INLINED ============ -->
-
 <script type="module">
 // ============================================================
 //  LEDGER - Personal Finance (app.js)
@@ -1237,8 +1743,6 @@ border-color:var(–accent);
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-window.__bootLog && window.__bootLog('app.js imports OK');
 
 // ---- Firebase ----
 const firebaseConfig = {
@@ -1253,8 +1757,6 @@ const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
-
-window.__bootLog && window.__bootLog('firebase init OK');
 
 // ---- Paths ----
 const colExpenses = () => collection(db, "household", "main", "expenses");
@@ -2011,8 +2513,6 @@ async function deleteYearly() {
 // ============================================================
 //                 EVENT LISTENERS
 // ============================================================
-window.__bootLog && window.__bootLog('binding event listeners...');
-
 // Mode switch
 document.querySelectorAll('.mode-switch button').forEach(b => {
   b.addEventListener('click', () => switchMode(b.dataset.mode));
@@ -2106,35 +2606,27 @@ function subscribeAll() {
 }
 function unsubscribeAll() { Object.values(unsub).forEach(fn => fn && fn()); unsub = {}; }
 
-window.__bootLog && window.__bootLog('listeners + firestore ready, binding auth...');
-
 // ============================================================
 //                 AUTH
 // ============================================================
 $('btnLogin').addEventListener('click', async () => {
-  window.__bootLog && window.__bootLog('btnLogin CLICKED');
   console.log('[auth] Login button clicked');
   $('loginError').classList.remove('show');
   $('btnLoginText').textContent = 'Entrando...';
   try {
-    window.__bootLog && window.__bootLog('calling signInWithPopup...');
     console.log('[auth] Calling signInWithPopup...');
     await signInWithPopup(auth, provider);
-    window.__bootLog && window.__bootLog('signInWithPopup resolved OK');
     console.log('[auth] signInWithPopup resolved');
   } catch (err) {
     console.error('[auth] signInWithPopup error:', err);
     const code = err.code || 'unknown';
     const msg = err.message || String(err);
-    window.__bootLog && window.__bootLog('AUTH FAIL: [' + code + '] ' + msg);
     $('loginError').textContent = `[${code}] ${msg}`;
     $('loginError').classList.add('show');
     $('btnLoginText').textContent = 'Tentar novamente';
   }
 });
 $('btnLogout').addEventListener('click', async () => { unsubscribeAll(); await signOut(auth); });
-
-window.__bootLog && window.__bootLog('btnLogin handler bound ✓');
 
 onAuthStateChanged(auth, async (user) => {
   window.__bootLog && window.__bootLog('auth state: ' + (user ? 'LOGGED IN as ' + user.email : 'logged out'));
@@ -2164,15 +2656,12 @@ onAuthStateChanged(auth, async (user) => {
     $('btnLoginText').textContent = 'Entrar com Google';
   }
 });
-
 </script>
 
-<!-- ============ GOAL-PROJECTION.JS INLINED ============ -->
-
+<!-- ============ GOAL-PROJECTION.JS INLINED (v4 Tracker visual) ============ -->
 <script type="module">
 // ============================================================
-//  GOAL PROJECTION - Ledger feature (independent module)
-//  v3: CAGR realizado vs necessário, com empty state e ponto YTD
+//  GOAL PROJECTION v4 - Tracker visual (roxo) + CAGR + defensive
 // ============================================================
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -2187,19 +2676,14 @@ const firebaseConfig = {
   appId: "1:559892333696:web:3272f0f8e86449f4885265"
 };
 
-// Reuse Firebase app initialized by app.js (or create if not yet)
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Same Firestore paths used by app.js
 const colYearly = () => collection(db, "household", "main", "dividendsYearly");
 const docConfig = doc(db, "household", "main", "config", "settings");
 const docI10    = doc(db, "household", "main", "config", "i10");
 
-// ============================================================
-//                       LOCAL STATE
-// ============================================================
 const state = {
   yearly: [],
   i10Dividends: 0,
@@ -2212,17 +2696,18 @@ const state = {
 let unsubFns = [];
 
 // ============================================================
-//                  CAGR LOGIC (Opção B)
-//  - CAGR realizado: usa últimos 3 anos COMPLETOS
-//  - CAGR necessário: do último ano completo até a meta
-//  - YTD do ano corrente: só ponto extra no gráfico, NÃO entra no cálculo
+//  CAGR LOGIC - defensive
 // ============================================================
 function calculate() {
   const currentYear = new Date().getFullYear();
 
-  // Anos completos (exclui ano corrente parcial)
+  // Filter: only complete years with valid positive divs
   const completeYears = state.yearly
-    .filter(y => y.year < currentYear && (+y.divs || 0) > 0)
+    .filter(y => {
+      const yr = +y.year;
+      const dv = +y.divs;
+      return Number.isFinite(yr) && yr < currentYear && Number.isFinite(dv) && dv > 0;
+    })
     .sort((a, b) => a.year - b.year);
 
   if (completeYears.length < 3) {
@@ -2239,19 +2724,36 @@ function calculate() {
   const first = sorted[0];
   const yearsLeft = state.goalYear - last.year;
 
-  // CAGR necessário: do último ano completo até a meta
-  const requiredCAGR = yearsLeft > 0
-    ? Math.pow(state.goalAmount / last.value, 1 / yearsLeft) - 1
-    : 0;
+  // Validate goal
+  if (!Number.isFinite(state.goalAmount) || state.goalAmount <= 0) {
+    return { ok: false, reason: 'no-goal' };
+  }
+  if (yearsLeft <= 0) {
+    return { ok: false, reason: 'goal-past' };
+  }
 
-  // CAGR realizado: últimos 3 anos completos (ou menos se não tiver)
+  // CAGR necessario
+  let requiredCAGR;
+  try {
+    const ratio = state.goalAmount / last.divs;
+    requiredCAGR = Math.pow(ratio, 1 / yearsLeft) - 1;
+    if (!Number.isFinite(requiredCAGR)) throw new Error('non-finite');
+  } catch (e) {
+    return { ok: false, reason: 'calc-error' };
+  }
+
+  // CAGR realizado (last 3 years)
   const trailSpan = Math.min(3, sorted.length - 1);
   const trailStart = sorted[sorted.length - 1 - trailSpan];
-  const trailCAGR = trailStart.value > 0
-    ? Math.pow(last.value / trailStart.value, 1 / trailSpan) - 1
-    : 0;
+  let trailCAGR;
+  try {
+    if (trailStart.divs <= 0) throw new Error('zero start');
+    trailCAGR = Math.pow(last.divs / trailStart.divs, 1 / trailSpan) - 1;
+    if (!Number.isFinite(trailCAGR)) throw new Error('non-finite trail');
+  } catch (e) {
+    trailCAGR = 0;
+  }
 
-  // Margem e status
   const margin = trailCAGR - requiredCAGR;
   let successPct, status;
   if (margin >= 0.10)      { successPct = 95; status = 'ok'; }
@@ -2260,13 +2762,13 @@ function calculate() {
   else if (margin >= -0.08){ successPct = 55; status = 'warn'; }
   else                     { successPct = 25; status = 'bad'; }
 
-  const progressPct = Math.min(100, (last.value / state.goalAmount) * 100);
+  const progressPct = Math.min(100, (last.divs / state.goalAmount) * 100);
 
   return {
     ok: true,
-    history: sorted,
-    last,
-    first,
+    history: sorted.map(y => ({ year: y.year, value: +y.divs })),
+    last: { year: last.year, value: +last.divs },
+    first: { year: first.year, value: +first.divs },
     yearsLeft,
     requiredCAGR,
     trailCAGR,
@@ -2275,114 +2777,102 @@ function calculate() {
     successPct,
     status,
     progressPct,
-    ytdValue: state.i10Dividends,  // ponto extra no gráfico
+    ytdValue: state.i10Dividends,
     ytdYear: currentYear,
   };
 }
 
 // ============================================================
-//                       FORMATTING
+//  FORMAT
 // ============================================================
 const fmt = {
   money: v => {
+    if (!Number.isFinite(v)) return '-';
     const abs = Math.abs(v);
     if (abs >= 1_000_000) return (v / 1_000_000).toFixed(2).replace('.', ',') + 'M';
     if (abs >= 1_000) return Math.round(v / 1_000) + 'k';
     return Math.round(v).toString();
   },
-  pct: (v, dec = 1) => (v * 100).toFixed(dec).replace('.', ',') + '%',
-  pctInt: v => Math.round(v * 100) + '%',
+  pct: (v, dec = 1) => {
+    if (!Number.isFinite(v)) return '-';
+    return (v * 100).toFixed(dec).replace('.', ',') + '%';
+  },
+  pctInt: v => {
+    if (!Number.isFinite(v)) return '-';
+    return Math.round(v * 100) + '%';
+  },
 };
 
 // ============================================================
-//                         RENDER
+//  RENDER
 // ============================================================
 function render() {
   const container = document.getElementById('goalCardV2');
-  if (!container) {
-    console.warn('[goal-projection] #goalCardV2 not found in DOM');
-    return;
-  }
+  if (!container) return;
 
-  // Loading state (auth not ready yet)
   if (!state.authReady) {
-    container.innerHTML = `
-      <div class="goal-v2">
-        <div class="head">
-          <div class="left">
-            <div class="lbl">Meta de longo prazo</div>
-            <h3 style="opacity:.5">Carregando...</h3>
-          </div>
-        </div>
-      </div>
-    `;
+    container.innerHTML = '<div class="goal-card"><div class="goal-loading">Carregando...</div></div>';
     return;
   }
 
   const r = calculate();
 
-  // Empty state - não tem dados suficientes
   if (!r.ok) {
     renderEmptyState(container, r);
     return;
   }
 
-  // Card cheio com CAGR
   renderFullCard(container, r);
 }
 
-// ============================================================
-//                    EMPTY STATE
-// ============================================================
 function renderEmptyState(container, r) {
   const yearsCount = r.yearsCount || 0;
   const needed = r.needed || 3;
-  const remaining = needed - yearsCount;
+  let title = 'Cadastre seu historico';
+  let body = 'Para calcular a projecao, precisamos de pelo menos 3 anos completos de dividendos.';
+
+  if (r.reason === 'no-goal') {
+    title = 'Defina sua meta';
+    body = 'Configure quanto quer receber em proventos anuais para acompanhar o progresso.';
+  } else if (r.reason === 'goal-past') {
+    title = 'Ano alvo invalido';
+    body = 'O ano alvo da meta esta no passado. Atualize a meta para um ano futuro.';
+  }
 
   container.innerHTML = `
-    <div class="goal-v2">
-      <div class="head">
-        <div class="left">
-          <div class="lbl">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+    <div class="goal-card empty">
+      <div class="goal-card-bg"></div>
+      <div class="goal-card-inner">
+        <div class="goal-head">
+          <div class="goal-eyebrow">META DE LONGO PRAZO</div>
+          <button class="goal-edit-btn" id="goalEditBtn" aria-label="Editar meta">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
             </svg>
-            Meta de longo prazo
-          </div>
-          <h3>R$ ${fmt.money(state.goalAmount)}/ano em proventos até ${state.goalYear}</h3>
+          </button>
         </div>
-        <button class="edit-btn-v2" id="goalEditBtn" aria-label="Editar meta">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-          </svg>
-        </button>
-      </div>
+        <h2 class="goal-title">R$ ${fmt.money(state.goalAmount)}/ano <span class="goal-title-mute">ate ${state.goalYear}</span></h2>
 
-      <div class="empty-state">
-        <div class="empty-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 3v18h18"/>
-            <path d="M7 14l4-4 4 4 5-5"/>
-          </svg>
-        </div>
-        <h4>Cadastre seu histórico</h4>
-        <p>Pra calcular a projeção, preciso de pelo menos <b>3 anos completos</b> de dividendos cadastrados.<br/>
-        Atualmente: <b>${yearsCount} de ${needed} ${yearsCount === 1 ? 'ano cadastrado' : 'anos cadastrados'}</b>${remaining > 0 ? ` · faltam ${remaining}` : ''}.</p>
-        <button class="empty-cta" onclick="document.getElementById('btnAddYear')?.click()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-          Adicionar ano
-        </button>
-
-        ${yearsCount > 0 ? `
-          <div class="empty-progress">
-            ${Array.from({ length: needed }).map((_, i) => `
-              <span class="dot ${i < yearsCount ? 'filled' : ''}"></span>
-            `).join('')}
+        <div class="goal-empty">
+          <div class="goal-empty-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3v18h18"/>
+              <path d="M7 14l4-4 4 4 5-5"/>
+            </svg>
           </div>
-        ` : ''}
+          <h3 class="goal-empty-title">${title}</h3>
+          <p class="goal-empty-body">${body}</p>
+          ${(r.reason === 'insufficient' || !r.reason) ? `
+            <div class="goal-empty-progress">
+              ${Array.from({ length: needed }).map((_, i) => `<span class="dot ${i < yearsCount ? 'on' : ''}"></span>`).join('')}
+              <span class="goal-empty-count">${yearsCount} de ${needed}</span>
+            </div>
+            <button class="goal-empty-cta" onclick="document.getElementById('btnAddYear')?.click()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Adicionar ano
+            </button>
+          ` : ''}
+        </div>
       </div>
     </div>
   `;
@@ -2390,118 +2880,95 @@ function renderEmptyState(container, r) {
   attachEditButton();
 }
 
-// ============================================================
-//                    FULL CARD (CAGR)
-// ============================================================
 function renderFullCard(container, r) {
   const chartSvg = buildChartSvg(r);
   const narrative = buildNarrative(r);
 
   container.innerHTML = `
-    <div class="goal-v2 status-${r.status}">
-      <div class="head">
-        <div class="left">
-          <div class="lbl">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
-            </svg>
-            Meta de longo prazo
-          </div>
-          <h3>R$ ${fmt.money(state.goalAmount)}/ano em proventos até ${state.goalYear}</h3>
-        </div>
-        <div class="right">
-          <button class="edit-btn-v2" id="goalEditBtn" aria-label="Editar meta">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <div class="goal-card status-${r.status}">
+      <div class="goal-card-bg"></div>
+      <div class="goal-card-inner">
+        <div class="goal-head">
+          <div class="goal-eyebrow">META DE LONGO PRAZO</div>
+          <button class="goal-edit-btn" id="goalEditBtn" aria-label="Editar meta">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
             </svg>
           </button>
-          <div class="success-badge">
-            <span class="pct">${r.successPct}%</span>
-            <span class="lbl2">chance de sucesso</span>
+        </div>
+
+        <div class="goal-title-row">
+          <h2 class="goal-title">R$ ${fmt.money(state.goalAmount)}<span class="goal-title-mute">/ano</span></h2>
+          <div class="goal-success">
+            <div class="goal-success-pct">${r.successPct}%</div>
+            <div class="goal-success-lbl">chance</div>
           </div>
         </div>
-      </div>
+        <div class="goal-subtitle">ate ${state.goalYear} <span class="goal-dot-sep">·</span> ${r.yearsLeft} ${r.yearsLeft === 1 ? 'ano' : 'anos'}</div>
 
-      <div class="chart">${chartSvg}</div>
+        <div class="goal-chart">${chartSvg}</div>
 
-      <div class="legend">
-        <span class="leg"><span class="sw real"></span>Recebido</span>
-        <span class="leg"><span class="sw req"></span>Mínimo necessário</span>
-        <span class="leg"><span class="sw goal"></span>Meta</span>
-        ${r.ytdValue > 0 ? `<span class="leg"><span class="sw ytd"></span>YTD ${r.ytdYear}*</span>` : ''}
-      </div>
-
-      <div class="narrative">${narrative}</div>
-
-      <div class="stats-row">
-        <div class="item">
-          <div class="lbl3">Ritmo atual</div>
-          <div class="val3 ${r.status === 'bad' ? 'neg' : r.status === 'warn' ? 'warn' : 'pos'}">${fmt.pctInt(r.trailCAGR)}</div>
-          <div class="sub3">últimos ${r.trailSpan} anos</div>
+        <div class="goal-legend">
+          <span class="leg"><span class="sw real"></span>Recebido</span>
+          <span class="leg"><span class="sw req"></span>Necessario</span>
+          <span class="leg"><span class="sw goal"></span>Meta</span>
+          ${r.ytdValue > 0 ? `<span class="leg"><span class="sw ytd"></span>YTD ${r.ytdYear}</span>` : ''}
         </div>
-        <div class="item">
-          <div class="lbl3">Necessário</div>
-          <div class="val3 warn">${fmt.pct(r.requiredCAGR, 1)}</div>
-          <div class="sub3">próximos ${r.yearsLeft} anos</div>
-        </div>
-        <div class="item">
-          <div class="lbl3">Progresso</div>
-          <div class="val3">${r.progressPct.toFixed(1)}<span class="u">%</span></div>
-          <div class="sub3">R$ ${fmt.money(r.last.value)} / ${fmt.money(state.goalAmount)}</div>
-        </div>
-      </div>
 
-      <div class="foot">
-        <div class="progress-line">${r.last.year} · R$ ${fmt.money(r.last.value)}/ano</div>
-        <button class="info-btn-v2" id="goalInfoBtn">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
-          </svg>
-          Como calculo
-        </button>
-      </div>
+        <div class="goal-narrative">${narrative}</div>
 
-      <div class="algo-info-v2" id="algoInfoV2">
-        <h4>Como os números são calculados</h4>
-        <p><b>Ritmo atual</b> = CAGR (taxa composta anual) dos <code>últimos ${r.trailSpan} anos completos</code>. É quanto você cresceu em média.</p>
-        <p><b>Ritmo necessário</b> = CAGR constante que, partindo do ano mais recente, chega exatamente na meta no ano alvo.</p>
-        <p><b>Chance de sucesso</b> classificada pela margem entre os dois:</p>
-        <p style="margin-left:12px;font-family:'Geist Mono',monospace;font-size:10px">
-          ≥ +10 p.p. → 95% &nbsp; · &nbsp; +3 a +10 → 88% &nbsp; · &nbsp; −2 a +3 → 75%<br/>
-          −8 a −2 → 55% &nbsp; · &nbsp; &lt; −8 → 25%
-        </p>
-        ${r.ytdValue > 0 ? `<p style="margin-top:10px"><b>* YTD ${r.ytdYear}</b> (R$ ${fmt.money(r.ytdValue)}) é parcial - não entra no cálculo de CAGR. Vai virar dado completo quando você cadastrar o ano fechado.</p>` : ''}
+        <div class="goal-stats">
+          <div class="gs-item">
+            <div class="gs-lbl">Ritmo atual</div>
+            <div class="gs-val ${r.status === 'bad' ? 'neg' : r.status === 'warn' ? 'warn' : 'pos'}">${fmt.pctInt(r.trailCAGR)}</div>
+            <div class="gs-sub">ult. ${r.trailSpan} anos</div>
+          </div>
+          <div class="gs-item">
+            <div class="gs-lbl">Necessario</div>
+            <div class="gs-val warn">${fmt.pct(r.requiredCAGR, 1)}</div>
+            <div class="gs-sub">prox. ${r.yearsLeft} anos</div>
+          </div>
+          <div class="gs-item">
+            <div class="gs-lbl">Progresso</div>
+            <div class="gs-val">${r.progressPct.toFixed(1)}<span class="gs-u">%</span></div>
+            <div class="gs-sub">R$ ${fmt.money(r.last.value)}/ano</div>
+          </div>
+        </div>
       </div>
     </div>
   `;
 
   attachEditButton();
-  attachInfoButton();
 }
 
 // ============================================================
-//                    CHART SVG
+//  CHART SVG (Tracker style: gradient roxo + glow)
 // ============================================================
 function buildChartSvg(r) {
-  const W = 360, H = 190;
-  const padL = 8, padR = 8, padT = 24, padB = 22;
+  const W = 420, H = 200;
+  const padL = 12, padR = 12, padT = 18, padB = 26;
   const innerW = W - padL - padR;
   const innerH = H - padT - padB;
 
   const firstYear = r.first.year;
   const xMax = state.goalYear;
-  const yMax = Math.max(state.goalAmount * 1.12, r.last.value * 1.5);
+  const yMax = Math.max(state.goalAmount * 1.10, r.last.value * 1.5);
 
   const xScale = y => padL + ((y - firstYear) / (xMax - firstYear)) * innerW;
   const yScale = v => padT + (1 - v / yMax) * innerH;
-  const baseline = (padT + innerH).toFixed(1);
+  const baseY = padT + innerH;
 
-  // Real history points
-  const histPts = r.history.map(h => `${xScale(h.year).toFixed(1)} ${yScale(+h.divs).toFixed(1)}`);
-  const histPath = `M ${histPts.join(' L ')}`;
-  const histArea = `M ${xScale(firstYear).toFixed(1)} ${baseline} L ${histPts.join(' L ')} L ${xScale(r.last.year).toFixed(1)} ${baseline} Z`;
+  // History smooth path (catmull-rom-ish)
+  const histPts = r.history.map(h => ({ x: xScale(h.year), y: yScale(h.value) }));
+  let histPath = `M ${histPts[0].x.toFixed(1)} ${histPts[0].y.toFixed(1)}`;
+  for (let i = 1; i < histPts.length; i++) {
+    const p0 = histPts[i - 1], p1 = histPts[i];
+    const cx = (p0.x + p1.x) / 2;
+    histPath += ` C ${cx.toFixed(1)} ${p0.y.toFixed(1)}, ${cx.toFixed(1)} ${p1.y.toFixed(1)}, ${p1.x.toFixed(1)} ${p1.y.toFixed(1)}`;
+  }
+  const histArea = histPath + ` L ${histPts[histPts.length-1].x.toFixed(1)} ${baseY.toFixed(1)} L ${histPts[0].x.toFixed(1)} ${baseY.toFixed(1)} Z`;
 
-  // Required trajectory: from last real point to goal at required CAGR
+  // Required trajectory (from last real point to goal)
   const reqPts = [];
   for (let y = r.last.year; y <= state.goalYear; y++) {
     const dy = y - r.last.year;
@@ -2515,101 +2982,99 @@ function buildChartSvg(r) {
   const nowY = yScale(r.last.value);
   const goalX = xScale(state.goalYear);
 
-  // YTD point (current year, partial - ghost marker)
+  // YTD ghost
   let ytdMarker = '';
   if (r.ytdValue > 0 && r.ytdYear > r.last.year && r.ytdYear <= state.goalYear) {
     const ytdX = xScale(r.ytdYear);
     const ytdY = yScale(r.ytdValue);
     ytdMarker = `
-      <circle cx="${ytdX.toFixed(1)}" cy="${ytdY.toFixed(1)}" r="4" fill="var(--surface)" stroke="#0071e3" stroke-width="1.5" stroke-dasharray="2 2" opacity=".75"/>
-      <text x="${ytdX.toFixed(1)}" y="${(ytdY - 8).toFixed(1)}" text-anchor="middle" fill="#0071e3" style="font-size:8px;font-family:'Geist Mono',monospace;font-weight:600;opacity:.7">YTD</text>
+      <circle cx="${ytdX.toFixed(1)}" cy="${ytdY.toFixed(1)}" r="4" fill="rgba(255,255,255,.15)" stroke="#c084fc" stroke-width="1.5" stroke-dasharray="2 2"/>
     `;
   }
 
-  const ticks = [
-    { year: firstYear },
-    { year: r.last.year },
-    { year: state.goalYear },
-  ];
-  const mid = Math.round((r.last.year + state.goalYear) / 2);
-  if (mid !== r.last.year && mid !== state.goalYear) ticks.push({ year: mid });
-
-  const yTickValues = [yMax * 0.5, yMax * 0.25];
+  // X axis ticks
+  const span = state.goalYear - firstYear;
+  const tickYears = [firstYear, r.last.year, Math.round(firstYear + span / 2), state.goalYear]
+    .filter((v, i, a) => a.indexOf(v) === i)
+    .sort((a, b) => a - b);
 
   return `
     <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
       <defs>
-        <linearGradient id="realGradV2" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"  stop-color="#0071e3" stop-opacity=".35"/>
-          <stop offset="100%" stop-color="#0071e3" stop-opacity="0"/>
+        <linearGradient id="lineG" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0%" stop-color="#a855f7"/>
+          <stop offset="100%" stop-color="#ec4899"/>
         </linearGradient>
+        <linearGradient id="areaG" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="#a855f7" stop-opacity=".35"/>
+          <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
+        </linearGradient>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="4" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
       </defs>
 
-      ${yTickValues.map(v => `
-        <line class="gridline" x1="${padL}" y1="${yScale(v).toFixed(1)}" x2="${W - padR}" y2="${yScale(v).toFixed(1)}"/>
-        <text class="axis" x="${W - padR}" y="${(yScale(v) - 3).toFixed(1)}" text-anchor="end">${fmt.money(v)}</text>
-      `).join('')}
+      <!-- Goal line -->
+      <line x1="${padL}" y1="${goalY.toFixed(1)}" x2="${(W - padR).toFixed(1)}" y2="${goalY.toFixed(1)}" stroke="#30d158" stroke-width="1.2" stroke-dasharray="4 5" opacity=".5"/>
+      <text x="${padL + 4}" y="${(goalY - 6).toFixed(1)}" fill="#30d158" font-family="Geist Mono,monospace" font-size="9" font-weight="700" letter-spacing=".05em">META R$ ${fmt.money(state.goalAmount)}</text>
 
-      <line class="goal-line-h" x1="${padL}" y1="${goalY.toFixed(1)}" x2="${W - padR}" y2="${goalY.toFixed(1)}"/>
-      <text class="goal-lbl-txt" x="${padL + 4}" y="${(goalY - 5).toFixed(1)}">META · R$ ${fmt.money(state.goalAmount)}</text>
+      <!-- Required trajectory (amber dashed) -->
+      <path d="${reqPath}" fill="none" stroke="#ff9f0a" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="5 5" opacity=".7"/>
 
-      <path class="area-real" d="${histArea}"/>
-      <path class="line-req" d="${reqPath}"/>
-      <path class="line-real" d="${histPath}"/>
+      <!-- History area (gradient fill) -->
+      <path d="${histArea}" fill="url(#areaG)"/>
+
+      <!-- History line (gradient + glow) -->
+      <path d="${histPath}" fill="none" stroke="url(#lineG)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
 
       ${ytdMarker}
 
-      <circle class="now-dot-outer" cx="${nowX.toFixed(1)}" cy="${nowY.toFixed(1)}" r="9"/>
-      <circle class="now-dot" cx="${nowX.toFixed(1)}" cy="${nowY.toFixed(1)}" r="5"/>
+      <!-- Now point (purple glow) -->
+      <circle cx="${nowX.toFixed(1)}" cy="${nowY.toFixed(1)}" r="14" fill="none" stroke="#a855f7" stroke-width="1" opacity=".25"/>
+      <circle cx="${nowX.toFixed(1)}" cy="${nowY.toFixed(1)}" r="7" fill="#a855f7" opacity=".4"/>
+      <circle cx="${nowX.toFixed(1)}" cy="${nowY.toFixed(1)}" r="4" fill="#c084fc" stroke="#0a0612" stroke-width="2"/>
 
-      <circle class="goal-dot-outer" cx="${goalX.toFixed(1)}" cy="${goalY.toFixed(1)}" r="9"/>
-      <circle class="goal-dot" cx="${goalX.toFixed(1)}" cy="${goalY.toFixed(1)}" r="5"/>
+      <!-- Goal point (green) -->
+      <circle cx="${goalX.toFixed(1)}" cy="${goalY.toFixed(1)}" r="10" fill="none" stroke="#30d158" stroke-width="1" opacity=".3"/>
+      <circle cx="${goalX.toFixed(1)}" cy="${goalY.toFixed(1)}" r="4" fill="#30d158" stroke="#0a0612" stroke-width="2"/>
 
-      ${ticks.map(t => `
-        <text class="axis" x="${xScale(t.year).toFixed(1)}" y="${(padT + innerH + 13).toFixed(1)}" text-anchor="middle">'${(t.year % 100).toString().padStart(2, '0')}</text>
-      `).join('')}
+      <!-- X axis labels -->
+      ${tickYears.map(y => `<text x="${xScale(y).toFixed(1)}" y="${(baseY + 16).toFixed(1)}" fill="#6e5a82" font-family="Geist Mono,monospace" font-size="9" font-weight="600" text-anchor="middle">${y}</text>`).join('')}
     </svg>
   `;
 }
 
 // ============================================================
-//                    NARRATIVE
+//  NARRATIVE
 // ============================================================
 function buildNarrative(r) {
-  const realTxt = `<span class="num">${fmt.pctInt(r.trailCAGR)}/ano</span>`;
-  const reqTxt = `<span class="num">${fmt.pct(r.requiredCAGR, 1)}/ano</span>`;
+  const realTxt = `<b class="num">${fmt.pctInt(r.trailCAGR)}/ano</b>`;
+  const reqTxt = `<b class="num">${fmt.pct(r.requiredCAGR, 1)}/ano</b>`;
   const valTxt = `<b>R$ ${fmt.money(r.last.value)}/ano</b>`;
 
   if (r.status === 'ok') {
     if (r.margin >= 0.10) {
-      return `Você recebeu ${valTxt} em ${r.last.year}, crescendo ${realTxt} na média. Pra bater <b>R$ ${fmt.money(state.goalAmount)}/ano</b> em <b>${state.goalYear}</b>, basta manter ${reqTxt} - você está <span class="pos">bem à frente</span>, com folga.`;
+      return `Voce recebeu ${valTxt} em ${r.last.year}, crescendo ${realTxt}. Para bater R$ ${fmt.money(state.goalAmount)}/ano em ${state.goalYear} basta manter ${reqTxt}. Esta <b class="pos">bem a frente</b>.`;
     } else if (r.margin >= 0.03) {
-      return `Crescendo ${realTxt} e precisando de ${reqTxt} pra bater a meta em <b>${state.goalYear}</b>, você está <span class="pos">no azul</span>. Margem confortável.`;
+      return `Crescendo ${realTxt} e precisando de ${reqTxt} para a meta em ${state.goalYear}. Esta <b class="pos">no azul</b> com folga.`;
     } else {
-      return `Você está <span class="pos">quase exatamente no ritmo</span>: crescendo ${realTxt}, precisando de ${reqTxt}. Sem muita folga, mas dentro da trajetória.`;
+      return `Esta <b class="pos">quase no ritmo</b>: cresce ${realTxt}, precisa de ${reqTxt}. Sem muita folga, mas dentro.`;
     }
   } else if (r.status === 'warn') {
-    return `Atenção: ritmo atual de ${realTxt} está <span class="warn">abaixo</span> do necessário (${reqTxt}) pra bater a meta em <b>${state.goalYear}</b>. Precisa acelerar um pouco.`;
+    return `Ritmo atual de ${realTxt} esta <b class="warn">abaixo</b> do necessario (${reqTxt}) para a meta em ${state.goalYear}. Precisa acelerar.`;
   } else {
-    return `Ritmo atual de ${realTxt} está <span class="neg">bem abaixo</span> do necessário (${reqTxt}). Nessa toada, a meta de <b>${state.goalYear}</b> não será atingida - considere aumentar aportes ou revisar o prazo.`;
+    return `Ritmo de ${realTxt} esta <b class="neg">bem abaixo</b> do necessario (${reqTxt}). A meta de ${state.goalYear} nao sera atingida nesse ritmo.`;
   }
 }
 
 // ============================================================
-//                    EVENT HANDLERS
+//  EVENT HANDLERS
 // ============================================================
 function attachEditButton() {
   const btn = document.getElementById('goalEditBtn');
   if (!btn) return;
   btn.addEventListener('click', openGoalEditModal);
-}
-
-function attachInfoButton() {
-  const btn = document.getElementById('goalInfoBtn');
-  if (!btn) return;
-  btn.addEventListener('click', () => {
-    document.getElementById('algoInfoV2')?.classList.toggle('show');
-  });
 }
 
 function openGoalEditModal() {
@@ -2628,8 +3093,8 @@ function closeGoalEditModal() {
 async function saveGoalEdit() {
   const amount = parseFloat(document.getElementById('goalAmountInput').value);
   const year = parseInt(document.getElementById('goalYearInput').value);
-  if (!(amount > 0)) { showToast('Valor inválido'); return; }
-  if (!(year >= 2026 && year <= 2099)) { showToast('Ano inválido'); return; }
+  if (!(amount > 0)) { showToast('Valor invalido'); return; }
+  if (!(year >= 2026 && year <= 2099)) { showToast('Ano invalido'); return; }
 
   const btn = document.getElementById('goalEditSave');
   try {
@@ -2640,10 +3105,10 @@ async function saveGoalEdit() {
       updatedAt: serverTimestamp(),
     }, { merge: true });
     closeGoalEditModal();
-    showToast('✓ Meta atualizada');
+    showToast('Meta atualizada');
   } catch (err) {
-    console.error('[goal-projection] Goal save error:', err);
-    showToast('Erro ao salvar: ' + (err.message || 'erro desconhecido'));
+    console.error('[goal] save error:', err);
+    showToast('Erro ao salvar');
   } finally {
     btn.disabled = false; btn.textContent = 'Salvar';
   }
@@ -2658,29 +3123,28 @@ function showToast(msg) {
 }
 
 // ============================================================
-//                  AUTH-GATED LISTENERS
+//  AUTH-GATED LISTENERS
 // ============================================================
 function activateListeners() {
-  console.log('[goal-projection] activating Firestore listeners');
-
+  console.log('[goal] activating Firestore listeners');
   const u1 = onSnapshot(colYearly(), (snap) => {
     state.yearly = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     state.ready = true;
     render();
-  }, (err) => console.error('[goal-projection] yearly listener error:', err));
+  }, (err) => console.error('[goal] yearly listener error:', err));
 
   const u2 = onSnapshot(docConfig, (snap) => {
     const data = snap.data() || {};
     if (typeof data.dividendsYearlyGoal === 'number') state.goalAmount = data.dividendsYearlyGoal;
     if (typeof data.dividendsYearlyGoalYear === 'number') state.goalYear = data.dividendsYearlyGoalYear;
     if (state.ready) render();
-  }, (err) => console.error('[goal-projection] config listener error:', err));
+  }, (err) => console.error('[goal] config listener error:', err));
 
   const u3 = onSnapshot(docI10, (snap) => {
     const data = snap.data() || {};
     state.i10Dividends = +data.dividends || 0;
     if (state.ready) render();
-  }, (err) => console.error('[goal-projection] i10 listener error:', err));
+  }, (err) => console.error('[goal] i10 listener error:', err));
 
   unsubFns = [u1, u2, u3];
 }
@@ -2691,9 +3155,7 @@ function deactivateListeners() {
   state.ready = false;
 }
 
-// Wait for auth before activating listeners
 onAuthStateChanged(auth, (user) => {
-  console.log('[goal-projection] auth state changed:', user ? user.email : 'logged out');
   if (user) {
     state.authReady = true;
     activateListeners();
@@ -2704,7 +3166,6 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// Bind modal buttons (once on load)
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('goalEditCancel')?.addEventListener('click', closeGoalEditModal);
   document.getElementById('goalEditSave')?.addEventListener('click', saveGoalEdit);
@@ -2715,6 +3176,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 </script>
-
 </body>
 </html>
