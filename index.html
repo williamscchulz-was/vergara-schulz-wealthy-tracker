@@ -2595,7 +2595,7 @@ function unsubscribeAll() { Object.values(unsub).forEach(fn => fn && fn()); unsu
 $('btnLogin').addEventListener('click', async () => {
   console.log('[auth] Login button clicked');
   $('loginError').classList.remove('show');
-  $('btnLoginText').textContent = 'Entrando...';
+  $('btnLoginText').textContent = getLang() === 'en' ? 'Signing in...' : 'Entrando...';
   try {
     console.log('[auth] Calling signInWithPopup...');
     await signInWithPopup(auth, provider);
@@ -2604,9 +2604,9 @@ $('btnLogin').addEventListener('click', async () => {
     console.error('[auth] signInWithPopup error:', err);
     const code = err.code || 'unknown';
     const msg = err.message || String(err);
-    $('loginError').textContent = `[${code}] ${msg}`;
+    $('loginError').textContent = '[' + code + '] ' + msg;
     $('loginError').classList.add('show');
-    $('btnLoginText').textContent = 'Tentar novamente';
+    $('btnLoginText').textContent = t('login.button');
   }
 });
 $('btnLogout').addEventListener('click', async () => { unsubscribeAll(); await signOut(auth); });
@@ -2796,8 +2796,14 @@ function applyI18n() {
   // Update lang label in topbar
   const label = document.getElementById('langLabel');
   if (label) label.textContent = lang === 'pt' ? 'EN' : 'PT';
-  // Re-render dynamic views that have hardcoded strings
-  if (typeof renderInvestments === 'function' && state.mode === 'investments') renderInvestments();
+  // Re-render dynamic views ONLY if app is loaded and user is logged in
+  try {
+    if (typeof state !== 'undefined' && state && state.user && typeof renderInvestments === 'function' && state.mode === 'investments') {
+      renderInvestments();
+    }
+  } catch (err) {
+    console.warn('[i18n] re-render skipped:', err);
+  }
 }
 
 function toggleLang() {
@@ -2810,9 +2816,6 @@ function toggleLang() {
 }
 
 document.getElementById('btnLangToggle')?.addEventListener('click', toggleLang);
-
-// Apply on initial load
-applyI18n();
 
 onAuthStateChanged(auth, async (user) => {
   window.__bootLog && window.__bootLog('auth state: ' + (user ? 'LOGGED IN as ' + user.email : 'logged out'));
@@ -2839,9 +2842,12 @@ onAuthStateChanged(auth, async (user) => {
     unsubscribeAll();
     $('loginScreen').classList.remove('hide');
     $('app').classList.remove('show');
-    $('btnLoginText').textContent = 'Entrar com Google';
+    $('btnLoginText').textContent = t('login.button');
   }
 });
+
+// Apply i18n on initial load (after onAuthStateChanged is registered)
+applyI18n();
 </script>
 
 <script type="module">
