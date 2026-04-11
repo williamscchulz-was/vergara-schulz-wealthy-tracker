@@ -1239,17 +1239,17 @@ const I18N = {
     'contrib.empty': 'Nenhum aporte cadastrado. Clique em "+ Aporte" para começar.',
     'contrib.aporte': 'aporte',
     'contrib.aportes': 'aportes',
-    'goal.status.green': t('goal.status.green'),
-    'goal.status.yellow': t('goal.status.yellow'),
-    'goal.status.red': t('goal.status.red'),
+    'goal.status.green': 'no caminho',
+    'goal.status.yellow': 'apertado',
+    'goal.status.red': 'fora do prazo',
     'goal.notreach': 'não atinge',
     'goal.before': 'antes',
     'goal.after': 'depois',
     'goal.onschedule': 'no prazo',
-    'toast.saved': t('toast.saved'),
+    'toast.saved': 'Aporte salvo',
     'toast.deleted': 'Aporte excluído',
-    'toast.error.save': t('toast.error.save'),
-    'toast.error.delete': t('toast.error.delete'),
+    'toast.error.save': 'Erro ao salvar',
+    'toast.error.delete': 'Erro ao excluir',
     'toast.synced': 'Sincronizado',
     'toast.synced.assets': '{n} ativos',
     'count.assets.singular': 'ativo',
@@ -2998,11 +2998,11 @@ function render() {
 
   if (metaHitYear && metaHitYear <= TARGET_YEAR) {
     const yrs = TARGET_YEAR - metaHitYear;
-    const phrase = yrs > 0 ? 'Voce atinge a meta em <b>'+metaHitYear+'</b>, <span style="color:var(--purple-light);font-weight:600">'+yrs+' '+(yrs===1?t('years.singular'):t('years.plural'))+' antes</span> do prazo.' : 'Voce bate a meta exatamente em <b>'+TARGET_YEAR+'</b>.';
+    const phrase = yrs > 0 ? 'Voce atinge a meta em <b>'+metaHitYear+'</b>, <span style="color:var(--purple-light);font-weight:600">'+yrs+' '+(yrs===1?tt('years.singular'):tt('years.plural'))+' antes</span> do prazo.' : 'Voce bate a meta exatamente em <b>'+TARGET_YEAR+'</b>.';
     $('gNarrative').innerHTML = phrase + ' Aporte de '+fmtBRL(p.aporte)+'/mes cresce '+p.crescAporte+'%/ano. Carteira termina '+TARGET_YEAR+' valendo <b>'+fmtBRLk(pAt.pl)+'</b>.';
   } else if (metaHitYear) {
     const yrs = metaHitYear - TARGET_YEAR;
-    $('gNarrative').innerHTML = 'Voce atinge R$ 1M/ano apenas em <b>'+metaHitYear+'</b>, <span style="color:var(--loss);font-weight:600">'+yrs+' '+(yrs===1?t('years.singular'):t('years.plural'))+' depois</span> do prazo. Aumente o aporte ou DY esperado.';
+    $('gNarrative').innerHTML = 'Voce atinge R$ 1M/ano apenas em <b>'+metaHitYear+'</b>, <span style="color:var(--loss);font-weight:600">'+yrs+' '+(yrs===1?tt('years.singular'):tt('years.plural'))+' depois</span> do prazo. Aumente o aporte ou DY esperado.';
   } else {
     $('gNarrative').innerHTML = 'Com essas variaveis voce <b>nao atinge</b> a meta. Aumente o aporte, DY ou reinvestimento.';
   }
