@@ -950,11 +950,9 @@ body::before {
           </div>
           <div id="divChartWrap"></div>
           <div class="pl-stats-row">
-            <span>desde inicio: <b id="plTotalGrowth" style="color:var(--ink)">-</b></span>
-            <span>CAGR: <b id="plCagr" style="color:var(--ink)">-</b></span>
-            <span>desde <b id="plSinceFirst" style="color:var(--ink)">-</b></span>
+            <span data-i18n="chart.caption.prefix">desde início:</span> <b id="plTotalGrowth" style="color:var(--ink)">-</b> <span style="color:var(--ink-muted);margin:0 6px">·</span> <b id="plCagr" style="color:var(--ink)">-</b> <span data-i18n="chart.caption.cagr">CAGR</span>
           </div>
-          <div style="display:none"><span id="plCagrPill"></span></div>
+          <div style="display:none"><span id="plSinceFirst"></span><span id="plCagrPill"></span></div>
         </div>
       </div>
 
@@ -1323,6 +1321,13 @@ const I18N = {
     'cat.label.suffix': 'DA CARTEIRA',
     'cat.assets.singular': 'ATIVO',
     'cat.assets.plural': 'ATIVOS',
+    'chart.caption.prefix': 'desde início:',
+    'chart.caption.cagr': 'CAGR',
+    'goal.phrase.suffix': ' Aporte de {amt}/mês cresce {g}%/ano. Carteira termina {year} valendo <b>{pl}</b>.',
+    'goal.phrase.fail': 'Com essas variáveis você <b>não atinge</b> a meta. Aumente o aporte, DY ou reinvestimento.',
+    'goal.phrase.before': 'Você atinge a meta em <b>{year}</b>, <span style="color:var(--purple-light);font-weight:600">{n} {label} antes</span> do prazo.',
+    'goal.phrase.exact': 'Você bate a meta exatamente em <b>{year}</b>.',
+    'goal.phrase.after': 'Você atinge R$ 1M/ano apenas em <b>{year}</b>, <span style="color:var(--loss);font-weight:600">{n} {label} depois</span> do prazo. Aumente o aporte ou DY esperado.',
   },
   en: {
     'login.tagline': 'Personal finance tracker.<br/>Sign in with Google to continue.',
@@ -1393,6 +1398,13 @@ const I18N = {
     'cat.label.suffix': 'OF PORTFOLIO',
     'cat.assets.singular': 'ASSET',
     'cat.assets.plural': 'ASSETS',
+    'chart.caption.prefix': 'since start:',
+    'chart.caption.cagr': 'CAGR',
+    'goal.phrase.suffix': ' Aporte de {amt}/mês cresce {g}%/ano. Carteira termina {year} valendo <b>{pl}</b>.',
+    'goal.phrase.fail': 'Com essas variáveis você <b>não atinge</b> a meta. Aumente o aporte, DY ou reinvestimento.',
+    'goal.phrase.before': 'You reach the goal in <b>{year}</b>, <span style="color:var(--purple-light);font-weight:600">{n} {label} early</span>.',
+    'goal.phrase.exact': 'You hit the goal exactly in <b>{year}</b>.',
+    'goal.phrase.after': 'You only reach R$ 1M/year in <b>{year}</b>, <span style="color:var(--loss);font-weight:600">{n} {label} late</span>. Increase contribution or expected DY.',
   }
 };
 
@@ -1755,7 +1767,7 @@ function renderInvestments() {
       const totalGrowth = ((lastEquity - first.equity) / first.equity) * 100;
       const cagr = (Math.pow(lastEquity / first.equity, 1 / yearsSpan) - 1) * 100;
       $('plTotalGrowth').textContent = (totalGrowth >= 0 ? '+' : '') + totalGrowth.toFixed(0) + '%';
-      $('plCagr').textContent = `${cagr.toFixed(1)}% /ano (CAGR)`;
+      $('plCagr').textContent = `${cagr.toFixed(1)}%/ano`;
       $('plSinceFirst').textContent = (totalGrowth >= 0 ? '+' : '') + totalGrowth.toFixed(0) + '%';
       $('plCagrPill').textContent = cagr.toFixed(1) + '% /ano';
     }
@@ -3060,13 +3072,18 @@ function render() {
 
   if (metaHitYear && metaHitYear <= TARGET_YEAR) {
     const yrs = TARGET_YEAR - metaHitYear;
-    const phrase = yrs > 0 ? 'Voce atinge a meta em <b>'+metaHitYear+'</b>, <span style="color:var(--purple-light);font-weight:600">'+yrs+' '+(yrs===1?tt('years.singular'):tt('years.plural'))+' antes</span> do prazo.' : 'Voce bate a meta exatamente em <b>'+TARGET_YEAR+'</b>.';
-    $('gNarrative').innerHTML = phrase + ' Aporte de '+fmtBRL(p.aporte)+'/mes cresce '+p.crescAporte+'%/ano. Carteira termina '+TARGET_YEAR+' valendo <b>'+fmtBRLk(pAt.pl)+'</b>.';
+    let phrase;
+    if (yrs > 0) {
+      phrase = tt('goal.phrase.before').replace('{year}', metaHitYear).replace('{n}', yrs).replace('{label}', yrs===1 ? tt('years.singular') : tt('years.plural'));
+    } else {
+      phrase = tt('goal.phrase.exact').replace('{year}', TARGET_YEAR);
+    }
+    $('gNarrative').innerHTML = phrase + tt('goal.phrase.suffix').replace('{amt}', fmtBRL(p.aporte)).replace('{g}', p.crescAporte).replace('{year}', TARGET_YEAR).replace('{pl}', fmtBRLk(pAt.pl));
   } else if (metaHitYear) {
     const yrs = metaHitYear - TARGET_YEAR;
-    $('gNarrative').innerHTML = 'Voce atinge R$ 1M/ano apenas em <b>'+metaHitYear+'</b>, <span style="color:var(--loss);font-weight:600">'+yrs+' '+(yrs===1?tt('years.singular'):tt('years.plural'))+' depois</span> do prazo. Aumente o aporte ou DY esperado.';
+    $('gNarrative').innerHTML = tt('goal.phrase.after').replace('{year}', metaHitYear).replace('{n}', yrs).replace('{label}', yrs===1 ? tt('years.singular') : tt('years.plural'));
   } else {
-    $('gNarrative').innerHTML = 'Com essas variaveis voce <b>nao atinge</b> a meta. Aumente o aporte, DY ou reinvestimento.';
+    $('gNarrative').innerHTML = tt('goal.phrase.fail');
   }
 
   drawChart(proj, metaHitYear);
