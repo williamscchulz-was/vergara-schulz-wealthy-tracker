@@ -1171,6 +1171,193 @@ const state = {
   currentViewMonth: new Date(),  // month being viewed in Expenses
 };
 
+// ============================================================
+//  i18n - declared early so functions can use t()
+// ============================================================
+const I18N = {
+  pt: {
+    'login.tagline': 'Ferramenta de finanças pessoais.<br/>Entre com Google para continuar.',
+    'login.button': 'Entrar com Google',
+    'hero.networth': 'Patrimônio total',
+    'hero.sync': 'Sincronizar',
+    'hero.updated.never': 'ainda não atualizado',
+    'hero.updated.prefix': 'atualizado',
+    'goal.eyebrow': 'META DE LONGO PRAZO',
+    'goal.variables': 'VARIÁVEIS',
+    'card.portfolio': 'minha carteira',
+    'card.dividends': 'dividendos por ano',
+    'card.networth': 'patrimônio por ano',
+    'card.contributions': 'aportes mensais',
+    'card.history': 'histórico anual',
+    'tab.investments': 'Investimentos',
+    'tab.expenses': 'Despesas',
+    'th.year': 'Ano',
+    'th.networth': 'Patrimônio',
+    'th.dividends': 'Proventos',
+    'th.dy': 'DY',
+    'th.yoy': 'YoY',
+    'stat.hitgoal': 'Meta atinge em',
+    'stat.netat': 'PL em 2035',
+    'stat.totalcontrib': 'Total aportado',
+    'slider.monthly': 'Aporte mensal',
+    'slider.growthcontrib': 'Crescimento aporte',
+    'slider.dy': 'DY esperado',
+    'slider.reinvest': 'Reinvestimento',
+    'slider.growthdiv': 'Crescimento do dividendo (empresa)',
+    'hero.manual': 'Atualização manual',
+    'hero.manual.full': 'Atualização manual · configure sync pra automático',
+    'ytd.received': 'proventos recebidos neste ano',
+    'ytd.alltime.from': 'desde {year} · {n} {label} de histórico',
+    'ytd.alltime.empty': 'sem histórico ainda',
+    'years.singular': 'ano',
+    'years.plural': 'anos',
+    'loading': 'carregando...',
+    'via.i10': 'VIA I10',
+    'sub.dividends': 'histórico anual de proventos',
+    'sub.networth': 'evolução do patrimônio',
+    'sub.contributions': 'aportes em dinheiro do trabalho',
+    'sub.history': 'patrimônio + proventos por ano',
+    'contrib.total': 'total aportado',
+    'contrib.avg': 'média mensal',
+    'contrib.empty': 'Nenhum aporte cadastrado. Clique em "+ Aporte" para começar.',
+    'contrib.aporte': 'aporte',
+    'contrib.aportes': 'aportes',
+    'goal.status.green': t('goal.status.green'),
+    'goal.status.yellow': t('goal.status.yellow'),
+    'goal.status.red': t('goal.status.red'),
+    'goal.notreach': 'não atinge',
+    'goal.before': 'antes',
+    'goal.after': 'depois',
+    'goal.onschedule': 'no prazo',
+    'toast.saved': t('toast.saved'),
+    'toast.deleted': 'Aporte excluído',
+    'toast.error.save': t('toast.error.save'),
+    'toast.error.delete': t('toast.error.delete'),
+    'toast.synced': 'Sincronizado',
+    'toast.synced.assets': '{n} ativos',
+    'count.assets.singular': 'ativo',
+    'count.assets.plural': 'ativos',
+    'count.cat.singular': 'categoria',
+    'count.cat.plural': 'categorias',
+    'count.assets.full': '{n} ativos · {c} categorias',
+    'count.assets.none': 'nenhum ativo sincronizado',
+    'cat.label.suffix': 'DA CARTEIRA',
+    'cat.assets.singular': 'ATIVO',
+    'cat.assets.plural': 'ATIVOS',
+  },
+  en: {
+    'login.tagline': 'Personal finance tracker.<br/>Sign in with Google to continue.',
+    'login.button': 'Sign in with Google',
+    'hero.networth': 'Total net worth',
+    'hero.sync': 'Sync',
+    'hero.updated.never': 'not yet updated',
+    'hero.updated.prefix': 'updated',
+    'goal.eyebrow': 'LONG-TERM GOAL',
+    'goal.variables': 'VARIABLES',
+    'card.portfolio': 'my portfolio',
+    'card.dividends': 'dividends per year',
+    'card.networth': 'net worth per year',
+    'card.contributions': 'monthly contributions',
+    'card.history': 'yearly history',
+    'tab.investments': 'Investments',
+    'tab.expenses': 'Expenses',
+    'th.year': 'Year',
+    'th.networth': 'Net worth',
+    'th.dividends': 'Dividends',
+    'th.dy': 'DY',
+    'th.yoy': 'YoY',
+    'stat.hitgoal': 'Goal hit in',
+    'stat.netat': 'Net worth in 2035',
+    'stat.totalcontrib': 'Total contributed',
+    'slider.monthly': 'Monthly contribution',
+    'slider.growthcontrib': 'Contribution growth',
+    'slider.dy': 'Expected DY',
+    'slider.reinvest': 'Reinvestment',
+    'slider.growthdiv': 'Dividend growth (company)',
+    'hero.manual': 'Manual update',
+    'hero.manual.full': 'Manual update · configure sync for automatic',
+    'ytd.received': 'dividends received this year',
+    'ytd.alltime.from': 'since {year} · {n} {label} of history',
+    'ytd.alltime.empty': 'no history yet',
+    'years.singular': 'year',
+    'years.plural': 'years',
+    'loading': 'loading...',
+    'via.i10': 'VIA I10',
+    'sub.dividends': 'annual dividend history',
+    'sub.networth': 'net worth evolution',
+    'sub.contributions': 'work-income contributions',
+    'sub.history': 'net worth + dividends per year',
+    'contrib.total': 'total contributed',
+    'contrib.avg': 'monthly average',
+    'contrib.empty': 'No contributions yet. Click "+ Aporte" to start.',
+    'contrib.aporte': 'contribution',
+    'contrib.aportes': 'contributions',
+    'goal.status.green': 'on track',
+    'goal.status.yellow': 'tight',
+    'goal.status.red': 'off schedule',
+    'goal.notreach': "doesn't reach",
+    'goal.before': 'early',
+    'goal.after': 'late',
+    'goal.onschedule': 'on schedule',
+    'toast.saved': 'Contribution saved',
+    'toast.deleted': 'Contribution deleted',
+    'toast.error.save': 'Save failed',
+    'toast.error.delete': 'Delete failed',
+    'toast.synced': 'Synced',
+    'toast.synced.assets': '{n} assets',
+    'count.assets.singular': 'asset',
+    'count.assets.plural': 'assets',
+    'count.cat.singular': 'category',
+    'count.cat.plural': 'categories',
+    'count.assets.full': '{n} assets · {c} categories',
+    'count.assets.none': 'no assets synced',
+    'cat.label.suffix': 'OF PORTFOLIO',
+    'cat.assets.singular': 'ASSET',
+    'cat.assets.plural': 'ASSETS',
+  }
+};
+
+function getLang() { return localStorage.getItem('ledger-lang') || 'pt'; }
+
+function t(key) {
+  const lang = getLang();
+  return (I18N[lang] && I18N[lang][key]) || (I18N.pt[key]) || key;
+}
+window.t = t;
+window.getLang = getLang;
+
+function applyI18n() {
+  const lang = getLang();
+  document.documentElement.setAttribute('lang', lang === 'en' ? 'en' : 'pt-BR');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const val = t(key);
+    if (val.includes('<')) el.innerHTML = val;
+    else el.textContent = val;
+  });
+  // Update lang label in topbar
+  const label = document.getElementById('langLabel');
+  if (label) label.textContent = lang === 'pt' ? 'EN' : 'PT';
+  // Re-render dynamic views ONLY if app is loaded and user is logged in
+  try {
+    if (typeof state !== 'undefined' && state && state.user && typeof renderInvestments === 'function' && state.mode === 'investments') {
+      renderInvestments();
+    }
+  } catch (err) {
+    console.warn('[i18n] re-render skipped:', err);
+  }
+}
+
+function toggleLang() {
+  const next = getLang() === 'pt' ? 'en' : 'pt';
+  try { localStorage.setItem('ledger-lang', next); } catch(e) {}
+  applyI18n();
+  if (state.user) {
+    setDoc(docConfig, { lang: next, updatedAt: serverTimestamp() }, { merge: true }).catch(()=>{});
+  }
+}
+
+
 // ---- Utils ----
 const $ = (id) => document.getElementById(id);
 const fmtBRL = (n) => 'R$ ' + (n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -2632,188 +2819,6 @@ document.getElementById('btnThemeToggle')?.addEventListener('click', toggleTheme
 // ============================================================
 //  i18n (PT/EN)
 // ============================================================
-const I18N = {
-  pt: {
-    'login.tagline': 'Ferramenta de finanças pessoais.<br/>Entre com Google para continuar.',
-    'login.button': 'Entrar com Google',
-    'hero.networth': 'Patrimônio total',
-    'hero.sync': 'Sincronizar',
-    'hero.updated.never': 'ainda não atualizado',
-    'hero.updated.prefix': 'atualizado',
-    'goal.eyebrow': 'META DE LONGO PRAZO',
-    'goal.variables': 'VARIÁVEIS',
-    'card.portfolio': 'minha carteira',
-    'card.dividends': 'dividendos por ano',
-    'card.networth': 'patrimônio por ano',
-    'card.contributions': 'aportes mensais',
-    'card.history': 'histórico anual',
-    'tab.investments': 'Investimentos',
-    'tab.expenses': 'Despesas',
-    'th.year': 'Ano',
-    'th.networth': 'Patrimônio',
-    'th.dividends': 'Proventos',
-    'th.dy': 'DY',
-    'th.yoy': 'YoY',
-    'stat.hitgoal': 'Meta atinge em',
-    'stat.netat': 'PL em 2035',
-    'stat.totalcontrib': 'Total aportado',
-    'slider.monthly': 'Aporte mensal',
-    'slider.growthcontrib': 'Crescimento aporte',
-    'slider.dy': 'DY esperado',
-    'slider.reinvest': 'Reinvestimento',
-    'slider.growthdiv': 'Crescimento do dividendo (empresa)',
-    'hero.manual': 'Atualização manual',
-    'hero.manual.full': 'Atualização manual · configure sync pra automático',
-    'ytd.received': 'proventos recebidos neste ano',
-    'ytd.alltime.from': 'desde {year} · {n} {label} de histórico',
-    'ytd.alltime.empty': 'sem histórico ainda',
-    'years.singular': 'ano',
-    'years.plural': 'anos',
-    'loading': 'carregando...',
-    'via.i10': 'VIA I10',
-    'sub.dividends': 'histórico anual de proventos',
-    'sub.networth': 'evolução do patrimônio',
-    'sub.contributions': 'aportes em dinheiro do trabalho',
-    'sub.history': 'patrimônio + proventos por ano',
-    'contrib.total': 'total aportado',
-    'contrib.avg': 'média mensal',
-    'contrib.empty': 'Nenhum aporte cadastrado. Clique em "+ Aporte" para começar.',
-    'contrib.aporte': 'aporte',
-    'contrib.aportes': 'aportes',
-    'goal.status.green': t('goal.status.green'),
-    'goal.status.yellow': t('goal.status.yellow'),
-    'goal.status.red': t('goal.status.red'),
-    'goal.notreach': 'não atinge',
-    'goal.before': 'antes',
-    'goal.after': 'depois',
-    'goal.onschedule': 'no prazo',
-    'toast.saved': t('toast.saved'),
-    'toast.deleted': 'Aporte excluído',
-    'toast.error.save': t('toast.error.save'),
-    'toast.error.delete': t('toast.error.delete'),
-    'toast.synced': 'Sincronizado',
-    'toast.synced.assets': '{n} ativos',
-    'count.assets.singular': 'ativo',
-    'count.assets.plural': 'ativos',
-    'count.cat.singular': 'categoria',
-    'count.cat.plural': 'categorias',
-    'count.assets.full': '{n} ativos · {c} categorias',
-    'count.assets.none': 'nenhum ativo sincronizado',
-    'cat.label.suffix': 'DA CARTEIRA',
-    'cat.assets.singular': 'ATIVO',
-    'cat.assets.plural': 'ATIVOS',
-  },
-  en: {
-    'login.tagline': 'Personal finance tracker.<br/>Sign in with Google to continue.',
-    'login.button': 'Sign in with Google',
-    'hero.networth': 'Total net worth',
-    'hero.sync': 'Sync',
-    'hero.updated.never': 'not yet updated',
-    'hero.updated.prefix': 'updated',
-    'goal.eyebrow': 'LONG-TERM GOAL',
-    'goal.variables': 'VARIABLES',
-    'card.portfolio': 'my portfolio',
-    'card.dividends': 'dividends per year',
-    'card.networth': 'net worth per year',
-    'card.contributions': 'monthly contributions',
-    'card.history': 'yearly history',
-    'tab.investments': 'Investments',
-    'tab.expenses': 'Expenses',
-    'th.year': 'Year',
-    'th.networth': 'Net worth',
-    'th.dividends': 'Dividends',
-    'th.dy': 'DY',
-    'th.yoy': 'YoY',
-    'stat.hitgoal': 'Goal hit in',
-    'stat.netat': 'Net worth in 2035',
-    'stat.totalcontrib': 'Total contributed',
-    'slider.monthly': 'Monthly contribution',
-    'slider.growthcontrib': 'Contribution growth',
-    'slider.dy': 'Expected DY',
-    'slider.reinvest': 'Reinvestment',
-    'slider.growthdiv': 'Dividend growth (company)',
-    'hero.manual': 'Manual update',
-    'hero.manual.full': 'Manual update · configure sync for automatic',
-    'ytd.received': 'dividends received this year',
-    'ytd.alltime.from': 'since {year} · {n} {label} of history',
-    'ytd.alltime.empty': 'no history yet',
-    'years.singular': 'year',
-    'years.plural': 'years',
-    'loading': 'loading...',
-    'via.i10': 'VIA I10',
-    'sub.dividends': 'annual dividend history',
-    'sub.networth': 'net worth evolution',
-    'sub.contributions': 'work-income contributions',
-    'sub.history': 'net worth + dividends per year',
-    'contrib.total': 'total contributed',
-    'contrib.avg': 'monthly average',
-    'contrib.empty': 'No contributions yet. Click "+ Aporte" to start.',
-    'contrib.aporte': 'contribution',
-    'contrib.aportes': 'contributions',
-    'goal.status.green': 'on track',
-    'goal.status.yellow': 'tight',
-    'goal.status.red': 'off schedule',
-    'goal.notreach': "doesn't reach",
-    'goal.before': 'early',
-    'goal.after': 'late',
-    'goal.onschedule': 'on schedule',
-    'toast.saved': 'Contribution saved',
-    'toast.deleted': 'Contribution deleted',
-    'toast.error.save': 'Save failed',
-    'toast.error.delete': 'Delete failed',
-    'toast.synced': 'Synced',
-    'toast.synced.assets': '{n} assets',
-    'count.assets.singular': 'asset',
-    'count.assets.plural': 'assets',
-    'count.cat.singular': 'category',
-    'count.cat.plural': 'categories',
-    'count.assets.full': '{n} assets · {c} categories',
-    'count.assets.none': 'no assets synced',
-    'cat.label.suffix': 'OF PORTFOLIO',
-    'cat.assets.singular': 'ASSET',
-    'cat.assets.plural': 'ASSETS',
-  }
-};
-
-function getLang() { return localStorage.getItem('ledger-lang') || 'pt'; }
-
-function t(key) {
-  const lang = getLang();
-  return (I18N[lang] && I18N[lang][key]) || (I18N.pt[key]) || key;
-}
-window.t = t;
-window.getLang = getLang;
-
-function applyI18n() {
-  const lang = getLang();
-  document.documentElement.setAttribute('lang', lang === 'en' ? 'en' : 'pt-BR');
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    const val = t(key);
-    if (val.includes('<')) el.innerHTML = val;
-    else el.textContent = val;
-  });
-  // Update lang label in topbar
-  const label = document.getElementById('langLabel');
-  if (label) label.textContent = lang === 'pt' ? 'EN' : 'PT';
-  // Re-render dynamic views ONLY if app is loaded and user is logged in
-  try {
-    if (typeof state !== 'undefined' && state && state.user && typeof renderInvestments === 'function' && state.mode === 'investments') {
-      renderInvestments();
-    }
-  } catch (err) {
-    console.warn('[i18n] re-render skipped:', err);
-  }
-}
-
-function toggleLang() {
-  const next = getLang() === 'pt' ? 'en' : 'pt';
-  try { localStorage.setItem('ledger-lang', next); } catch(e) {}
-  applyI18n();
-  if (state.user) {
-    setDoc(docConfig, { lang: next, updatedAt: serverTimestamp() }, { merge: true }).catch(()=>{});
-  }
-}
 
 document.getElementById('btnLangToggle')?.addEventListener('click', toggleLang);
 
@@ -2952,9 +2957,10 @@ function render() {
   const { proj, metaHitYear } = simulate(p);
 
   let cls, txt;
-  if (metaHitYear === null || metaHitYear > TARGET_YEAR) { cls='red'; txt=t('goal.status.red'); }
-  else if (metaHitYear <= TARGET_YEAR-2) { cls='green'; txt=t('goal.status.green'); }
-  else { cls='yellow'; txt=t('goal.status.yellow'); }
+  const tt = (typeof window !== 'undefined' && window.t) ? window.t : (k => k);
+  if (metaHitYear === null || metaHitYear > TARGET_YEAR) { cls='red'; txt=tt('goal.status.red'); }
+  else if (metaHitYear <= TARGET_YEAR-2) { cls='green'; txt=tt('goal.status.green'); }
+  else { cls='yellow'; txt=tt('goal.status.yellow'); }
   $('gStatusPill').className = 'status-pill ' + cls;
   $('gStatusText').textContent = txt;
 
