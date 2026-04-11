@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#1a181d" />
+<meta name="theme-color" content="#29262B" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Ledger" />
@@ -30,11 +30,11 @@ html, body { margin: 0; padding: 0; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 
 :root {
-  --bg:            #1a181d;
-  --bg-deep:       #121013;
-  --bg-elevated:   #221f25;
-  --bg-elevated-2: #2b272f;
-  --bg-elevated-3: #35303a;
+  --bg:            #29262B;
+  --bg-deep:       #1f1c22;
+  --bg-elevated:   #3C3541;
+  --bg-elevated-2: #322c37;
+  --bg-elevated-3: #3a333f;
 
   --border:        rgba(255,255,255,0.06);
   --border-2:      rgba(255,255,255,0.10);
@@ -72,7 +72,244 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   --shadow:        0 8px 24px -6px rgba(0,0,0,0.55), 0 2px 8px -2px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.2);
   --shadow-lg:     0 20px 50px -10px rgba(0,0,0,0.70), 0 10px 28px -8px rgba(139,63,184,0.25), inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(0,0,0,0.2);
   --shadow-glow:   0 8px 32px rgba(172,95,219,0.25);
+
+  /* v8 LIQUID GLASS TOKENS (Part 1 §0) */
+  --glass-bg:         rgba(60,53,65,0.55);
+  --glass-bg-strong:  rgba(60,53,65,0.72);
+  --glass-border:     rgba(227,162,238,0.18);
+  --glass-highlight:  rgba(255,255,255,0.08);
+  --glass-blur:       blur(20px) saturate(1.5);
+  --glass-blur-strong: blur(28px) saturate(1.6);
 }
+
+/* v8 LIQUID BORDER — animated conic gradient ring (Part 1 §-2) */
+@property --liquid-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+.liquid-border {
+  position: relative;
+  isolation: isolate;
+}
+.liquid-border::before {
+  content: "";
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--liquid-angle),
+    transparent 0%,
+    transparent 60%,
+    rgba(227,162,238,.4) 72%,
+    #E3A2EE 82%,
+    #fff 88%,
+    #E3A2EE 94%,
+    rgba(172,95,219,.4) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: liquid-spin 3.5s linear infinite;
+  filter: drop-shadow(0 0 4px rgba(227,162,238,.6));
+  pointer-events: none;
+  z-index: 2;
+}
+@keyframes liquid-spin { to { --liquid-angle: 360deg; } }
+@supports not (background: conic-gradient(from 0deg, #000, #fff)) {
+  .liquid-border::before {
+    background: linear-gradient(135deg, transparent, #E3A2EE, transparent);
+  }
+}
+
+/* v8 MOTION — breathing, pulses, drifts (Part 1 §-1) */
+@keyframes glow-drift-top {
+  0%,100% { transform: translate(0,0) scale(1); opacity: .9 }
+  33%     { transform: translate(-12%,5%) scale(1.2); opacity: 1 }
+  66%     { transform: translate(10%,-4%) scale(.85); opacity: .75 }
+}
+@keyframes glow-drift-bottom {
+  0%,100% { transform: translate(0,0) scale(1) }
+  50%     { transform: translate(8%,-4%) scale(1.25) }
+}
+@keyframes chart-breathe {
+  0%,100% { transform: scale(1) }
+  50%     { transform: scale(1.012) }
+}
+@keyframes hatch-flow {
+  to { transform: translate(6px, -6px) }
+}
+@keyframes projection-shimmer {
+  to { stroke-dashoffset: -18 }
+}
+@keyframes point-pulse {
+  0%,100% { r: 3.5; filter: drop-shadow(0 0 3px rgba(227,162,238,.6)) }
+  50%     { r: 5;   filter: drop-shadow(0 0 8px rgba(227,162,238,.9)) }
+}
+@keyframes target-point-pulse {
+  0%,100% { r: 4 }
+  50%     { r: 6 }
+}
+@keyframes target-line-ripple {
+  0%,100% { opacity: .5; stroke-width: 1 }
+  50%     { opacity: .9; stroke-width: 1.4 }
+}
+@keyframes dot-pulse {
+  0%,100% { opacity: .6; transform: scale(.9) }
+  50%     { opacity: 1;  transform: scale(1.15) }
+}
+@keyframes sync-glow {
+  0%,100% { box-shadow: 0 6px 18px var(--purple-glow), inset 0 1px 0 rgba(255,255,255,.4) }
+  50%     { box-shadow: 0 10px 28px rgba(172,95,219,.6), inset 0 1px 0 rgba(255,255,255,.5) }
+}
+@keyframes island-float {
+  0%,100% { transform: translateX(-50%) translateY(0) }
+  50%     { transform: translateX(-50%) translateY(-3px) }
+}
+@keyframes card-rise {
+  from { opacity: 0; transform: translateY(16px) }
+  to   { opacity: 1; transform: translateY(0) }
+}
+
+/* v8 REDUCED MOTION — kill every animation for users who asked */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ===========================================================
+   v8 ACTIVATIONS — wire keyframes + liquid-border to real elements
+   =========================================================== */
+
+/* Ambient glow drift behind the app (refracted by glass elements) */
+body::after {
+  content: "";
+  position: fixed;
+  top: -10%; left: -20%;
+  width: 140%; height: 60%;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(172,95,219,.18), transparent 50%),
+    radial-gradient(circle at 70% 40%, rgba(227,162,238,.10), transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+  animation: glow-drift-top 12s ease-in-out infinite;
+}
+:root[data-theme="light"] body::after {
+  background:
+    radial-gradient(circle at 30% 20%, rgba(147,51,234,.10), transparent 50%),
+    radial-gradient(circle at 70% 40%, rgba(192,132,252,.08), transparent 50%);
+}
+
+/* Primary CTAs get liquid-border: Sync + Add Year + main + Add contribution */
+#btnSyncI10,
+#btnAddYear,
+#btnAddContrib,
+#btnAddExpense {
+  position: relative;
+  isolation: isolate;
+}
+#btnSyncI10::before,
+#btnAddYear::before,
+#btnAddContrib::before,
+#btnAddExpense::before {
+  content: "";
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--liquid-angle),
+    transparent 0%,
+    transparent 60%,
+    rgba(227,162,238,.4) 72%,
+    #E3A2EE 82%,
+    #fff 88%,
+    #E3A2EE 94%,
+    rgba(172,95,219,.4) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: liquid-spin 3.5s linear infinite;
+  filter: drop-shadow(0 0 4px rgba(227,162,238,.55));
+  pointer-events: none;
+  z-index: 2;
+}
+/* Sync button also gets the breathing glow */
+#btnSyncI10 {
+  animation: sync-glow 3s ease-in-out infinite;
+}
+
+/* All status dots pulse */
+.dot,
+.status-dot,
+[class*="dot-"] .dot {
+  animation: dot-pulse 2.4s ease-in-out infinite;
+}
+
+/* Cards rise in on load (one-shot via animation, not transition) */
+.card,
+.hero-card {
+  animation: card-rise .6s cubic-bezier(.2,.8,.2,1) both;
+}
+.card:nth-of-type(1), .hero-card:nth-of-type(1) { animation-delay: .05s; }
+.card:nth-of-type(2) { animation-delay: .15s; }
+.card:nth-of-type(3) { animation-delay: .25s; }
+.card:nth-of-type(4) { animation-delay: .35s; }
+.card:nth-of-type(5) { animation-delay: .45s; }
+
+/* Mode switch — upgraded to iOS 26 island bottom nav without markup changes */
+.mode-switch {
+  position: fixed !important;
+  bottom: calc(24px + env(safe-area-inset-bottom)) !important;
+  left: 50% !important;
+  transform: translateX(-50%);
+  margin: 0 !important;
+  background: var(--glass-bg-strong) !important;
+  backdrop-filter: var(--glass-blur-strong);
+  -webkit-backdrop-filter: var(--glass-blur-strong);
+  border: 1px solid var(--glass-border) !important;
+  box-shadow:
+    0 20px 50px rgba(0,0,0,.55),
+    0 0 40px rgba(172,95,219,.15),
+    inset 0 1px 0 var(--glass-highlight) !important;
+  padding: 6px !important;
+  z-index: 100;
+  animation: island-float 4s ease-in-out infinite;
+}
+.mode-switch button { padding: 10px 22px !important; font-size: 13px !important; font-weight: 600 !important; }
+.mode-switch button.active {
+  background: linear-gradient(135deg, var(--purple-light), var(--purple)) !important;
+  color: #1a1420 !important;
+  box-shadow: 0 6px 20px var(--purple-glow), inset 0 1px 0 rgba(255,255,255,.4) !important;
+  transition: all 500ms cubic-bezier(.34,1.4,.64,1);
+}
+
+/* Push page content so last row isn't hidden behind the fixed island */
+.module.active {
+  padding-bottom: calc(140px + env(safe-area-inset-bottom));
+}
+
+/* Respect safe area at the top (header/statusbar collision fix — Part 2 §2) */
+body {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Goal chart SVG elements — animations hook here once markup exists (§4 Turno 4) */
+#gChart .chart-svg { animation: chart-breathe 5s ease-in-out infinite; transform-origin: center; }
+#gChart .hatch-layer { animation: hatch-flow 3s linear infinite; }
+#gChart .projection-line { stroke-dasharray: 4 4; animation: projection-shimmer 1.8s linear infinite; }
+#gChart .current-point { animation: point-pulse 2.2s ease-in-out infinite; transform-origin: center; }
+#gChart .target-point { animation: target-point-pulse 3s ease-in-out infinite; transform-origin: center; }
+#gChart .target-line { animation: target-line-ripple 3s ease-in-out infinite; }
+
 
 /* LIGHT MODE OVERRIDES */
 :root[data-theme="light"] {
@@ -103,6 +340,12 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   --shadow:        0 8px 24px -8px rgba(13,39,80,0.14), 0 2px 8px -2px rgba(107,33,168,0.08), inset 0 1px 0 rgba(255,255,255,0.95);
   --shadow-lg:     0 18px 50px -12px rgba(13,39,80,0.18), 0 8px 24px -8px rgba(107,33,168,0.12), inset 0 1px 0 rgba(255,255,255,0.95);
   --shadow-glow:   0 12px 28px -6px rgba(147,51,234,0.32);
+
+  /* v8 glass tokens — light variant (frosted white over lavender bg) */
+  --glass-bg:         rgba(255,255,255,0.55);
+  --glass-bg-strong:  rgba(255,255,255,0.72);
+  --glass-border:     rgba(147,51,234,0.22);
+  --glass-highlight:  rgba(255,255,255,0.60);
 }
 :root[data-theme="light"] body::before {
   background:
@@ -120,7 +363,7 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   -webkit-backdrop-filter: blur(24px) saturate(180%);
 }
 :root[data-theme="light"] .modal-bg { background: rgba(60,53,65,0.40); }
-:root[data-theme="light"] .modal select option { background: #ffffff; color: #1a181d; }
+:root[data-theme="light"] .modal select option { background: #ffffff; color: #29262B; }
 :root[data-theme="light"] .btn-ghost.primary { color: #fff; }
 :root[data-theme="light"] .login-card { box-shadow: var(--shadow-lg), 0 0 60px rgba(139,63,184,0.10); }
 :root[data-theme="light"] svg.chart text, :root[data-theme="light"] #gChart text { fill: #6b6473; }
@@ -176,7 +419,7 @@ body::before {
     radial-gradient(ellipse 60% 50% at 80% -10%, rgba(172,95,219,0.10), transparent 60%),
     radial-gradient(ellipse 50% 40% at 10% 30%, rgba(227,162,238,0.06), transparent 60%),
     radial-gradient(ellipse 80% 50% at 50% 110%, rgba(60,53,65,0.40), transparent 60%),
-    linear-gradient(180deg, #1a181d 0%, #1d1a22 50%, #1a181d 100%);
+    linear-gradient(180deg, #29262B 0%, #322c37 50%, #29262B 100%);
 }
 
 .page {
@@ -692,6 +935,165 @@ body::before {
 .btn-md.icon-only { width: 40px; }
 .btn-lg.icon-only { width: 52px; }
 
+
+/* v8 Turno 3 — Variables numeric inputs + goal card tweaks */
+.var-input-v8 {
+  background: rgba(255,255,255,.04);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 11px;
+  padding: 9px 14px;
+  color: var(--purple-light);
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+  width: 132px;
+  outline: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+  transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s ease, border-color .3s ease;
+}
+.var-input-v8:focus {
+  border-color: var(--purple);
+  transform: scale(1.03);
+  box-shadow:
+    0 0 0 3px var(--purple-soft),
+    0 8px 24px var(--purple-glow),
+    inset 0 1px 0 rgba(255,255,255,.06);
+}
+:root[data-theme="light"] .var-input-v8 {
+  background: rgba(255,255,255,.55);
+  border-color: rgba(147,51,234,.18);
+}
+/* The old .g-sl grid was built for sliders — turn each row into a flex row */
+.g-sl { display: flex !important; justify-content: space-between !important; align-items: center !important; padding: 14px 0 !important; border-bottom: 1px solid var(--border) !important; }
+.g-sl:last-child { border-bottom: none !important; }
+.g-sl .g-top { display: flex !important; justify-content: space-between !important; align-items: center !important; width: 100%; gap: 12px; }
+.g-sl .g-val { display: none !important; } /* old range display replaced by input */
+.g-sliders { display: block !important; }
+.g-sl[style*="grid-column"] { border-bottom: none !important; }
+
+/* v8 Turno 5 — Modal reskin (paleta nova + glass + liquid-border nos saves) */
+.modal-bg {
+  background: rgba(10, 8, 14, .72) !important;
+  backdrop-filter: blur(12px) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+}
+.modal {
+  background: var(--bg-elevated) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow:
+    0 30px 80px rgba(0,0,0,.6),
+    0 0 60px rgba(172,95,219,.12),
+    inset 0 1px 0 var(--glass-highlight) !important;
+}
+.modal h3 {
+  color: var(--ink) !important;
+  letter-spacing: -.3px;
+}
+.modal .sub, .modal label {
+  color: var(--ink-3) !important;
+}
+.modal input[type="text"],
+.modal input[type="number"],
+.modal input[type="date"],
+.modal textarea,
+.modal select {
+  background: rgba(255,255,255,.04) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  color: var(--ink) !important;
+  transition: border-color .3s ease, box-shadow .3s ease;
+}
+.modal input:focus, .modal textarea:focus, .modal select:focus {
+  border-color: var(--purple) !important;
+  box-shadow: 0 0 0 3px var(--purple-soft) !important;
+  outline: none;
+}
+/* Liquid-border on the primary Save buttons of each modal */
+#expSave, #i10Save, #i10CfgSave, #yearlySave, #contribListAdd, #contribSave, #goalEditSave {
+  position: relative;
+  isolation: isolate;
+}
+#expSave::before, #i10Save::before, #i10CfgSave::before, #yearlySave::before,
+#contribListAdd::before, #contribSave::before, #goalEditSave::before {
+  content: "";
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--liquid-angle),
+    transparent 0%, transparent 60%,
+    rgba(227,162,238,.4) 72%, #E3A2EE 82%, #fff 88%,
+    #E3A2EE 94%, rgba(172,95,219,.4) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: liquid-spin 3.5s linear infinite;
+  filter: drop-shadow(0 0 3px rgba(227,162,238,.5));
+  pointer-events: none;
+  z-index: 2;
+}
+/* Light theme modals: use frost over lavender bg */
+:root[data-theme="light"] .modal {
+  background: var(--glass-bg-strong) !important;
+  border-color: var(--glass-border) !important;
+}
+:root[data-theme="light"] .modal-bg {
+  background: rgba(147, 51, 234, .18) !important;
+}
+
+/* Yearly grid YoY coloring (hooks from renderYearlyTable td.pos/.neg) */
+.yearly-table td.pos { color: var(--gain); }
+.yearly-table td.neg { color: var(--loss); }
+
+/* Login screen polish — glass card */
+#loginScreen .login-card {
+  background: var(--glass-bg-strong) !important;
+  backdrop-filter: var(--glass-blur-strong);
+  -webkit-backdrop-filter: var(--glass-blur-strong);
+  border: 1px solid var(--glass-border) !important;
+  box-shadow:
+    0 30px 80px rgba(0,0,0,.55),
+    0 0 80px rgba(172,95,219,.18),
+    inset 0 1px 0 var(--glass-highlight) !important;
+}
+
+.yearly-table { display: block !important; width: 100%; }
+.yearly-table thead, .yearly-table tbody { display: block !important; width: 100%; }
+.yearly-table thead tr,
+.yearly-table tbody tr {
+  display: grid !important;
+  grid-template-columns: 44px 1fr 1fr 48px 62px;
+  gap: 8px;
+  align-items: center;
+  padding: 13px 0 !important;
+  border-bottom: 1px solid var(--border);
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-feature-settings: "tnum";
+}
+.yearly-table thead tr {
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.yearly-table th, .yearly-table td {
+  display: block !important;
+  padding: 0 !important;
+  border: none !important;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.yearly-table th:first-child, .yearly-table td:first-child { text-align: left; }
+.yearly-table td:nth-child(3) { color: var(--purple-light); }
+.yearly-table td:nth-child(4) { color: var(--ink-3); }
 </style>
 <script>
   // Apply theme ASAP to avoid flash
@@ -766,11 +1168,11 @@ body::before {
     <div class="mode-switch">
       <button data-mode="investments" class="active">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-        <span data-i18n="tab.investments">Investimentos</span>
+        <span data-i18n="tab.investments">Investments</span>
       </button>
       <button data-mode="expenses">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-        <span data-i18n="tab.expenses">Despesas</span>
+        <span data-i18n="tab.expenses">Expenses</span>
       </button>
     </div>
 
@@ -779,10 +1181,10 @@ body::before {
 
       <div class="section-head">
         <div>
-          <h2>Despesas</h2>
+          <h2>Expenses</h2>
           <div class="meta">Controle mensal de gastos</div>
         </div>
-        <button class="btn-primary" id="btnAddExpense">+ Nova despesa</button>
+        <button class="btn-primary" id="btnAddExpense">+ New expense</button>
       </div>
 
       <div class="exp-hero">
@@ -831,7 +1233,7 @@ body::before {
         <div class="card-head"><h3>Todas as despesas do mês</h3><div class="meta">Clique em uma linha para editar</div></div>
         <div class="table-wrap">
           <table class="exp-table">
-            <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th></th></tr></thead>
+            <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Valor</th><th></th></tr></thead>
             <tbody id="expBody"></tbody>
           </table>
         </div>
@@ -845,14 +1247,14 @@ body::before {
       <div class="hero-card animate-in">
         <div class="hero-eyebrow">
           <div class="live-dot"></div>
-          <div class="label" data-i18n="hero.networth">Patrimônio total</div>
+          <div class="label" data-i18n="hero.networth">Total net worth</div>
         </div>
         <div class="hero-amount">
           <span class="cur">R$</span>
           <span class="num" id="i10Equity">0</span>
         </div>
         <div class="hero-meta-row" id="i10EquitySub">
-          <div class="applied-text" data-i18n="hero.manual">Atualização manual</div>
+          <div class="applied-text" data-i18n="hero.manual">Manual update</div>
         </div>
         <div class="hero-actions">
           <span class="updated" id="i10Updated">ainda nao atualizado</span>
@@ -862,12 +1264,12 @@ body::before {
           </a>
           <button class="btn-ghost primary" id="btnSyncI10">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-            <span data-i18n="hero.sync">Sincronizar</span>
+            <span data-i18n="hero.sync">Sync</span>
           </button>
-          <button class="btn-ghost icon" id="btnEditI10" title="Editar">
+          <button class="btn-ghost icon" id="btnEditI10" title="Edit">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
           </button>
-          <button class="btn-ghost icon" id="btnCfgI10" title="Config Worker">
+          <button class="btn-ghost icon" id="btnCfgI10" title="Worker config">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           </button>
         </div>
@@ -877,31 +1279,32 @@ body::before {
       <div class="card animate-in" id="goalCardV2">
         <div class="card-head">
           <div>
-            <div class="eyebrow" data-i18n="goal.eyebrow">META DE LONGO PRAZO</div>
-            <h2 style="font-size:22px;font-weight:700;color:var(--ink);letter-spacing:-0.02em;line-height:1.2;margin:6px 0 0">R$ <b style="color:var(--purple-light)">1 milhão</b> em proventos<br/>anuais até <b style="color:var(--purple-light)" id="gTargetYearLabel">2035</b></h2>
+            <div class="eyebrow" data-i18n="goal.eyebrow">LONG-TERM GOAL</div>
+            <div class="goal-target" style="font-size:46px;font-weight:700;letter-spacing:-1.5px;line-height:1;margin-top:12px;background:linear-gradient(135deg,#fff,var(--purple-light));-webkit-background-clip:text;background-clip:text;color:transparent">1M<span style="font-size:14px;color:var(--ink-3);margin-left:8px;font-weight:400;-webkit-text-fill-color:var(--ink-3)">/year</span></div>
+            <div class="goal-sub" style="font-size:10px;color:var(--ink-muted);font-family:'Geist Mono',monospace;margin-top:10px;letter-spacing:1px;text-transform:uppercase">dividends · target <span id="gTargetYearLabel">2035</span></div>
           </div>
           <div class="status-pill green" id="gStatusPill">
             <span class="dot"></span>
-            <span id="gStatusText">no caminho</span>
+            <span id="gStatusText">on track</span>
           </div>
         </div>
         <div style="margin:6px -8px 18px"><svg id="gChart" viewBox="0 0 700 300" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block;overflow:visible"></svg></div>
         <p id="gNarrative" style="font-size:13px;color:var(--ink-2);line-height:1.6;margin:0 0 22px;padding:14px 16px;background:var(--bg-elevated-2);border-radius:12px;border:1px solid var(--border)"></p>
         <div class="stats three" style="margin-bottom:22px">
-          <div class="stat"><div class="lbl" data-i18n="stat.hitgoal">Meta atinge em</div><div class="val" id="gStatHit">-</div><div class="sub" id="gStatHitSub">-</div></div>
-          <div class="stat"><div class="lbl" data-i18n="stat.netat">PL em 2035</div><div class="val" id="gStatPL">-</div><div class="sub" id="gStatPLSub">-</div></div>
-          <div class="stat"><div class="lbl" data-i18n="stat.totalcontrib">Total aportado</div><div class="val" id="gStatApor">-</div><div class="sub">10 anos</div></div>
+          <div class="stat"><div class="lbl" data-i18n="stat.hitgoal">Goal hit in</div><div class="val" id="gStatHit">-</div><div class="sub" id="gStatHitSub">-</div></div>
+          <div class="stat"><div class="lbl" data-i18n="stat.netat">Net worth 2035</div><div class="val" id="gStatPL">-</div><div class="sub" id="gStatPLSub">-</div></div>
+          <div class="stat"><div class="lbl" data-i18n="stat.totalcontrib">Total invested</div><div class="val" id="gStatApor">-</div><div class="sub">10 anos</div></div>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding-top:18px;border-top:1px solid var(--border);margin-bottom:16px">
-          <div class="eyebrow" data-i18n="goal.variables">VARIÁVEIS</div>
-          <button class="btn-ghost" id="gBtnReset" style="padding:5px 12px;font-size:11px">Resetar</button>
+          <div class="eyebrow" data-i18n="goal.variables">VARIABLES</div>
+          <button class="btn-ghost" id="gBtnReset" style="padding:5px 12px;font-size:11px">Reset</button>
         </div>
         <div class="g-sliders">
-          <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.monthly">Aporte mensal</span><span class="g-val" id="gvAporte">R$ 24.000</span></div><input type="range" id="gsAporte" min="0" max="100000" step="1000" value="24000"></div>
-          <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.growthcontrib">Crescimento aporte</span><span class="g-val" id="gvCrescAporte">10,0%/ano</span></div><input type="range" id="gsCrescAporte" min="0" max="30" step="0.5" value="10"></div>
-          <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.dy">DY esperado</span><span class="g-val" id="gvDY">8,0%</span></div><input type="range" id="gsDY" min="0" max="15" step="0.1" value="8"></div>
-          <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.reinvest">Reinvestimento</span><span class="g-val" id="gvReinv">100%</span></div><input type="range" id="gsReinv" min="0" max="100" step="5" value="100"></div>
-          <div class="g-sl" style="grid-column:1/-1"><div class="g-top"><span class="g-name" data-i18n="slider.growthdiv">Crescimento do dividendo (empresa)</span><span class="g-val" id="gvCrescDiv">6,0%/ano</span></div><input type="range" id="gsCrescDiv" min="0" max="15" step="0.5" value="6"></div>
+          <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.monthly">Monthly contribution</span><span class="g-val" id="gvAporte">R$ 24.000</span></div><input type="text" inputmode="decimal" id="gsAporte" class="var-input-v8" value="R$ 24.000" autocomplete="off"></div>
+          <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.growthcontrib">Contribution growth</span><span class="g-val" id="gvCrescAporte">10,0%/ano</span></div><input type="text" inputmode="decimal" id="gsCrescAporte" class="var-input-v8" value="10,0%/yr" autocomplete="off"></div>
+          <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.dy">Expected DY</span><span class="g-val" id="gvDY">8,0%</span></div><input type="text" inputmode="decimal" id="gsDY" class="var-input-v8" value="8,0%" autocomplete="off"></div>
+          <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.reinvest">Reinvestment</span><span class="g-val" id="gvReinv">100%</span></div><input type="text" inputmode="decimal" id="gsReinv" class="var-input-v8" value="100%" autocomplete="off"></div>
+          <div class="g-sl" style="grid-column:1/-1"><div class="g-top"><span class="g-name" data-i18n="slider.growthdiv">Dividend growth</span><span class="g-val" id="gvCrescDiv">6,0%/ano</span></div><input type="text" inputmode="decimal" id="gsCrescDiv" class="var-input-v8" value="6,0%/yr" autocomplete="off"></div>
         </div>
       </div>
 
@@ -912,7 +1315,7 @@ body::before {
             <div class="ytd-block">
               <div class="ytd-lbl">dividendos YTD <span id="i10Year">2026</span></div>
               <div class="ytd-num"><span class="cur">R$</span><span class="v" id="i10Dividends">0</span></div>
-              <div class="ytd-sub" id="i10DivSub" data-i18n="ytd.received">proventos recebidos neste ano</div>
+              <div class="ytd-sub" id="i10DivSub" data-i18n="ytd.received">dividends received this year</div>
               <div class="ytd-progress"><i id="ytdProgressBar" style="width:0%"></i></div>
             </div>
             <div class="ytd-block">
@@ -931,7 +1334,7 @@ body::before {
           <div class="card-head">
             <div>
               <div class="eyebrow" data-i18n="card.portfolio">my portfolio</div>
-              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" id="i10AssetsCount" data-i18n="loading">carregando...</div>
+              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" id="i10AssetsCount" data-i18n="loading">loading...</div>
             </div>
             <div class="eyebrow-mono" data-i18n="via.i10">VIA I10</div>
           </div>
@@ -962,7 +1365,7 @@ body::before {
           <div class="card-head">
             <div>
               <div class="eyebrow" data-i18n="card.networth">net worth per year</div>
-              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" data-i18n="sub.networth">evolucao do patrimonio</div>
+              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" data-i18n="sub.networth">net worth evolution</div>
             </div>
           </div>
           <div id="plChartWrap"></div>
@@ -975,20 +1378,20 @@ body::before {
           <div class="card-head">
             <div>
               <div class="eyebrow" data-i18n="card.contributions">monthly contributions</div>
-              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" data-i18n="sub.contributions">aportes em dinheiro do trabalho</div>
+              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" data-i18n="sub.contributions">cash contributions from work</div>
             </div>
             <button class="btn-ghost primary" id="btnAddContrib">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Aporte
+              Contribution
             </button>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
             <div style="padding:14px 16px;background:rgba(255,255,255,0.025);border:1px solid var(--card-divider);border-radius:14px">
-              <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:12px;color:var(--ink-muted);margin-bottom:6px" data-i18n="contrib.total">total aportado</div>
+              <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:12px;color:var(--ink-muted);margin-bottom:6px" data-i18n="contrib.total">total invested</div>
               <div id="contribTotal" style="font-family:'Geist Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-0.02em">R$ 0</div>
             </div>
             <div style="padding:14px 16px;background:rgba(255,255,255,0.025);border:1px solid var(--card-divider);border-radius:14px">
-              <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:12px;color:var(--ink-muted);margin-bottom:6px" data-i18n="contrib.avg">média mensal</div>
+              <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:12px;color:var(--ink-muted);margin-bottom:6px" data-i18n="contrib.avg">monthly average</div>
               <div id="contribAvg" style="font-family:'Geist Mono',monospace;font-size:20px;font-weight:700;color:var(--purple-light);letter-spacing:-0.02em">R$ 0</div>
             </div>
           </div>
@@ -1002,21 +1405,21 @@ body::before {
           <div class="card-head">
             <div>
               <div class="eyebrow" data-i18n="card.history">yearly history</div>
-              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" data-i18n="sub.history">patrimonio + proventos por ano</div>
+              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" data-i18n="sub.history">net worth + dividends per year</div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button class="btn-ghost" id="btnImportHistory" title="Importar historico de PL e dividendos do Investidor10">
+              <button class="btn-ghost" id="btnImportHistory" title="Import net worth and dividends history from Investidor10">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 I10
               </button>
               <button class="btn-ghost primary" id="btnAddYear">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                Ano
+                Year
               </button>
             </div>
           </div>
           <table class="yearly-table">
-            <thead><tr><th data-i18n="th.year">Ano</th><th data-i18n="th.networth">Patrimônio</th><th data-i18n="th.dividends">Proventos</th><th data-i18n="th.dy">DY</th><th data-i18n="th.yoy">YoY</th></tr></thead>
+            <thead><tr><th data-i18n="th.year">Year</th><th data-i18n="th.networth">Net worth</th><th data-i18n="th.dividends">Dividends</th><th data-i18n="th.dy">DY</th><th data-i18n="th.yoy">YoY</th></tr></thead>
             <tbody id="yearlyBody"></tbody>
           </table>
           <div style="display:none">
@@ -1032,31 +1435,31 @@ body::before {
 </div>
 
 <div class="modal-bg" id="expenseModal"><div class="modal">
-  <h3 id="expenseModalTitle">Nova despesa</h3>
-  <p class="sub">Registre um gasto. Categorias podem ser editadas no futuro.</p>
+  <h3 id="expenseModalTitle">New expense</h3>
+  <p class="sub">Track an expense. Categories can be edited later.</p>
   <div class="form-grid">
-    <div class="field full"><label>Descrição</label><input type="text" id="expDesc" placeholder="Ex: Mercado do mês, Netflix, Uber..." autocomplete="off" /></div>
-    <div class="field"><label>Valor (R$)</label><input type="number" id="expValue" placeholder="0,00" min="0" step="0.01" /></div>
-    <div class="field"><label>Data</label><input type="date" id="expDate" /></div>
-    <div class="field full"><label>Categoria</label><select id="expCategory">
-      <option value="moradia">🏠 Moradia</option>
-      <option value="alimentacao">🍽️ Alimentação</option>
-      <option value="transporte">🚗 Transporte</option>
-      <option value="saude">💊 Saúde</option>
-      <option value="lazer">🎮 Lazer</option>
-      <option value="educacao">📚 Educação</option>
-      <option value="assinaturas">📱 Assinaturas</option>
-      <option value="cartao">💳 Cartão de crédito</option>
-      <option value="compras">🛍️ Compras</option>
-      <option value="outros">📦 Outros</option>
+    <div class="field full"><label>Description</label><input type="text" id="expDesc" placeholder="Ex: Groceries, Netflix, Uber..." autocomplete="off" /></div>
+    <div class="field"><label>Amount (R$)</label><input type="number" id="expValue" placeholder="0,00" min="0" step="0.01" /></div>
+    <div class="field"><label>Date</label><input type="date" id="expDate" /></div>
+    <div class="field full"><label>Category</label><select id="expCategory">
+      <option value="moradia">🏠 Housing</option>
+      <option value="alimentacao">🍽️ Food</option>
+      <option value="transporte">🚗 Transport</option>
+      <option value="saude">💊 Health</option>
+      <option value="lazer">🎮 Leisure</option>
+      <option value="educacao">📚 Education</option>
+      <option value="assinaturas">📱 Subscriptions</option>
+      <option value="cartao">💳 Credit card</option>
+      <option value="compras">🛍️ Shopping</option>
+      <option value="outros">📦 Other</option>
     </select></div>
-    <div class="field full"><label>Observação (opcional)</label><textarea id="expNotes" placeholder="Detalhes adicionais..." rows="2"></textarea></div>
+    <div class="field full"><label>Notes (optional)</label><textarea id="expNotes" placeholder="Additional details..." rows="2"></textarea></div>
   </div>
   <div class="modal-foot">
-    <button class="btn-danger" id="expDelete" style="display:none">Excluir</button>
+    <button class="btn-danger" id="expDelete" style="display:none">Delete</button>
     <div class="spacer"></div>
-    <button class="btn-secondary" id="expCancel">Cancelar</button>
-    <button class="btn-primary" id="expSave">Salvar</button>
+    <button class="btn-secondary" id="expCancel">Cancel</button>
+    <button class="btn-primary" id="expSave">Save</button>
   </div>
 </div></div>
 
@@ -1069,8 +1472,8 @@ body::before {
   </div>
   <div class="modal-foot">
     <div class="spacer"></div>
-    <button class="btn-secondary" id="i10Cancel">Cancelar</button>
-    <button class="btn-primary" id="i10Save">Salvar</button>
+    <button class="btn-secondary" id="i10Cancel">Cancel</button>
+    <button class="btn-primary" id="i10Save">Save</button>
   </div>
 </div></div>
 
@@ -1091,8 +1494,8 @@ body::before {
   </div>
   <div class="modal-foot">
     <div class="spacer"></div>
-    <button class="btn-secondary" id="i10CfgCancel">Cancelar</button>
-    <button class="btn-primary" id="i10CfgSave">Salvar</button>
+    <button class="btn-secondary" id="i10CfgCancel">Cancel</button>
+    <button class="btn-primary" id="i10CfgSave">Save</button>
   </div>
 </div></div>
 
@@ -1100,15 +1503,15 @@ body::before {
   <h3 id="yearlyModalTitle">Adicionar ano</h3>
   <p class="sub">Snapshot anual para gráficos de crescimento.</p>
   <div class="form-grid">
-    <div class="field"><label>Ano</label><input type="number" id="yearlyYear" placeholder="2026" min="2000" max="2100" /></div>
+    <div class="field"><label>Year</label><input type="number" id="yearlyYear" placeholder="2026" min="2000" max="2100" /></div>
     <div class="field"><label>Patrimônio (R$)</label><input type="number" id="yearlyEquity" placeholder="1000000" min="0" step="0.01" /></div>
     <div class="field full"><label>Proventos do ano (R$)</label><input type="number" id="yearlyDivs" placeholder="50000" min="0" step="0.01" /><div class="hint">Total de dividendos recebidos neste ano</div></div>
   </div>
   <div class="modal-foot">
-    <button class="btn-danger" id="yearlyDelete" style="display:none">Excluir</button>
+    <button class="btn-danger" id="yearlyDelete" style="display:none">Delete</button>
     <div class="spacer"></div>
-    <button class="btn-secondary" id="yearlyCancel">Cancelar</button>
-    <button class="btn-primary" id="yearlySave">Salvar</button>
+    <button class="btn-secondary" id="yearlyCancel">Cancel</button>
+    <button class="btn-primary" id="yearlySave">Save</button>
   </div>
 </div></div>
 
@@ -1119,28 +1522,28 @@ body::before {
   <div class="modal-foot">
     <button class="btn-secondary" id="contribListClose">Fechar</button>
     <div class="spacer"></div>
-    <button class="btn-primary" id="contribListAdd">+ Novo aporte</button>
+    <button class="btn-primary" id="contribListAdd">+ New contribution</button>
   </div>
 </div></div>
 
 <div class="modal-bg" id="contribModal"><div class="modal">
-  <h3>Aporte mensal</h3>
+  <h3>Monthly contribution</h3>
   <p class="sub">Registre um aporte feito no mês</p>
   <div class="form-grid">
-    <div class="field"><label>Ano</label><input type="number" id="contribYear" min="2020" max="2099" /></div>
+    <div class="field"><label>Year</label><input type="number" id="contribYear" min="2020" max="2099" /></div>
     <div class="field"><label>Mês</label><select id="contribMonth">
       <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
       <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
       <option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option>
       <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
     </select></div>
-    <div class="field full"><label>Valor (R$)</label><input type="number" id="contribAmount" placeholder="0,00" min="0" step="0.01" /></div>
+    <div class="field full"><label>Amount (R$)</label><input type="number" id="contribAmount" placeholder="0,00" min="0" step="0.01" /></div>
   </div>
   <div class="modal-foot">
-    <button class="btn-danger" id="contribDelete" style="display:none">Excluir</button>
+    <button class="btn-danger" id="contribDelete" style="display:none">Delete</button>
     <div class="spacer"></div>
-    <button class="btn-secondary" id="contribCancel">Cancelar</button>
-    <button class="btn-primary" id="contribSave">Salvar</button>
+    <button class="btn-secondary" id="contribCancel">Cancel</button>
+    <button class="btn-primary" id="contribSave">Save</button>
   </div>
 </div></div>
 
@@ -1161,8 +1564,8 @@ body::before {
   </div>
   <div class="modal-foot">
     <div class="spacer"></div>
-    <button class="btn-secondary" id="goalEditCancel">Cancelar</button>
-    <button class="btn-primary" id="goalEditSave">Salvar</button>
+    <button class="btn-secondary" id="goalEditCancel">Cancel</button>
+    <button class="btn-primary" id="goalEditSave">Save</button>
   </div>
 </div></div>
 
@@ -1256,7 +1659,7 @@ const I18N = {
     'login.tagline': 'Ferramenta de finanças pessoais.<br/>Entre com Google para continuar.',
     'login.button': 'Entrar com Google',
     'hero.networth': 'Patrimônio total',
-    'hero.sync': 'Sincronizar',
+    'hero.sync': 'Sync',
     'hero.updated.never': 'ainda não atualizado',
     'hero.updated.prefix': 'atualizado',
     'goal.eyebrow': 'META DE LONGO PRAZO',
@@ -1281,14 +1684,14 @@ const I18N = {
     'slider.dy': 'DY esperado',
     'slider.reinvest': 'Reinvestimento',
     'slider.growthdiv': 'Crescimento do dividendo (empresa)',
-    'hero.manual': 'Atualização manual',
-    'hero.manual.full': 'Atualização manual · configure sync pra automático',
+    'hero.manual': 'Manual update',
+    'hero.manual.full': 'Manual update · configure sync for automatic',
     'ytd.received': 'proventos recebidos neste ano',
     'ytd.alltime.from': 'desde {year} · {n} {label} de histórico',
     'ytd.alltime.empty': 'sem histórico ainda',
     'years.singular': 'ano',
     'years.plural': 'anos',
-    'loading': 'carregando...',
+    'loading': 'loading...',
     'via.i10': 'VIA I10',
     'sub.dividends': 'histórico anual de proventos',
     'sub.networth': 'evolução do patrimônio',
@@ -1299,19 +1702,19 @@ const I18N = {
     'contrib.empty': 'Nenhum aporte cadastrado. Clique em "+ Aporte" para começar.',
     'contrib.aporte': 'aporte',
     'contrib.aportes': 'aportes',
-    'goal.status.green': 'no caminho',
-    'goal.status.yellow': 'apertado',
-    'goal.status.red': 'fora do prazo',
+    'goal.status.green': 'on track',
+    'goal.status.yellow': 'tight',
+    'goal.status.red': 'off schedule',
     'goal.notreach': 'não atinge',
     'goal.before': 'antes',
     'goal.after': 'depois',
     'goal.onschedule': 'no prazo',
-    'toast.saved': 'Aporte salvo',
-    'toast.deleted': 'Aporte excluído',
-    'toast.error.save': 'Erro ao salvar',
-    'toast.error.delete': 'Erro ao excluir',
-    'toast.synced': 'Sincronizado',
-    'toast.synced.assets': '{n} ativos',
+    'toast.saved': 'Contribution saved',
+    'toast.deleted': 'Contribution deleted',
+    'toast.error.save': 'Save failed',
+    'toast.error.delete': 'Delete failed',
+    'toast.synced': 'Synced',
+    'toast.synced.assets': '{n} assets',
     'count.assets.singular': 'ativo',
     'count.assets.plural': 'ativos',
     'count.cat.singular': 'categoria',
@@ -1613,7 +2016,7 @@ function renderRecentList(monthExp) {
 function renderExpenseTable(monthExp) {
   const tbody = $('expBody');
   if (monthExp.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-table"><h4>Nenhuma despesa neste mês</h4><p>Clique em "Nova despesa" para começar.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-table"><h4>Nenhuma despesa neste mês</h4><p>Clique em "New expense" para começar.</p></div></td></tr>`;
     return;
   }
   const sorted = [...monthExp].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -1646,7 +2049,7 @@ function openExpenseModal(id = null) {
     $('expNotes').value = e.notes || '';
     $('expDelete').style.display = '';
   } else {
-    $('expenseModalTitle').textContent = 'Nova despesa';
+    $('expenseModalTitle').textContent = 'New expense';
     $('expDesc').value = '';
     $('expValue').value = '';
     // Default date = today
@@ -1668,7 +2071,7 @@ async function saveExpense() {
   const category = $('expCategory').value;
   const notes = $('expNotes').value.trim();
 
-  if (!description) { showToast('Descrição obrigatória'); return; }
+  if (!description) { showToast('Description required'); return; }
   if (!value || value <= 0) { showToast('Valor deve ser maior que zero'); return; }
   if (!date) { showToast('Data obrigatória'); return; }
 
@@ -1949,7 +2352,7 @@ function buildBarChart(years, values, opts = {}) {
         const linePts = valid.map(p => p.cx + ',' + p.top).join(' ');
         svg += '<polyline points="' + linePts + '" fill="none" stroke="#E3A2EE" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>';
         for (const p of valid) {
-          svg += '<circle cx="' + p.cx + '" cy="' + p.top + '" r="4" fill="#E3A2EE" stroke="#1a181d" stroke-width="2"/>';
+          svg += '<circle cx="' + p.cx + '" cy="' + p.top + '" r="4" fill="#E3A2EE" stroke="#29262B" stroke-width="2"/>';
         }
         // Show YoY % only on top 3 highest growths to avoid clutter
         const yoys = [];
@@ -2032,20 +2435,30 @@ function renderYearlyTable() {
   const tbody = $('yearlyBody');
   const sorted = [...state.yearly].sort((a,b) => (a.year||0) - (b.year||0));
   if (sorted.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-table"><h4>Sem dados anuais</h4><p>Clique em "Adicionar ano" para começar.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-table"><h4>No yearly data</h4><p>Click "+ Year" to add your first year.</p></div></td></tr>`;
     return;
   }
+  // v8 Turno 4: compact values (64,2K / 1,34M) + sanitized YoY (>1000% → —)
+  const compact = (n) => {
+    const abs = Math.abs(n || 0);
+    if (abs >= 1_000_000) return (n/1_000_000).toFixed(2).replace('.', ',') + 'M';
+    if (abs >= 1_000)     return (n/1_000).toFixed(1).replace('.', ',') + 'K';
+    return String(Math.round(n || 0));
+  };
   tbody.innerHTML = sorted.map((y, i) => {
-    const dy = (+y.equity > 0) ? ((+y.divs / +y.equity) * 100).toFixed(2) + '%' : '-';
-    let yoy = '-';
+    const dy = (+y.equity > 0) ? ((+y.divs / +y.equity) * 100).toFixed(1) + '%' : '—';
+    let yoy = '—';
     if (i > 0) {
       const prev = +sorted[i-1].divs || 0;
       if (prev > 0) {
         const growth = (((+y.divs || 0) - prev) / prev) * 100;
-        yoy = (growth >= 0 ? '+' : '') + growth.toFixed(1) + '%';
+        if (isFinite(growth) && Math.abs(growth) <= 1000) {
+          yoy = (growth >= 0 ? '+' : '') + growth.toFixed(1) + '%';
+        }
       }
     }
-    return `<tr data-id="${y.id}"><td>${y.year}</td><td>${fmtBRL0(+y.equity||0)}</td><td>${fmtBRL0(+y.divs||0)}</td><td>${dy}</td><td>${yoy}</td></tr>`;
+    const yoyClass = yoy.startsWith('+') ? 'pos' : (yoy.startsWith('-') ? 'neg' : '');
+    return `<tr data-id="${y.id}"><td>${y.year}</td><td>${compact(+y.equity||0)}</td><td>${compact(+y.divs||0)}</td><td>${dy}</td><td class="${yoyClass}">${yoy}</td></tr>`;
   }).join('');
   tbody.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => openYearlyModal(tr.dataset.id)));
 }
@@ -2307,7 +2720,7 @@ function openContribListModal(year, month) {
   listEl.innerHTML = items.map(c => `
     <div class="contrib-item" data-id="${c.id}">
       <div class="contrib-val">${fmtBRL0(+c.amount || 0)}</div>
-      <button class="contrib-edit" data-action="edit" data-id="${c.id}" title="Editar">
+      <button class="contrib-edit" data-action="edit" data-id="${c.id}" title="Edit">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
       </button>
       <button class="contrib-del" data-action="delete" data-id="${c.id}" title="Excluir">
@@ -3009,22 +3422,34 @@ function simulate(p) {
 }
 
 function readSliders() {
+  // v8 Turno 3: inputs now text-formatted ("R$ 24.000", "10,0%/yr"). Parse via shared helper.
+  const parseV = (s) => {
+    if (s == null) return 0;
+    const c = String(s).replace(/R\$|\s|%|\/yr|\/ano|\./g, '').replace(',', '.');
+    const n = parseFloat(c);
+    return isFinite(n) ? n : 0;
+  };
   return {
-    aporte: +$('gsAporte').value,
-    crescAporte: +$('gsCrescAporte').value,
-    dy: +$('gsDY').value,
-    reinv: +$('gsReinv').value,
-    crescDiv: +$('gsCrescDiv').value,
+    aporte: parseV($('gsAporte').value),
+    crescAporte: parseV($('gsCrescAporte').value),
+    dy: parseV($('gsDY').value),
+    reinv: parseV($('gsReinv').value),
+    crescDiv: parseV($('gsCrescDiv').value),
   };
 }
 
 function applyParams(p) {
   isLoadingFromFirestore = true;
-  $('gsAporte').value = p.aporte;
-  $('gsCrescAporte').value = p.crescAporte;
-  $('gsDY').value = p.dy;
-  $('gsReinv').value = p.reinv;
-  $('gsCrescDiv').value = p.crescDiv;
+  // v8 Turno 3: write back as formatted strings to match the text inputs
+  const fmtBRLi = (n) => 'R$ ' + Math.round(n).toLocaleString('pt-BR');
+  const fmtPctY = (n) => n.toFixed(1).replace('.', ',') + '%/yr';
+  const fmtPctP = (n) => n.toFixed(1).replace('.', ',') + '%';
+  const fmtPctI = (n) => Math.round(n) + '%';
+  $('gsAporte').value = fmtBRLi(p.aporte);
+  $('gsCrescAporte').value = fmtPctY(p.crescAporte);
+  $('gsDY').value = fmtPctP(p.dy);
+  $('gsReinv').value = fmtPctI(p.reinv);
+  $('gsCrescDiv').value = fmtPctY(p.crescDiv);
   isLoadingFromFirestore = false;
   render();
 }
@@ -3101,55 +3526,112 @@ function drawChart(proj, metaHitYear) {
   const xS = y => padL + ((y-minYear)/(maxYear-minYear))*innerW;
   const yS = v => padT + innerH - (v/maxDivs)*innerH;
 
-  let svg = '<defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5d2680"/><stop offset="1" stop-color="#E3A2EE"/></linearGradient><filter id="gl"><feGaussianBlur stdDeviation="3"/></filter></defs>';
+  // v8 Turno 4: hatched area + classed paths so @keyframes from Turno 2 engage automatically.
+  // Classes the stylesheet hooks: .chart-svg .hatch-layer .history-line .projection-line .current-point .target-point .target-line
+  let svg = '<g class="chart-svg">';
+  svg += '<defs>';
+  svg += '<pattern id="hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">';
+  svg += '<line x1="0" y1="0" x2="0" y2="8" stroke="#AC5FDB" stroke-width="1.2" stroke-opacity=".38"/>';
+  svg += '</pattern>';
+  svg += '<linearGradient id="histLine" x1="0" y1="0" x2="1" y2="0">';
+  svg += '<stop offset="0" stop-color="#8b3fb8"/><stop offset="1" stop-color="#E3A2EE"/>';
+  svg += '</linearGradient>';
+  svg += '</defs>';
 
-  // grid Y
+  // Grid Y + labels
   for (const t of [0, 250000, 500000, 750000, 1000000]) {
     const y = yS(t);
     svg += '<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>';
-    svg += '<text x="'+(padL-8)+'" y="'+(y+3)+'" text-anchor="end" fill="#6b6473" font-family="Geist Mono, monospace" font-size="9">'+(t===0?'0':(t/1000)+'k')+'</text>';
+    const lbl = t===0 ? '0' : (t>=1000000 ? '1M' : (t/1000)+'K');
+    svg += '<text x="'+(padL-8)+'" y="'+(y+3)+'" text-anchor="end" fill="#6b6473" font-family="Geist Mono, monospace" font-size="9">'+lbl+'</text>';
   }
   // X labels
   for (const t of [2020,2025,2030,2035]) {
     svg += '<text x="'+xS(t)+'" y="'+(H-padB+18)+'" text-anchor="middle" fill="#6b6473" font-family="Geist Mono, monospace" font-size="10">'+t+'</text>';
   }
-  // target line
+
+  // Target horizontal line (1M) — animated via .target-line
   const yT = yS(TARGET);
-  svg += '<line x1="'+padL+'" y1="'+yT+'" x2="'+(W-padR)+'" y2="'+yT+'" stroke="#34e17a" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.7"/>';
-  svg += '<text x="'+(W-padR-4)+'" y="'+(yT-8)+'" text-anchor="end" fill="#34e17a" font-weight="600" font-family="Geist Mono, monospace" font-size="10">META R$ 1M</text>';
+  svg += '<line class="target-line" x1="'+padL+'" y1="'+yT+'" x2="'+(W-padR)+'" y2="'+yT+'" stroke="#E3A2EE" stroke-width="1" stroke-dasharray="2 3" opacity=".6"/>';
+  svg += '<text x="'+(W-padR-4)+'" y="'+(yT-6)+'" text-anchor="end" fill="#E3A2EE" font-weight="600" font-family="Geist Mono, monospace" font-size="9" letter-spacing="1">1M TARGET</text>';
 
-  // real line
-  const rPts = realDivs.map(d => xS(d.year)+','+yS(d.divs)).join(' ');
-  svg += '<polyline points="'+rPts+'" fill="none" stroke="url(#lg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.4" filter="url(#gl)"/>';
-  svg += '<polyline points="'+rPts+'" fill="none" stroke="url(#lg)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+  // Hatched area under the history line — anchored at y of last real point, floors at bottom
+  const baseY = yS(0);
+  const histPts = realDivs.map(d => xS(d.year)+','+yS(d.divs)).join(' L');
+  if (realDivs.length >= 2) {
+    const firstX = xS(realDivs[0].year);
+    const lastX = xS(realDivs[realDivs.length-1].year);
+    const areaD = 'M'+firstX+','+baseY+' L'+histPts+' L'+lastX+','+baseY+' Z';
+    svg += '<path class="hatch-layer" d="'+areaD+'" fill="url(#hatch)" stroke="none"/>';
+  }
 
-  // projection
+  // History solid line — traced on load via tracePath() in app.js
+  if (realDivs.length >= 2) {
+    const lineD = 'M'+histPts;
+    svg += '<path class="history-line" d="'+lineD+'" fill="none" stroke="url(#histLine)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+  }
+
+  // Projection dashed line — shimmer animation via .projection-line
   const lastReal = realDivs[realDivs.length-1];
-  const pPts = [xS(lastReal.year)+','+yS(lastReal.divs), ...projDivs.map(d => xS(d.year)+','+yS(d.divs))].join(' ');
-  svg += '<polyline points="'+pPts+'" fill="none" stroke="#AC5FDB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="5 4" opacity="0.85"/>';
+  const projPath = [lastReal, ...projDivs.filter(d => d.year > lastReal.year)];
+  if (projPath.length >= 2) {
+    const projD = 'M' + projPath.map(d => xS(d.year)+','+yS(d.divs)).join(' L');
+    svg += '<path class="projection-line" d="'+projD+'" fill="none" stroke="#E3A2EE" stroke-width="2" stroke-linecap="round" opacity=".85"/>';
+  }
 
-  // dots real
-  for (const d of realDivs) svg += '<circle cx="'+xS(d.year)+'" cy="'+yS(d.divs)+'" r="3.5" fill="#E3A2EE" stroke="#1a181d" stroke-width="2"/>';
+  // History point markers
+  for (const d of realDivs.slice(0, -1)) {
+    svg += '<circle cx="'+xS(d.year)+'" cy="'+yS(d.divs)+'" r="3" fill="#E3A2EE" stroke="#29262B" stroke-width="2"/>';
+  }
+  // Current point (last real) — pulses via .current-point
+  svg += '<circle class="current-point" cx="'+xS(lastReal.year)+'" cy="'+yS(lastReal.divs)+'" r="3.5" fill="#E3A2EE" stroke="#29262B" stroke-width="2"/>';
 
-  // meta hit dot
+  // Meta hit marker (green glow)
   if (metaHitYear && metaHitYear <= TARGET_YEAR) {
     const hit = proj.find(p => p.year === metaHitYear);
     if (hit) {
       const hx=xS(hit.year), hy=yS(hit.divs);
       svg += '<circle cx="'+hx+'" cy="'+hy+'" r="9" fill="#34e17a" opacity="0.2"/>';
-      svg += '<circle cx="'+hx+'" cy="'+hy+'" r="5" fill="#34e17a" stroke="#1a181d" stroke-width="2"/>';
+      svg += '<circle cx="'+hx+'" cy="'+hy+'" r="5" fill="#34e17a" stroke="#29262B" stroke-width="2"/>';
     }
   }
-  // final 2035
+  // Target point at 2035 — pulses via .target-point
   const f = proj.find(p => p.year === TARGET_YEAR);
-  if (f) svg += '<circle cx="'+xS(f.year)+'" cy="'+yS(f.divs)+'" r="4" fill="#AC5FDB" stroke="#1a181d" stroke-width="2"/>';
+  if (f) svg += '<circle class="target-point" cx="'+xS(f.year)+'" cy="'+yS(f.divs)+'" r="4" fill="#fff" stroke="#E3A2EE" stroke-width="2"/>';
 
+  svg += '</g>';
   $('gChart').innerHTML = svg;
+
+  // v8 Turno 4: one-shot stroke-dashoffset trace on first successful draw
+  if (!window._chartTraced) {
+    window._chartTraced = true;
+    requestAnimationFrame(() => {
+      const h = document.querySelector('#gChart .history-line');
+      const p = document.querySelector('#gChart .projection-line');
+      if (h && h.getTotalLength) {
+        const L = h.getTotalLength();
+        h.style.strokeDasharray = L;
+        h.style.strokeDashoffset = L;
+        h.getBoundingClientRect();
+        h.style.transition = 'stroke-dashoffset 1400ms cubic-bezier(.2,.8,.2,1)';
+        h.style.strokeDashoffset = 0;
+      }
+      if (p) {
+        p.style.opacity = '0';
+        setTimeout(() => {
+          p.style.transition = 'opacity .8s ease';
+          p.style.opacity = '.85';
+        }, 1600);
+      }
+    });
+  }
 }
 
-// Wire sliders
+// Wire sliders — v8 Turno 3: text inputs fire on `change` (blur) not `input` to avoid reformatting mid-typing
 ['gsAporte','gsCrescAporte','gsDY','gsReinv','gsCrescDiv'].forEach(id => {
-  $(id).addEventListener('input', render);
+  const el = $(id);
+  el.addEventListener('change', render);
+  el.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } });
 });
 $('gBtnReset').addEventListener('click', () => { applyParams(DEFAULTS); });
 
