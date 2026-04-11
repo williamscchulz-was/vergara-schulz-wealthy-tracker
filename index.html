@@ -205,47 +205,56 @@ body::after {
     radial-gradient(circle at 70% 40%, rgba(192,132,252,.08), transparent 50%);
 }
 
-/* Primary CTAs get liquid-border: Sync + Add Year + main + Add contribution */
-#btnSyncI10,
-#btnAddYear,
-#btnAddContrib,
-#btnAddExpense {
-  position: relative;
+/* v8 LIQUID BORDER — applied via ::after to avoid colliding with .btn-ghost::before legacy */
+button#btnSyncI10,
+button#btnAddYear,
+button#btnAddContrib,
+button#btnAddExpense {
+  position: relative !important;
   isolation: isolate;
-  overflow: visible !important; /* old .btn-ghost set overflow:hidden which clipped our liquid border */
+  overflow: visible !important;
 }
-/* Hide the legacy .btn-ghost::before shimmer on these specific buttons */
-#btnSyncI10::after, #btnAddYear::after, #btnAddContrib::after, #btnAddExpense::after {
+/* Kill the legacy .btn-ghost::before shimmer ONLY on these specific buttons so it doesn't fight the liquid */
+button#btnSyncI10::before,
+button#btnAddYear::before,
+button#btnAddContrib::before,
+button#btnAddExpense::before {
   display: none !important;
+  content: none !important;
 }
-#btnSyncI10::before,
-#btnAddYear::before,
-#btnAddContrib::before,
-#btnAddExpense::before {
-  content: "";
-  position: absolute;
-  inset: -1.5px;
-  border-radius: inherit;
-  padding: 1.5px;
+button#btnSyncI10::after,
+button#btnAddYear::after,
+button#btnAddContrib::after,
+button#btnAddExpense::after {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  top: -2px !important;
+  left: -2px !important;
+  right: -2px !important;
+  bottom: -2px !important;
+  border-radius: 999px !important;
+  padding: 2px !important;
   background: conic-gradient(
     from var(--liquid-angle),
     transparent 0%,
-    transparent 60%,
-    rgba(227,162,238,.4) 72%,
-    #E3A2EE 82%,
-    #fff 88%,
-    #E3A2EE 94%,
-    rgba(172,95,219,.4) 100%
-  );
+    transparent 55%,
+    rgba(227,162,238,.5) 68%,
+    #E3A2EE 78%,
+    #ffffff 86%,
+    #E3A2EE 92%,
+    rgba(172,95,219,.5) 100%
+  ) !important;
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  animation: liquid-spin 3.5s linear infinite;
-  filter: drop-shadow(0 0 4px rgba(227,162,238,.55));
-  pointer-events: none;
-  z-index: 2;
+    linear-gradient(#000 0 0) !important;
+  -webkit-mask-composite: xor !important;
+          mask-composite: exclude !important;
+  animation: liquid-spin 3.5s linear infinite !important;
+  filter: drop-shadow(0 0 6px rgba(227,162,238,.8)) !important;
+  pointer-events: none !important;
+  z-index: 10 !important;
+  transform: none !important;
 }
 /* Sync button also gets the breathing glow */
 #btnSyncI10 {
@@ -1019,19 +1028,20 @@ body::before {
 #expSave, #i10Save, #i10CfgSave, #yearlySave, #contribListAdd, #contribSave, #goalEditSave {
   position: relative;
   isolation: isolate;
+  overflow: visible !important;
 }
-#expSave::before, #i10Save::before, #i10CfgSave::before, #yearlySave::before,
-#contribListAdd::before, #contribSave::before, #goalEditSave::before {
+#expSave::after, #i10Save::after, #i10CfgSave::after, #yearlySave::after,
+#contribListAdd::after, #contribSave::after, #goalEditSave::after {
   content: "";
   position: absolute;
-  inset: -1.5px;
+  inset: -2px;
   border-radius: inherit;
-  padding: 1.5px;
+  padding: 2px;
   background: conic-gradient(
     from var(--liquid-angle),
-    transparent 0%, transparent 60%,
-    rgba(227,162,238,.4) 72%, #E3A2EE 82%, #fff 88%,
-    #E3A2EE 94%, rgba(172,95,219,.4) 100%
+    transparent 0%, transparent 55%,
+    rgba(227,162,238,.5) 68%, #E3A2EE 78%, #ffffff 86%,
+    #E3A2EE 92%, rgba(172,95,219,.5) 100%
   );
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
@@ -1039,9 +1049,10 @@ body::before {
   -webkit-mask-composite: xor;
           mask-composite: exclude;
   animation: liquid-spin 3.5s linear infinite;
-  filter: drop-shadow(0 0 3px rgba(227,162,238,.5));
+  filter: drop-shadow(0 0 5px rgba(227,162,238,.6));
   pointer-events: none;
-  z-index: 2;
+  z-index: 10;
+  display: block !important;
 }
 /* Light theme modals: use frost over lavender bg */
 :root[data-theme="light"] .modal {
