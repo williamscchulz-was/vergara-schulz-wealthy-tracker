@@ -710,6 +710,112 @@ box-shadow: 0 4px 12px -4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05
 .btn-sm.icon-only { width: 32px; }
 .btn-md.icon-only { width: 40px; }
 .btn-lg.icon-only { width: 52px; }
+/* ===========================================================
+MOBILE BOTTOM NAV - floating pill w/ active item popped out
+=========================================================== */
+.bottom-nav { display: none; }
+
+@media (max-width: 720px) {
+.bottom-nav {
+display: block;
+position: fixed;
+left: 0;
+right: 0;
+bottom: calc(16px + env(safe-area-inset-bottom));
+z-index: 100;
+padding: 0 20px;
+pointer-events: none;
+}
+body:not(:has(.app.show)) .bottom-nav { display: none; }
+
+.bottom-nav-pill {
+pointer-events: auto;
+position: relative;
+display: flex;
+align-items: center;
+justify-content: space-around;
+max-width: 360px;
+margin: 0 auto;
+height: 64px;
+padding: 0 18px;
+border-radius: 999px;
+background: linear-gradient(135deg, var(–purple) 0%, var(–purple-deep) 100%);
+box-shadow:
+0 20px 50px -12px rgba(107, 33, 168, 0.60),
+0 10px 24px -8px rgba(107, 33, 168, 0.45),
+inset 0 1px 0 rgba(255, 255, 255, 0.25),
+inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+overflow: visible;
+}
+
+.bn-btn {
+flex: 1;
+display: flex;
+align-items: center;
+justify-content: center;
+background: transparent;
+border: none;
+padding: 0;
+cursor: pointer;
+position: relative;
+height: 100%;
+transition: transform 0.25s var(–ease-out);
+-webkit-tap-highlight-color: transparent;
+}
+.bn-btn:active { transform: scale(0.92); }
+
+.bn-icon-wrap {
+width: 48px;
+height: 48px;
+display: grid;
+place-items: center;
+border-radius: 14px;
+transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+color: rgba(255, 255, 255, 0.55);
+}
+.bn-btn svg { width: 22px; height: 22px; transition: all 0.3s var(–ease-out); }
+
+/* ACTIVE state: icon pops OUT of pill, background white, purple icon */
+.bn-btn.active .bn-icon-wrap {
+background: linear-gradient(180deg, #ffffff 0%, #f0e6fb 100%);
+color: var(–purple-deep);
+transform: translateY(-22px) scale(1.18);
+box-shadow:
+0 16px 32px -8px rgba(107, 33, 168, 0.55),
+0 6px 14px -4px rgba(0, 0, 0, 0.25),
+inset 0 1px 0 rgba(255, 255, 255, 1),
+inset 0 -2px 4px rgba(107, 33, 168, 0.15);
+}
+.bn-btn.active svg {
+width: 26px;
+height: 26px;
+stroke-width: 2.5;
+filter: drop-shadow(0 2px 4px rgba(107, 33, 168, 0.3));
+}
+
+/* Active label shown below the popped icon */
+.bn-label {
+position: absolute;
+bottom: 6px;
+left: 50%;
+transform: translateX(-50%);
+font-size: 11px;
+font-weight: 700;
+font-family: ‘Geist Mono’, monospace;
+letter-spacing: 0.06em;
+text-transform: uppercase;
+color: rgba(255, 255, 255, 0.95);
+white-space: nowrap;
+opacity: 0;
+transition: opacity 0.2s var(–ease-out) 0.1s;
+pointer-events: none;
+}
+.bn-btn.active .bn-label { opacity: 1; }
+
+/* Hide the default top mode switch on mobile, body needs bottom padding */
+.mode-switch { display: none !important; }
+body { padding-bottom: calc(120px + env(safe-area-inset-bottom)) !important; }
+}
 
 </style>
 <script>
@@ -1516,7 +1622,7 @@ function monthLabel(d) {
 // ============================================================
 function switchMode(mode) {
   state.mode = mode;
-  document.querySelectorAll('.mode-switch button').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  document.querySelectorAll('.mode-switch button, .bn-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
   document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
   if (mode === 'expenses') {
     $('moduleExpenses').classList.add('active');
@@ -2768,7 +2874,7 @@ async function deleteYearly() {
 //                 EVENT LISTENERS
 // ============================================================
 // Mode switch
-document.querySelectorAll('.mode-switch button').forEach(b => {
+document.querySelectorAll('.mode-switch button, .bn-btn').forEach(b => {
   b.addEventListener('click', () => switchMode(b.dataset.mode));
 });
 
@@ -3205,6 +3311,25 @@ setInterval(() => { if (userLoaded) drawChart(simulate(readSliders()).proj, simu
 // Initial render with defaults
 render();
 </script>
+
+<!-- ============ MOBILE BOTTOM NAV (floating pill, active item popped out) ============ -->
+
+<nav class="bottom-nav" id="bottomNav" aria-label="Navigation">
+  <div class="bottom-nav-pill">
+    <button data-mode="investments" class="bn-btn active" aria-label="Investimentos">
+      <div class="bn-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+      </div>
+      <span class="bn-label" data-i18n="tab.investments">Investimentos</span>
+    </button>
+    <button data-mode="expenses" class="bn-btn" aria-label="Despesas">
+      <div class="bn-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      </div>
+      <span class="bn-label" data-i18n="tab.expenses">Despesas</span>
+    </button>
+  </div>
+</nav>
 
 </body>
 </html>
