@@ -790,7 +790,7 @@ body::before {
           <span class="num" id="i10Equity">0</span>
         </div>
         <div class="hero-meta-row" id="i10EquitySub">
-          <div class="applied-text">Atualizacao manual</div>
+          <div class="applied-text" data-i18n="hero.manual">Atualização manual</div>
         </div>
         <div class="hero-actions">
           <span class="updated" id="i10Updated">ainda nao atualizado</span>
@@ -850,7 +850,7 @@ body::before {
             <div class="ytd-block">
               <div class="ytd-lbl">dividendos YTD <span id="i10Year">2026</span></div>
               <div class="ytd-num"><span class="cur">R$</span><span class="v" id="i10Dividends">0</span></div>
-              <div class="ytd-sub" id="i10DivSub">proventos recebidos neste ano</div>
+              <div class="ytd-sub" id="i10DivSub" data-i18n="ytd.received">proventos recebidos neste ano</div>
               <div class="ytd-progress"><i id="ytdProgressBar" style="width:0%"></i></div>
             </div>
             <div class="ytd-block">
@@ -869,9 +869,9 @@ body::before {
           <div class="card-head">
             <div>
               <div class="eyebrow" data-i18n="card.portfolio">my portfolio</div>
-              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" id="i10AssetsCount">carregando...</div>
+              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" id="i10AssetsCount" data-i18n="loading">carregando...</div>
             </div>
-            <div class="eyebrow-mono">VIA I10</div>
+            <div class="eyebrow-mono" data-i18n="via.i10">VIA I10</div>
           </div>
           <div class="cat-list" id="i10AssetsList"></div>
         </div>
@@ -883,7 +883,7 @@ body::before {
           <div class="card-head">
             <div>
               <div class="eyebrow" data-i18n="card.dividends">dividends per year</div>
-              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace">historico anual de proventos</div>
+              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" data-i18n="sub.dividends">historico anual de proventos</div>
             </div>
           </div>
           <div id="divChartWrap"></div>
@@ -902,7 +902,7 @@ body::before {
           <div class="card-head">
             <div>
               <div class="eyebrow" data-i18n="card.networth">net worth per year</div>
-              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace">evolucao do patrimonio</div>
+              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" data-i18n="sub.networth">evolucao do patrimonio</div>
             </div>
           </div>
           <div id="plChartWrap"></div>
@@ -915,7 +915,7 @@ body::before {
           <div class="card-head">
             <div>
               <div class="eyebrow" data-i18n="card.contributions">monthly contributions</div>
-              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace">aportes em dinheiro do trabalho</div>
+              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" data-i18n="sub.contributions">aportes em dinheiro do trabalho</div>
             </div>
             <button class="btn-ghost primary" id="btnAddContrib">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -924,11 +924,11 @@ body::before {
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
             <div style="padding:14px 16px;background:rgba(255,255,255,0.025);border:1px solid var(--card-divider);border-radius:14px">
-              <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:12px;color:var(--ink-muted);margin-bottom:6px">total aportado</div>
+              <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:12px;color:var(--ink-muted);margin-bottom:6px" data-i18n="contrib.total">total aportado</div>
               <div id="contribTotal" style="font-family:'Geist Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-0.02em">R$ 0</div>
             </div>
             <div style="padding:14px 16px;background:rgba(255,255,255,0.025);border:1px solid var(--card-divider);border-radius:14px">
-              <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:12px;color:var(--ink-muted);margin-bottom:6px">media mensal</div>
+              <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:12px;color:var(--ink-muted);margin-bottom:6px" data-i18n="contrib.avg">média mensal</div>
               <div id="contribAvg" style="font-family:'Geist Mono',monospace;font-size:20px;font-weight:700;color:var(--purple-light);letter-spacing:-0.02em">R$ 0</div>
             </div>
           </div>
@@ -942,7 +942,7 @@ body::before {
           <div class="card-head">
             <div>
               <div class="eyebrow" data-i18n="card.history">yearly history</div>
-              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace">patrimonio + proventos por ano</div>
+              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" data-i18n="sub.history">patrimonio + proventos por ano</div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn-ghost" id="btnImportHistory" title="Importar historico de PL e dividendos do Investidor10">
@@ -1410,7 +1410,7 @@ async function saveExpense() {
       showToast('✓ Despesa registrada');
     }
     closeExpenseModal();
-  } catch (err) { console.error(err); showToast('Erro ao salvar'); }
+  } catch (err) { console.error(err); showToast(t('toast.error.save')); }
   finally { btn.disabled = false; btn.textContent = 'Salvar'; }
 }
 
@@ -1421,7 +1421,7 @@ async function deleteExpense() {
     await deleteDoc(docExpense(editingExpenseId));
     showToast('✓ Despesa excluída');
     closeExpenseModal();
-  } catch (err) { console.error(err); showToast('Erro ao excluir'); }
+  } catch (err) { console.error(err); showToast(t('toast.error.delete')); }
 }
 
 // ============================================================
@@ -1521,7 +1521,7 @@ function renderInvestments() {
       const yearsCount = sortedYearly.length;
       allTimeSubEl.textContent = `desde ${firstYear} · ${yearsCount} ${yearsCount === 1 ? 'ano' : 'anos'} de historico`;
     } else {
-      allTimeSubEl.textContent = 'sem historico ainda';
+      allTimeSubEl.textContent = t('ytd.alltime.empty');
     }
   }
 
@@ -2041,7 +2041,7 @@ async function saveContrib() {
       const colRef = collection(db, 'household', 'main', 'contributions');
       await addDoc(colRef, { year, month, amount, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdBy: state.user?.displayName || 'unknown' });
     }
-    showToast('Aporte salvo');
+    showToast(t('toast.saved'));
     closeContribModal();
     // Refresh list modal if it was open
     if (_editingMonth) {
@@ -2058,13 +2058,13 @@ async function deleteContrib() {
   if (!confirm('Excluir este aporte?')) return;
   try {
     await deleteDoc(doc(db, 'household', 'main', 'contributions', _editingContribId));
-    showToast('Aporte excluido');
+    showToast(t('toast.deleted'));
     closeContribModal();
     if (_editingMonth) {
       setTimeout(() => openContribListModal(_editingMonth.year, _editingMonth.month), 100);
     }
   } catch (e) {
-    showToast('Erro ao excluir');
+    showToast(t('toast.error.delete'));
   }
 }
 
@@ -2072,12 +2072,12 @@ async function deleteContribById(id) {
   if (!confirm('Excluir este aporte?')) return;
   try {
     await deleteDoc(doc(db, 'household', 'main', 'contributions', id));
-    showToast('Aporte excluido');
+    showToast(t('toast.deleted'));
     if (_editingMonth) {
       setTimeout(() => openContribListModal(_editingMonth.year, _editingMonth.month), 100);
     }
   } catch (e) {
-    showToast('Erro ao excluir');
+    showToast(t('toast.error.delete'));
   }
 }
 
@@ -2298,7 +2298,7 @@ async function saveI10Config() {
     closeI10ConfigModal();
     // Auto-sync right after saving, so user sees data immediately
     setTimeout(() => syncFromI10(), 300);
-  } catch (err) { console.error(err); showToast('Erro ao salvar'); }
+  } catch (err) { console.error(err); showToast(t('toast.error.save')); }
   finally { btn.disabled = false; btn.textContent = 'Salvar'; }
 }
 
@@ -2334,7 +2334,7 @@ async function saveI10() {
     }, { merge: true });
     showToast('✓ Valores atualizados');
     closeI10Modal();
-  } catch (err) { console.error(err); showToast('Erro ao salvar'); }
+  } catch (err) { console.error(err); showToast(t('toast.error.save')); }
   finally { btn.disabled = false; btn.textContent = 'Salvar'; }
 }
 
@@ -2382,7 +2382,7 @@ async function saveYearly() {
       showToast('✓ Ano adicionado');
     }
     closeYearlyModal();
-  } catch (err) { console.error(err); showToast('Erro ao salvar'); }
+  } catch (err) { console.error(err); showToast(t('toast.error.save')); }
   finally { btn.disabled = false; btn.textContent = 'Salvar'; }
 }
 
@@ -2393,7 +2393,7 @@ async function deleteYearly() {
     await deleteDoc(docYearly(editingYearlyId));
     showToast('✓ Ano excluído');
     closeYearlyModal();
-  } catch (err) { console.error(err); showToast('Erro ao excluir'); }
+  } catch (err) { console.error(err); showToast(t('toast.error.delete')); }
 }
 
 // ============================================================
@@ -2598,6 +2598,46 @@ const I18N = {
     'slider.dy': 'DY esperado',
     'slider.reinvest': 'Reinvestimento',
     'slider.growthdiv': 'Crescimento do dividendo (empresa)',
+    'hero.manual': 'Atualização manual',
+    'hero.manual.full': 'Atualização manual · configure sync pra automático',
+    'ytd.received': 'proventos recebidos neste ano',
+    'ytd.alltime.from': 'desde {year} · {n} {label} de histórico',
+    'ytd.alltime.empty': 'sem histórico ainda',
+    'years.singular': 'ano',
+    'years.plural': 'anos',
+    'loading': 'carregando...',
+    'via.i10': 'VIA I10',
+    'sub.dividends': 'histórico anual de proventos',
+    'sub.networth': 'evolução do patrimônio',
+    'sub.contributions': 'aportes em dinheiro do trabalho',
+    'sub.history': 'patrimônio + proventos por ano',
+    'contrib.total': 'total aportado',
+    'contrib.avg': 'média mensal',
+    'contrib.empty': 'Nenhum aporte cadastrado. Clique em "+ Aporte" para começar.',
+    'contrib.aporte': 'aporte',
+    'contrib.aportes': 'aportes',
+    'goal.status.green': t('goal.status.green'),
+    'goal.status.yellow': t('goal.status.yellow'),
+    'goal.status.red': t('goal.status.red'),
+    'goal.notreach': 'não atinge',
+    'goal.before': 'antes',
+    'goal.after': 'depois',
+    'goal.onschedule': 'no prazo',
+    'toast.saved': t('toast.saved'),
+    'toast.deleted': 'Aporte excluído',
+    'toast.error.save': t('toast.error.save'),
+    'toast.error.delete': t('toast.error.delete'),
+    'toast.synced': 'Sincronizado',
+    'toast.synced.assets': '{n} ativos',
+    'count.assets.singular': 'ativo',
+    'count.assets.plural': 'ativos',
+    'count.cat.singular': 'categoria',
+    'count.cat.plural': 'categorias',
+    'count.assets.full': '{n} ativos · {c} categorias',
+    'count.assets.none': 'nenhum ativo sincronizado',
+    'cat.label.suffix': 'DA CARTEIRA',
+    'cat.assets.singular': 'ATIVO',
+    'cat.assets.plural': 'ATIVOS',
   },
   en: {
     'login.tagline': 'Personal finance tracker.<br/>Sign in with Google to continue.',
@@ -2628,6 +2668,46 @@ const I18N = {
     'slider.dy': 'Expected DY',
     'slider.reinvest': 'Reinvestment',
     'slider.growthdiv': 'Dividend growth (company)',
+    'hero.manual': 'Manual update',
+    'hero.manual.full': 'Manual update · configure sync for automatic',
+    'ytd.received': 'dividends received this year',
+    'ytd.alltime.from': 'since {year} · {n} {label} of history',
+    'ytd.alltime.empty': 'no history yet',
+    'years.singular': 'year',
+    'years.plural': 'years',
+    'loading': 'loading...',
+    'via.i10': 'VIA I10',
+    'sub.dividends': 'annual dividend history',
+    'sub.networth': 'net worth evolution',
+    'sub.contributions': 'work-income contributions',
+    'sub.history': 'net worth + dividends per year',
+    'contrib.total': 'total contributed',
+    'contrib.avg': 'monthly average',
+    'contrib.empty': 'No contributions yet. Click "+ Aporte" to start.',
+    'contrib.aporte': 'contribution',
+    'contrib.aportes': 'contributions',
+    'goal.status.green': 'on track',
+    'goal.status.yellow': 'tight',
+    'goal.status.red': 'off schedule',
+    'goal.notreach': "doesn't reach",
+    'goal.before': 'early',
+    'goal.after': 'late',
+    'goal.onschedule': 'on schedule',
+    'toast.saved': 'Contribution saved',
+    'toast.deleted': 'Contribution deleted',
+    'toast.error.save': 'Save failed',
+    'toast.error.delete': 'Delete failed',
+    'toast.synced': 'Synced',
+    'toast.synced.assets': '{n} assets',
+    'count.assets.singular': 'asset',
+    'count.assets.plural': 'assets',
+    'count.cat.singular': 'category',
+    'count.cat.plural': 'categories',
+    'count.assets.full': '{n} assets · {c} categories',
+    'count.assets.none': 'no assets synced',
+    'cat.label.suffix': 'OF PORTFOLIO',
+    'cat.assets.singular': 'ASSET',
+    'cat.assets.plural': 'ASSETS',
   }
 };
 
@@ -2802,9 +2882,9 @@ function render() {
   const { proj, metaHitYear } = simulate(p);
 
   let cls, txt;
-  if (metaHitYear === null || metaHitYear > TARGET_YEAR) { cls='red'; txt='fora do prazo'; }
-  else if (metaHitYear <= TARGET_YEAR-2) { cls='green'; txt='no caminho'; }
-  else { cls='yellow'; txt='apertado'; }
+  if (metaHitYear === null || metaHitYear > TARGET_YEAR) { cls='red'; txt=t('goal.status.red'); }
+  else if (metaHitYear <= TARGET_YEAR-2) { cls='green'; txt=t('goal.status.green'); }
+  else { cls='yellow'; txt=t('goal.status.yellow'); }
   $('gStatusPill').className = 'status-pill ' + cls;
   $('gStatusText').textContent = txt;
 
@@ -2812,7 +2892,7 @@ function render() {
   if (metaHitYear) {
     const d = TARGET_YEAR - metaHitYear;
     $('gStatHitSub').textContent = d > 0 ? d+' anos antes' : (d < 0 ? Math.abs(d)+' anos depois' : 'no prazo');
-  } else $('gStatHitSub').textContent = 'nao atinge';
+  } else $('gStatHitSub').textContent = t('goal.notreach');
 
   const pAt = proj.find(x => x.year === TARGET_YEAR);
   $('gStatPL').textContent = fmtBRLk(pAt?.pl || 0);
@@ -2824,11 +2904,11 @@ function render() {
 
   if (metaHitYear && metaHitYear <= TARGET_YEAR) {
     const yrs = TARGET_YEAR - metaHitYear;
-    const phrase = yrs > 0 ? 'Voce atinge a meta em <b>'+metaHitYear+'</b>, <span style="color:var(--purple-light);font-weight:600">'+yrs+' '+(yrs===1?'ano':'anos')+' antes</span> do prazo.' : 'Voce bate a meta exatamente em <b>'+TARGET_YEAR+'</b>.';
+    const phrase = yrs > 0 ? 'Voce atinge a meta em <b>'+metaHitYear+'</b>, <span style="color:var(--purple-light);font-weight:600">'+yrs+' '+(yrs===1?t('years.singular'):t('years.plural'))+' antes</span> do prazo.' : 'Voce bate a meta exatamente em <b>'+TARGET_YEAR+'</b>.';
     $('gNarrative').innerHTML = phrase + ' Aporte de '+fmtBRL(p.aporte)+'/mes cresce '+p.crescAporte+'%/ano. Carteira termina '+TARGET_YEAR+' valendo <b>'+fmtBRLk(pAt.pl)+'</b>.';
   } else if (metaHitYear) {
     const yrs = metaHitYear - TARGET_YEAR;
-    $('gNarrative').innerHTML = 'Voce atinge R$ 1M/ano apenas em <b>'+metaHitYear+'</b>, <span style="color:var(--loss);font-weight:600">'+yrs+' '+(yrs===1?'ano':'anos')+' depois</span> do prazo. Aumente o aporte ou DY esperado.';
+    $('gNarrative').innerHTML = 'Voce atinge R$ 1M/ano apenas em <b>'+metaHitYear+'</b>, <span style="color:var(--loss);font-weight:600">'+yrs+' '+(yrs===1?t('years.singular'):t('years.plural'))+' depois</span> do prazo. Aumente o aporte ou DY esperado.';
   } else {
     $('gNarrative').innerHTML = 'Com essas variaveis voce <b>nao atinge</b> a meta. Aumente o aporte, DY ou reinvestimento.';
   }
