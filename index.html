@@ -1162,7 +1162,7 @@ const state = {
   mode: 'investments',          // 'expenses' | 'investments'
   expenses: [],
   yearly: [],
-  i10: { equity: 0, dividends: 0, updatedAt: null, year: new Date().getFullYear(), assets: [] },
+  i10: { equity: 0, dividends: 0, updatedAt: null, year: new Date().getFullYear(), assets: [], categories: [] },
   contributions: [],
   i10Cfg: { workerUrl: '', walletId: '', autoSync: false },
   i10Syncing: false,
@@ -1797,86 +1797,90 @@ let _expandedCats = new Set(['Acoes']); // Acoes expanded by default
 function renderI10Assets() {
   const wrap = $('i10AssetsList');
   if (!wrap) return;
+  const categories = state.i10.categories || [];
   const assets = state.i10.assets || [];
-  if (assets.length === 0) {
+
+  if (categories.length === 0 && assets.length === 0) {
     wrap.innerHTML = '<div style="padding:30px 10px;color:var(--ink-muted);text-align:center;font-size:13px"><b style="color:var(--ink-2);display:block;margin-bottom:6px">Nenhum ativo sincronizado</b>Clique em "Sincronizar" pra importar sua carteira do Investidor 10.</div>';
     return;
   }
 
-  // Group by category
-  const groups = {};
-  let totalEquity = 0;
-  for (const a of assets) {
-    const cat = inferCategory(a);
-    if (!groups[cat]) groups[cat] = { items: [], totalEquity: 0, totalApplied: 0 };
-    const eq = +a.equity || 0;
-    groups[cat].items.push(a);
-    groups[cat].totalEquity += eq;
-    groups[cat].totalApplied += (eq / (1 + (+a.appreciation || 0) / 100)) || 0;
-    totalEquity += eq;
-  }
+  // Map type -> icon (uses CATEGORY_ICONS that already exists in the file)
+  const TYPE_TO_LABEL = {
+    'Ticker': 'Acoes',
+    'Fii': 'FIIs',
+    'Etf': 'ETFs',
+    'EtfInternational': 'ETFs Intern.',
+    'Crypto': 'Criptomoedas',
+    'Treasure': 'Tesouro Direto',
+    'Fund': 'Fundos',
+    'FixedIncome': 'Renda Fixa',
+    'Fixedincome': 'Renda Fixa',
+  };
+  const TYPE_TO_ICON_KEY = {
+    'Ticker': 'Acoes',
+    'Fii': 'FIIs',
+    'Etf': 'ETFs Brasil',
+    'EtfInternational': 'ETFs Internacionais',
+    'Crypto': 'Criptomoedas',
+    'Treasure': 'Tesouro Direto',
+    'Fund': 'Fundos de Investimento',
+    'FixedIncome': 'Renda Fixa',
+    'Fixedincome': 'Renda Fixa',
+  };
+  const TYPE_ORDER = ['Ticker','Fii','FixedIncome','Fixedincome','Treasure','Fund','Etf','EtfInternational','Crypto'];
 
-  // Sort categories: by CATEGORY_ORDER, then unknown
-  const orderedCats = CATEGORY_ORDER.filter(c => groups[c]);
-  for (const c of Object.keys(groups)) {
-    if (!orderedCats.includes(c)) orderedCats.push(c);
-  }
+  // Sort categories by predefined order, then by value desc
+  const sorted = [...categories].sort((a, b) => {
+    const ai = TYPE_ORDER.indexOf(a.type);
+    const bi = TYPE_ORDER.indexOf(b.type);
+    if (ai !== bi) return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    return (b.value || 0) - (a.value || 0);
+  });
 
-  const html = orderedCats.map(catName => {
-    const g = groups[catName];
-    const totalCount = g.items.length;
-    const pctWallet = totalEquity > 0 ? (g.totalEquity / totalEquity) * 100 : 0;
-    // Aggregate appreciation: sum(equity) / sum(applied) - 1
-    const aggAppr = g.totalApplied > 0 ? ((g.totalEquity / g.totalApplied) - 1) * 100 : 0;
-    const apprCls = aggAppr >= 0 ? 'pos' : 'neg';
-    const apprSign = aggAppr >= 0 ? '+' : '';
-    const isExpanded = _expandedCats.has(catName);
-    const display = CATEGORY_DISPLAY[catName] || catName;
-    const icon = CATEGORY_ICONS[catName] || CATEGORY_ICONS['Outros'];
+  const html = sorted.map(c => {
+    const label = TYPE_TO_LABEL[c.type] || c.name || c.type;
+    const iconKey = TYPE_TO_ICON_KEY[c.type] || 'Outros';
+    const icon = (typeof CATEGORY_ICONS !== 'undefined' && CATEGORY_ICONS[iconKey]) || (CATEGORY_ICONS && CATEGORY_ICONS['Outros']) || '';
+    const isAcoes = c.type === 'Ticker';
+    const itemCount = isAcoes ? assets.length : 0;
+    const countStr = isAcoes ? itemCount + (itemCount === 1 ? ' ATIVO' : ' ATIVOS') : '';
+    const chevronHtml = isAcoes
+      ? '<svg class="cat-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'
+      : '<span style="width:18px;display:inline-block"></span>';
 
-    // Sort tickers within category by equity desc
-    const sortedItems = [...g.items].sort((a, b) => (+b.equity || 0) - (+a.equity || 0));
+    let tickersHtml = '';
+    if (isAcoes && assets.length > 0) {
+      const sortedTickers = [...assets].sort((a, b) => (+b.equity || 0) - (+a.equity || 0));
+      tickersHtml = sortedTickers.map(a => {
+        const appr = +a.appreciation || 0;
+        const cls = appr >= 0 ? 'pos' : 'neg';
+        const sign = appr >= 0 ? '+' : '';
+        return '<div class="ticker-row"><div class="ticker-name">' + (a.ticker || '-') + '</div><div class="ticker-val">' + fmtBRL0(+a.equity || 0) + '</div><div class="ticker-appr ' + cls + '">' + sign + appr.toFixed(1) + '%</div></div>';
+      }).join('');
+    }
 
-    const tickersHtml = sortedItems.map(a => {
-      const appr = +a.appreciation || 0;
-      const tApprCls = appr >= 0 ? 'pos' : 'neg';
-      const tApprSign = appr >= 0 ? '+' : '';
-      return `<div class="ticker-row">
-        <div class="ticker-name">${a.ticker || '-'}</div>
-        <div class="ticker-val">${fmtBRL0(+a.equity || 0)}</div>
-        <div class="ticker-appr ${tApprCls}">${tApprSign}${appr.toFixed(1)}%</div>
-      </div>`;
-    }).join('');
-
-    return `<div class="cat-row${isExpanded ? ' expanded' : ''}" data-cat="${catName}">
-      <div class="cat-icon">${icon}</div>
-      <div class="cat-info">
-        <div class="cat-name">${display}</div>
-        <div class="cat-count">${totalCount} ${totalCount === 1 ? 'ATIVO' : 'ATIVOS'} &middot; ${pctWallet.toFixed(0)}% DA CARTEIRA</div>
-      </div>
-      <div>
-        <div class="cat-value">${fmtBRL0(g.totalEquity)}</div>
-        <div class="cat-pct">${pctWallet.toFixed(0)}%</div>
-      </div>
-      <div class="cat-appr ${apprCls}">${apprSign}${aggAppr.toFixed(2)}%</div>
-      <svg class="cat-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-    </div>
-    <div class="cat-tickers">${tickersHtml}</div>`;
+    return '<div class="cat-row' + (isAcoes ? ' clickable' : '') + '" data-type="' + c.type + '">' +
+      '<div class="cat-icon">' + icon + '</div>' +
+      '<div class="cat-info">' +
+        '<div class="cat-name">' + label + '</div>' +
+        '<div class="cat-count">' + (countStr ? countStr + ' &middot; ' : '') + (c.percent || 0).toFixed(0) + '% DA CARTEIRA</div>' +
+      '</div>' +
+      '<div>' +
+        '<div class="cat-value">' + fmtBRL0(c.value || 0) + '</div>' +
+      '</div>' +
+      '<div class="cat-appr"></div>' +
+      chevronHtml +
+    '</div>' +
+    (isAcoes ? '<div class="cat-tickers">' + tickersHtml + '</div>' : '');
   }).join('');
 
   wrap.innerHTML = html;
 
-  // Wire up expand/collapse
-  wrap.querySelectorAll('.cat-row').forEach(row => {
+  // Wire expand/collapse only for Ações
+  wrap.querySelectorAll('.cat-row.clickable').forEach(row => {
     row.addEventListener('click', () => {
-      const cat = row.dataset.cat;
-      if (_expandedCats.has(cat)) {
-        _expandedCats.delete(cat);
-        row.classList.remove('expanded');
-      } else {
-        _expandedCats.add(cat);
-        row.classList.add('expanded');
-      }
+      row.classList.toggle('expanded');
     });
   });
 }
@@ -2132,6 +2136,17 @@ async function syncFromI10() {
       _i10TickerCategory = payload.diversification.tickerToCategory;
     }
 
+    // Parse diversification (categories summary from /patrimony/.../diversification/all,ideal-per-type)
+    let categories = [];
+    if (payload.diversification?.values && Array.isArray(payload.diversification.values)) {
+      categories = payload.diversification.values.map(c => ({
+        name: c.name || '',
+        type: c.type || '',
+        value: +c.value || 0,
+        percent: +c.percent || 0,
+      }));
+    }
+
     // Parse actives (list of tickers)
     const rawAssets = Array.isArray(payload.actives?.data) ? payload.actives.data : [];
     const assets = rawAssets.map(a => {
@@ -2148,8 +2163,7 @@ async function syncFromI10() {
         earnings: +a.earnings_received || 0,
         image: a.image || '',
         url: a.url || '',
-        // Use real category from diversification if available, else from asset payload, else regex fallback later
-        category: _i10TickerCategory[tickerUpper] || a.category || a.type || a.category_name || a.type_name || '',
+        category: 'Ações', // todos os actives sao tickers de acoes
       };
     });
 
@@ -2161,8 +2175,8 @@ async function syncFromI10() {
       variation,
       profitTwr,
       assets,
+      categories,
       year,
-      tickerCategories: _i10TickerCategory,
       updatedAt: serverTimestamp(),
       updatedBy: (state.user?.displayName || 'unknown') + ' (auto)',
       source: 'investidor10-sync',
@@ -2488,6 +2502,7 @@ function subscribeAll() {
     state.i10.updatedAt = data.updatedAt?.toDate?.() || null;
     state.i10.year = data.year || new Date().getFullYear();
     state.i10.assets = Array.isArray(data.assets) ? data.assets : [];
+    state.i10.categories = Array.isArray(data.categories) ? data.categories : [];
     state.i10.applied = +data.applied || 0;
     state.i10.variation = +data.variation || 0;
     state.i10.profitTwr = +data.profitTwr || 0;
