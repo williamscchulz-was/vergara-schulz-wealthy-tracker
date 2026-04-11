@@ -1559,7 +1559,7 @@ function renderInvestments() {
 }
 
 function buildBarChart(years, values, opts = {}) {
-  const W = 780, H = 240, padL = 56, padR = 24, padT = 24, padB = 38;
+  const W = 780, H = 260, padL = 56, padR = 24, padT = 42, padB = 38;
   const innerW = W - padL - padR;
   const innerH = H - padT - padB;
   if (!years.length) {
@@ -1626,6 +1626,70 @@ function buildBarChart(years, values, opts = {}) {
     svg += '<text x="' + (x + barWidth / 2) + '" y="' + (H - 14) + '" text-anchor="middle" fill="' + yearColor + '" font-family="Geist Mono,monospace" font-size="10" font-weight="' + yearWeight + '">' + yearLabel + '</text>';
   });
 
+  // ========================================================
+  // YoY indicators - mode 'pills' or 'line'
+  // ========================================================
+  const yoyMode = opts.yoyMode || 'none';
+  if (yoyMode !== 'none' && years.length >= 2) {
+    // Compute bar centers and tops for pairs where both values > 0
+    const points = [];
+    for (let i = 0; i < years.length; i++) {
+      const v = values[i] || 0;
+      if (v <= 0) { points.push(null); continue; }
+      const barH = (v / yMax) * innerH;
+      const cx = padL + barSlot * i + barSlot / 2;
+      const top = padT + innerH - barH;
+      points.push({ cx, top, v, year: years[i] });
+    }
+
+    if (yoyMode === 'pills') {
+      // Floating pills between consecutive bars
+      for (let i = 1; i < points.length; i++) {
+        const prev = points[i-1], cur = points[i];
+        if (!prev || !cur || prev.v <= 0) continue;
+        const yoy = ((cur.v - prev.v) / prev.v) * 100;
+        const sign = yoy >= 0 ? '+' : '';
+        const txt = sign + yoy.toFixed(0) + '%';
+        // Color: green if >20%, yellow 0-20%, red negative
+        let bg, brd, col;
+        if (yoy >= 20) { bg = 'rgba(52,225,122,0.15)'; brd = '#34e17a'; col = '#34e17a'; }
+        else if (yoy >= 0) { bg = 'rgba(255,179,64,0.15)'; brd = '#ffb340'; col = '#ffb340'; }
+        else { bg = 'rgba(255,94,87,0.15)'; brd = '#ff5e57'; col = '#ff5e57'; }
+        // Pill positioned centered between the two bars, above the highest one
+        const pillCx = (prev.cx + cur.cx) / 2;
+        const pillTop = Math.min(prev.top, cur.top) - 22;
+        // Adaptive width based on text length
+        const pillW = txt.length * 6 + 12;
+        const pillH = 16;
+        svg += '<g><rect x="' + (pillCx - pillW/2) + '" y="' + pillTop + '" width="' + pillW + '" height="' + pillH + '" rx="8" fill="' + bg + '" stroke="' + brd + '" stroke-width="1"/>';
+        svg += '<text x="' + pillCx + '" y="' + (pillTop + 11) + '" text-anchor="middle" fill="' + col + '" font-family="Geist Mono,monospace" font-size="9" font-weight="700">' + txt + '</text></g>';
+      }
+    } else if (yoyMode === 'line') {
+      // Connected polyline over bar tops + dots
+      const valid = points.filter(p => p !== null);
+      if (valid.length >= 2) {
+        const linePts = valid.map(p => p.cx + ',' + p.top).join(' ');
+        svg += '<polyline points="' + linePts + '" fill="none" stroke="#E3A2EE" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>';
+        for (const p of valid) {
+          svg += '<circle cx="' + p.cx + '" cy="' + p.top + '" r="4" fill="#E3A2EE" stroke="#1a181d" stroke-width="2"/>';
+        }
+        // Show YoY % only on top 3 highest growths to avoid clutter
+        const yoys = [];
+        for (let i = 1; i < valid.length; i++) {
+          const yoy = ((valid[i].v - valid[i-1].v) / valid[i-1].v) * 100;
+          yoys.push({ idx: i, yoy, p: valid[i] });
+        }
+        yoys.sort((a, b) => Math.abs(b.yoy) - Math.abs(a.yoy));
+        const topYoys = yoys.slice(0, 3);
+        for (const y of topYoys) {
+          const sign = y.yoy >= 0 ? '+' : '';
+          const col = y.yoy >= 0 ? '#34e17a' : '#ff5e57';
+          svg += '<text x="' + y.p.cx + '" y="' + (y.p.top - 10) + '" text-anchor="middle" fill="' + col + '" font-family="Geist Mono,monospace" font-size="9" font-weight="700">' + sign + y.yoy.toFixed(0) + '%</text>';
+        }
+      }
+    }
+  }
+
   svg += '</svg>';
   return '<div style="width:100%;overflow:visible">' + svg + '</div>';
 }
@@ -1654,7 +1718,7 @@ function renderDividendsChart() {
     return;
   }
 
-  wrap.innerHTML = buildBarChart(years, values, {});
+  wrap.innerHTML = buildBarChart(years, values, { yoyMode: 'pills' });
 }
 
 function renderPLChart() {
@@ -1683,7 +1747,7 @@ function renderPLChart() {
     values[idx] = state.i10.equity;
   }
 
-  wrap.innerHTML = buildBarChart(years, values, {});
+  wrap.innerHTML = buildBarChart(years, values, { yoyMode: 'line' });
 }
 
 function renderYearlyTable() {
