@@ -74,6 +74,75 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   --shadow-glow:   0 8px 32px rgba(172,95,219,0.25);
 }
 
+/* LIGHT MODE OVERRIDES */
+:root[data-theme="light"] {
+  --bg:            #fafaf9;
+  --bg-deep:       #f0eeec;
+  --bg-elevated:   #ffffff;
+  --bg-elevated-2: #f5f4f2;
+  --bg-elevated-3: #ebe9e6;
+  --border:        rgba(26,24,29,0.08);
+  --border-2:      rgba(26,24,29,0.14);
+  --border-strong: rgba(139,63,184,0.30);
+  --border-glow:   rgba(139,63,184,0.50);
+  --ink:           #1a181d;
+  --ink-2:         #3d3744;
+  --ink-3:         #6b6473;
+  --ink-muted:     #9c95a6;
+  --purple:        #8b3fb8;
+  --purple-light:  #AC5FDB;
+  --purple-deep:   #5d2680;
+  --purple-soft:   rgba(139,63,184,0.08);
+  --purple-glow:   rgba(139,63,184,0.30);
+  --gain:          #22a957;
+  --gain-soft:     rgba(34,169,87,0.10);
+  --loss:          #d8392b;
+  --loss-soft:     rgba(216,57,43,0.10);
+  --warn:          #c47b00;
+  --shadow-sm:     0 1px 2px rgba(26,24,29,0.06);
+  --shadow:        0 2px 8px rgba(26,24,29,0.06), 0 1px 0 rgba(255,255,255,0.6) inset;
+  --shadow-lg:     0 8px 28px rgba(26,24,29,0.12), 0 1px 0 rgba(255,255,255,0.8) inset;
+  --shadow-glow:   0 8px 24px rgba(139,63,184,0.18);
+}
+:root[data-theme="light"] body::before {
+  background:
+    radial-gradient(ellipse 60% 50% at 80% -10%, rgba(139,63,184,0.08), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 10% 30%, rgba(172,95,219,0.05), transparent 60%),
+    radial-gradient(ellipse 80% 50% at 50% 110%, rgba(139,63,184,0.04), transparent 60%),
+    linear-gradient(180deg, #fafaf9 0%, #f5f3f0 50%, #fafaf9 100%) !important;
+}
+:root[data-theme="light"] .modal-bg { background: rgba(60,53,65,0.40); }
+:root[data-theme="light"] .modal select option { background: #ffffff; color: #1a181d; }
+:root[data-theme="light"] .btn-ghost.primary { color: #fff; }
+:root[data-theme="light"] .login-card { box-shadow: var(--shadow-lg), 0 0 60px rgba(139,63,184,0.10); }
+:root[data-theme="light"] svg.chart text, :root[data-theme="light"] #gChart text { fill: #6b6473; }
+
+/* Theme transition */
+html { transition: background-color 0.3s ease; }
+body, .card, .hero-card, .stat, .modal, .login-card, .topbar, .user-pill, .mode-switch, .ticker-row, .cat-row, .cat-icon, .btn-ghost, .btn-primary, .btn-secondary, .return-pill, .ytd-progress, .yearly-table td, .yearly-table th, .contrib-item, .stat .val, .ink, .ink-2, .ink-3 {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--ink-2);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  margin-right: 8px;
+  transition: all 0.2s var(--ease-out);
+}
+.theme-toggle:hover { background: var(--bg-elevated-2); border-color: var(--border-strong); color: var(--purple-light); transform: rotate(15deg); }
+.theme-toggle svg { width: 16px; height: 16px; }
+.theme-toggle .icon-sun { display: none; }
+.theme-toggle .icon-moon { display: block; }
+:root[data-theme="light"] .theme-toggle .icon-sun { display: block; }
+:root[data-theme="light"] .theme-toggle .icon-moon { display: none; }
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
   font-feature-settings: 'cv11', 'ss01', 'ss03';
@@ -554,7 +623,27 @@ body::before {
 .g-sl input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 .g-sl input[type=range]::-moz-range-thumb { width: 16px; height: 16px; background: var(--purple-light); border: 2px solid var(--bg-elevated); border-radius: 50%; cursor: pointer; box-shadow: 0 0 0 1px var(--purple), 0 4px 8px var(--purple-glow); }
 @media (max-width: 600px) { .g-sliders { grid-template-columns: 1fr; gap: 16px; } }
+/* CONTRIB ITEMS */
+.contrib-item { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 12px 14px; background: var(--bg-elevated-2); border: 1px solid var(--border); border-radius: var(--radius); transition: all 0.2s var(--ease-out); }
+.contrib-item:hover { border-color: var(--border-strong); background: var(--bg-elevated-3); }
+.contrib-val { font-family: 'Geist Mono', monospace; font-size: 14px; font-weight: 700; color: var(--ink); }
+.contrib-edit, .contrib-del { width: 30px; height: 30px; border-radius: 8px; background: transparent; border: 1px solid var(--border-2); color: var(--ink-3); cursor: pointer; display: grid; place-items: center; transition: all 0.2s var(--ease-out); }
+.contrib-edit:hover { color: var(--purple-light); border-color: var(--border-strong); }
+.contrib-del:hover { color: var(--loss); border-color: rgba(255,94,87,0.30); background: var(--loss-soft); }
 </style>
+<script>
+  // Apply theme ASAP to avoid flash
+  (function() {
+    var saved = localStorage.getItem('ledger-theme');
+    if (saved === 'light' || saved === 'dark') {
+      document.documentElement.setAttribute('data-theme', saved);
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  })();
+</script>
 </head>
 <body>
 
@@ -567,10 +656,10 @@ body::before {
       </svg>
     </div>
     <h2>Ledger</h2>
-    <p>Personal finance tracker.<br/>Sign in with Google to continue.</p>
+    <p data-i18n="login.tagline">Personal finance tracker.<br/>Sign in with Google to continue.</p>
     <button class="btn-google" id="btnLogin">
       <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-      <span id="btnLoginText">Sign in with Google</span>
+      <span id="btnLoginText" data-i18n="login.button">Sign in with Google</span>
     </button>
     <div class="login-error" id="loginError"></div>
     <div class="login-foot">Your data is stored privately in Firebase Firestore.<br/>Only authorized accounts can access this app.</div>
@@ -593,12 +682,21 @@ body::before {
           <div class="tag">personal finance</div>
         </div>
       </div>
-      <div class="user-pill">
+      <div style="display:flex;align-items:center">
+        <button class="theme-toggle" id="btnLangToggle" title="Language" style="font-family:'Geist Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.05em">
+          <span id="langLabel">EN</span>
+        </button>
+        <button class="theme-toggle" id="btnThemeToggle" title="Alternar tema">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+        <div class="user-pill">
         <img id="userPhoto" class="avatar" alt="" style="object-fit:cover" />
         <span id="userName">User</span>
         <button id="btnLogout" style="background:none;border:none;color:var(--ink-muted);cursor:pointer;padding:0 0 0 8px;margin-left:4px;border-left:1px solid var(--card-border);display:flex;align-items:center" title="Sair">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </button>
+      </div>
       </div>
     </div>
 
@@ -606,11 +704,11 @@ body::before {
     <div class="mode-switch">
       <button data-mode="investments" class="active">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-        Investimentos
+        <span data-i18n="tab.investments">Investimentos</span>
       </button>
       <button data-mode="expenses">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-        Despesas
+        <span data-i18n="tab.expenses">Despesas</span>
       </button>
     </div>
 
@@ -685,7 +783,7 @@ body::before {
       <div class="hero-card animate-in">
         <div class="hero-eyebrow">
           <div class="live-dot"></div>
-          <div class="label">Patrimonio total</div>
+          <div class="label" data-i18n="hero.networth">Patrimônio total</div>
         </div>
         <div class="hero-amount">
           <span class="cur">R$</span>
@@ -702,7 +800,7 @@ body::before {
           </a>
           <button class="btn-ghost primary" id="btnSyncI10">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-            Sincronizar
+            <span data-i18n="hero.sync">Sincronizar</span>
           </button>
           <button class="btn-ghost icon" id="btnEditI10" title="Editar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
@@ -717,7 +815,7 @@ body::before {
       <div class="card animate-in" id="goalCardV2">
         <div class="card-head">
           <div>
-            <div class="eyebrow">META DE LONGO PRAZO</div>
+            <div class="eyebrow" data-i18n="goal.eyebrow">META DE LONGO PRAZO</div>
             <h2 style="font-size:22px;font-weight:700;color:var(--ink);letter-spacing:-0.02em;line-height:1.2;margin:6px 0 0">R$ <b style="color:var(--purple-light)">1 milhão</b> em proventos<br/>anuais até <b style="color:var(--purple-light)" id="gTargetYearLabel">2035</b></h2>
           </div>
           <div class="status-pill green" id="gStatusPill">
@@ -728,20 +826,20 @@ body::before {
         <div style="margin:6px -8px 18px"><svg id="gChart" viewBox="0 0 700 300" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block;overflow:visible"></svg></div>
         <p id="gNarrative" style="font-size:13px;color:var(--ink-2);line-height:1.6;margin:0 0 22px;padding:14px 16px;background:var(--bg-elevated-2);border-radius:12px;border:1px solid var(--border)"></p>
         <div class="stats three" style="margin-bottom:22px">
-          <div class="stat"><div class="lbl">Meta atinge em</div><div class="val" id="gStatHit">-</div><div class="sub" id="gStatHitSub">-</div></div>
-          <div class="stat"><div class="lbl">PL em 2035</div><div class="val" id="gStatPL">-</div><div class="sub" id="gStatPLSub">-</div></div>
-          <div class="stat"><div class="lbl">Total aportado</div><div class="val" id="gStatApor">-</div><div class="sub">10 anos</div></div>
+          <div class="stat"><div class="lbl" data-i18n="stat.hitgoal">Meta atinge em</div><div class="val" id="gStatHit">-</div><div class="sub" id="gStatHitSub">-</div></div>
+          <div class="stat"><div class="lbl" data-i18n="stat.netat">PL em 2035</div><div class="val" id="gStatPL">-</div><div class="sub" id="gStatPLSub">-</div></div>
+          <div class="stat"><div class="lbl" data-i18n="stat.totalcontrib">Total aportado</div><div class="val" id="gStatApor">-</div><div class="sub">10 anos</div></div>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding-top:18px;border-top:1px solid var(--border);margin-bottom:16px">
-          <div class="eyebrow">VARIÁVEIS</div>
+          <div class="eyebrow" data-i18n="goal.variables">VARIÁVEIS</div>
           <button class="btn-ghost" id="gBtnReset" style="padding:5px 12px;font-size:11px">Resetar</button>
         </div>
         <div class="g-sliders">
-          <div class="g-sl"><div class="g-top"><span class="g-name">Aporte mensal</span><span class="g-val" id="gvAporte">R$ 24.000</span></div><input type="range" id="gsAporte" min="0" max="100000" step="1000" value="24000"></div>
-          <div class="g-sl"><div class="g-top"><span class="g-name">Crescimento aporte</span><span class="g-val" id="gvCrescAporte">10,0%/ano</span></div><input type="range" id="gsCrescAporte" min="0" max="30" step="0.5" value="10"></div>
-          <div class="g-sl"><div class="g-top"><span class="g-name">DY esperado</span><span class="g-val" id="gvDY">8,0%</span></div><input type="range" id="gsDY" min="0" max="15" step="0.1" value="8"></div>
-          <div class="g-sl"><div class="g-top"><span class="g-name">Reinvestimento</span><span class="g-val" id="gvReinv">100%</span></div><input type="range" id="gsReinv" min="0" max="100" step="5" value="100"></div>
-          <div class="g-sl" style="grid-column:1/-1"><div class="g-top"><span class="g-name">Crescimento do dividendo (empresa)</span><span class="g-val" id="gvCrescDiv">6,0%/ano</span></div><input type="range" id="gsCrescDiv" min="0" max="15" step="0.5" value="6"></div>
+          <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.monthly">Aporte mensal</span><span class="g-val" id="gvAporte">R$ 24.000</span></div><input type="range" id="gsAporte" min="0" max="100000" step="1000" value="24000"></div>
+          <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.growthcontrib">Crescimento aporte</span><span class="g-val" id="gvCrescAporte">10,0%/ano</span></div><input type="range" id="gsCrescAporte" min="0" max="30" step="0.5" value="10"></div>
+          <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.dy">DY esperado</span><span class="g-val" id="gvDY">8,0%</span></div><input type="range" id="gsDY" min="0" max="15" step="0.1" value="8"></div>
+          <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.reinvest">Reinvestimento</span><span class="g-val" id="gvReinv">100%</span></div><input type="range" id="gsReinv" min="0" max="100" step="5" value="100"></div>
+          <div class="g-sl" style="grid-column:1/-1"><div class="g-top"><span class="g-name" data-i18n="slider.growthdiv">Crescimento do dividendo (empresa)</span><span class="g-val" id="gvCrescDiv">6,0%/ano</span></div><input type="range" id="gsCrescDiv" min="0" max="15" step="0.5" value="6"></div>
         </div>
       </div>
 
@@ -770,7 +868,7 @@ body::before {
         <div class="card-body">
           <div class="card-head">
             <div>
-              <div class="eyebrow">my portfolio</div>
+              <div class="eyebrow" data-i18n="card.portfolio">my portfolio</div>
               <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" id="i10AssetsCount">carregando...</div>
             </div>
             <div class="eyebrow-mono">VIA I10</div>
@@ -784,7 +882,7 @@ body::before {
         <div class="card-body">
           <div class="card-head">
             <div>
-              <div class="eyebrow">dividends per year</div>
+              <div class="eyebrow" data-i18n="card.dividends">dividends per year</div>
               <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace">historico anual de proventos</div>
             </div>
           </div>
@@ -803,7 +901,7 @@ body::before {
         <div class="card-body">
           <div class="card-head">
             <div>
-              <div class="eyebrow">net worth per year</div>
+              <div class="eyebrow" data-i18n="card.networth">net worth per year</div>
               <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace">evolucao do patrimonio</div>
             </div>
           </div>
@@ -816,7 +914,7 @@ body::before {
         <div class="card-body">
           <div class="card-head">
             <div>
-              <div class="eyebrow">monthly contributions</div>
+              <div class="eyebrow" data-i18n="card.contributions">monthly contributions</div>
               <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace">aportes em dinheiro do trabalho</div>
             </div>
             <button class="btn-ghost primary" id="btnAddContrib">
@@ -843,7 +941,7 @@ body::before {
         <div class="card-body">
           <div class="card-head">
             <div>
-              <div class="eyebrow">yearly history</div>
+              <div class="eyebrow" data-i18n="card.history">yearly history</div>
               <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace">patrimonio + proventos por ano</div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -858,7 +956,7 @@ body::before {
             </div>
           </div>
           <table class="yearly-table">
-            <thead><tr><th>Ano</th><th>Patrimonio</th><th>Proventos</th><th>DY</th><th>YoY</th></tr></thead>
+            <thead><tr><th data-i18n="th.year">Ano</th><th data-i18n="th.networth">Patrimônio</th><th data-i18n="th.dividends">Proventos</th><th data-i18n="th.dy">DY</th><th data-i18n="th.yoy">YoY</th></tr></thead>
             <tbody id="yearlyBody"></tbody>
           </table>
           <div style="display:none">
@@ -951,6 +1049,38 @@ body::before {
     <div class="spacer"></div>
     <button class="btn-secondary" id="yearlyCancel">Cancelar</button>
     <button class="btn-primary" id="yearlySave">Salvar</button>
+  </div>
+</div></div>
+
+<div class="modal-bg" id="contribListModal"><div class="modal">
+  <h3 id="contribListTitle">Aportes</h3>
+  <p class="sub" id="contribListTotal">-</p>
+  <div id="contribListItems" style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;max-height:50vh;overflow-y:auto"></div>
+  <div class="modal-foot">
+    <button class="btn-secondary" id="contribListClose">Fechar</button>
+    <div class="spacer"></div>
+    <button class="btn-primary" id="contribListAdd">+ Novo aporte</button>
+  </div>
+</div></div>
+
+<div class="modal-bg" id="contribModal"><div class="modal">
+  <h3>Aporte mensal</h3>
+  <p class="sub">Registre um aporte feito no mês</p>
+  <div class="form-grid">
+    <div class="field"><label>Ano</label><input type="number" id="contribYear" min="2020" max="2099" /></div>
+    <div class="field"><label>Mês</label><select id="contribMonth">
+      <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
+      <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
+      <option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option>
+      <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+    </select></div>
+    <div class="field full"><label>Valor (R$)</label><input type="number" id="contribAmount" placeholder="0,00" min="0" step="0.01" /></div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn-danger" id="contribDelete" style="display:none">Excluir</button>
+    <div class="spacer"></div>
+    <button class="btn-secondary" id="contribCancel">Cancelar</button>
+    <button class="btn-primary" id="contribSave">Salvar</button>
   </div>
 </div></div>
 
@@ -1306,9 +1436,9 @@ function renderInvestments() {
   $('i10Equity').textContent = (state.i10.equity || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
   if (state.i10.updatedAt) {
     const sourceTag = state.i10.source === 'investidor10-sync' ? ' · via I10' : ' · manual';
-    $('i10Updated').textContent = 'atualizado ' + formatDateTimeBR(state.i10.updatedAt) + sourceTag;
+    $('i10Updated').textContent = t('hero.updated.prefix') + ' ' + formatDateTimeBR(state.i10.updatedAt) + sourceTag;
   } else {
-    $('i10Updated').textContent = 'ainda nao atualizado';
+    $('i10Updated').textContent = t('hero.updated.never');
   }
   // Hero meta row: return pill + applied text
   const subEl = $('i10EquitySub');
@@ -1762,11 +1892,7 @@ function renderContributions() {
   const avgEl = document.getElementById('contribAvg');
   if (!wrap) return;
 
-  const items = [...(state.contributions || [])].sort((a, b) => {
-    const ka = (a.year || 0) * 100 + (a.month || 0);
-    const kb = (b.year || 0) * 100 + (b.month || 0);
-    return kb - ka;
-  });
+  const items = [...(state.contributions || [])];
 
   if (items.length === 0) {
     wrap.innerHTML = '<div style="padding:24px 10px;color:var(--ink-muted);text-align:center;font-size:13px">Nenhum aporte cadastrado. Clique em "+ Aporte" para comecar.</div>';
@@ -1775,26 +1901,92 @@ function renderContributions() {
     return;
   }
 
+  // Group by year-month
+  const groups = {};
+  for (const c of items) {
+    const key = `${c.year}-${String(c.month).padStart(2,'0')}`;
+    if (!groups[key]) groups[key] = { year: c.year, month: c.month, items: [], total: 0 };
+    groups[key].items.push(c);
+    groups[key].total += +c.amount || 0;
+  }
+
+  const sortedGroups = Object.values(groups).sort((a, b) => {
+    return (b.year * 100 + b.month) - (a.year * 100 + a.month);
+  });
+
   const total = items.reduce((s, c) => s + (+c.amount || 0), 0);
-  const avg = total / items.length;
+  const monthsCount = sortedGroups.length;
+  const avg = monthsCount > 0 ? total / monthsCount : 0;
   if (totalEl) totalEl.textContent = fmtBRL0(total);
   if (avgEl) avgEl.textContent = fmtBRL0(avg);
 
-  wrap.innerHTML = items.map(c => {
-    const monthLbl = MONTH_NAMES_SHORT[(c.month || 1) - 1] || '?';
-    return `<div class="ticker-row" data-id="${c.id}" style="cursor:pointer">
-      <div class="ticker-name">${monthLbl}/${c.year || '?'}</div>
-      <div class="ticker-val">${fmtBRL0(+c.amount || 0)}</div>
+  wrap.innerHTML = sortedGroups.map(g => {
+    const monthLbl = MONTH_NAMES_SHORT[(g.month || 1) - 1] || '?';
+    const countBadge = g.items.length > 1
+      ? `<span style="display:inline-block;padding:2px 7px;background:var(--purple-soft);color:var(--purple-light);border-radius:999px;font-size:9px;font-weight:700;margin-left:6px;font-family:'Geist Mono',monospace">${g.items.length}</span>`
+      : '';
+    return `<div class="ticker-row" data-key="${g.year}-${g.month}" style="cursor:pointer">
+      <div class="ticker-name">${monthLbl}/${g.year || '?'}${countBadge}</div>
+      <div class="ticker-val">${fmtBRL0(g.total)}</div>
       <div class="ticker-appr pos">aporte</div>
     </div>`;
   }).join('');
 
   wrap.querySelectorAll('.ticker-row').forEach(row => {
-    row.addEventListener('click', () => openContribModal(row.dataset.id));
+    row.addEventListener('click', () => {
+      const [y, m] = row.dataset.key.split('-').map(Number);
+      openContribListModal(y, m);
+    });
   });
 }
 
 let _editingContribId = null;
+let _editingMonth = null;
+
+function openContribListModal(year, month) {
+  _editingMonth = { year, month };
+  const modal = document.getElementById('contribListModal');
+  if (!modal) return;
+
+  const monthLbl = MONTH_NAMES_SHORT[(month || 1) - 1] || '?';
+  document.getElementById('contribListTitle').textContent = `${monthLbl}/${year}`;
+
+  const items = (state.contributions || []).filter(c => c.year === year && c.month === month)
+    .sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+
+  const total = items.reduce((s, c) => s + (+c.amount || 0), 0);
+  document.getElementById('contribListTotal').textContent = fmtBRL0(total) + ' total · ' + items.length + ' ' + (items.length === 1 ? 'aporte' : 'aportes');
+
+  const listEl = document.getElementById('contribListItems');
+  listEl.innerHTML = items.map(c => `
+    <div class="contrib-item" data-id="${c.id}">
+      <div class="contrib-val">${fmtBRL0(+c.amount || 0)}</div>
+      <button class="contrib-edit" data-action="edit" data-id="${c.id}" title="Editar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      </button>
+      <button class="contrib-del" data-action="delete" data-id="${c.id}" title="Excluir">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  `).join('');
+
+  listEl.querySelectorAll('button[data-action]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      if (btn.dataset.action === 'edit') openContribModal(id);
+      else if (btn.dataset.action === 'delete') deleteContribById(id);
+    });
+  });
+
+  modal.classList.add('show');
+}
+
+function closeContribListModal() {
+  document.getElementById('contribListModal')?.classList.remove('show');
+  _editingMonth = null;
+}
+
 function openContribModal(id) {
   _editingContribId = id || null;
   const modal = document.getElementById('contribModal');
@@ -1807,6 +1999,12 @@ function openContribModal(id) {
       document.getElementById('contribAmount').value = c.amount || '';
       document.getElementById('contribDelete').style.display = 'inline-flex';
     }
+  } else if (_editingMonth) {
+    // Adding new to specific month from list modal
+    document.getElementById('contribYear').value = _editingMonth.year;
+    document.getElementById('contribMonth').value = _editingMonth.month;
+    document.getElementById('contribAmount').value = '';
+    document.getElementById('contribDelete').style.display = 'none';
   } else {
     const now = new Date();
     document.getElementById('contribYear').value = now.getFullYear();
@@ -1817,10 +2015,12 @@ function openContribModal(id) {
   modal.classList.add('show');
   setTimeout(() => document.getElementById('contribAmount').focus(), 50);
 }
+
 function closeContribModal() {
   document.getElementById('contribModal')?.classList.remove('show');
   _editingContribId = null;
 }
+
 async function saveContrib() {
   const year = parseInt(document.getElementById('contribYear').value, 10);
   const month = parseInt(document.getElementById('contribMonth').value, 10);
@@ -1833,18 +2033,22 @@ async function saveContrib() {
       const ref = doc(db, 'household', 'main', 'contributions', _editingContribId);
       await setDoc(ref, { year, month, amount, updatedAt: serverTimestamp() }, { merge: true });
     } else {
-      // Use YYYY-MM as ID for idempotency
-      const id = `${year}-${String(month).padStart(2,'0')}`;
-      const ref = doc(db, 'household', 'main', 'contributions', id);
-      await setDoc(ref, { year, month, amount, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
+      // Auto-generated ID - allows multiple contributions per month
+      const colRef = collection(db, 'household', 'main', 'contributions');
+      await addDoc(colRef, { year, month, amount, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdBy: state.user?.displayName || 'unknown' });
     }
     showToast('Aporte salvo');
     closeContribModal();
+    // Refresh list modal if it was open
+    if (_editingMonth) {
+      setTimeout(() => openContribListModal(_editingMonth.year, _editingMonth.month), 100);
+    }
   } catch (e) {
     console.error('saveContrib error', e);
-    showToast('Erro ao salvar');
+    showToast('Erro ao salvar: ' + (e.message || e.code));
   }
 }
+
 async function deleteContrib() {
   if (!_editingContribId) return;
   if (!confirm('Excluir este aporte?')) return;
@@ -1852,6 +2056,22 @@ async function deleteContrib() {
     await deleteDoc(doc(db, 'household', 'main', 'contributions', _editingContribId));
     showToast('Aporte excluido');
     closeContribModal();
+    if (_editingMonth) {
+      setTimeout(() => openContribListModal(_editingMonth.year, _editingMonth.month), 100);
+    }
+  } catch (e) {
+    showToast('Erro ao excluir');
+  }
+}
+
+async function deleteContribById(id) {
+  if (!confirm('Excluir este aporte?')) return;
+  try {
+    await deleteDoc(doc(db, 'household', 'main', 'contributions', id));
+    showToast('Aporte excluido');
+    if (_editingMonth) {
+      setTimeout(() => openContribListModal(_editingMonth.year, _editingMonth.month), 100);
+    }
   } catch (e) {
     showToast('Erro ao excluir');
   }
@@ -2198,11 +2418,14 @@ $('i10Modal').addEventListener('click', e => { if (e.target.id === 'i10Modal') c
 // I10 Sync button + Config modal
 $('btnSyncI10')?.addEventListener('click', syncFromI10);
 $('btnImportHistory')?.addEventListener('click', importHistoryFromI10);
-document.getElementById('btnAddContrib')?.addEventListener('click', () => openContribModal());
+document.getElementById('btnAddContrib')?.addEventListener('click', () => { _editingMonth = null; openContribModal(); });
 document.getElementById('contribCancel')?.addEventListener('click', closeContribModal);
 document.getElementById('contribSave')?.addEventListener('click', saveContrib);
 document.getElementById('contribDelete')?.addEventListener('click', deleteContrib);
 document.getElementById('contribModal')?.addEventListener('click', e => { if (e.target.id === 'contribModal') closeContribModal(); });
+document.getElementById('contribListClose')?.addEventListener('click', closeContribListModal);
+document.getElementById('contribListAdd')?.addEventListener('click', () => { closeContribListModal(); openContribModal(); });
+document.getElementById('contribListModal')?.addEventListener('click', e => { if (e.target.id === 'contribListModal') closeContribListModal(); });
 $('btnCfgI10')?.addEventListener('click', openI10ConfigModal);
 $('i10CfgCancel')?.addEventListener('click', closeI10ConfigModal);
 $('i10CfgSave')?.addEventListener('click', saveI10Config);
@@ -2242,6 +2465,19 @@ function subscribeAll() {
     const data = snap.data() || {};
     if (typeof data.dividendsYearlyGoal === 'number') state.dividendsYearlyGoal = data.dividendsYearlyGoal;
     if (typeof data.dividendsYearlyGoalYear === 'number') state.dividendsYearlyGoalYear = data.dividendsYearlyGoalYear;
+    // Sync theme from Firestore (cross-device)
+    if (data.theme === 'light' || data.theme === 'dark') {
+      const current = document.documentElement.getAttribute('data-theme');
+      if (current !== data.theme) {
+        document.documentElement.setAttribute('data-theme', data.theme);
+        try { localStorage.setItem('ledger-theme', data.theme); } catch(e) {}
+      }
+    }
+    // Sync lang from Firestore
+    if ((data.lang === 'pt' || data.lang === 'en') && data.lang !== getLang()) {
+      try { localStorage.setItem('ledger-lang', data.lang); } catch(e) {}
+      applyI18n();
+    }
     if (state.mode === 'investments') renderInvestments();
   });
   unsub.i10 = onSnapshot(docI10, (snap) => {
@@ -2295,6 +2531,129 @@ $('btnLogin').addEventListener('click', async () => {
   }
 });
 $('btnLogout').addEventListener('click', async () => { unsubscribeAll(); await signOut(auth); });
+
+// ============================================================
+//  THEME TOGGLE (light/dark)
+// ============================================================
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  try { localStorage.setItem('ledger-theme', theme); } catch(e) {}
+}
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = current === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  // Persist to Firestore for cross-device sync
+  if (state.user) {
+    setDoc(docConfig, { theme: next, updatedAt: serverTimestamp() }, { merge: true }).catch(e => console.warn('theme save failed', e));
+  }
+}
+document.getElementById('btnThemeToggle')?.addEventListener('click', toggleTheme);
+
+// ============================================================
+//  i18n (PT/EN)
+// ============================================================
+const I18N = {
+  pt: {
+    'login.tagline': 'Ferramenta de finanças pessoais.<br/>Entre com Google para continuar.',
+    'login.button': 'Entrar com Google',
+    'hero.networth': 'Patrimônio total',
+    'hero.sync': 'Sincronizar',
+    'hero.updated.never': 'ainda não atualizado',
+    'hero.updated.prefix': 'atualizado',
+    'goal.eyebrow': 'META DE LONGO PRAZO',
+    'goal.variables': 'VARIÁVEIS',
+    'card.portfolio': 'minha carteira',
+    'card.dividends': 'dividendos por ano',
+    'card.networth': 'patrimônio por ano',
+    'card.contributions': 'aportes mensais',
+    'card.history': 'histórico anual',
+    'tab.investments': 'Investimentos',
+    'tab.expenses': 'Despesas',
+    'th.year': 'Ano',
+    'th.networth': 'Patrimônio',
+    'th.dividends': 'Proventos',
+    'th.dy': 'DY',
+    'th.yoy': 'YoY',
+    'stat.hitgoal': 'Meta atinge em',
+    'stat.netat': 'PL em 2035',
+    'stat.totalcontrib': 'Total aportado',
+    'slider.monthly': 'Aporte mensal',
+    'slider.growthcontrib': 'Crescimento aporte',
+    'slider.dy': 'DY esperado',
+    'slider.reinvest': 'Reinvestimento',
+    'slider.growthdiv': 'Crescimento do dividendo (empresa)',
+  },
+  en: {
+    'login.tagline': 'Personal finance tracker.<br/>Sign in with Google to continue.',
+    'login.button': 'Sign in with Google',
+    'hero.networth': 'Total net worth',
+    'hero.sync': 'Sync',
+    'hero.updated.never': 'not yet updated',
+    'hero.updated.prefix': 'updated',
+    'goal.eyebrow': 'LONG-TERM GOAL',
+    'goal.variables': 'VARIABLES',
+    'card.portfolio': 'my portfolio',
+    'card.dividends': 'dividends per year',
+    'card.networth': 'net worth per year',
+    'card.contributions': 'monthly contributions',
+    'card.history': 'yearly history',
+    'tab.investments': 'Investments',
+    'tab.expenses': 'Expenses',
+    'th.year': 'Year',
+    'th.networth': 'Net worth',
+    'th.dividends': 'Dividends',
+    'th.dy': 'DY',
+    'th.yoy': 'YoY',
+    'stat.hitgoal': 'Goal hit in',
+    'stat.netat': 'Net worth in 2035',
+    'stat.totalcontrib': 'Total contributed',
+    'slider.monthly': 'Monthly contribution',
+    'slider.growthcontrib': 'Contribution growth',
+    'slider.dy': 'Expected DY',
+    'slider.reinvest': 'Reinvestment',
+    'slider.growthdiv': 'Dividend growth (company)',
+  }
+};
+
+function getLang() { return localStorage.getItem('ledger-lang') || 'pt'; }
+
+function t(key) {
+  const lang = getLang();
+  return (I18N[lang] && I18N[lang][key]) || (I18N.pt[key]) || key;
+}
+window.t = t;
+window.getLang = getLang;
+
+function applyI18n() {
+  const lang = getLang();
+  document.documentElement.setAttribute('lang', lang === 'en' ? 'en' : 'pt-BR');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const val = t(key);
+    if (val.includes('<')) el.innerHTML = val;
+    else el.textContent = val;
+  });
+  // Update lang label in topbar
+  const label = document.getElementById('langLabel');
+  if (label) label.textContent = lang === 'pt' ? 'EN' : 'PT';
+  // Re-render dynamic views that have hardcoded strings
+  if (typeof renderInvestments === 'function' && state.mode === 'investments') renderInvestments();
+}
+
+function toggleLang() {
+  const next = getLang() === 'pt' ? 'en' : 'pt';
+  try { localStorage.setItem('ledger-lang', next); } catch(e) {}
+  applyI18n();
+  if (state.user) {
+    setDoc(docConfig, { lang: next, updatedAt: serverTimestamp() }, { merge: true }).catch(()=>{});
+  }
+}
+
+document.getElementById('btnLangToggle')?.addEventListener('click', toggleLang);
+
+// Apply on initial load
+applyI18n();
 
 onAuthStateChanged(auth, async (user) => {
   window.__bootLog && window.__bootLog('auth state: ' + (user ? 'LOGGED IN as ' + user.email : 'logged out'));
