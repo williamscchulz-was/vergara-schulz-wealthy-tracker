@@ -114,21 +114,12 @@ function tracePath(path, duration = 1200, delay = 0) {
   }, delay);
 }
 function runEntryAnimations() {
-  // Stagger handled purely via CSS animation-delay on .card elements.
-  // JS count-ups + path traces fire here.
+  // Count-up the big net worth number on first load. Chart trace is handled by drawChart's
+  // own one-shot (_chartTraced flag) in the inline script — we do NOT duplicate it here,
+  // otherwise two trace cycles compete and produce the "line collapses and redraws" glitch.
   const nwEl = $('i10Equity');
   if (nwEl && state.i10.equity > 0) {
     countUp(nwEl, state.i10.equity, 1600, (n) => (n || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 }));
-  }
-  const histPath = document.querySelector('#gChart .history-line');
-  const projPath = document.querySelector('#gChart .projection-line');
-  if (histPath) tracePath(histPath, 1400, 200);
-  if (projPath) {
-    projPath.style.opacity = '0';
-    setTimeout(() => {
-      projPath.style.transition = 'opacity .8s ease';
-      projPath.style.opacity = '.85';
-    }, 1600);
   }
 }
 function showToast(msg) {
@@ -717,9 +708,9 @@ async function syncFromI10() {
     }, { merge: true });
 
     showToast(`✓ Synced · ${assets.length} assets`);
-    // Replay entry animations after a fresh sync so numbers count-up and the chart retraces
+    // Count-up replays on sync so the new equity number animates in — but chart trace does NOT.
+    // Replaying strokeDashoffset = len → 0 looks like a glitch (line vanishes then redraws). Keep the line steady.
     state._entryAnimsPlayed = false;
-    window._chartTraced = false;
   } catch (err) {
     console.error('I10 sync error:', err);
     showToast('Sync failed: ' + (err.message || 'unknown error'));

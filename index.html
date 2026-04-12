@@ -143,15 +143,20 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   to { transform: translate(6px, -6px) }
 }
 @keyframes projection-shimmer {
-  to { stroke-dashoffset: -18 }
+  to { stroke-dashoffset: -20 }
 }
 @keyframes point-pulse {
-  0%,100% { r: 3.5; filter: drop-shadow(0 0 3px rgba(227,162,238,.6)) }
-  50%     { r: 5;   filter: drop-shadow(0 0 8px rgba(227,162,238,.9)) }
+  0%,100% { r: 4; filter: drop-shadow(0 0 4px rgba(227,162,238,.6)) }
+  50%     { r: 6; filter: drop-shadow(0 0 12px rgba(227,162,238,.95)) }
 }
 @keyframes target-point-pulse {
-  0%,100% { r: 4 }
-  50%     { r: 6 }
+  0%,100% { r: 5; opacity: .85 }
+  50%     { r: 7; opacity: 1 }
+}
+/* Radar ring expanding outward from target point — Option C signature */
+@keyframes target-ring-expand {
+  0%   { r: 5;  opacity: .7 }
+  100% { r: 18; opacity: 0 }
 }
 @keyframes target-line-ripple {
   0%,100% { opacity: .5; stroke-width: 1 }
@@ -319,9 +324,19 @@ body {
 /* Goal chart SVG elements — animations hook here once markup exists (§4 Turno 4) */
 /* chart-breathe removed: SVG <g> transform was collapsing to origin in Safari */
 #gChart .hatch-layer { animation: hatch-flow 3s linear infinite; }
-#gChart .projection-line { stroke-dasharray: 4 4; animation: projection-shimmer 1.8s linear infinite; }
-#gChart .current-point { animation: point-pulse 2.2s ease-in-out infinite; transform-origin: center; }
+#gChart .projection-line {
+  stroke-dasharray: 4 6;
+  animation: projection-shimmer 1.6s linear infinite;
+}
+#gChart .current-point { animation: point-pulse 2.4s ease-in-out infinite; transform-origin: center; }
 #gChart .target-point { animation: target-point-pulse 3s ease-in-out infinite; transform-origin: center; }
+#gChart .target-ring {
+  fill: none;
+  stroke: #E3A2EE;
+  stroke-width: 1.5;
+  animation: target-ring-expand 2.8s ease-out infinite;
+  transform-origin: center;
+}
 #gChart .target-line { animation: target-line-ripple 3s ease-in-out infinite; }
 
 
@@ -950,43 +965,152 @@ body::before {
 .btn-lg.icon-only { width: 52px; }
 
 
-/* v8 Turno 3 — Variables numeric inputs + goal card tweaks */
+/* v8 Turno 3 — Variables numeric inputs (Option C below replaces heavy styling) */
+/* v8 Turno 3 + Option C — compact 2-col grid of label+value cells sharing borders */
+.g-sliders {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 1px !important;
+  background: var(--border-soft) !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+  margin-top: 4px !important;
+}
+.g-sl {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  background: var(--bg-elevated) !important;
+  padding: 14px 16px !important;
+  border: none !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+}
+.g-sl[style*="grid-column"] {
+  grid-column: 1 / -1 !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+.g-sl .g-top {
+  display: contents !important;
+}
+.g-sl .g-name {
+  font-size: 10px !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+  color: var(--text-faint) !important;
+  order: 1;
+}
+.g-sl[style*="grid-column"] .g-name { flex: 1; }
+.g-sl .g-val { display: none !important; }
 .var-input-v8 {
-  background: rgba(255,255,255,.04);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 11px;
-  padding: 9px 14px;
+  order: 2;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
   color: var(--purple-light);
   font-family: 'Geist Mono', 'JetBrains Mono', monospace;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
-  text-align: right;
-  width: 132px;
+  text-align: left;
+  width: 100%;
   outline: none;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
-  transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s ease, border-color .3s ease;
+  box-shadow: none !important;
+  transition: color .2s ease;
+}
+.g-sl[style*="grid-column"] .var-input-v8 {
+  text-align: right;
+  width: auto;
+  flex-shrink: 0;
 }
 .var-input-v8:focus {
-  border-color: var(--purple);
-  transform: scale(1.03);
-  box-shadow:
-    0 0 0 3px var(--purple-soft),
-    0 8px 24px var(--purple-glow),
-    inset 0 1px 0 rgba(255,255,255,.06);
+  color: #fff;
+  transform: none !important;
 }
-:root[data-theme="light"] .var-input-v8 {
-  background: rgba(255,255,255,.55);
+:root[data-theme="light"] .g-sl { background: rgba(255,255,255,.5) !important; }
+:root[data-theme="light"] .g-sliders { background: rgba(147,51,234,.14) !important; }
+:root[data-theme="light"] .var-input-v8 { color: var(--purple) !important; }
+
+/* v8 Option C — Goal stats: primary hero + 2 side cells */
+.stats-c {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+.stats-c-primary {
+  padding: 16px 18px;
+  background: linear-gradient(135deg, rgba(172,95,219,.14), rgba(227,162,238,.04));
+  border-radius: 14px;
+  border: 1px solid rgba(227,162,238,.16);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+.stats-c-primary .lbl {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--purple-light);
+  opacity: .8;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+.stats-c-primary .val {
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-size: 34px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+  letter-spacing: -.04em;
+}
+.stats-c-primary .sub {
+  font-size: 10px;
+  color: var(--purple-light);
+  opacity: .8;
+  margin-top: 8px;
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+}
+.stats-c-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border-soft);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.stats-c-cell {
+  background: var(--bg-elevated-2);
+  padding: 10px 14px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.stats-c-cell .lbl {
+  font-size: 8.5px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+.stats-c-cell .val {
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -.02em;
+  line-height: 1.2;
+}
+/* Light theme */
+:root[data-theme="light"] .stats-c-primary {
+  background: linear-gradient(135deg, rgba(147,51,234,.10), rgba(192,132,252,.04));
   border-color: rgba(147,51,234,.18);
 }
-/* The old .g-sl grid was built for sliders — turn each row into a flex row */
-.g-sl { display: flex !important; justify-content: space-between !important; align-items: center !important; padding: 14px 0 !important; border-bottom: 1px solid var(--border) !important; }
-.g-sl:last-child { border-bottom: none !important; }
-.g-sl .g-top { display: flex !important; justify-content: space-between !important; align-items: center !important; width: 100%; gap: 12px; }
-.g-sl .g-val { display: none !important; } /* old range display replaced by input */
-.g-sliders { display: block !important; }
-.g-sl[style*="grid-column"] { border-bottom: none !important; }
+:root[data-theme="light"] .stats-c-primary .val { color: var(--ink); }
+:root[data-theme="light"] .stats-c-side { background: rgba(147,51,234,.14); }
+:root[data-theme="light"] .stats-c-cell { background: rgba(255,255,255,.6); }
 
 /* v8 Turno 5 — Modal reskin (paleta nova + glass + liquid-border nos saves) */
 .modal-bg {
@@ -1305,19 +1429,34 @@ body::before {
           </div>
         </div>
         <div style="margin:6px -8px 18px"><svg id="gChart" viewBox="0 0 700 300" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block;overflow:visible"></svg></div>
-        <p id="gNarrative" style="font-size:13px;color:var(--ink-2);line-height:1.6;margin:0 0 22px;padding:14px 16px;background:var(--bg-elevated-2);border-radius:12px;border:1px solid var(--border)"></p>
-        <div class="stats three" style="margin-bottom:22px">
-          <div class="stat"><div class="lbl" data-i18n="stat.hitgoal">Goal hit in</div><div class="val" id="gStatHit">-</div><div class="sub" id="gStatHitSub">-</div></div>
-          <div class="stat"><div class="lbl" data-i18n="stat.netat">Net worth 2035</div><div class="val" id="gStatPL">-</div><div class="sub" id="gStatPLSub">-</div></div>
-          <div class="stat"><div class="lbl" data-i18n="stat.totalcontrib">Total invested</div><div class="val" id="gStatApor">-</div><div class="sub">10 anos</div></div>
+        <p id="gNarrative" style="display:none"></p>
+        <!-- v8 Option C: primary hero + 2 secondary side cells -->
+        <div class="stats-c">
+          <div class="stats-c-primary">
+            <div class="lbl" data-i18n="stat.hitgoal">Goal hit in</div>
+            <div class="val" id="gStatHit">-</div>
+            <div class="sub" id="gStatHitSub">-</div>
+          </div>
+          <div class="stats-c-side">
+            <div class="stats-c-cell">
+              <div class="lbl" data-i18n="stat.netat">Net worth 2035</div>
+              <div class="val" id="gStatPL">-</div>
+              <div class="sub" id="gStatPLSub" style="display:none">-</div>
+            </div>
+            <div class="stats-c-cell">
+              <div class="lbl" data-i18n="stat.totalcontrib">Total invested</div>
+              <div class="val" id="gStatApor">-</div>
+              <div class="sub" style="display:none">10 years</div>
+            </div>
+          </div>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding-top:18px;border-top:1px solid var(--border);margin-bottom:16px">
           <div class="eyebrow" data-i18n="goal.variables">VARIABLES</div>
           <button class="btn-ghost" id="gBtnReset" style="padding:5px 12px;font-size:11px">Reset</button>
         </div>
         <div class="g-sliders">
-          <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.monthly">Monthly contribution</span><span class="g-val" id="gvAporte">R$ 24.000</span></div><input type="text" inputmode="decimal" id="gsAporte" class="var-input-v8" value="R$ 24.000" autocomplete="off"></div>
-          <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.growthcontrib">Contribution growth</span><span class="g-val" id="gvCrescAporte">10,0%/ano</span></div><input type="text" inputmode="decimal" id="gsCrescAporte" class="var-input-v8" value="10,0%/yr" autocomplete="off"></div>
+          <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.monthly">Monthly</span><span class="g-val" id="gvAporte">R$ 24.000</span></div><input type="text" inputmode="decimal" id="gsAporte" class="var-input-v8" value="R$ 24.000" autocomplete="off"></div>
+          <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.growthcontrib">Contrib growth</span><span class="g-val" id="gvCrescAporte">10,0%/ano</span></div><input type="text" inputmode="decimal" id="gsCrescAporte" class="var-input-v8" value="10,0%/yr" autocomplete="off"></div>
           <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.dy">Expected DY</span><span class="g-val" id="gvDY">8,0%</span></div><input type="text" inputmode="decimal" id="gsDY" class="var-input-v8" value="8,0%" autocomplete="off"></div>
           <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.reinvest">Reinvestment</span><span class="g-val" id="gvReinv">100%</span></div><input type="text" inputmode="decimal" id="gsReinv" class="var-input-v8" value="100%" autocomplete="off"></div>
           <div class="g-sl" style="grid-column:1/-1"><div class="g-top"><span class="g-name" data-i18n="slider.growthdiv">Dividend growth</span><span class="g-val" id="gvCrescDiv">6,0%/ano</span></div><input type="text" inputmode="decimal" id="gsCrescDiv" class="var-input-v8" value="6,0%/yr" autocomplete="off"></div>
@@ -1772,8 +1911,8 @@ const I18N = {
     'stat.hitgoal': 'Goal hit in',
     'stat.netat': 'Net worth in 2035',
     'stat.totalcontrib': 'Total contributed',
-    'slider.monthly': 'Monthly contribution',
-    'slider.growthcontrib': 'Contribution growth',
+    'slider.monthly': 'Monthly',
+    'slider.growthcontrib': 'Contrib growth',
     'slider.dy': 'Expected DY',
     'slider.reinvest': 'Reinvestment',
     'slider.growthdiv': 'Dividend growth (company)',
@@ -3500,7 +3639,7 @@ function render() {
   $('gStatHit').textContent = metaHitYear || '> '+TARGET_YEAR;
   if (metaHitYear) {
     const d = TARGET_YEAR - metaHitYear;
-    $('gStatHitSub').textContent = d > 0 ? d+' anos antes' : (d < 0 ? Math.abs(d)+' anos depois' : 'no prazo');
+    $('gStatHitSub').textContent = d > 0 ? d+(d===1?' year early':' years early') : (d < 0 ? Math.abs(d)+(Math.abs(d)===1?' year late':' years late') : 'on schedule');
   } else $('gStatHitSub').textContent = t('goal.notreach');
 
   const pAt = proj.find(x => x.year === TARGET_YEAR);
@@ -3611,9 +3750,13 @@ function drawChart(proj, metaHitYear) {
       svg += '<circle cx="'+hx+'" cy="'+hy+'" r="5" fill="#34e17a" stroke="#29262B" stroke-width="2"/>';
     }
   }
-  // Target point at 2035 — pulses via .target-point
+  // Target point at 2035 — pulses via .target-point + .target-ring radar ripple (Option C)
   const f = proj.find(p => p.year === TARGET_YEAR);
-  if (f) svg += '<circle class="target-point" cx="'+xS(f.year)+'" cy="'+yS(f.divs)+'" r="4" fill="#fff" stroke="#E3A2EE" stroke-width="2"/>';
+  if (f) {
+    const tx = xS(f.year), ty = yS(f.divs);
+    svg += '<circle class="target-ring" cx="'+tx+'" cy="'+ty+'"/>';
+    svg += '<circle class="target-point" cx="'+tx+'" cy="'+ty+'" r="4" fill="#fff" stroke="#E3A2EE" stroke-width="2"/>';
+  }
 
   svg += '</g>';
   $('gChart').innerHTML = svg;
@@ -3671,8 +3814,23 @@ onAuthStateChanged(auth, (user) => {
   });
 });
 
-// Re-render when app.js updates yearly/equity (poll every 1.5s, lightweight)
-setInterval(() => { if (userLoaded) drawChart(simulate(readSliders()).proj, simulate(readSliders()).metaHitYear); }, 1500);
+// Re-render only when app.js actually updates yearly/equity data (change-detection, no blind polling)
+let _lastChartHash = '';
+function _chartHash() {
+  try {
+    const ye = (state.yearly || []).map(y => `${y.year}:${y.equity}:${y.divs}`).join('|');
+    const eq = state.i10 ? `${state.i10.equity}:${state.i10.dividends}` : '';
+    return ye + '#' + eq;
+  } catch (e) { return ''; }
+}
+setInterval(() => {
+  if (!userLoaded) return;
+  const h = _chartHash();
+  if (h === _lastChartHash) return; // nothing changed → skip redraw → no flash
+  _lastChartHash = h;
+  const sim = simulate(readSliders());
+  drawChart(sim.proj, sim.metaHitYear);
+}, 1500);
 
 // Initial render with defaults
 render();
