@@ -672,25 +672,38 @@ function renderLouise() {
 }
 
 // v8 Turno 7 — Louise wallet sync (piggybacks on main Sync button)
+// Mirrors syncFromI10 exactly — same endpoint shape, same parse keys, same query params
 async function syncLouise() {
+  const workerUrl = state.i10Cfg.workerUrl || '';
+  const walletId = state.i10LouiseCfg.walletId;
+  if (!workerUrl || !walletId) {
+    console.warn('Louise sync skipped: workerUrl or walletId missing', { workerUrl, walletId });
+    return;
+  }
   try {
-    const base = (state.i10Cfg.workerUrl || '').replace(/\/$/, '');
-    const wid = state.i10LouiseCfg.walletId;
-    if (!base || !wid) return;
-    const res = await fetch(base + '/i10/all/' + wid);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    const metrics = data.metrics || data.summary || {};
-    const earnings = data.earnings || data.dividends || {};
-    const equity = +metrics.totalValue || +metrics.patrimonio || +metrics.equity || 0;
-    const applied = +metrics.totalApplied || +metrics.aplicado || +metrics.invested || 0;
-    const divs = +earnings.totalYear || +earnings.ytd || +earnings.totalPeriod || 0;
-    const variation = applied > 0 ? ((equity - applied) / applied) * 100 : 0;
+    const year = new Date().getFullYear();
+    const base = workerUrl.replace(/\/+$/, '');
+    const url = `${base}/i10/all/${encodeURIComponent(walletId)}?year=${year}`;
+    console.log('Louise sync →', url);
+    const res = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const payload = await res.json();
+
+    const m = payload.metrics || {};
+    const equity = parseFloat(m.equity) || 0;
+    const applied = parseFloat(m.applied) || 0;
+    const variation = parseFloat(m.variation) || 0;
+    const dividends = parseFloat(payload.earnings?.sum) || 0;
+
     await setDoc(docI10Louise, {
-      equity, dividends: divs, applied, variation,
-      updatedAt: new Date().toISOString(),
+      equity, dividends, applied, variation,
+      year,
+      updatedAt: serverTimestamp(),
+      updatedBy: (state.user?.displayName || 'unknown') + ' (auto)',
       source: 'investidor10-sync',
     }, { merge: true });
+
+    console.log('Louise sync ✓', { equity, dividends, applied, variation });
   } catch (err) {
     console.warn('Louise sync failed:', err);
   }
@@ -977,12 +990,17 @@ function subscribeAll() {
   unsub.i10Louise = onSnapshot(docI10Louise, (snap) => {
     if (snap.exists()) {
       const d = snap.data();
+      // Firestore serverTimestamp returns a Timestamp object with .toDate()
+      let updatedAt = null;
+      if (d.updatedAt) {
+        updatedAt = typeof d.updatedAt.toDate === 'function' ? d.updatedAt.toDate() : d.updatedAt;
+      }
       state.i10Louise = {
         equity: +d.equity || 0,
         dividends: +d.dividends || 0,
         applied: +d.applied || 0,
         variation: +d.variation || 0,
-        updatedAt: d.updatedAt || null,
+        updatedAt,
       };
       renderLouise();
     }
