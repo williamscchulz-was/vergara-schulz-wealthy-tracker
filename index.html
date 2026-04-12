@@ -1252,6 +1252,79 @@ body::before {
 }
 .range-toggle button.active { background: var(--purple); color: #fff; }
 .range-toggle button:hover:not(.active) { color: var(--text); }
+
+/* v8 Turno 7 — Louise wallet mini-card (pink accent) */
+:root {
+  --pink: #f472b6;
+  --pink-light: #fbcfe8;
+  --pink-glow: rgba(244,114,182,.35);
+  --pink-soft: rgba(244,114,182,.12);
+}
+.louise-card {
+  background: linear-gradient(135deg, rgba(244,114,182,.08), rgba(251,207,232,.02));
+  border: 1px solid rgba(244,114,182,.18);
+  border-radius: 20px;
+  padding: 18px 22px;
+  margin-bottom: 16px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 8px 24px rgba(0,0,0,.3);
+  position: relative;
+}
+.louise-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px;
+}
+.louise-name {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--pink-light); font-weight: 700;
+}
+.louise-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--pink);
+  box-shadow: 0 0 10px var(--pink-glow);
+  animation: dot-pulse 2.4s ease-in-out infinite;
+}
+.louise-tag {
+  font-size: 10px; color: var(--text-faint);
+  letter-spacing: 1px; font-weight: 500;
+}
+.louise-main {
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-size: 28px; font-weight: 700; color: #fff;
+  letter-spacing: -.03em; line-height: 1;
+}
+.louise-cur {
+  font-size: 14px; color: var(--text-dim);
+  margin-right: 6px; font-weight: 500; vertical-align: top;
+}
+.louise-row {
+  display: flex; gap: 16px;
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px solid rgba(244,114,182,.12);
+}
+.louise-item { flex: 1; }
+.louise-lbl {
+  font-size: 9px; color: var(--text-faint);
+  letter-spacing: 1px; text-transform: uppercase;
+  margin-bottom: 4px; font-weight: 600;
+}
+.louise-v {
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-size: 14px; font-weight: 700; color: var(--pink-light);
+}
+.louise-var.gain { color: var(--gain); }
+.louise-var.loss { color: var(--loss); }
+.louise-updated {
+  font-size: 9px; color: var(--text-faint);
+  font-family: 'Geist Mono', monospace;
+  margin-top: 10px; letter-spacing: .5px;
+  opacity: .7;
+}
+:root[data-theme="light"] .louise-card {
+  background: linear-gradient(135deg, rgba(244,114,182,.10), rgba(255,255,255,.4));
+  border-color: rgba(244,114,182,.22);
+}
+:root[data-theme="light"] .louise-main { color: var(--ink); }
 </style>
 <script>
   // Apply theme ASAP to avoid flash
@@ -1431,6 +1504,26 @@ body::before {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           </button>
         </div>
+      </div>
+
+      <!-- v8 Turno 7 — LOUISE mini-card -->
+      <div class="louise-card animate-in" id="louiseCard">
+        <div class="louise-head">
+          <div class="louise-name"><span class="louise-dot"></span>Louise</div>
+          <div class="louise-tag">♥ her wallet</div>
+        </div>
+        <div class="louise-main"><span class="louise-cur">R$</span><span id="louiseEquity">0</span></div>
+        <div class="louise-row">
+          <div class="louise-item">
+            <div class="louise-lbl">Dividends YTD</div>
+            <div class="louise-v" id="louiseDividends">R$ 0</div>
+          </div>
+          <div class="louise-item">
+            <div class="louise-lbl">Variation</div>
+            <div class="louise-v louise-var" id="louiseVariation">—</div>
+          </div>
+        </div>
+        <div class="louise-updated" id="louiseUpdated">not yet synced</div>
       </div>
 
       <!-- GOAL SIMULATOR CARD -->

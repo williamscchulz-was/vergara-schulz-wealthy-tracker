@@ -27,6 +27,7 @@ const docExpense  = (id) => doc(db, "household", "main", "expenses", id);
 const docYearly   = (id) => doc(db, "household", "main", "dividendsYearly", id);
 const docConfig   = doc(db, "household", "main", "config", "settings");
 const docI10      = doc(db, "household", "main", "config", "i10");
+const docI10Louise = doc(db, "household", "main", "config", "i10-louise");
 const docI10Cfg   = doc(db, "household", "main", "config", "i10sync");
 
 // ---- Constants ----
@@ -52,6 +53,8 @@ const state = {
   yearly: [],
   i10: { equity: 0, dividends: 0, updatedAt: null, year: new Date().getFullYear(), assets: [] },
   i10Cfg: { workerUrl: '', walletId: '', autoSync: false },
+  i10Louise: { equity: 0, dividends: 0, applied: 0, variation: 0, updatedAt: null },
+  i10LouiseCfg: { walletId: '2699282' }, // Louise's public I10 wallet
   i10Syncing: false,
   dividendsYearlyGoal: 1_000_000,
   dividendsYearlyGoalYear: 2035,
@@ -645,6 +648,54 @@ function renderI10Assets() {
   }).join('');
 }
 
+
+// v8 Turno 7 — Louise wallet render
+function renderLouise() {
+  const eq = $('louiseEquity');
+  if (!eq) return; // markup not yet rendered
+  eq.textContent = (state.i10Louise.equity || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  const divEl = $('louiseDividends');
+  if (divEl) divEl.textContent = 'R$ ' + (state.i10Louise.dividends || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  const varEl = $('louiseVariation');
+  if (varEl) {
+    const v = +state.i10Louise.variation || 0;
+    const sign = v >= 0 ? '+' : '';
+    varEl.textContent = sign + v.toFixed(1) + '%';
+    varEl.className = 'louise-var ' + (v >= 0 ? 'gain' : 'loss');
+  }
+  const upd = $('louiseUpdated');
+  if (upd) {
+    upd.textContent = state.i10Louise.updatedAt
+      ? 'updated · ' + formatDateTimeBR(state.i10Louise.updatedAt)
+      : 'not yet synced';
+  }
+}
+
+// v8 Turno 7 — Louise wallet sync (piggybacks on main Sync button)
+async function syncLouise() {
+  try {
+    const base = (state.i10Cfg.workerUrl || '').replace(/\/$/, '');
+    const wid = state.i10LouiseCfg.walletId;
+    if (!base || !wid) return;
+    const res = await fetch(base + '/i10/all/' + wid);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const metrics = data.metrics || data.summary || {};
+    const earnings = data.earnings || data.dividends || {};
+    const equity = +metrics.totalValue || +metrics.patrimonio || +metrics.equity || 0;
+    const applied = +metrics.totalApplied || +metrics.aplicado || +metrics.invested || 0;
+    const divs = +earnings.totalYear || +earnings.ytd || +earnings.totalPeriod || 0;
+    const variation = applied > 0 ? ((equity - applied) / applied) * 100 : 0;
+    await setDoc(docI10Louise, {
+      equity, dividends: divs, applied, variation,
+      updatedAt: new Date().toISOString(),
+      source: 'investidor10-sync',
+    }, { merge: true });
+  } catch (err) {
+    console.warn('Louise sync failed:', err);
+  }
+}
+
 async function syncFromI10() {
   const { workerUrl, walletId } = state.i10Cfg;
   if (!workerUrl || !walletId) {
@@ -709,8 +760,9 @@ async function syncFromI10() {
 
     showToast(`✓ Synced · ${assets.length} assets`);
     // Count-up replays on sync so the new equity number animates in — but chart trace does NOT.
-    // Replaying strokeDashoffset = len → 0 looks like a glitch (line vanishes then redraws). Keep the line steady.
     state._entryAnimsPlayed = false;
+    // Louise's wallet syncs piggyback on the same button (fire-and-forget, doesn't block UI)
+    syncLouise().catch(e => console.warn('Louise piggyback sync error:', e));
   } catch (err) {
     console.error('I10 sync error:', err);
     showToast('Sync failed: ' + (err.message || 'unknown error'));
@@ -921,6 +973,19 @@ function subscribeAll() {
     if (typeof data.dividendsYearlyGoal === 'number') state.dividendsYearlyGoal = data.dividendsYearlyGoal;
     if (typeof data.dividendsYearlyGoalYear === 'number') state.dividendsYearlyGoalYear = data.dividendsYearlyGoalYear;
     if (state.mode === 'investments') renderInvestments();
+  });
+  unsub.i10Louise = onSnapshot(docI10Louise, (snap) => {
+    if (snap.exists()) {
+      const d = snap.data();
+      state.i10Louise = {
+        equity: +d.equity || 0,
+        dividends: +d.dividends || 0,
+        applied: +d.applied || 0,
+        variation: +d.variation || 0,
+        updatedAt: d.updatedAt || null,
+      };
+      renderLouise();
+    }
   });
   unsub.i10 = onSnapshot(docI10, (snap) => {
     const data = snap.data() || {};
