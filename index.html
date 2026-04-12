@@ -4194,11 +4194,19 @@ document.addEventListener('click', (e) => {
 
 
 
-// v8 Turno 8 — FX modal event listeners
-document.getElementById('fxModalClose')?.addEventListener('click', closeFXModal);
-document.getElementById('fxModalCancel')?.addEventListener('click', closeFXModal);
-document.getElementById('fxModalSave')?.addEventListener('click', saveFX);
-document.getElementById('fxModal')?.addEventListener('click', e => { if (e.target.id === 'fxModal') closeFXModal(); });
+// v8 Turno 8 — FX modal event listeners (defensive: inline handlers)
+(function wireFXModal() {
+  const _close = () => { const m = document.getElementById('fxModal'); if (m) m.style.display = 'none'; };
+  document.getElementById('fxModalClose')?.addEventListener('click', _close);
+  document.getElementById('fxModalCancel')?.addEventListener('click', _close);
+  document.getElementById('fxModalSave')?.addEventListener('click', () => {
+    if (typeof saveFX === 'function') saveFX();
+    else console.error('saveFX not defined');
+  });
+  document.getElementById('fxModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'fxModal') _close();
+  });
+})();
 
 </script>
 
