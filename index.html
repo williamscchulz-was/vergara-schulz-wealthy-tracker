@@ -2437,7 +2437,12 @@ function closeFXModal() {
 }
 
 async function saveFX() {
-  const raw = (document.getElementById('fxModalInput').value || '').replace(/\./g, '').replace(',', '.').trim();
+  const inputEl = document.getElementById('fxModalInput');
+  let raw = inputEl ? String(inputEl.value || '') : '';
+  // Remove thousand-separator dots, swap comma for dot (pt-BR to JS parseFloat format)
+  raw = raw.split('.').join('');
+  raw = raw.split(',').join('.');
+  raw = raw.trim();
   const usd = parseFloat(raw) || 0;
   await setDoc(docFx, {
     usd,
@@ -2445,7 +2450,8 @@ async function saveFX() {
     updatedBy: state.user?.displayName || 'unknown',
     updatedAt: serverTimestamp(),
   }, { merge: true });
-  closeFXModal();
+  const m = document.getElementById('fxModal');
+  if (m) m.style.display = 'none';
   showToast('USD atualizado: US$ ' + usd.toLocaleString('pt-BR'));
 }
 
@@ -4195,12 +4201,17 @@ document.addEventListener('click', (e) => {
 
 
 // v8 Turno 8 — FX modal event listeners (defensive: inline handlers)
+// Expose FX functions on window so external code and listeners can reach them
+window.saveFX = saveFX;
+window.openFXModal = openFXModal;
+window.closeFXModal = closeFXModal;
+
 (function wireFXModal() {
   const _close = () => { const m = document.getElementById('fxModal'); if (m) m.style.display = 'none'; };
   document.getElementById('fxModalClose')?.addEventListener('click', _close);
   document.getElementById('fxModalCancel')?.addEventListener('click', _close);
   document.getElementById('fxModalSave')?.addEventListener('click', () => {
-    if (typeof saveFX === 'function') saveFX();
+    if (typeof window.saveFX === 'function') window.saveFX();
     else console.error('saveFX not defined');
   });
   document.getElementById('fxModal')?.addEventListener('click', (e) => {
