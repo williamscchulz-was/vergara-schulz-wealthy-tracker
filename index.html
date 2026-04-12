@@ -1253,78 +1253,71 @@ body::before {
 .range-toggle button.active { background: var(--purple); color: #fff; }
 .range-toggle button:hover:not(.active) { color: var(--text); }
 
-/* v8 Turno 7 — Louise wallet mini-card (pink accent) */
-:root {
-  --pink: #f472b6;
-  --pink-light: #fbcfe8;
-  --pink-glow: rgba(244,114,182,.35);
-  --pink-soft: rgba(244,114,182,.12);
-}
-.louise-card {
-  background: linear-gradient(135deg, rgba(244,114,182,.08), rgba(251,207,232,.02));
-  border: 1px solid rgba(244,114,182,.18);
-  border-radius: 20px;
-  padding: 18px 22px;
-  margin-bottom: 16px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 8px 24px rgba(0,0,0,.3);
-  position: relative;
-}
-.louise-head {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 14px;
-}
-.louise-name {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
-  color: var(--pink-light); font-weight: 700;
-}
-.louise-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--pink);
-  box-shadow: 0 0 10px var(--pink-glow);
-  animation: dot-pulse 2.4s ease-in-out infinite;
-}
-.louise-tag {
-  font-size: 10px; color: var(--text-faint);
-  letter-spacing: 1px; font-weight: 500;
-}
-.louise-main {
+/* v8 Turno 8 — Louise compact chip (replaces old Louise mini-card) */
+:root { --pink: #f472b6; --pink-light: #fbcfe8; --pink-glow: rgba(244,114,182,.35); --pink-soft: rgba(244,114,182,.12); --pink-strong: rgba(244,114,182,.25); }
+.louise-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--pink-soft);
+  border: 1px solid var(--pink-strong);
+  border-radius: 999px;
+  padding: 6px 12px;
+  margin-top: 10px;
   font-family: 'Geist Mono', 'JetBrains Mono', monospace;
-  font-size: 28px; font-weight: 700; color: #fff;
-  letter-spacing: -.03em; line-height: 1;
+  font-size: 11px; color: var(--pink-light);
+  letter-spacing: .2px;
+  max-width: 100%; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis;
+  align-self: flex-start;
 }
-.louise-cur {
-  font-size: 14px; color: var(--text-dim);
-  margin-right: 6px; font-weight: 500; vertical-align: top;
-}
-.louise-row {
-  display: flex; gap: 16px;
-  margin-top: 14px; padding-top: 12px;
-  border-top: 1px solid rgba(244,114,182,.12);
-}
-.louise-item { flex: 1; }
-.louise-lbl {
-  font-size: 9px; color: var(--text-faint);
-  letter-spacing: 1px; text-transform: uppercase;
-  margin-bottom: 4px; font-weight: 600;
-}
-.louise-v {
+.louise-chip-heart { color: var(--pink); font-size: 11px; flex-shrink: 0; }
+.louise-chip-name { font-weight: 700; letter-spacing: 1px; text-transform: uppercase; font-size: 10px; }
+.louise-chip-sep { color: var(--text-faint); opacity: .6; }
+.louise-chip-val { color: var(--pink-light); font-weight: 600; }
+.louise-chip-var { font-weight: 700; }
+.louise-chip-var.gain { color: var(--gain); }
+.louise-chip-var.loss { color: var(--loss); }
+:root[data-theme="light"] .louise-chip { background: rgba(244,114,182,.08); border-color: rgba(244,114,182,.25); }
+
+/* v8 Turno 8 — FX (USD) styles */
+:root { --usd: #76d674; --usd-bg: rgba(118,214,116,.1); --usd-strong: rgba(118,214,116,.22); }
+.cat-row.fx-row { align-items: flex-start; }
+.cat-icon.fx-icon { background: var(--usd-bg) !important; color: var(--usd) !important; }
+.cat-row.fx-row:hover .cat-icon.fx-icon { background: rgba(118,214,116,0.2) !important; }
+.fx-extra {
   font-family: 'Geist Mono', 'JetBrains Mono', monospace;
-  font-size: 14px; font-weight: 700; color: var(--pink-light);
+  font-size: 10px; color: var(--usd); margin-top: 4px;
+  display: flex; gap: 8px; align-items: center;
 }
-.louise-var.gain { color: var(--gain); }
-.louise-var.loss { color: var(--loss); }
-.louise-updated {
-  font-size: 9px; color: var(--text-faint);
+.fx-rate-chip {
+  font-size: 8.5px; padding: 2px 6px; border-radius: 6px;
+  background: var(--usd-bg); border: 1px solid var(--usd-strong);
+  letter-spacing: .3px;
+}
+.fx-edit-btn {
+  background: var(--usd-bg); border: 1px solid var(--usd-strong);
+  color: var(--usd); font-size: 10px; padding: 5px 12px; border-radius: 999px;
+  font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer;
+  flex-shrink: 0; margin-left: 8px; align-self: center;
+  transition: all .15s ease;
+}
+.fx-edit-btn:hover { background: var(--usd-strong); color: #fff; }
+.fx-add-hint {
+  display: block; width: 100%;
+  background: transparent; border: 1px dashed var(--usd-strong);
+  color: var(--usd); font-size: 12px; padding: 12px;
+  border-radius: 12px; margin-top: 10px; cursor: pointer;
+  font-family: 'Inter', sans-serif; font-weight: 500;
+  transition: all .15s ease;
+}
+.fx-add-hint:hover { background: var(--usd-bg); }
+.fx-modal-rate {
+  margin-top: 14px; font-size: 11px; color: var(--text-dim);
   font-family: 'Geist Mono', monospace;
-  margin-top: 10px; letter-spacing: .5px;
-  opacity: .7;
+  padding: 10px 12px; background: var(--usd-bg);
+  border: 1px solid var(--usd-strong); border-radius: 10px;
 }
-:root[data-theme="light"] .louise-card {
-  background: linear-gradient(135deg, rgba(244,114,182,.10), rgba(255,255,255,.4));
-  border-color: rgba(244,114,182,.22);
-}
-:root[data-theme="light"] .louise-main { color: var(--ink); }
+.fx-modal-rate b { color: var(--usd); font-weight: 700; }
+.fx-modal-rate-date { display: block; font-size: 9px; color: var(--text-faint); margin-top: 3px; letter-spacing: .3px; }
 </style>
 <script>
   // Apply theme ASAP to avoid flash
@@ -1487,6 +1480,16 @@ body::before {
         <div class="hero-meta-row" id="i10EquitySub">
           <div class="applied-text" data-i18n="hero.manual">Manual update</div>
         </div>
+        <div class="louise-chip" id="louiseChip" style="display:none" title="Louise's wallet — her funds, tracked separately (does not sum into your total)">
+          <span class="louise-chip-heart">♥</span>
+          <span class="louise-chip-name">Louise</span>
+          <span class="louise-chip-sep">·</span>
+          <span class="louise-chip-val" id="louiseEquity">R$ 0</span>
+          <span class="louise-chip-sep">·</span>
+          <span class="louise-chip-var" id="louiseVariation">—</span>
+          <span id="louiseDividends" style="display:none">R$ 0</span>
+          <span id="louiseUpdated" style="display:none"></span>
+        </div>
         <div class="hero-actions">
           <span class="updated" id="i10Updated">ainda nao atualizado</span>
           <a href="https://investidor10.com.br/wallet/public/1986068?h=e7342357fda4facec345faeeaa80016d13d53afd" target="_blank" rel="noopener" class="btn-ghost" id="i10PublicLink">
@@ -1504,26 +1507,6 @@ body::before {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           </button>
         </div>
-      </div>
-
-      <!-- v8 Turno 7 — LOUISE mini-card -->
-      <div class="louise-card animate-in" id="louiseCard">
-        <div class="louise-head">
-          <div class="louise-name"><span class="louise-dot"></span>Louise</div>
-          <div class="louise-tag">♥ her wallet</div>
-        </div>
-        <div class="louise-main"><span class="louise-cur">R$</span><span id="louiseEquity">0</span></div>
-        <div class="louise-row">
-          <div class="louise-item">
-            <div class="louise-lbl">Dividends YTD</div>
-            <div class="louise-v" id="louiseDividends">R$ 0</div>
-          </div>
-          <div class="louise-item">
-            <div class="louise-lbl">Variation</div>
-            <div class="louise-v louise-var" id="louiseVariation">—</div>
-          </div>
-        </div>
-        <div class="louise-updated" id="louiseUpdated">not yet synced</div>
       </div>
 
       <!-- GOAL SIMULATOR CARD -->
@@ -1845,6 +1828,28 @@ body::before {
   </div>
 </div></div>
 
+<!-- v8 Turno 8 — FX (USD) edit modal -->
+<div class="modal-bg" id="fxModal" style="display:none">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Dólar (USD)</div>
+      <button class="modal-close" id="fxModalClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <label class="modal-label">Quantidade em USD</label>
+      <input type="text" id="fxModalInput" inputmode="decimal" placeholder="Ex: 10.000,00" autocomplete="off">
+      <div class="fx-modal-rate">
+        Cotação atual (BCB): <b id="fxModalRate">—</b>
+        <span id="fxModalRateDate" class="fx-modal-rate-date"></span>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="fxModalCancel">Cancelar</button>
+      <button class="btn-primary" id="fxModalSave">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -1896,6 +1901,7 @@ const docYearly   = (id) => doc(db, "household", "main", "dividendsYearly", id);
 const docConfig   = doc(db, "household", "main", "config", "settings");
 const docI10      = doc(db, "household", "main", "config", "i10");
 const docI10Louise = doc(db, "household", "main", "config", "i10-louise");
+const docFx = doc(db, "household", "main", "config", "fx");
 const docI10Cfg   = doc(db, "household", "main", "config", "i10sync");
 
 // ---- Constants ----
@@ -1924,6 +1930,7 @@ const state = {
   i10Cfg: { workerUrl: '', walletId: '', autoSync: false },
   i10Louise: { equity: 0, dividends: 0, applied: 0, variation: 0, updatedAt: null },
   i10LouiseCfg: { walletId: '2699282' },
+  fx: { usd: 0, rateUSD: 0, rateUpdatedAt: null, rateSource: '', note: '' },
   i10Syncing: false,
   dividendsYearlyGoal: 1_000_000,
   dividendsYearlyGoalYear: 2035,
@@ -2387,13 +2394,93 @@ async function deleteExpense() {
 // ============================================================
 //                   INVESTMENTS MODULE
 // ============================================================
+
+// v8 Turno 8 — FX (USD holdings) render + edit
+function renderFX() {
+  // USD BRL equivalent
+  const usd = +state.fx.usd || 0;
+  const rate = +state.fx.rateUSD || 0;
+  const usdBRL = usd * rate;
+  // Nothing to do if there's no USD holding
+  const rowEl = document.getElementById('fxCatRow');
+  if (!rowEl) return;
+  if (usd <= 0 || rate <= 0) {
+    rowEl.style.display = 'none';
+    return;
+  }
+  rowEl.style.display = '';
+  // Compute % of total wallet (I10 + fx)
+  const totalWallet = (+state.i10.equity || 0) + usdBRL;
+  const percent = totalWallet > 0 ? (usdBRL / totalWallet) * 100 : 0;
+  const usdStr = 'US$ ' + usd.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+  const rateStr = String(rate.toFixed(2)).replace('.', ',');
+  document.getElementById('fxUsdNative').textContent = usdStr;
+  document.getElementById('fxRateChip').textContent = '\u00d7 ' + rateStr;
+  document.getElementById('fxPercent').textContent = percent.toFixed(0) + '% DA CARTEIRA';
+  document.getElementById('fxBrlValue').textContent = 'R$ ' + usdBRL.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+}
+
+function openFXModal() {
+  const modal = document.getElementById('fxModal');
+  if (!modal) return;
+  document.getElementById('fxModalInput').value = (+state.fx.usd || 0).toString().replace('.', ',');
+  const rate = +state.fx.rateUSD || 0;
+  document.getElementById('fxModalRate').textContent = rate > 0 ? 'R$ ' + rate.toFixed(2).replace('.', ',') : '—';
+  const upd = state.fx.rateUpdatedAt;
+  document.getElementById('fxModalRateDate').textContent = upd ? formatDateTimeBR(upd) : '';
+  modal.style.display = 'grid';
+}
+
+function closeFXModal() {
+  const modal = document.getElementById('fxModal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function saveFX() {
+  const raw = (document.getElementById('fxModalInput').value || '').replace(/\./g, '').replace(',', '.').trim();
+  const usd = parseFloat(raw) || 0;
+  await setDoc(docFx, {
+    usd,
+    note: '',
+    updatedBy: state.user?.displayName || 'unknown',
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+  closeFXModal();
+  showToast('USD atualizado: US$ ' + usd.toLocaleString('pt-BR'));
+}
+
+// v8 Turno 8 — refresh USD-BRL rate from worker (called on main Sync)
+async function fetchFXRate() {
+  const workerUrl = state.i10Cfg.workerUrl || '';
+  if (!workerUrl) return;
+  try {
+    const base = workerUrl.replace(/\/+$/, '');
+    const r = await fetch(base + '/fx/rate', { headers: { 'Accept': 'application/json' } });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    if (data && data.rateUSD) {
+      await setDoc(docFx, {
+        rateUSD: data.rateUSD,
+        rateSource: data.rateSource || 'awesomeapi-bcb',
+        rateUpdatedAt: data.rateUpdatedAt || new Date().toISOString(),
+      }, { merge: true });
+      console.log('FX rate refreshed \u2713', data.rateUSD);
+    }
+  } catch (err) {
+    console.warn('FX rate refresh failed:', err);
+  }
+}
+
 function renderInvestments() {
   const currentYear = new Date().getFullYear();
   const goalYear = state.dividendsYearlyGoalYear;
   const yearsLeft = Math.max(0, goalYear - currentYear);
 
   // Hero - Patrimônio
-  $('i10Equity').textContent = (state.i10.equity || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  // v8 Turno 8: hero total includes USD converted to BRL
+  const _usdBRL = (+state.fx.usd || 0) * (+state.fx.rateUSD || 0);
+  const _heroTotal = (+state.i10.equity || 0) + _usdBRL;
+  $('i10Equity').textContent = _heroTotal.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
   if (state.i10.updatedAt) {
     const sourceTag = state.i10.source === 'investidor10-sync' ? ' · via I10' : ' · manual';
     $('i10Updated').textContent = t('hero.updated.prefix') + ' ' + formatDateTimeBR(state.i10.updatedAt) + sourceTag;
@@ -2930,6 +3017,37 @@ function renderI10Assets() {
 
   wrap.innerHTML = html;
 
+  // v8 Turno 8 — append USD row to portfolio list
+  const usd = +state.fx.usd || 0;
+  const rate = +state.fx.rateUSD || 0;
+  if (usd > 0 && rate > 0) {
+    const usdBRL = usd * rate;
+    const totalWallet = (+state.i10.equity || 0) + usdBRL;
+    const percent = totalWallet > 0 ? (usdBRL / totalWallet) * 100 : 0;
+    const rateStr = rate.toFixed(2).replace('.', ',');
+    const usdRowHTML = '<div class="cat-row fx-row" id="fxCatRow">' +
+      '<div class="cat-icon fx-icon">' +
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>' +
+      '</div>' +
+      '<div class="cat-info">' +
+        '<div class="cat-name">Dólar (USD)</div>' +
+        '<div class="cat-count">' + percent.toFixed(0) + '% DA CARTEIRA</div>' +
+        '<div class="fx-extra"><span class="fx-native">US$ ' + usd.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '</span><span class="fx-rate-chip">× ' + rateStr + '</span></div>' +
+      '</div>' +
+      '<div>' +
+        '<div class="cat-value">R$ ' + usdBRL.toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + '</div>' +
+      '</div>' +
+      '<button class="fx-edit-btn" id="fxEditBtn" type="button">Edit</button>' +
+    '</div>';
+    wrap.insertAdjacentHTML('beforeend', usdRowHTML);
+  } else {
+    // No holding yet: small "add" hint at the end
+    const addRowHTML = '<button class="fx-add-hint" id="fxEditBtn" type="button">+ Adicionar Dólar (USD)</button>';
+    wrap.insertAdjacentHTML('beforeend', addRowHTML);
+  }
+  const fxBtn = document.getElementById('fxEditBtn');
+  if (fxBtn) fxBtn.addEventListener('click', openFXModal);
+
   // Wire expand/collapse only for Ações
   wrap.querySelectorAll('.cat-row.clickable').forEach(row => {
     row.addEventListener('click', () => {
@@ -3137,9 +3255,13 @@ async function deleteContribById(id) {
 
 // v8 Turno 7 — Louise wallet render
 function renderLouise() {
+  const chip = document.getElementById('louiseChip');
   const eq = $('louiseEquity');
   if (!eq) return;
-  eq.textContent = (state.i10Louise.equity || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  const equity = +state.i10Louise.equity || 0;
+  // Hide chip entirely if there's no data yet
+  if (chip) chip.style.display = equity > 0 ? 'inline-flex' : 'none';
+  eq.textContent = 'R$ ' + equity.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
   const divEl = $('louiseDividends');
   if (divEl) divEl.textContent = 'R$ ' + (state.i10Louise.dividends || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
   const varEl = $('louiseVariation');
@@ -3147,7 +3269,7 @@ function renderLouise() {
     const v = +state.i10Louise.variation || 0;
     const sign = v >= 0 ? '+' : '';
     varEl.textContent = sign + v.toFixed(1) + '%';
-    varEl.className = 'louise-var ' + (v >= 0 ? 'gain' : 'loss');
+    varEl.className = 'louise-chip-var ' + (v >= 0 ? 'gain' : 'loss');
   }
   const upd = $('louiseUpdated');
   if (upd) {
@@ -3282,6 +3404,7 @@ async function syncFromI10() {
     }
     // v8 Turno 7: piggyback Louise sync on every successful main sync (both branches)
     syncLouise().catch(e => console.warn('Louise piggyback error:', e));
+    fetchFXRate().catch(e => console.warn('FX rate refresh error:', e));
   } catch (err) {
     console.error('I10 sync error:', err);
     showToast('Falha ao sincronizar: ' + (err.message || 'erro desconhecido'));
@@ -3586,6 +3709,25 @@ function subscribeAll() {
       applyI18n();
     }
     if (state.mode === 'investments') renderInvestments();
+  });
+  unsub.fx = onSnapshot(docFx, (snap) => {
+    if (snap.exists()) {
+      const d = snap.data();
+      let upd = null;
+      if (d.rateUpdatedAt) {
+        upd = typeof d.rateUpdatedAt.toDate === 'function' ? d.rateUpdatedAt.toDate() : d.rateUpdatedAt;
+      }
+      state.fx = {
+        usd: +d.usd || 0,
+        rateUSD: +d.rateUSD || 0,
+        rateUpdatedAt: upd,
+        rateSource: d.rateSource || '',
+        note: d.note || '',
+      };
+      renderFX();
+      // also re-render total net worth (hero) to pick up USD contribution
+      if (typeof renderInvestments === 'function' && state.mode === 'investments') renderInvestments();
+    }
   });
   unsub.i10Louise = onSnapshot(docI10Louise, (snap) => {
     if (snap.exists()) {
@@ -4049,6 +4191,14 @@ document.addEventListener('click', (e) => {
   if (typeof renderDividendsChart === 'function') renderDividendsChart();
   if (typeof renderPLChart === 'function') renderPLChart();
 });
+
+
+
+// v8 Turno 8 — FX modal event listeners
+document.getElementById('fxModalClose')?.addEventListener('click', closeFXModal);
+document.getElementById('fxModalCancel')?.addEventListener('click', closeFXModal);
+document.getElementById('fxModalSave')?.addEventListener('click', saveFX);
+document.getElementById('fxModal')?.addEventListener('click', e => { if (e.target.id === 'fxModal') closeFXModal(); });
 
 </script>
 
