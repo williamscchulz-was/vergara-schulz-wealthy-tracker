@@ -1234,6 +1234,24 @@ body::before {
 .yearly-table th:first-child, .yearly-table td:first-child { text-align: left; }
 .yearly-table td:nth-child(3) { color: var(--purple-light); }
 .yearly-table td:nth-child(4) { color: var(--ink-3); }
+
+/* v8 Turno 6 — range toggle for bar charts */
+.range-toggle {
+  display: flex; gap: 4px;
+  background: rgba(0,0,0,.2); padding: 3px; border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  flex-shrink: 0;
+}
+.range-toggle button {
+  background: transparent; border: none; color: var(--text-faint);
+  font-size: 10px; font-weight: 600; padding: 4px 10px;
+  border-radius: 999px; cursor: pointer;
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  letter-spacing: .5px;
+  transition: all .2s ease;
+}
+.range-toggle button.active { background: var(--purple); color: #fff; }
+.range-toggle button:hover:not(.active) { color: var(--text); }
 </style>
 <script>
   // Apply theme ASAP to avoid flash
@@ -1505,10 +1523,15 @@ body::before {
               <div class="eyebrow" data-i18n="card.dividends">dividends per year</div>
               <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" data-i18n="sub.dividends">historico anual de proventos</div>
             </div>
+            <div class="range-toggle" data-range-toggle>
+              <button type="button" data-range="1Y">1Y</button>
+              <button type="button" data-range="5Y" class="active">5Y</button>
+              <button type="button" data-range="All">All</button>
+            </div>
           </div>
           <div id="divChartWrap"></div>
-          <div class="pl-stats-row">
-            <span data-i18n="chart.caption.prefix">desde início:</span> <b id="plTotalGrowth" style="color:var(--ink)">-</b> <span style="color:var(--ink-muted);margin:0 6px">·</span> <b id="plCagr" style="color:var(--ink)">-</b> <span data-i18n="chart.caption.cagr">CAGR</span>
+          <div class="pl-stats-row" style="display:none">
+            <span>since start:</span> <b id="plTotalGrowth">-</b> <span>·</span> <b id="plCagr">-</b> <span>CAGR</span>
           </div>
           <div style="display:none"><span id="plSinceFirst"></span><span id="plCagrPill"></span></div>
         </div>
@@ -1521,6 +1544,11 @@ body::before {
             <div>
               <div class="eyebrow" data-i18n="card.networth">net worth per year</div>
               <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" data-i18n="sub.networth">net worth evolution</div>
+            </div>
+            <div class="range-toggle" data-range-toggle>
+              <button type="button" data-range="1Y">1Y</button>
+              <button type="button" data-range="5Y" class="active">5Y</button>
+              <button type="button" data-range="All">All</button>
             </div>
           </div>
           <div id="plChartWrap"></div>
@@ -2394,6 +2422,19 @@ function renderInvestments() {
   renderContributions();
 }
 
+// v8 Turno 6 — Bar chart range state (1Y / 5Y / All)
+window.chartRange = window.chartRange || '5Y';
+function filterByRange(years, values, range) {
+  if (range === 'All') return { years, values };
+  if (range === '1Y') {
+    const n = years.length;
+    return n > 0 ? { years: [years[n-1]], values: [values[n-1]] } : { years: [], values: [] };
+  }
+  const N = 5;
+  if (years.length <= N) return { years, values };
+  return { years: years.slice(-N), values: values.slice(-N) };
+}
+
 function buildBarChart(years, values, opts = {}) {
   const W = 780, H = 260, padL = 56, padR = 24, padT = 42, padB = 38;
   const innerW = W - padL - padR;
@@ -2479,26 +2520,28 @@ function buildBarChart(years, values, opts = {}) {
     }
 
     if (yoyMode === 'pills') {
-      // Floating pills between consecutive bars
-      for (let i = 1; i < points.length; i++) {
+      // Floating pills between consecutive bars — with sanitization and new color logic
+      const firstVisibleIdx = opts.firstYoYIdx ?? 1; // first visible year has no YoY to compare
+      for (let i = firstVisibleIdx; i < points.length; i++) {
         const prev = points[i-1], cur = points[i];
         if (!prev || !cur || prev.v <= 0) continue;
         const yoy = ((cur.v - prev.v) / prev.v) * 100;
+        // v8 sanitize: hide absurd spikes (division-by-near-zero edge cases)
+        if (!isFinite(yoy) || Math.abs(yoy) > 1000) continue;
         const sign = yoy >= 0 ? '+' : '';
         const txt = sign + yoy.toFixed(0) + '%';
-        // Color: green if >20%, yellow 0-20%, red negative
-        let bg, brd, col;
-        if (yoy >= 20) { bg = 'rgba(52,225,122,0.15)'; brd = '#34e17a'; col = '#34e17a'; }
-        else if (yoy >= 0) { bg = 'rgba(255,179,64,0.15)'; brd = '#ffb340'; col = '#ffb340'; }
-        else { bg = 'rgba(255,94,87,0.15)'; brd = '#ff5e57'; col = '#ff5e57'; }
-        // Pill positioned centered between the two bars, above the highest one
-        const pillCx = (prev.cx + cur.cx) / 2;
-        const pillTop = Math.min(prev.top, cur.top) - 22;
-        // Adaptive width based on text length
-        const pillW = txt.length * 6 + 12;
-        const pillH = 16;
-        svg += '<g><rect x="' + (pillCx - pillW/2) + '" y="' + pillTop + '" width="' + pillW + '" height="' + pillH + '" rx="8" fill="' + bg + '" stroke="' + brd + '" stroke-width="1"/>';
-        svg += '<text x="' + pillCx + '" y="' + (pillTop + 11) + '" text-anchor="middle" fill="' + col + '" font-family="Geist Mono,monospace" font-size="9" font-weight="700">' + txt + '</text></g>';
+        // v8 color: green <100%, amber >100% (exceptional growth), red negative
+        let bg, col;
+        if (yoy < 0) { bg = 'rgba(255,94,87,0.12)'; col = '#ff5e57'; }
+        else if (yoy > 100) { bg = 'rgba(227,185,116,0.12)'; col = '#e3b974'; }
+        else { bg = 'rgba(52,225,122,0.12)'; col = '#34e17a'; }
+        // Position chip above the current bar (not between them)
+        const pillCx = cur.cx;
+        const pillTop = cur.top - 22;
+        const pillW = txt.length * 6 + 10;
+        const pillH = 14;
+        svg += '<g><rect x="' + (pillCx - pillW/2) + '" y="' + pillTop + '" width="' + pillW + '" height="' + pillH + '" rx="7" fill="' + bg + '"/>';
+        svg += '<text x="' + pillCx + '" y="' + (pillTop + 10) + '" text-anchor="middle" fill="' + col + '" font-family="Geist Mono,monospace" font-size="9" font-weight="700">' + txt + '</text></g>';
       }
     } else if (yoyMode === 'line') {
       // Connected polyline over bar tops + dots
@@ -2554,7 +2597,9 @@ function renderDividendsChart() {
     return;
   }
 
-  wrap.innerHTML = buildBarChart(years, values, { yoyMode: 'pills' });
+  // v8 Turno 6: apply range filter before drawing
+  const _filtered = filterByRange(years, values, window.chartRange || '5Y');
+  wrap.innerHTML = buildBarChart(_filtered.years, _filtered.values, { yoyMode: 'pills', firstYoYIdx: 1 });
 }
 
 function renderPLChart() {
@@ -2583,7 +2628,9 @@ function renderPLChart() {
     values[idx] = state.i10.equity;
   }
 
-  wrap.innerHTML = buildBarChart(years, values, { yoyMode: 'pills' });
+  // v8 Turno 6: apply range filter before drawing
+  const _filtered = filterByRange(years, values, window.chartRange || '5Y');
+  wrap.innerHTML = buildBarChart(_filtered.years, _filtered.values, { yoyMode: 'pills', firstYoYIdx: 1 });
 }
 
 function renderYearlyTable() {
@@ -3834,6 +3881,22 @@ setInterval(() => {
 
 // Initial render with defaults
 render();
+
+// v8 Turno 6 — range toggle listener for bar charts (syncs both cards + triggers re-render)
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-range-toggle] button[data-range]');
+  if (!btn) return;
+  const range = btn.dataset.range;
+  window.chartRange = range;
+  // Sync active state across all range-toggle instances
+  document.querySelectorAll('[data-range-toggle] button').forEach(b => {
+    b.classList.toggle('active', b.dataset.range === range);
+  });
+  // Re-render the bar charts
+  if (typeof renderDividendsChart === 'function') renderDividendsChart();
+  if (typeof renderPLChart === 'function') renderPLChart();
+});
+
 </script>
 
 
