@@ -3202,28 +3202,15 @@ async function syncFromI10() {
   try {
     const year = new Date().getFullYear();
     const base = workerUrl.replace(/\/+$/, ''); // remove trailing slash
-    // Try /i10/full first (worker v2). Fallback to /i10/all (worker v1).
+    // Worker only exposes /i10/all (not /i10/full). Use it directly.
     let payload;
     let usedFull = false;
-    try {
-      const resFull = await fetch(`${base}/i10/full/${encodeURIComponent(walletId)}?year=${year}`, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' },
-      });
-      if (resFull.ok) {
-        payload = await resFull.json();
-        if (payload && !payload.error) usedFull = true;
-      }
-    } catch (_) { /* fallback below */ }
-
-    if (!usedFull) {
-      const res = await fetch(`${base}/i10/all/${encodeURIComponent(walletId)}?year=${year}`, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' },
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      payload = await res.json();
-    }
+    const res = await fetch(`${base}/i10/all/${encodeURIComponent(walletId)}?year=${year}`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    payload = await res.json();
 
     // Parse metrics (equity, applied, variation, profit_twr)
     const m = payload.metrics || {};
@@ -3290,10 +3277,11 @@ async function syncFromI10() {
     if (usedFull && payload.yearly?.years && Array.isArray(payload.yearly.years)) {
       const imported = await importYearlyData(payload.yearly.years);
       showToast(`Sincronizado: ${assets.length} ativos, ${imported} anos`);
-    syncLouise().catch(e => console.warn('Louise piggyback error:', e));
     } else {
       showToast(`Sincronizado: ${assets.length} ativos`);
     }
+    // v8 Turno 7: piggyback Louise sync on every successful main sync (both branches)
+    syncLouise().catch(e => console.warn('Louise piggyback error:', e));
   } catch (err) {
     console.error('I10 sync error:', err);
     showToast('Falha ao sincronizar: ' + (err.message || 'erro desconhecido'));
