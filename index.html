@@ -2722,28 +2722,32 @@ function buildBarChart(years, values, opts = {}) {
     }
 
     if (yoyMode === 'pills') {
-      // Floating pills between consecutive bars — with sanitization and new color logic
-      const firstVisibleIdx = opts.firstYoYIdx ?? 1; // first visible year has no YoY to compare
+      // v8 Turno 9 — Option C: dashed connector between bar tops + opaque pill in middle
+      const firstVisibleIdx = opts.firstYoYIdx ?? 1;
       for (let i = firstVisibleIdx; i < points.length; i++) {
         const prev = points[i-1], cur = points[i];
         if (!prev || !cur || prev.v <= 0) continue;
         const yoy = ((cur.v - prev.v) / prev.v) * 100;
-        // v8 sanitize: hide absurd spikes (division-by-near-zero edge cases)
         if (!isFinite(yoy) || Math.abs(yoy) > 1000) continue;
         const sign = yoy >= 0 ? '+' : '';
         const txt = sign + yoy.toFixed(0) + '%';
-        // v8 color: green <100%, amber >100% (exceptional growth), red negative
-        let bg, col;
-        if (yoy < 0) { bg = 'rgba(255,94,87,0.12)'; col = '#ff5e57'; }
-        else if (yoy > 100) { bg = 'rgba(227,185,116,0.12)'; col = '#e3b974'; }
-        else { bg = 'rgba(52,225,122,0.12)'; col = '#34e17a'; }
-        // Position chip above the current bar (not between them)
-        const pillCx = cur.cx;
-        const pillTop = cur.top - 22;
+        // v8 color: green <100%, amber >100%, red negative
+        let bg, strokeCol;
+        if (yoy < 0) { bg = '#ff5e57'; strokeCol = 'rgba(255,94,87,.3)'; }
+        else if (yoy > 100) { bg = '#e3b974'; strokeCol = 'rgba(227,185,116,.3)'; }
+        else { bg = '#34e17a'; strokeCol = 'rgba(52,225,122,.3)'; }
+        // Dashed connector line between the two bar tops (from right edge of prev to left edge of cur)
+        const prevRight = prev.cx + barWidth / 2;
+        const curLeft = cur.cx - barWidth / 2;
+        svg += '<line x1="' + prevRight + '" y1="' + prev.top + '" x2="' + curLeft + '" y2="' + cur.top + '" stroke="rgba(227,162,238,.35)" stroke-width="1.5" stroke-dasharray="2 3"/>';
+        // Pill centered on midpoint of the connector, opaque fill
+        const midX = (prev.cx + cur.cx) / 2;
+        const midY = (prev.top + cur.top) / 2;
         const pillW = txt.length * 6 + 10;
         const pillH = 14;
-        svg += '<g><rect x="' + (pillCx - pillW/2) + '" y="' + pillTop + '" width="' + pillW + '" height="' + pillH + '" rx="7" fill="' + bg + '"/>';
-        svg += '<text x="' + pillCx + '" y="' + (pillTop + 10) + '" text-anchor="middle" fill="' + col + '" font-family="Geist Mono,monospace" font-size="9" font-weight="700">' + txt + '</text></g>';
+        const pillTop = midY - pillH / 2;
+        svg += '<g><rect x="' + (midX - pillW/2) + '" y="' + pillTop + '" width="' + pillW + '" height="' + pillH + '" rx="7" fill="' + bg + '" stroke="' + strokeCol + '" stroke-width="1"/>';
+        svg += '<text x="' + midX + '" y="' + (pillTop + 10) + '" text-anchor="middle" fill="#1a181d" font-family="Geist Mono,monospace" font-size="9" font-weight="700">' + txt + '</text></g>';
       }
     } else if (yoyMode === 'line') {
       // Connected polyline over bar tops + dots
