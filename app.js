@@ -48,6 +48,8 @@ const docI10      = doc(db, "household", "main", "config", "i10");
 const docI10Louise = doc(db, "household", "main", "config", "i10-louise");
 const docFx = doc(db, "household", "main", "config", "fx");
 const docI10Cfg   = doc(db, "household", "main", "config", "i10sync");
+const docReserves = doc(db, "household", "main", "config", "reserves");
+const docPension  = doc(db, "household", "main", "config", "pension");
 
 // ---- Constants ----
 const CATEGORIES = {
@@ -76,6 +78,8 @@ const state = {
   i10Louise: { equity: 0, dividends: 0, applied: 0, variation: 0, updatedAt: null },
   i10LouiseCfg: { walletId: '2699282' },
   fx: { usd: 0, rateUSD: 0, rateUpdatedAt: null, rateSource: '', note: '' },
+  reserves: { accounts: [], loaded: false, editingId: null },
+  pension:  { accounts: [], loaded: false, editingId: null },
   i10Syncing: false,
   dividendsYearlyGoal: 1_000_000,
   dividendsYearlyGoalYear: 2035,
@@ -116,6 +120,26 @@ const I18N = {
     'stat.total': 'total',
     'goal.see.chart': 'Ver gráfico',
     'goal.tweak': 'Ajustar variáveis',
+    'reserve.label': 'Reserva de emergência',
+    'reserve.empty.value': '— sem valor',
+    'reserve.add': 'Adicionar conta',
+    'reserve.modal.edit': 'Editar conta',
+    'reserve.modal.add': 'Nova conta',
+    'reserve.modal.sub': 'Reserva de emergência',
+    'reserve.field.name': 'Nome da conta',
+    'reserve.field.value': 'Valor (R$)',
+    'reserve.count.singular': 'conta',
+    'reserve.count.plural': 'contas',
+    'pension.label': 'Previdência privada',
+    'pension.empty.value': '— sem valor',
+    'pension.add': 'Adicionar previdência',
+    'pension.modal.edit': 'Editar previdência',
+    'pension.modal.add': 'Nova previdência',
+    'pension.modal.sub': 'Previdência privada',
+    'pension.field.name': 'Instituição',
+    'pension.field.value': 'Valor (R$)',
+    'pension.count.singular': 'plano',
+    'pension.count.plural': 'planos',
     'slider.monthly': 'Aporte mensal',
     'slider.growthcontrib': 'Crescimento aporte',
     'slider.dy': 'DY esperado',
@@ -201,6 +225,26 @@ const I18N = {
     'stat.total': 'total',
     'goal.see.chart': 'See chart',
     'goal.tweak': 'Tweak variables',
+    'reserve.label': 'Emergency reserve',
+    'reserve.empty.value': '— no value',
+    'reserve.add': 'Add account',
+    'reserve.modal.edit': 'Edit account',
+    'reserve.modal.add': 'New account',
+    'reserve.modal.sub': 'Emergency reserve',
+    'reserve.field.name': 'Account name',
+    'reserve.field.value': 'Value (R$)',
+    'reserve.count.singular': 'account',
+    'reserve.count.plural': 'accounts',
+    'pension.label': 'Private pension',
+    'pension.empty.value': '— no value',
+    'pension.add': 'Add pension',
+    'pension.modal.edit': 'Edit pension',
+    'pension.modal.add': 'New pension',
+    'pension.modal.sub': 'Private pension',
+    'pension.field.name': 'Institution',
+    'pension.field.value': 'Value (R$)',
+    'pension.count.singular': 'plan',
+    'pension.count.plural': 'plans',
     'slider.monthly': 'Monthly',
     'slider.growthcontrib': 'Contrib growth',
     'slider.dy': 'Expected DY',
@@ -346,12 +390,23 @@ function updateI10Link() {
   a.style.opacity = '';
 }
 
-// Expose net equity (i10 + USD converted) to the Goal Simulator via window.__ledgerEquity.
-// Called from i10 AND fx snapshots so the projection always starts from real net worth.
+// Sum of all reserve account values (treated as cash; counts in equity AND applied).
+function reservesTotal() {
+  const accs = state.reserves.accounts || [];
+  return accs.reduce((s, a) => s + (+a.value || 0), 0);
+}
+
+// Sum of all pension (previdência privada) account values.
+function pensionTotal() {
+  const accs = state.pension.accounts || [];
+  return accs.reduce((s, a) => s + (+a.value || 0), 0);
+}
+
+// Expose net equity (i10 + USD + reserves + pension) to the Goal Simulator via window.__ledgerEquity.
 function updateLedgerEquity() {
   const i10Eq = +state.i10.equity || 0;
   const usdBRL = (+state.fx.usd || 0) * (+state.fx.rateUSD || 0);
-  window.__ledgerEquity = i10Eq + usdBRL;
+  window.__ledgerEquity = i10Eq + usdBRL + reservesTotal() + pensionTotal();
 }
 
 // ============================================================
@@ -649,6 +704,32 @@ async function saveFX() {
   });
 })();
 
+(function wireReserveModal() {
+  document.getElementById('reserveModalCancel')?.addEventListener('click', closeReserveModal);
+  document.getElementById('reserveModalSave')?.addEventListener('click', () => {
+    try { saveReserve(); } catch (e) { console.error('saveReserve failed:', e); }
+  });
+  document.getElementById('reserveDeleteBtn')?.addEventListener('click', () => {
+    try { deleteReserve(); } catch (e) { console.error('deleteReserve failed:', e); }
+  });
+  document.getElementById('reserveModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'reserveModal') closeReserveModal();
+  });
+})();
+
+(function wirePensionModal() {
+  document.getElementById('pensionModalCancel')?.addEventListener('click', () => closeCashModal('pension'));
+  document.getElementById('pensionModalSave')?.addEventListener('click', () => {
+    try { saveCash('pension'); } catch (e) { console.error('savePension failed:', e); }
+  });
+  document.getElementById('pensionDeleteBtn')?.addEventListener('click', () => {
+    try { deleteCash('pension'); } catch (e) { console.error('deletePension failed:', e); }
+  });
+  document.getElementById('pensionModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'pensionModal') closeCashModal('pension');
+  });
+})();
+
 async function fetchFXRate() {
   const workerUrl = state.i10Cfg.workerUrl || '';
   if (!workerUrl) return;
@@ -670,6 +751,211 @@ async function fetchFXRate() {
   }
 }
 
+// ============================================================
+//  MANUAL CASH CATEGORIES (Reserves + Pension)
+//  Both follow the same pattern: list of {id, name, value} accounts
+//  persisted in Firestore, summed into hero/applied totals.
+// ============================================================
+const RESERVES_DEFAULTS = [
+  { id: 'bradesco', name: 'Bradesco', value: 0 },
+  { id: 'xp',       name: 'XP Investimentos', value: 0 },
+  { id: 'sicoob',   name: 'Sicoob', value: 0 },
+];
+const PENSION_DEFAULTS = [
+  { id: 'bradesco', name: 'Bradesco', value: 0 },
+];
+
+// Per-type config — UI only; data shape is identical.
+const CASH_CAT = {
+  reserves: {
+    docRef: () => docReserves,
+    state: () => state.reserves,
+    iconClass: 'reserve-icon',
+    rowClass: 'reserve-row',
+    countColor: '#34e17a',
+    rowId: 'reserveRow',
+    expId: 'reserveExpanded',
+    addBtnId: 'resAddBtn',
+    modalId: 'reserveModal',
+    modalTitleId: 'reserveModalTitle',
+    nameInputId: 'reserveNameInput',
+    valueInputId: 'reserveValueInput',
+    deleteBtnId: 'reserveDeleteBtn',
+    iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    label: () => t('reserve.label'),
+    emptyLabel: () => t('reserve.empty.value'),
+    addLabel: () => t('reserve.add'),
+    editTitle: () => t('reserve.modal.edit'),
+    addTitle: () => t('reserve.modal.add'),
+    countSing: () => t('reserve.count.singular'),
+    countPlur: () => t('reserve.count.plural'),
+  },
+  pension: {
+    docRef: () => docPension,
+    state: () => state.pension,
+    iconClass: 'pension-icon',
+    rowClass: 'pension-row',
+    countColor: '#E3A2EE',
+    rowId: 'pensionRow',
+    expId: 'pensionExpanded',
+    addBtnId: 'pensionAddBtn',
+    modalId: 'pensionModal',
+    modalTitleId: 'pensionModalTitle',
+    nameInputId: 'pensionNameInput',
+    valueInputId: 'pensionValueInput',
+    deleteBtnId: 'pensionDeleteBtn',
+    // Leaf icon (lucide leaf)
+    iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96c1.4 9.3-1.5 14.2-8.2 17.04Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg>',
+    label: () => t('pension.label'),
+    emptyLabel: () => t('pension.empty.value'),
+    addLabel: () => t('pension.add'),
+    editTitle: () => t('pension.modal.edit'),
+    addTitle: () => t('pension.modal.add'),
+    countSing: () => t('pension.count.singular'),
+    countPlur: () => t('pension.count.plural'),
+  },
+};
+
+function _newCashId(prefix) {
+  return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+async function persistCash(type) {
+  const cfg = CASH_CAT[type];
+  try {
+    await setDoc(cfg.docRef(), {
+      accounts: cfg.state().accounts,
+      updatedAt: serverTimestamp(),
+      updatedBy: state.user?.displayName || 'unknown',
+    });
+  } catch (err) {
+    console.error('persistCash(' + type + ') failed:', err);
+    showToast(t('toast.error.save'));
+  }
+}
+
+function openCashModal(type, id) {
+  const cfg = CASH_CAT[type];
+  const modal = $(cfg.modalId);
+  if (!modal) return;
+  cfg.state().editingId = id;
+  const acc = id ? cfg.state().accounts.find(a => a.id === id) : null;
+  $(cfg.modalTitleId).textContent = acc ? cfg.editTitle() : cfg.addTitle();
+  $(cfg.nameInputId).value = acc ? (acc.name || '') : '';
+  const v = acc ? +acc.value || 0 : 0;
+  $(cfg.valueInputId).value = v > 0 ? v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+  $(cfg.deleteBtnId).style.display = acc ? 'inline-block' : 'none';
+  modal.classList.add('show');
+  setTimeout(() => $(cfg.nameInputId).focus(), 50);
+}
+
+function closeCashModal(type) {
+  const cfg = CASH_CAT[type];
+  $(cfg.modalId)?.classList.remove('show');
+  cfg.state().editingId = null;
+}
+
+async function saveCash(type) {
+  const cfg = CASH_CAT[type];
+  const name = ($(cfg.nameInputId).value || '').trim();
+  let raw = String($(cfg.valueInputId).value || '').trim();
+  raw = raw.split('.').join('').split(',').join('.');
+  const value = parseFloat(raw) || 0;
+  if (!name) { showToast('Nome obrigatório'); return; }
+  const id = cfg.state().editingId;
+  const accs = cfg.state().accounts;
+  if (id) {
+    const idx = accs.findIndex(a => a.id === id);
+    if (idx >= 0) accs[idx] = { ...accs[idx], name, value };
+  } else {
+    accs.push({ id: _newCashId(type === 'pension' ? 'p' : 'r'), name, value });
+  }
+  await persistCash(type);
+  closeCashModal(type);
+}
+
+async function deleteCash(type) {
+  const cfg = CASH_CAT[type];
+  const id = cfg.state().editingId;
+  if (!id) return;
+  if (!confirm('Excluir esta conta?')) return;
+  cfg.state().accounts = cfg.state().accounts.filter(a => a.id !== id);
+  await persistCash(type);
+  closeCashModal(type);
+}
+
+// Render category row + expanded list inside the My Portfolio wrap.
+function renderCashRow(type, wrap) {
+  if (!wrap) return;
+  const cfg = CASH_CAT[type];
+  const accs = cfg.state().accounts || [];
+  const total = accs.reduce((s, a) => s + (+a.value || 0), 0);
+  const usdBRL = (+state.fx.usd || 0) * (+state.fx.rateUSD || 0);
+  const denominator = (+state.i10.equity || 0) + usdBRL + reservesTotal() + pensionTotal();
+  const percent = denominator > 0 ? (total / denominator) * 100 : 0;
+  const cntLbl = accs.length === 1 ? cfg.countSing() : cfg.countPlur();
+
+  let itemsHtml = '';
+  for (const a of accs) {
+    const v = +a.value || 0;
+    const valHtml = v > 0
+      ? '<span class="res-val">R$ ' + v.toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + '</span>'
+      : '<span class="res-val empty">' + cfg.emptyLabel() + '</span>';
+    itemsHtml += '<div class="res-item" data-rid="' + a.id + '">' +
+      '<span class="res-name">' + (a.name || '-') + '</span>' +
+      '<div class="res-actions">' + valHtml +
+        '<button class="res-edit" data-rid="' + a.id + '" type="button" aria-label="Edit">' +
+          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  }
+  itemsHtml += '<button class="res-add" id="' + cfg.addBtnId + '" type="button">' +
+    '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+    cfg.addLabel() +
+  '</button>';
+
+  const html =
+    '<div class="cat-row ' + cfg.rowClass + ' clickable" id="' + cfg.rowId + '">' +
+      '<div class="cat-icon ' + cfg.iconClass + '">' + cfg.iconSvg + '</div>' +
+      '<div class="cat-info">' +
+        '<div class="cat-name">' + cfg.label() + '</div>' +
+        '<div class="cat-count" style="color:' + cfg.countColor + '">' + accs.length + ' ' + cntLbl + ' &middot; ' + percent.toFixed(0) + '% ' + t('cat.label.suffix') + '</div>' +
+      '</div>' +
+      '<div><div class="cat-value">R$ ' + total.toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + '</div></div>' +
+      '<svg class="cat-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>' +
+    '</div>' +
+    '<div class="reserve-expanded" id="' + cfg.expId + '">' + itemsHtml + '</div>';
+
+  wrap.insertAdjacentHTML('beforeend', html);
+
+  // Wire up
+  const row = document.getElementById(cfg.rowId);
+  const exp = document.getElementById(cfg.expId);
+  row?.addEventListener('click', (e) => {
+    if (e.target.closest('.res-edit, .res-add, .res-item')) return;
+    row.classList.toggle('expanded');
+    exp.classList.toggle('open');
+  });
+  document.getElementById(cfg.addBtnId)?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openCashModal(type, null);
+  });
+  exp?.querySelectorAll('.res-edit').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openCashModal(type, btn.dataset.rid);
+    });
+  });
+}
+
+// Backwards-compat aliases (used by wireReserveModal in HTML wiring)
+const renderReservesRow = (wrap) => renderCashRow('reserves', wrap);
+const openReserveModal  = (id) => openCashModal('reserves', id);
+const closeReserveModal = () => closeCashModal('reserves');
+const saveReserve       = () => saveCash('reserves');
+const deleteReserve     = () => deleteCash('reserves');
+
 function renderInvestments() {
   const currentYear = new Date().getFullYear();
   const goalYear = state.dividendsYearlyGoalYear;
@@ -677,8 +963,11 @@ function renderInvestments() {
 
   // Hero - Patrimônio
   // v8 Turno 8: hero total includes USD converted to BRL
+  // + reserves (cash position, no P&L)
   const _usdBRL = (+state.fx.usd || 0) * (+state.fx.rateUSD || 0);
-  const _heroTotal = (+state.i10.equity || 0) + _usdBRL;
+  const _reservesBRL = reservesTotal();
+  const _pensionBRL = pensionTotal();
+  const _heroTotal = (+state.i10.equity || 0) + _usdBRL + _reservesBRL + _pensionBRL;
   $('i10Equity').textContent = _heroTotal.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
   if (state.i10.updatedAt) {
     const sourceTag = state.i10.source === 'investidor10-sync' ? ' · via I10' : ' · manual';
@@ -695,8 +984,8 @@ function renderInvestments() {
         .filter(y => y.year < currentYear)
         .reduce((s, y) => s + (+y.divs || 0), 0);
       const totalDivs = ytdDivs + pastDivs;
-      // USD holdings count as both equity AND applied (cash position, no P&L)
-      const _appliedTotal = (+state.i10.applied || 0) + _usdBRL;
+      // USD holdings + reserves + pension count as both equity AND applied
+      const _appliedTotal = (+state.i10.applied || 0) + _usdBRL + _reservesBRL + _pensionBRL;
       const totalReturn = ((_heroTotal - _appliedTotal + totalDivs) / _appliedTotal) * 100;
       const sign = totalReturn >= 0 ? '+' : '';
       const arrow = totalReturn >= 0
@@ -1270,8 +1559,16 @@ function renderI10Assets() {
   const fxBtn = document.getElementById('fxEditBtn');
   if (fxBtn) fxBtn.addEventListener('click', openFXModal);
 
-  // Wire expand/collapse only for Ações
+  // Reserves row (always visible per spec)
+  renderReservesRow(wrap);
+
+  // Pension row (always visible — same UX pattern)
+  renderCashRow('pension', wrap);
+
+  // Wire expand/collapse only for Ações (reserves row has its own handler)
   wrap.querySelectorAll('.cat-row.clickable').forEach(row => {
+    if (row.id === 'reserveRow') return;
+    if (row.id === 'pensionRow') return;
     row.addEventListener('click', () => {
       row.classList.toggle('expanded');
     });
@@ -2001,6 +2298,48 @@ function subscribeAll() {
     state.i10Cfg.walletId = data.walletId || '';
     state.i10Cfg.publicHash = data.publicHash || '';
     updateI10Link();
+  });
+  unsub.reserves = onSnapshot(docReserves, async (snap) => {
+    if (!snap.exists()) {
+      // First-run: seed with the 3 default empty accounts
+      state.reserves.accounts = RESERVES_DEFAULTS.map(a => ({ ...a }));
+      state.reserves.loaded = true;
+      try {
+        await setDoc(docReserves, {
+          accounts: state.reserves.accounts,
+          updatedAt: serverTimestamp(),
+          updatedBy: state.user?.displayName || 'unknown',
+          seeded: true,
+        });
+      } catch (err) { console.warn('reserves seed failed:', err); }
+    } else {
+      const data = snap.data() || {};
+      state.reserves.accounts = Array.isArray(data.accounts) ? data.accounts : [];
+      state.reserves.loaded = true;
+    }
+    updateLedgerEquity();
+    if (state.mode === 'investments') renderInvestments();
+  });
+  unsub.pension = onSnapshot(docPension, async (snap) => {
+    if (!snap.exists()) {
+      // First-run: seed with default(s) — Bradesco
+      state.pension.accounts = PENSION_DEFAULTS.map(a => ({ ...a }));
+      state.pension.loaded = true;
+      try {
+        await setDoc(docPension, {
+          accounts: state.pension.accounts,
+          updatedAt: serverTimestamp(),
+          updatedBy: state.user?.displayName || 'unknown',
+          seeded: true,
+        });
+      } catch (err) { console.warn('pension seed failed:', err); }
+    } else {
+      const data = snap.data() || {};
+      state.pension.accounts = Array.isArray(data.accounts) ? data.accounts : [];
+      state.pension.loaded = true;
+    }
+    updateLedgerEquity();
+    if (state.mode === 'investments') renderInvestments();
   });
 }
 function unsubscribeAll() { Object.values(unsub).forEach(fn => fn && fn()); unsub = {}; }

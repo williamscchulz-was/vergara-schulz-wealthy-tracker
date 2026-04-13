@@ -1302,6 +1302,35 @@ body::before {
 .cat-row.fx-row { align-items: flex-start; }
 .cat-icon.fx-icon { background: var(--usd-bg) !important; color: var(--usd) !important; }
 .cat-row.fx-row:hover .cat-icon.fx-icon { background: rgba(118,214,116,0.2) !important; }
+
+/* Emergency reserves — compact list under expandable category row */
+.cat-row.reserve-row { background: rgba(52,225,122,0.04); cursor: pointer; }
+.cat-row.reserve-row:hover { background: rgba(52,225,122,0.07); }
+.cat-icon.reserve-icon { background: rgba(52,225,122,0.12) !important; color: #34e17a !important; }
+.cat-row.reserve-row .cat-chevron { transition: transform 0.25s var(--ease-out); color: var(--ink-muted); }
+.cat-row.reserve-row.expanded .cat-chevron { transform: rotate(180deg); color: #34e17a; }
+.reserve-expanded { display: none; padding: 8px 0 10px 56px; flex-direction: column; gap: 8px; }
+.reserve-expanded.open { display: flex; }
+.res-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-elevated-2); border: 1px solid var(--border); border-radius: 10px; transition: all 0.18s var(--ease-out); }
+.res-item:hover { border-color: rgba(52,225,122,0.25); }
+.res-name { font-size: 13px; color: var(--ink-2); font-weight: 500; }
+.res-val { font-family: 'Geist Mono', monospace; font-size: 13px; font-weight: 600; color: var(--ink); }
+.res-val.empty { color: var(--ink-muted); font-weight: 400; font-style: italic; }
+.res-actions { display: flex; gap: 8px; align-items: center; }
+.res-edit { width: 26px; height: 26px; border-radius: 7px; background: transparent; border: 1px solid var(--border-2); color: var(--ink-3); cursor: pointer; display: grid; place-items: center; transition: all 0.18s var(--ease-out); }
+.res-edit:hover { border-color: rgba(52,225,122,0.4); color: #34e17a; }
+.res-add { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: transparent; border: 1px dashed var(--border-2); color: var(--ink-3); border-radius: 10px; font-size: 12px; cursor: pointer; justify-content: center; font-family: inherit; transition: all 0.18s var(--ease-out); }
+.res-add:hover { border-color: rgba(52,225,122,0.4); color: #34e17a; }
+
+/* Private pension — same expandable pattern as reserves, in purple */
+.cat-row.pension-row { background: rgba(172,95,219,0.05); cursor: pointer; }
+.cat-row.pension-row:hover { background: rgba(172,95,219,0.09); }
+.cat-icon.pension-icon { background: rgba(172,95,219,0.15) !important; color: var(--purple-light) !important; }
+.cat-row.pension-row .cat-chevron { transition: transform 0.25s var(--ease-out); color: var(--ink-muted); }
+.cat-row.pension-row.expanded .cat-chevron { transform: rotate(180deg); color: var(--purple-light); }
+.cat-row.pension-row + .reserve-expanded .res-item:hover { border-color: rgba(172,95,219,0.3); }
+.cat-row.pension-row + .reserve-expanded .res-edit:hover { border-color: rgba(172,95,219,0.45); color: var(--purple-light); }
+.cat-row.pension-row + .reserve-expanded .res-add:hover { border-color: rgba(172,95,219,0.45); color: var(--purple-light); }
 .fx-extra {
   font-family: 'Geist Mono', 'JetBrains Mono', monospace;
   font-size: 10px; color: var(--usd); margin-top: 4px;
@@ -1785,6 +1814,48 @@ body::before {
     <div class="spacer"></div>
     <button class="btn-secondary" id="i10CfgCancel">Cancel</button>
     <button class="btn-primary" id="i10CfgSave">Save</button>
+  </div>
+</div></div>
+
+<div class="modal-bg" id="reserveModal"><div class="modal">
+  <h3 id="reserveModalTitle">Editar conta</h3>
+  <p class="sub" data-i18n="reserve.modal.sub">Reserva de emergência</p>
+  <div class="form-grid">
+    <div class="field full">
+      <label data-i18n="reserve.field.name">Nome da conta</label>
+      <input type="text" id="reserveNameInput" placeholder="Bradesco" autocomplete="off" />
+    </div>
+    <div class="field full">
+      <label data-i18n="reserve.field.value">Valor (R$)</label>
+      <input type="text" id="reserveValueInput" inputmode="decimal" placeholder="0,00" autocomplete="off" />
+    </div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn-secondary" id="reserveDeleteBtn" style="background:transparent;border:1px solid rgba(255,94,87,0.3);color:#ff5e57">Excluir</button>
+    <div class="spacer"></div>
+    <button class="btn-secondary" id="reserveModalCancel">Cancel</button>
+    <button class="btn-primary" id="reserveModalSave">Save</button>
+  </div>
+</div></div>
+
+<div class="modal-bg" id="pensionModal"><div class="modal">
+  <h3 id="pensionModalTitle">Editar previdência</h3>
+  <p class="sub" data-i18n="pension.modal.sub">Previdência privada</p>
+  <div class="form-grid">
+    <div class="field full">
+      <label data-i18n="pension.field.name">Instituição</label>
+      <input type="text" id="pensionNameInput" placeholder="Bradesco" autocomplete="off" />
+    </div>
+    <div class="field full">
+      <label data-i18n="pension.field.value">Valor (R$)</label>
+      <input type="text" id="pensionValueInput" inputmode="decimal" placeholder="0,00" autocomplete="off" />
+    </div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn-secondary" id="pensionDeleteBtn" style="background:transparent;border:1px solid rgba(255,94,87,0.3);color:#ff5e57">Excluir</button>
+    <div class="spacer"></div>
+    <button class="btn-secondary" id="pensionModalCancel">Cancel</button>
+    <button class="btn-primary" id="pensionModalSave">Save</button>
   </div>
 </div></div>
 
