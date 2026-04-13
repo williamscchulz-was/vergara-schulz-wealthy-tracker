@@ -1542,19 +1542,19 @@ function renderI10Assets() {
         '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>' +
       '</div>' +
       '<div class="cat-info">' +
-        '<div class="cat-name">Dólar (USD)</div>' +
+        '<div class="cat-name">USD</div>' +
         '<div class="cat-count">' + percent.toFixed(0) + '% ' + t('cat.label.suffix') + '</div>' +
         '<div class="fx-extra"><span class="fx-native">US$ ' + usd.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '</span><span class="fx-rate-chip">× ' + rateStr + '</span></div>' +
       '</div>' +
       '<div>' +
         '<div class="cat-value">R$ ' + usdBRL.toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + '</div>' +
       '</div>' +
-      '<button class="fx-edit-btn" id="fxEditBtn" type="button">Edit</button>' +
+      '<button class="fx-edit-btn" id="fxEditBtn" type="button" aria-label="Edit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>' +
     '</div>';
     wrap.insertAdjacentHTML('beforeend', usdRowHTML);
   } else {
     // No holding yet: small "add" hint at the end
-    const addRowHTML = '<button class="fx-add-hint" id="fxEditBtn" type="button">+ Adicionar Dólar (USD)</button>';
+    const addRowHTML = '<button class="fx-add-hint" id="fxEditBtn" type="button">+ Adicionar USD</button>';
     wrap.insertAdjacentHTML('beforeend', addRowHTML);
   }
   const fxBtn = document.getElementById('fxEditBtn');

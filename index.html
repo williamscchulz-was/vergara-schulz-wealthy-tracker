@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=5, viewport-fit=cover" />
 <meta name="theme-color" content="#29262B" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -1298,39 +1298,36 @@ body::before {
 :root[data-theme="light"] .louise-chip { background: rgba(244,114,182,.08); border-color: rgba(244,114,182,.25); }
 
 /* v8 Turno 8 — FX (USD) styles */
-:root { --usd: #76d674; --usd-bg: rgba(118,214,116,.1); --usd-strong: rgba(118,214,116,.22); }
+:root { --usd: #E3A2EE; --usd-bg: rgba(172,95,219,.10); --usd-strong: rgba(172,95,219,.24); }
 .cat-row.fx-row { align-items: flex-start; }
 .cat-icon.fx-icon { background: var(--usd-bg) !important; color: var(--usd) !important; }
-.cat-row.fx-row:hover .cat-icon.fx-icon { background: rgba(118,214,116,0.2) !important; }
+.cat-row.fx-row:hover .cat-icon.fx-icon { background: rgba(172,95,219,0.22) !important; }
 
 /* Emergency reserves — compact list under expandable category row */
-.cat-row.reserve-row { background: rgba(52,225,122,0.04); cursor: pointer; }
-.cat-row.reserve-row:hover { background: rgba(52,225,122,0.07); }
-.cat-icon.reserve-icon { background: rgba(52,225,122,0.12) !important; color: #34e17a !important; }
+.cat-row.reserve-row { background: rgba(172,95,219,0.05); cursor: pointer; }
+.cat-row.reserve-row:hover { background: rgba(172,95,219,0.09); }
+.cat-icon.reserve-icon { background: rgba(172,95,219,0.15) !important; color: var(--purple-light) !important; }
 .cat-row.reserve-row .cat-chevron { transition: transform 0.25s var(--ease-out); color: var(--ink-muted); }
-.cat-row.reserve-row.expanded .cat-chevron { transform: rotate(180deg); color: #34e17a; }
+.cat-row.reserve-row.expanded .cat-chevron { transform: rotate(180deg); color: var(--purple-light); }
 .reserve-expanded { display: none; padding: 8px 0 10px 56px; flex-direction: column; gap: 8px; }
 .reserve-expanded.open { display: flex; }
 .res-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-elevated-2); border: 1px solid var(--border); border-radius: 10px; transition: all 0.18s var(--ease-out); }
-.res-item:hover { border-color: rgba(52,225,122,0.25); }
+.res-item:hover { border-color: rgba(172,95,219,0.3); }
 .res-name { font-size: 13px; color: var(--ink-2); font-weight: 500; }
 .res-val { font-family: 'Geist Mono', monospace; font-size: 13px; font-weight: 600; color: var(--ink); }
 .res-val.empty { color: var(--ink-muted); font-weight: 400; font-style: italic; }
 .res-actions { display: flex; gap: 8px; align-items: center; }
 .res-edit { width: 26px; height: 26px; border-radius: 7px; background: transparent; border: 1px solid var(--border-2); color: var(--ink-3); cursor: pointer; display: grid; place-items: center; transition: all 0.18s var(--ease-out); }
-.res-edit:hover { border-color: rgba(52,225,122,0.4); color: #34e17a; }
+.res-edit:hover { border-color: rgba(172,95,219,0.45); color: var(--purple-light); }
 .res-add { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: transparent; border: 1px dashed var(--border-2); color: var(--ink-3); border-radius: 10px; font-size: 12px; cursor: pointer; justify-content: center; font-family: inherit; transition: all 0.18s var(--ease-out); }
-.res-add:hover { border-color: rgba(52,225,122,0.4); color: #34e17a; }
+.res-add:hover { border-color: rgba(172,95,219,0.45); color: var(--purple-light); }
 
-/* Private pension — same expandable pattern as reserves, in purple */
+/* Private pension — same expandable pattern + same palette as reserves now */
 .cat-row.pension-row { background: rgba(172,95,219,0.05); cursor: pointer; }
 .cat-row.pension-row:hover { background: rgba(172,95,219,0.09); }
 .cat-icon.pension-icon { background: rgba(172,95,219,0.15) !important; color: var(--purple-light) !important; }
 .cat-row.pension-row .cat-chevron { transition: transform 0.25s var(--ease-out); color: var(--ink-muted); }
 .cat-row.pension-row.expanded .cat-chevron { transform: rotate(180deg); color: var(--purple-light); }
-.cat-row.pension-row + .reserve-expanded .res-item:hover { border-color: rgba(172,95,219,0.3); }
-.cat-row.pension-row + .reserve-expanded .res-edit:hover { border-color: rgba(172,95,219,0.45); color: var(--purple-light); }
-.cat-row.pension-row + .reserve-expanded .res-add:hover { border-color: rgba(172,95,219,0.45); color: var(--purple-light); }
 .fx-extra {
   font-family: 'Geist Mono', 'JetBrains Mono', monospace;
   font-size: 10px; color: var(--usd); margin-top: 4px;
@@ -1342,13 +1339,14 @@ body::before {
   letter-spacing: .3px;
 }
 .fx-edit-btn {
-  background: var(--usd-bg); border: 1px solid var(--usd-strong);
-  color: var(--usd); font-size: 10px; padding: 5px 12px; border-radius: 999px;
-  font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer;
+  width: 30px; height: 30px; border-radius: 8px;
+  background: transparent; border: 1px solid rgba(255,255,255,0.08);
+  color: var(--ink-3); cursor: pointer;
+  display: grid; place-items: center;
   flex-shrink: 0; margin-left: 8px; align-self: center;
-  transition: all .15s ease;
+  transition: all .18s ease;
 }
-.fx-edit-btn:hover { background: var(--usd-strong); color: #fff; }
+.fx-edit-btn:hover { border-color: var(--usd-strong); color: var(--usd); }
 .fx-add-hint {
   display: block; width: 100%;
   background: transparent; border: 1px dashed var(--usd-strong);
@@ -1378,6 +1376,41 @@ body::before {
     } else {
       document.documentElement.setAttribute('data-theme', 'dark');
     }
+  })();
+
+  // Allow pinch-zoom during gesture, but snap back to 1x when user releases fingers.
+  // Prevents the app UI from getting stuck zoomed in a broken state.
+  (function() {
+    var RESET_DELAY = 350;      // ms after last touchend before snapping back
+    var viewportMeta = document.querySelector('meta[name="viewport"]');
+    if (!viewportMeta) return;
+    var normal = 'width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=5, viewport-fit=cover';
+    var locked = 'width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover';
+    var timer = null;
+
+    function snapBack() {
+      // Briefly pin to maximum-scale=1 to force the browser to reset zoom, then release again.
+      viewportMeta.setAttribute('content', locked);
+      setTimeout(function() { viewportMeta.setAttribute('content', normal); }, 80);
+    }
+
+    document.addEventListener('touchend', function(e) {
+      // Only care about multi-touch gestures (pinch). Single-tap should not trigger reset.
+      if (e.touches && e.touches.length > 0) return;
+      // Only reset if currently zoomed in
+      if (window.visualViewport && window.visualViewport.scale > 1.01) {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(snapBack, RESET_DELAY);
+      }
+    }, { passive: true });
+
+    // Also guard double-tap zoom (iOS gesture) — prevent it from persisting
+    document.addEventListener('gestureend', function() {
+      if (window.visualViewport && window.visualViewport.scale > 1.01) {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(snapBack, RESET_DELAY);
+      }
+    }, { passive: true });
   })();
 </script>
 </head>
@@ -1933,7 +1966,7 @@ body::before {
 <div class="modal-bg" id="fxModal" style="display:none">
   <div class="modal">
     <div class="modal-head">
-      <div class="modal-title">Dólar (USD)</div>
+      <div class="modal-title">USD</div>
       <button class="modal-close" id="fxModalClose">&times;</button>
     </div>
     <div class="modal-body">
