@@ -2456,6 +2456,19 @@ async function saveFX() {
 }
 
 // v8 Turno 8 — refresh USD-BRL rate from worker (called on main Sync)
+// v8 Turno 8 — FX modal event listeners (wired right after saveFX declaration so closures see it)
+(function wireFXModal() {
+  const _close = () => { const m = document.getElementById('fxModal'); if (m) m.style.display = 'none'; };
+  document.getElementById('fxModalClose')?.addEventListener('click', _close);
+  document.getElementById('fxModalCancel')?.addEventListener('click', _close);
+  document.getElementById('fxModalSave')?.addEventListener('click', () => {
+    try { saveFX(); } catch (e) { console.error('saveFX failed:', e); }
+  });
+  document.getElementById('fxModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'fxModal') _close();
+  });
+})();
+
 async function fetchFXRate() {
   const workerUrl = state.i10Cfg.workerUrl || '';
   if (!workerUrl) return;
@@ -4200,18 +4213,7 @@ document.addEventListener('click', (e) => {
 
 
 
-// v8 Turno 8 — FX modal event listeners (defensive: inline handlers)
-(function wireFXModal() {
-  const _close = () => { const m = document.getElementById('fxModal'); if (m) m.style.display = 'none'; };
-  document.getElementById('fxModalClose')?.addEventListener('click', _close);
-  document.getElementById('fxModalCancel')?.addEventListener('click', _close);
-  document.getElementById('fxModalSave')?.addEventListener('click', () => {
-    try { saveFX(); } catch (e) { console.error('saveFX failed:', e); }
-  });
-  document.getElementById('fxModal')?.addEventListener('click', (e) => {
-    if (e.target.id === 'fxModal') _close();
-  });
-})();
+
 
 </script>
 
