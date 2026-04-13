@@ -1,8 +1,8 @@
 // ============================================================
-//  LEDGER — Personal Finance (app.js)
+//  LEDGER - Personal Finance (app.js)
 //  Modules: Expenses + Investments (I10 link)
 // ============================================================
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -15,19 +15,38 @@ const firebaseConfig = {
   messagingSenderId: "559892333696",
   appId: "1:559892333696:web:3272f0f8e86449f4885265"
 };
-const app = initializeApp(firebaseConfig);
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+// ============================================================
+//  EARLY AUTH GUARD - login works even if main code crashes
+// ============================================================
+let _mainAuthRegistered = false;
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    console.log('[early-auth] User logged in:', user.email);
+    setTimeout(() => {
+      if (!_mainAuthRegistered) {
+        console.warn('[early-auth] Main auth did not register - reloading');
+        location.reload();
+      }
+    }, 2000);
+  }
+});
+
 const provider = new GoogleAuthProvider();
 
 // ---- Paths ----
 const colExpenses = () => collection(db, "household", "main", "expenses");
 const colYearly   = () => collection(db, "household", "main", "dividendsYearly");
+const colContrib  = () => collection(db, "household", "main", "contributions");
 const docExpense  = (id) => doc(db, "household", "main", "expenses", id);
 const docYearly   = (id) => doc(db, "household", "main", "dividendsYearly", id);
 const docConfig   = doc(db, "household", "main", "config", "settings");
 const docI10      = doc(db, "household", "main", "config", "i10");
 const docI10Louise = doc(db, "household", "main", "config", "i10-louise");
+const docFx = doc(db, "household", "main", "config", "fx");
 const docI10Cfg   = doc(db, "household", "main", "config", "i10sync");
 
 // ---- Constants ----
@@ -48,18 +67,221 @@ const MONTH_NAMES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','J
 // ---- State ----
 const state = {
   user: null,
-  mode: 'expenses',             // 'expenses' | 'investments'
+  mode: 'investments',          // 'expenses' | 'investments'
   expenses: [],
   yearly: [],
-  i10: { equity: 0, dividends: 0, updatedAt: null, year: new Date().getFullYear(), assets: [] },
-  i10Cfg: { workerUrl: '', walletId: '', autoSync: false },
+  i10: { equity: 0, dividends: 0, updatedAt: null, year: new Date().getFullYear(), assets: [], categories: [] },
+  contributions: [],
+  i10Cfg: { workerUrl: '', walletId: '', publicHash: '', autoSync: false },
   i10Louise: { equity: 0, dividends: 0, applied: 0, variation: 0, updatedAt: null },
-  i10LouiseCfg: { walletId: '2699282' }, // Louise's public I10 wallet
+  i10LouiseCfg: { walletId: '2699282' },
+  fx: { usd: 0, rateUSD: 0, rateUpdatedAt: null, rateSource: '', note: '' },
   i10Syncing: false,
   dividendsYearlyGoal: 1_000_000,
   dividendsYearlyGoalYear: 2035,
   currentViewMonth: new Date(),  // month being viewed in Expenses
 };
+
+// ============================================================
+//  i18n - declared early so functions can use t()
+// ============================================================
+const I18N = {
+  pt: {
+    'login.tagline': 'Ferramenta de finanças pessoais.<br/>Entre com Google para continuar.',
+    'login.button': 'Entrar com Google',
+    'hero.networth': 'Patrimônio total',
+    'hero.sync': 'Sync',
+    'hero.updated.never': 'ainda não atualizado',
+    'hero.updated.prefix': 'atualizado',
+    'goal.eyebrow': 'META DE LONGO PRAZO',
+    'goal.variables': 'VARIÁVEIS',
+    'card.portfolio': 'minha carteira',
+    'card.dividends': 'dividendos por ano',
+    'card.networth': 'patrimônio por ano',
+    'card.contributions': 'aportes mensais',
+    'card.history': 'histórico anual',
+    'tab.investments': 'Investimentos',
+    'tab.expenses': 'Despesas',
+    'th.year': 'Ano',
+    'th.networth': 'Patrimônio',
+    'th.dividends': 'Proventos',
+    'th.dy': 'DY',
+    'th.yoy': 'YoY',
+    'stat.hitgoal': 'Meta atinge em',
+    'stat.netat': 'PL em 2035',
+    'stat.totalcontrib': 'Total aportado',
+    'slider.monthly': 'Aporte mensal',
+    'slider.growthcontrib': 'Crescimento aporte',
+    'slider.dy': 'DY esperado',
+    'slider.reinvest': 'Reinvestimento',
+    'slider.growthdiv': 'Crescimento do dividendo (empresa)',
+    'hero.manual': 'Manual update',
+    'hero.manual.full': 'Manual update · configure sync for automatic',
+    'ytd.received': 'proventos recebidos neste ano',
+    'ytd.alltime.from': 'desde {year} · {n} {label} de histórico',
+    'ytd.alltime.empty': 'sem histórico ainda',
+    'years.singular': 'year',
+    'years.plural': 'years',
+    'loading': 'loading...',
+    'via.i10': 'VIA I10',
+    'sub.dividends': 'histórico anual de proventos',
+    'sub.networth': 'evolução do patrimônio',
+    'sub.contributions': 'aportes em dinheiro do trabalho',
+    'sub.history': 'patrimônio + proventos por ano',
+    'contrib.total': 'total aportado',
+    'contrib.avg': 'média mensal',
+    'contrib.empty': 'Nenhum aporte cadastrado. Clique em "+ Aporte" para começar.',
+    'contrib.aporte': 'aporte',
+    'contrib.aportes': 'aportes',
+    'goal.status.green': 'on track',
+    'goal.status.yellow': 'tight',
+    'goal.status.red': 'off schedule',
+    'goal.notreach': 'não atinge',
+    'goal.before': 'antes',
+    'goal.after': 'depois',
+    'goal.onschedule': 'no prazo',
+    'toast.saved': 'Contribution saved',
+    'toast.deleted': 'Contribution deleted',
+    'toast.error.save': 'Save failed',
+    'toast.error.delete': 'Delete failed',
+    'toast.synced': 'Synced',
+    'toast.synced.assets': '{n} assets',
+    'count.assets.singular': 'ativo',
+    'count.assets.plural': 'ativos',
+    'count.cat.singular': 'categoria',
+    'count.cat.plural': 'categorias',
+    'count.assets.full': '{n} ativos · {c} categorias',
+    'count.assets.none': 'nenhum ativo sincronizado',
+    'cat.label.suffix': 'DA CARTEIRA',
+    'cat.assets.singular': 'ATIVO',
+    'cat.assets.plural': 'ATIVOS',
+    'chart.caption.prefix': 'desde início:',
+    'chart.caption.cagr': 'CAGR',
+    'goal.phrase.suffix': ' Contribution of {amt}/mo grows {g}%/yr. Portfolio ends {year} worth <b>{pl}</b>.',
+    'goal.phrase.fail': 'With these variables you <b>do not reach</b> the goal. Raise contribution, DY or reinvestment.',
+    'goal.phrase.before': 'You reach the goal in <b>{year}</b>, <span style="color:var(--purple-light);font-weight:600">{n} {label} early</span>.',
+    'goal.phrase.exact': 'You hit the goal exactly in <b>{year}</b>.',
+    'goal.phrase.after': 'You only reach R$ 1M/yr in <b>{year}</b>, <span style="color:var(--loss);font-weight:600">{n} {label} late</span>. Raise contribution or expected DY.',
+  },
+  en: {
+    'login.tagline': 'Personal finance tracker.<br/>Sign in with Google to continue.',
+    'login.button': 'Sign in with Google',
+    'hero.networth': 'Total net worth',
+    'hero.sync': 'Sync',
+    'hero.updated.never': 'not yet updated',
+    'hero.updated.prefix': 'updated',
+    'goal.eyebrow': 'LONG-TERM GOAL',
+    'goal.variables': 'VARIABLES',
+    'card.portfolio': 'my portfolio',
+    'card.dividends': 'dividends per year',
+    'card.networth': 'net worth per year',
+    'card.contributions': 'monthly contributions',
+    'card.history': 'yearly history',
+    'tab.investments': 'Investments',
+    'tab.expenses': 'Expenses',
+    'th.year': 'Year',
+    'th.networth': 'Net worth',
+    'th.dividends': 'Dividends',
+    'th.dy': 'DY',
+    'th.yoy': 'YoY',
+    'stat.hitgoal': 'Goal hit in',
+    'stat.netat': 'Net worth in 2035',
+    'stat.totalcontrib': 'Total contributed',
+    'slider.monthly': 'Monthly',
+    'slider.growthcontrib': 'Contrib growth',
+    'slider.dy': 'Expected DY',
+    'slider.reinvest': 'Reinvestment',
+    'slider.growthdiv': 'Dividend growth (company)',
+    'hero.manual': 'Manual update',
+    'hero.manual.full': 'Manual update · configure sync for automatic',
+    'ytd.received': 'dividends received this year',
+    'ytd.alltime.from': 'since {year} · {n} {label} of history',
+    'ytd.alltime.empty': 'no history yet',
+    'years.singular': 'year',
+    'years.plural': 'years',
+    'loading': 'loading...',
+    'via.i10': 'VIA I10',
+    'sub.dividends': 'annual dividend history',
+    'sub.networth': 'net worth evolution',
+    'sub.contributions': 'work-income contributions',
+    'sub.history': 'net worth + dividends per year',
+    'contrib.total': 'total contributed',
+    'contrib.avg': 'monthly average',
+    'contrib.empty': 'No contributions yet. Click "+ Aporte" to start.',
+    'contrib.aporte': 'contribution',
+    'contrib.aportes': 'contributions',
+    'goal.status.green': 'on track',
+    'goal.status.yellow': 'tight',
+    'goal.status.red': 'off schedule',
+    'goal.notreach': "doesn't reach",
+    'goal.before': 'early',
+    'goal.after': 'late',
+    'goal.onschedule': 'on schedule',
+    'toast.saved': 'Contribution saved',
+    'toast.deleted': 'Contribution deleted',
+    'toast.error.save': 'Save failed',
+    'toast.error.delete': 'Delete failed',
+    'toast.synced': 'Synced',
+    'toast.synced.assets': '{n} assets',
+    'count.assets.singular': 'asset',
+    'count.assets.plural': 'assets',
+    'count.cat.singular': 'category',
+    'count.cat.plural': 'categories',
+    'count.assets.full': '{n} assets · {c} categories',
+    'count.assets.none': 'no assets synced',
+    'cat.label.suffix': 'OF PORTFOLIO',
+    'cat.assets.singular': 'ASSET',
+    'cat.assets.plural': 'ASSETS',
+    'chart.caption.prefix': 'since start:',
+    'chart.caption.cagr': 'CAGR',
+    'goal.phrase.suffix': ' Contribution of {amt}/mo grows {g}%/yr. Portfolio ends {year} worth <b>{pl}</b>.',
+    'goal.phrase.fail': 'With these variables you <b>do not reach</b> the goal. Raise contribution, DY or reinvestment.',
+    'goal.phrase.before': 'You reach the goal in <b>{year}</b>, <span style="color:var(--purple-light);font-weight:600">{n} {label} early</span>.',
+    'goal.phrase.exact': 'You hit the goal exactly in <b>{year}</b>.',
+    'goal.phrase.after': 'You only reach R$ 1M/year in <b>{year}</b>, <span style="color:var(--loss);font-weight:600">{n} {label} late</span>. Increase contribution or expected DY.',
+  }
+};
+
+function getLang() { return localStorage.getItem('ledger-lang') || 'pt'; }
+
+function t(key) {
+  const lang = getLang();
+  return (I18N[lang] && I18N[lang][key]) || (I18N.pt[key]) || key;
+}
+window.t = t;
+window.getLang = getLang;
+
+function applyI18n() {
+  const lang = getLang();
+  document.documentElement.setAttribute('lang', lang === 'en' ? 'en' : 'pt-BR');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const val = t(key);
+    if (val.includes('<')) el.innerHTML = val;
+    else el.textContent = val;
+  });
+  // Update lang label in topbar
+  const label = document.getElementById('langLabel');
+  if (label) label.textContent = lang === 'pt' ? 'EN' : 'PT';
+  // Re-render dynamic views ONLY if app is loaded and user is logged in
+  try {
+    if (typeof state !== 'undefined' && state && state.user && typeof renderInvestments === 'function' && state.mode === 'investments') {
+      renderInvestments();
+    }
+  } catch (err) {
+    console.warn('[i18n] re-render skipped:', err);
+  }
+}
+
+function toggleLang() {
+  const next = getLang() === 'pt' ? 'en' : 'pt';
+  try { localStorage.setItem('ledger-lang', next); } catch(e) {}
+  applyI18n();
+  if (state.user) {
+    setDoc(docConfig, { lang: next, updatedAt: serverTimestamp() }, { merge: true }).catch(()=>{});
+  }
+}
+
 
 // ---- Utils ----
 const $ = (id) => document.getElementById(id);
@@ -72,59 +294,6 @@ function shortMoney(n) {
   if (Math.abs(n) >= 1_000) return (n/1_000).toFixed(0) + 'k';
   return n.toFixed(0);
 }
-// §7 Part 2: compact formatter for yearly history grid (pt-BR separators)
-function formatCompact(n) {
-  const abs = Math.abs(n || 0);
-  if (abs >= 1_000_000) return (n/1_000_000).toFixed(2).replace('.', ',') + 'M';
-  if (abs >= 1_000)     return (n/1_000).toFixed(1).replace('.', ',') + 'K';
-  return String(Math.round(n || 0));
-}
-// §7 Part 2: sanitize YoY > 1000% (division-by-near-zero on first year)
-function sanitizeYoY(pct) {
-  if (pct == null || !isFinite(pct)) return null;
-  if (Math.abs(pct) > 1000) return null;
-  return pct;
-}
-// §6 Part 2: parse "R$ 24.000" / "10,0 %/yr" → float
-function parseVarInput(str) {
-  if (str == null) return 0;
-  const cleaned = String(str).replace(/R\$|\s|%|\/yr|\./g, '').replace(',', '.');
-  const n = parseFloat(cleaned);
-  return isFinite(n) ? n : 0;
-}
-// Entry animations (Part 1 §-1): run once on DOMContentLoaded and after sync success
-function countUp(el, target, duration = 1400, formatter = (n) => String(Math.round(n))) {
-  if (!el) return;
-  const start = performance.now();
-  function frame(now) {
-    const t = Math.min(1, (now - start) / duration);
-    const eased = t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
-    el.textContent = formatter(target * eased);
-    if (t < 1) requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
-}
-function tracePath(path, duration = 1200, delay = 0) {
-  if (!path || !path.getTotalLength) return;
-  const len = path.getTotalLength();
-  path.style.strokeDasharray = len;
-  path.style.strokeDashoffset = len;
-  path.style.transition = 'none';
-  path.getBoundingClientRect(); // force reflow
-  setTimeout(() => {
-    path.style.transition = `stroke-dashoffset ${duration}ms cubic-bezier(.2,.8,.2,1)`;
-    path.style.strokeDashoffset = 0;
-  }, delay);
-}
-function runEntryAnimations() {
-  // Count-up the big net worth number on first load. Chart trace is handled by drawChart's
-  // own one-shot (_chartTraced flag) in the inline script — we do NOT duplicate it here,
-  // otherwise two trace cycles compete and produce the "line collapses and redraws" glitch.
-  const nwEl = $('i10Equity');
-  if (nwEl && state.i10.equity > 0) {
-    countUp(nwEl, state.i10.equity, 1600, (n) => (n || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 }));
-  }
-}
 function showToast(msg) {
   const t = $('toast');
   t.textContent = msg;
@@ -132,12 +301,12 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2600);
 }
 function formatDateBR(d) {
-  if (!d) return '—';
+  if (!d) return '-';
   const dt = d instanceof Date ? d : new Date(d);
   return dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 }
 function formatDateTimeBR(d) {
-  if (!d) return '—';
+  if (!d) return '-';
   const dt = d instanceof Date ? d : new Date(d);
   return dt.toLocaleDateString('pt-BR', { day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' + dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
 }
@@ -148,6 +317,17 @@ function monthKey(d) {
 function monthLabel(d) {
   const dt = d instanceof Date ? d : new Date(d);
   return `${MONTH_NAMES_PT[dt.getMonth()]} ${dt.getFullYear()}`;
+}
+
+// Build the public I10 wallet link from i10Cfg (no hardcoded wallet/hash in HTML).
+function updateI10Link() {
+  const a = $('i10PublicLink');
+  if (!a) return;
+  const { walletId, publicHash } = state.i10Cfg;
+  if (!walletId) { a.removeAttribute('href'); a.style.opacity = '0.5'; return; }
+  const base = `https://investidor10.com.br/wallet/public/${walletId}`;
+  a.href = publicHash ? `${base}?h=${publicHash}` : base;
+  a.style.opacity = '';
 }
 
 // ============================================================
@@ -206,7 +386,7 @@ function renderExpenses() {
     $('expVsPrev').innerHTML = `<span class="${diff>=0?'neg':'pos'}">${arrow} ${fmtPct(Math.abs(pct) * (diff>=0?1:-1))}</span>`;
     $('expVsPrevSub').innerHTML = `${diff>=0?'+':''}${fmtBRL0(diff)} vs ${MONTH_NAMES_PT[prevDate.getMonth()]}`;
   } else {
-    $('expVsPrev').textContent = '—';
+    $('expVsPrev').textContent = '-';
     $('expVsPrevSub').textContent = 'Sem dados do mês anterior';
   }
 
@@ -214,10 +394,10 @@ function renderExpenses() {
   if (monthExp.length > 0) {
     const biggest = [...monthExp].sort((a,b) => (+b.value||0) - (+a.value||0))[0];
     $('expBiggest').textContent = fmtBRL0(+biggest.value||0);
-    $('expBiggestSub').textContent = biggest.description || '—';
+    $('expBiggestSub').textContent = biggest.description || '-';
   } else {
-    $('expBiggest').textContent = '—';
-    $('expBiggestSub').textContent = '—';
+    $('expBiggest').textContent = '-';
+    $('expBiggestSub').textContent = '-';
   }
 
   renderCategoryBreakdown(monthExp, total);
@@ -253,7 +433,7 @@ function renderRecentList(monthExp) {
   const wrap = $('recentList');
   if (monthExp.length === 0) {
     wrap.innerHTML = `<div class="empty-table" style="padding:30px 10px"><h4>Sem lançamentos</h4><p>Suas despesas recentes aparecerão aqui.</p></div>`;
-    $('recentMeta').textContent = '—';
+    $('recentMeta').textContent = '-';
     return;
   }
   const sorted = [...monthExp]
@@ -264,7 +444,7 @@ function renderRecentList(monthExp) {
     const cat = CATEGORIES[e.category] || CATEGORIES.outros;
     return `<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);gap:12px">
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:500;color:var(--ink-2);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${cat.icon} ${e.description || '—'}</div>
+        <div style="font-size:13px;font-weight:500;color:var(--ink-2);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${cat.icon} ${e.description || '-'}</div>
         <div style="font-size:11px;color:var(--muted)">${formatDateBR(e.date)} · ${cat.label}</div>
       </div>
       <div style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;color:var(--ink-2);white-space:nowrap">${fmtBRL(+e.value||0)}</div>
@@ -278,7 +458,7 @@ function renderRecentList(monthExp) {
 function renderExpenseTable(monthExp) {
   const tbody = $('expBody');
   if (monthExp.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-table"><h4>Nenhuma despesa neste mês</h4><p>Clique em "Nova despesa" para começar.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-table"><h4>Nenhuma despesa neste mês</h4><p>Clique em "New expense" para começar.</p></div></td></tr>`;
     return;
   }
   const sorted = [...monthExp].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -286,7 +466,7 @@ function renderExpenseTable(monthExp) {
     const cat = CATEGORIES[e.category] || CATEGORIES.outros;
     return `<tr data-id="${e.id}">
       <td class="mono">${formatDateBR(e.date)}</td>
-      <td>${e.description || '—'}</td>
+      <td>${e.description || '-'}</td>
       <td><span class="cat-pill" style="background:${cat.color}22;color:${cat.color}"><span class="dot" style="background:${cat.color}"></span>${cat.icon} ${cat.label}</span></td>
       <td class="mono" style="font-weight:600">${fmtBRL(+e.value||0)}</td>
       <td></td>
@@ -296,7 +476,7 @@ function renderExpenseTable(monthExp) {
 }
 
 // ============================================================
-//                 EXPENSES — MODAL
+//                 EXPENSES - MODAL
 // ============================================================
 let editingExpenseId = null;
 function openExpenseModal(id = null) {
@@ -311,7 +491,7 @@ function openExpenseModal(id = null) {
     $('expNotes').value = e.notes || '';
     $('expDelete').style.display = '';
   } else {
-    $('expenseModalTitle').textContent = 'Nova despesa';
+    $('expenseModalTitle').textContent = 'New expense';
     $('expDesc').value = '';
     $('expValue').value = '';
     // Default date = today
@@ -333,7 +513,7 @@ async function saveExpense() {
   const category = $('expCategory').value;
   const notes = $('expNotes').value.trim();
 
-  if (!description) { showToast('Descrição obrigatória'); return; }
+  if (!description) { showToast('Description required'); return; }
   if (!value || value <= 0) { showToast('Valor deve ser maior que zero'); return; }
   if (!date) { showToast('Data obrigatória'); return; }
 
@@ -353,7 +533,7 @@ async function saveExpense() {
       showToast('✓ Despesa registrada');
     }
     closeExpenseModal();
-  } catch (err) { console.error(err); showToast('Erro ao salvar'); }
+  } catch (err) { console.error(err); showToast(t('toast.error.save')); }
   finally { btn.disabled = false; btn.textContent = 'Salvar'; }
 }
 
@@ -364,42 +544,142 @@ async function deleteExpense() {
     await deleteDoc(docExpense(editingExpenseId));
     showToast('✓ Despesa excluída');
     closeExpenseModal();
-  } catch (err) { console.error(err); showToast('Erro ao excluir'); }
+  } catch (err) { console.error(err); showToast(t('toast.error.delete')); }
 }
 
 // ============================================================
 //                   INVESTMENTS MODULE
 // ============================================================
+
+// v8 Turno 8 — FX (USD holdings) render + edit
+function renderFX() {
+  // USD BRL equivalent
+  const usd = +state.fx.usd || 0;
+  const rate = +state.fx.rateUSD || 0;
+  const usdBRL = usd * rate;
+  // Nothing to do if there's no USD holding
+  const rowEl = document.getElementById('fxCatRow');
+  if (!rowEl) return;
+  if (usd <= 0 || rate <= 0) {
+    rowEl.style.display = 'none';
+    return;
+  }
+  rowEl.style.display = '';
+  // Compute % of total wallet (I10 + fx)
+  const totalWallet = (+state.i10.equity || 0) + usdBRL;
+  const percent = totalWallet > 0 ? (usdBRL / totalWallet) * 100 : 0;
+  const usdStr = 'US$ ' + usd.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+  const rateStr = String(rate.toFixed(2)).replace('.', ',');
+  document.getElementById('fxUsdNative').textContent = usdStr;
+  document.getElementById('fxRateChip').textContent = '\u00d7 ' + rateStr;
+  document.getElementById('fxPercent').textContent = percent.toFixed(0) + '% DA CARTEIRA';
+  document.getElementById('fxBrlValue').textContent = 'R$ ' + usdBRL.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+}
+
+function openFXModal() {
+  const modal = document.getElementById('fxModal');
+  if (!modal) return;
+  document.getElementById('fxModalInput').value = (+state.fx.usd || 0).toString().replace('.', ',');
+  const rate = +state.fx.rateUSD || 0;
+  document.getElementById('fxModalRate').textContent = rate > 0 ? 'R$ ' + rate.toFixed(2).replace('.', ',') : '—';
+  const upd = state.fx.rateUpdatedAt;
+  document.getElementById('fxModalRateDate').textContent = upd ? formatDateTimeBR(upd) : '';
+  modal.style.display = 'grid';
+}
+
+function closeFXModal() {
+  const modal = document.getElementById('fxModal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function saveFX() {
+  const inputEl = document.getElementById('fxModalInput');
+  let raw = inputEl ? String(inputEl.value || '') : '';
+  // Remove thousand-separator dots, swap comma for dot (pt-BR to JS parseFloat format)
+  raw = raw.split('.').join('');
+  raw = raw.split(',').join('.');
+  raw = raw.trim();
+  const usd = parseFloat(raw) || 0;
+  await setDoc(docFx, {
+    usd,
+    note: '',
+    updatedBy: state.user?.displayName || 'unknown',
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+  const m = document.getElementById('fxModal');
+  if (m) m.style.display = 'none';
+  showToast('USD atualizado: US$ ' + usd.toLocaleString('pt-BR'));
+}
+
+// v8 Turno 8 — refresh USD-BRL rate from worker (called on main Sync)
+// v8 Turno 8 — FX modal event listeners (wired right after saveFX declaration so closures see it)
+(function wireFXModal() {
+  const _close = () => { const m = document.getElementById('fxModal'); if (m) m.style.display = 'none'; };
+  document.getElementById('fxModalClose')?.addEventListener('click', _close);
+  document.getElementById('fxModalCancel')?.addEventListener('click', _close);
+  document.getElementById('fxModalSave')?.addEventListener('click', () => {
+    try { saveFX(); } catch (e) { console.error('saveFX failed:', e); }
+  });
+  document.getElementById('fxModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'fxModal') _close();
+  });
+})();
+
+async function fetchFXRate() {
+  const workerUrl = state.i10Cfg.workerUrl || '';
+  if (!workerUrl) return;
+  try {
+    const base = workerUrl.replace(/\/+$/, '');
+    const r = await fetch(base + '/fx/rate', { headers: { 'Accept': 'application/json' } });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    if (data && data.rateUSD) {
+      await setDoc(docFx, {
+        rateUSD: data.rateUSD,
+        rateSource: data.rateSource || 'awesomeapi-bcb',
+        rateUpdatedAt: data.rateUpdatedAt || new Date().toISOString(),
+      }, { merge: true });
+      console.log('FX rate refreshed \u2713', data.rateUSD);
+    }
+  } catch (err) {
+    console.warn('FX rate refresh failed:', err);
+  }
+}
+
 function renderInvestments() {
   const currentYear = new Date().getFullYear();
   const goalYear = state.dividendsYearlyGoalYear;
   const yearsLeft = Math.max(0, goalYear - currentYear);
 
-  // One-shot entry animations: fire once when we first have real equity data
-  if (!state._entryAnimsPlayed && (state.i10.equity || 0) > 0) {
-    state._entryAnimsPlayed = true;
-    // Defer one frame so the DOM paint is committed first
-    requestAnimationFrame(() => setTimeout(runEntryAnimations, 50));
-  }
-
-  // Hero — Patrimônio
-  $('i10Equity').textContent = (state.i10.equity || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  // Hero - Patrimônio
+  // v8 Turno 8: hero total includes USD converted to BRL
+  const _usdBRL = (+state.fx.usd || 0) * (+state.fx.rateUSD || 0);
+  const _heroTotal = (+state.i10.equity || 0) + _usdBRL;
+  $('i10Equity').textContent = _heroTotal.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
   if (state.i10.updatedAt) {
-    const sourceTag = state.i10.source === 'investidor10-sync' ? ' · via I10 sync' : ' · manual';
-    $('i10Updated').textContent = 'Updated: ' + formatDateTimeBR(state.i10.updatedAt) + sourceTag;
+    const sourceTag = state.i10.source === 'investidor10-sync' ? ' · via I10' : ' · manual';
+    $('i10Updated').textContent = t('hero.updated.prefix') + ' ' + formatDateTimeBR(state.i10.updatedAt) + sourceTag;
   } else {
-    $('i10Updated').textContent = 'Not yet updated';
+    $('i10Updated').textContent = t('hero.updated.never');
   }
-  // Amt subtitle: show variation if synced
+  // Hero meta row: return pill + applied text
   const subEl = $('i10EquitySub');
   if (subEl) {
     if (state.i10.source === 'investidor10-sync' && state.i10.applied > 0) {
-      const variation = +state.i10.variation || 0;
-      const sign = variation >= 0 ? '+' : '';
-      const cls = variation >= 0 ? 'pos' : 'neg';
-      subEl.innerHTML = `Invested ${fmtBRL0(state.i10.applied)} · <span class="${cls}">${sign}${variation.toFixed(2)}%</span>`;
+      const ytdDivs = +state.i10.dividends || 0;
+      const pastDivs = state.yearly
+        .filter(y => y.year < currentYear)
+        .reduce((s, y) => s + (+y.divs || 0), 0);
+      const totalDivs = ytdDivs + pastDivs;
+      const totalReturn = ((state.i10.equity - state.i10.applied + totalDivs) / state.i10.applied) * 100;
+      const sign = totalReturn >= 0 ? '+' : '';
+      const arrow = totalReturn >= 0
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>';
+      const pillCls = totalReturn >= 0 ? 'return-pill' : 'return-pill neg';
+      subEl.innerHTML = `<div class="${pillCls}">${arrow}${sign}${totalReturn.toFixed(2)}% com dividendos</div><div class="applied-text">Aplicado <b>${fmtBRL0(state.i10.applied)}</b></div>`;
     } else {
-      subEl.textContent = 'Manual update · configure sync for automatic';
+      subEl.innerHTML = '<div class="applied-text">Atualizacao manual &middot; configure sync pra automatico</div>';
     }
   }
 
@@ -431,20 +711,62 @@ function renderInvestments() {
       const totalGrowth = ((lastEquity - first.equity) / first.equity) * 100;
       const cagr = (Math.pow(lastEquity / first.equity, 1 / yearsSpan) - 1) * 100;
       $('plTotalGrowth').textContent = (totalGrowth >= 0 ? '+' : '') + totalGrowth.toFixed(0) + '%';
-      $('plCagr').textContent = `${cagr.toFixed(1)}% /ano (CAGR)`;
+      $('plCagr').textContent = `${cagr.toFixed(1)}%/ano`;
       $('plSinceFirst').textContent = (totalGrowth >= 0 ? '+' : '') + totalGrowth.toFixed(0) + '%';
       $('plCagrPill').textContent = cagr.toFixed(1) + '% /ano';
     }
   } else {
-    $('plTotalGrowth').textContent = '—';
-    $('plCagr').textContent = '—';
-    $('plSinceFirst').textContent = '—';
-    $('plCagrPill').textContent = '—';
+    $('plTotalGrowth').textContent = '-';
+    $('plCagr').textContent = '-';
+    $('plSinceFirst').textContent = '-';
+    $('plCagrPill').textContent = '-';
   }
 
   // All-time dividends
   const allTime = state.yearly.reduce((s,y) => s + (+y.divs||0), 0);
   $('divAllTime').textContent = fmtBRL0(allTime);
+
+  // YTD progress bar (% of yearly goal)
+  const ytdProgressEl = document.getElementById('ytdProgressBar');
+  if (ytdProgressEl) {
+    const pct = state.dividendsYearlyGoal > 0
+      ? Math.min(100, ((state.i10.dividends || 0) / state.dividendsYearlyGoal) * 100)
+      : 0;
+    ytdProgressEl.style.width = pct.toFixed(1) + '%';
+  }
+
+  // All-time sub: "desde 2020 - X anos de historico"
+  const allTimeSubEl = document.getElementById('divAllTimeSub');
+  if (allTimeSubEl) {
+    if (sortedYearly.length > 0) {
+      const firstYear = sortedYearly[0].year;
+      const yearsCount = sortedYearly.length;
+      allTimeSubEl.textContent = `desde ${firstYear} · ${yearsCount} ${yearsCount === 1 ? 'ano' : 'anos'} de historico`;
+    } else {
+      allTimeSubEl.textContent = t('ytd.alltime.empty');
+    }
+  }
+
+  // All-time progress bar (proporcional ao valor recebido vs uma meta acumulada simbolica)
+  const allTimeProgressEl = document.getElementById('allTimeProgressBar');
+  if (allTimeProgressEl) {
+    // 35% como visual fixo - representa "progresso da jornada"
+    const accumGoal = state.dividendsYearlyGoal * 5; // 5x meta anual como referencia visual
+    const pct = accumGoal > 0 ? Math.min(100, (allTime / accumGoal) * 100) : 0;
+    allTimeProgressEl.style.width = pct.toFixed(1) + '%';
+  }
+
+  // Carteira count: "X ativos · Y categorias"
+  const countEl = document.getElementById('i10AssetsCount');
+  if (countEl) {
+    const assets = state.i10.assets || [];
+    if (assets.length === 0) {
+      countEl.textContent = 'nenhum ativo sincronizado';
+    } else {
+      const cats = new Set(assets.map(a => inferCategory(a)));
+      countEl.textContent = `${assets.length} ativos · ${cats.size} ${cats.size === 1 ? 'categoria' : 'categorias'}`;
+    }
+  }
 
   // Pills
   $('divGoalPill').textContent = 'R$ 1M até ' + goalYear;
@@ -455,131 +777,222 @@ function renderInvestments() {
   renderPLChart();
   renderYearlyTable();
   renderI10Assets();
+  renderContributions();
+}
+
+// v8 Turno 6 — Bar chart range state (1Y / 5Y / All)
+window.chartRange = window.chartRange || '5Y';
+function filterByRange(years, values, range) {
+  if (range === 'All') return { years, values };
+  if (range === '1Y') {
+    const n = years.length;
+    return n > 0 ? { years: [years[n-1]], values: [values[n-1]] } : { years: [], values: [] };
+  }
+  const N = 5;
+  if (years.length <= N) return { years, values };
+  return { years: years.slice(-N), values: values.slice(-N) };
 }
 
 function buildBarChart(years, values, opts = {}) {
-  const W = 780, H = 280, padL = 50, padR = 20, padT = 30, padB = 40;
+  const W = 780, H = 260, padL = 56, padR = 24, padT = 42, padB = 38;
   const innerW = W - padL - padR;
   const innerH = H - padT - padB;
   if (!years.length) {
-    return `<div class="empty-chart"><div class="ico">📊</div><h4>Sem dados</h4><p>Adicione anos no histórico para ver o gráfico.</p></div>`;
+    return '<div style="padding:40px 20px;text-align:center;color:var(--ink-muted);font-size:13px"><div style="font-family:Instrument Serif,serif;font-style:italic;font-size:15px;color:var(--ink-3);margin-bottom:6px">sem dados ainda</div>adicione anos no historico para ver o grafico</div>';
   }
   const maxData = Math.max(...values, 0);
-  const maxVal = opts.goal ? Math.max(maxData, opts.goal) : maxData;
-  const yMax = maxVal * 1.15 || 1;
+  const yMax = (maxData > 0 ? maxData * 1.18 : 1);
   const barSlot = innerW / years.length;
-  const barWidth = Math.min(barSlot * 0.6, 32);
+  const barWidth = Math.min(barSlot * 0.55, 38);
   const currentYearActual = new Date().getFullYear();
-  const color = opts.color || '#0071e3';
+  const gradId = opts.gradId || 'barGradPurple';
+  const gradIdCurrent = opts.gradIdCurrent || 'barGradPink';
+  const uniqueId = Math.random().toString(36).substr(2, 6);
+  const gid = gradId + uniqueId;
+  const gidC = gradIdCurrent + uniqueId;
 
-  let svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">`;
-  svg += `<defs>
-    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${color}" stop-opacity="1"/>
-      <stop offset="100%" stop-color="${color}" stop-opacity=".5"/>
-    </linearGradient>
-    <linearGradient id="barGradientCurrent" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${color}" stop-opacity="1"/>
-      <stop offset="100%" stop-color="${color}" stop-opacity=".7"/>
-    </linearGradient>
-  </defs>`;
+  let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" style="display:block;width:100%;height:auto;max-width:100%">';
+  svg += '<defs>';
+  svg += '<linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1">';
+  svg += '<stop offset="0%" stop-color="#a855f7" stop-opacity="0.95"/>';
+  svg += '<stop offset="100%" stop-color="#7c3aed" stop-opacity="0.65"/>';
+  svg += '</linearGradient>';
+  svg += '<linearGradient id="' + gidC + '" x1="0" y1="0" x2="0" y2="1">';
+  svg += '<stop offset="0%" stop-color="#ec4899" stop-opacity="1"/>';
+  svg += '<stop offset="100%" stop-color="#a855f7" stop-opacity="0.7"/>';
+  svg += '</linearGradient>';
+  svg += '<filter id="glowB' + uniqueId + '" x="-50%" y="-50%" width="200%" height="200%">';
+  svg += '<feGaussianBlur stdDeviation="3" result="b"/>';
+  svg += '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>';
+  svg += '</filter>';
+  svg += '</defs>';
 
+  // Grid horizontal
   for (let i = 0; i <= 4; i++) {
     const y = padT + (innerH * i / 4);
-    svg += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#f0f0f2" stroke-width="1"/>`;
-    const val = yMax * (4-i) / 4;
-    svg += `<text class="axis" x="${padL - 8}" y="${y + 4}" text-anchor="end">${shortMoney(val)}</text>`;
+    svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="2 4"/>';
+    const val = yMax * (4 - i) / 4;
+    svg += '<text x="' + (padL - 10) + '" y="' + (y + 4) + '" text-anchor="end" fill="#7d6e96" font-family="Geist Mono,monospace" font-size="10" font-weight="600">' + shortMoney(val) + '</text>';
   }
 
-  if (opts.goal) {
-    const goalY = padT + innerH - (opts.goal / yMax) * innerH;
-    svg += `<line class="goal-line" x1="${padL}" y1="${goalY}" x2="${W - padR}" y2="${goalY}"/>`;
-    svg += `<text class="goal-label" x="${W - padR - 4}" y="${goalY - 6}" text-anchor="end">Meta: ${shortMoney(opts.goal)}</text>`;
-  }
-
+  // Bars
   years.forEach((y, i) => {
     const v = values[i] || 0;
+    if (v <= 0) {
+      // Empty year - draw label only
+      const x = padL + barSlot * i + barSlot / 2;
+      svg += '<text x="' + x + '" y="' + (H - 14) + '" text-anchor="middle" fill="#4d4063" font-family="Geist Mono,monospace" font-size="10" font-weight="600">' + y + '</text>';
+      return;
+    }
     const barH = (v / yMax) * innerH;
     const x = padL + barSlot * i + (barSlot - barWidth) / 2;
     const barY = padT + innerH - barH;
     const isCurrent = y === currentYearActual;
-    const fillUrl = isCurrent ? 'url(#barGradientCurrent)' : 'url(#barGradient)';
-    const cls = isCurrent ? 'bar bar-current' : 'bar';
-    svg += `<rect class="${cls}" x="${x}" y="${barY}" width="${barWidth}" height="${barH}" rx="4" fill="${fillUrl}"><title>${y}: ${fmtBRL0(v)}</title></rect>`;
-    svg += `<text class="axis" x="${x + barWidth/2}" y="${H - 18}" text-anchor="middle">${y}</text>`;
+    const fillUrl = isCurrent ? 'url(#' + gidC + ')' : 'url(#' + gid + ')';
+    const yearColor = isCurrent ? '#c084fc' : '#7d6e96';
+    const yearWeight = isCurrent ? '700' : '600';
+    const yearLabel = isCurrent ? y + '*' : String(y);
+
+    svg += '<rect x="' + x + '" y="' + barY + '" width="' + barWidth + '" height="' + barH + '" rx="5" fill="' + fillUrl + '"' + (isCurrent ? ' filter="url(#glowB' + uniqueId + ')"' : '') + '><title>' + y + ': ' + fmtBRL0(v) + '</title></rect>';
+    // Value label above bar
+    const valColor = isCurrent ? '#f472b6' : '#b8a8d4';
+    svg += '<text x="' + (x + barWidth / 2) + '" y="' + (barY - 6) + '" text-anchor="middle" fill="' + valColor + '" font-family="Geist Mono,monospace" font-size="9" font-weight="700">' + shortMoney(v) + '</text>';
+    // Year label below
+    svg += '<text x="' + (x + barWidth / 2) + '" y="' + (H - 14) + '" text-anchor="middle" fill="' + yearColor + '" font-family="Geist Mono,monospace" font-size="10" font-weight="' + yearWeight + '">' + yearLabel + '</text>';
   });
 
-  // Tooltip for most recent non-zero year
-  let lastIdx = values.length - 1;
-  while (lastIdx >= 0 && !values[lastIdx]) lastIdx--;
-  if (lastIdx >= 0) {
-    const lastYear = years[lastIdx];
-    const lastVal = values[lastIdx];
-    const barH = (lastVal / yMax) * innerH;
-    const x = padL + barSlot * lastIdx + (barSlot - barWidth) / 2 + barWidth / 2;
-    const tipY = padT + innerH - barH - 14;
-    const labelText = `${lastYear}`;
-    const valueText = fmtBRL0(lastVal);
-    const textW = Math.max(labelText.length, valueText.length) * 6.5 + 20;
-    const tipX = Math.max(padL + textW/2, Math.min(W - padR - textW/2, x));
-    svg += `<g class="tooltip-group">
-      <rect class="tooltip-bg" x="${tipX - textW/2}" y="${tipY - 26}" width="${textW}" height="32" rx="6"/>
-      <text class="tooltip-text" x="${tipX}" y="${tipY - 13}" text-anchor="middle">${labelText}</text>
-      <text class="tooltip-value" x="${tipX}" y="${tipY + 1}" text-anchor="middle">${valueText}</text>
-    </g>`;
+  // ========================================================
+  // YoY indicators - mode 'pills' or 'line'
+  // ========================================================
+  const yoyMode = opts.yoyMode || 'none';
+  if (yoyMode !== 'none' && years.length >= 2) {
+    // Compute bar centers and tops for pairs where both values > 0
+    const points = [];
+    for (let i = 0; i < years.length; i++) {
+      const v = values[i] || 0;
+      if (v <= 0) { points.push(null); continue; }
+      const barH = (v / yMax) * innerH;
+      const cx = padL + barSlot * i + barSlot / 2;
+      const top = padT + innerH - barH;
+      points.push({ cx, top, v, year: years[i] });
+    }
+
+    if (yoyMode === 'pills') {
+      // v8 Turno 9 — Option C: dashed connector between bar tops + opaque pill in middle
+      const firstVisibleIdx = opts.firstYoYIdx ?? 1;
+      for (let i = firstVisibleIdx; i < points.length; i++) {
+        const prev = points[i-1], cur = points[i];
+        if (!prev || !cur || prev.v <= 0) continue;
+        const yoy = ((cur.v - prev.v) / prev.v) * 100;
+        if (!isFinite(yoy) || Math.abs(yoy) > 1000) continue;
+        const sign = yoy >= 0 ? '+' : '';
+        const txt = sign + yoy.toFixed(0) + '%';
+        // v8 color: green <100%, amber >100%, red negative
+        let bg, strokeCol;
+        if (yoy < 0) { bg = '#ff5e57'; strokeCol = 'rgba(255,94,87,.3)'; }
+        else if (yoy > 100) { bg = '#e3b974'; strokeCol = 'rgba(227,185,116,.3)'; }
+        else { bg = '#34e17a'; strokeCol = 'rgba(52,225,122,.3)'; }
+        // Dashed connector line between the two bar tops (from right edge of prev to left edge of cur)
+        const prevRight = prev.cx + barWidth / 2;
+        const curLeft = cur.cx - barWidth / 2;
+        svg += '<line x1="' + prevRight + '" y1="' + prev.top + '" x2="' + curLeft + '" y2="' + cur.top + '" stroke="rgba(227,162,238,.35)" stroke-width="1.5" stroke-dasharray="2 3"/>';
+        // Pill centered on midpoint of the connector, opaque fill
+        const midX = (prev.cx + cur.cx) / 2;
+        const midY = (prev.top + cur.top) / 2;
+        const pillW = txt.length * 6 + 10;
+        const pillH = 14;
+        const pillTop = midY - pillH / 2;
+        svg += '<g><rect x="' + (midX - pillW/2) + '" y="' + pillTop + '" width="' + pillW + '" height="' + pillH + '" rx="7" fill="' + bg + '" stroke="' + strokeCol + '" stroke-width="1"/>';
+        svg += '<text x="' + midX + '" y="' + (pillTop + 10) + '" text-anchor="middle" fill="#1a181d" font-family="Geist Mono,monospace" font-size="9" font-weight="700">' + txt + '</text></g>';
+      }
+    } else if (yoyMode === 'line') {
+      // Connected polyline over bar tops + dots
+      const valid = points.filter(p => p !== null);
+      if (valid.length >= 2) {
+        const linePts = valid.map(p => p.cx + ',' + p.top).join(' ');
+        svg += '<polyline points="' + linePts + '" fill="none" stroke="#E3A2EE" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>';
+        for (const p of valid) {
+          svg += '<circle cx="' + p.cx + '" cy="' + p.top + '" r="4" fill="#E3A2EE" stroke="#29262B" stroke-width="2"/>';
+        }
+        // Show YoY % only on top 3 highest growths to avoid clutter
+        const yoys = [];
+        for (let i = 1; i < valid.length; i++) {
+          const yoy = ((valid[i].v - valid[i-1].v) / valid[i-1].v) * 100;
+          yoys.push({ idx: i, yoy, p: valid[i] });
+        }
+        yoys.sort((a, b) => Math.abs(b.yoy) - Math.abs(a.yoy));
+        const topYoys = yoys.slice(0, 3);
+        for (const y of topYoys) {
+          const sign = y.yoy >= 0 ? '+' : '';
+          const col = y.yoy >= 0 ? '#34e17a' : '#ff5e57';
+          svg += '<text x="' + y.p.cx + '" y="' + (y.p.top - 10) + '" text-anchor="middle" fill="' + col + '" font-family="Geist Mono,monospace" font-size="9" font-weight="700">' + sign + y.yoy.toFixed(0) + '%</text>';
+        }
+      }
+    }
   }
 
-  svg += `</svg>`;
-  return `<div class="bar-chart">${svg}</div>`;
+  svg += '</svg>';
+  return '<div style="width:100%;overflow:visible">' + svg + '</div>';
 }
 
 function renderDividendsChart() {
   const wrap = $('divChartWrap');
+  if (!wrap) return;
   const currentYear = new Date().getFullYear();
-  const goalYear = state.dividendsYearlyGoalYear;
-  const startYear = 2021;
-  const years = [];
-  for (let y = startYear; y <= goalYear; y++) years.push(y);
+  // Only show YEARS WITH DATA (history) + current year YTD if there's i10 sync
+  const histYears = [...state.yearly]
+    .filter(y => Number.isFinite(+y.year) && (+y.divs || 0) > 0)
+    .sort((a, b) => a.year - b.year);
 
-  const values = years.map(y => {
-    const yh = state.yearly.find(r => r.year === y);
-    if (yh) return +yh.divs || 0;
-    // For current year, use i10 value
-    if (y === currentYear) return +state.i10.dividends || 0;
-    return 0;
-  });
+  const years = histYears.map(y => y.year);
+  const values = histYears.map(y => +y.divs || 0);
 
-  wrap.innerHTML = buildBarChart(years, values, {
-    goal: state.dividendsYearlyGoal,
-    color: '#0071e3',
-  });
+  // Add current year (YTD) if not in history yet and has value
+  if (!years.includes(currentYear) && (state.i10.dividends || 0) > 0) {
+    years.push(currentYear);
+    values.push(+state.i10.dividends || 0);
+  }
+
+  // Need at least 1 year
+  if (years.length === 0) {
+    wrap.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--ink-muted);font-size:13px"><div style="font-family:Instrument Serif,serif;font-style:italic;font-size:15px;color:var(--ink-3);margin-bottom:6px">sem historico ainda</div>sincronize com I10 ou adicione anos manualmente</div>';
+    return;
+  }
+
+  // v8 Turno 6: apply range filter before drawing
+  const _filtered = filterByRange(years, values, window.chartRange || '5Y');
+  wrap.innerHTML = buildBarChart(_filtered.years, _filtered.values, { yoyMode: 'pills', firstYoYIdx: 1 });
 }
 
 function renderPLChart() {
   const wrap = $('plChartWrap');
+  if (!wrap) return;
   const currentYear = new Date().getFullYear();
-  const sortedYearly = [...state.yearly].filter(y => y.equity != null).sort((a,b) => a.year - b.year);
+  const sortedYearly = [...state.yearly]
+    .filter(y => Number.isFinite(+y.year) && Number.isFinite(+y.equity) && +y.equity > 0)
+    .sort((a, b) => a.year - b.year);
 
   if (sortedYearly.length === 0 && (!state.i10.equity || state.i10.equity <= 0)) {
-    wrap.innerHTML = `<div class="empty-chart"><div class="ico">📈</div><h4>Sem histórico de PL</h4><p>Adicione entradas anuais para ver o gráfico de evolução.</p></div>`;
+    wrap.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--ink-muted);font-size:13px"><div style="font-family:Instrument Serif,serif;font-style:italic;font-size:15px;color:var(--ink-3);margin-bottom:6px">sem historico de PL</div>sincronize com I10 para ver a evolucao</div>';
     return;
   }
 
   const years = sortedYearly.map(y => y.year);
   const values = sortedYearly.map(y => +y.equity || 0);
 
-  // Append current year from i10 if not already present
-  const hasCurrentYear = years.includes(currentYear);
-  if (!hasCurrentYear && state.i10.equity > 0) {
+  // Add or override current year with i10 value (always fresher)
+  const hasCurrent = years.includes(currentYear);
+  if (!hasCurrent && state.i10.equity > 0) {
     years.push(currentYear);
     values.push(state.i10.equity);
-  } else if (hasCurrentYear && state.i10.equity > 0) {
-    // Override current year with i10 value (more fresh)
+  } else if (hasCurrent && state.i10.equity > 0) {
     const idx = years.indexOf(currentYear);
     values[idx] = state.i10.equity;
   }
 
-  wrap.innerHTML = buildBarChart(years, values, { color: '#0071e3' });
+  // v8 Turno 6: apply range filter before drawing
+  const _filtered = filterByRange(years, values, window.chartRange || '5Y');
+  wrap.innerHTML = buildBarChart(_filtered.years, _filtered.values, { yoyMode: 'pills', firstYoYIdx: 1 });
 }
 
 function renderYearlyTable() {
@@ -589,22 +1002,27 @@ function renderYearlyTable() {
     tbody.innerHTML = `<tr><td colspan="5"><div class="empty-table"><h4>No yearly data</h4><p>Click "+ Year" to add your first year.</p></div></td></tr>`;
     return;
   }
+  // v8 Turno 4: compact values (64,2K / 1,34M) + sanitized YoY (>1000% → —)
+  const compact = (n) => {
+    const abs = Math.abs(n || 0);
+    if (abs >= 1_000_000) return (n/1_000_000).toFixed(2).replace('.', ',') + 'M';
+    if (abs >= 1_000)     return (n/1_000).toFixed(1).replace('.', ',') + 'K';
+    return String(Math.round(n || 0));
+  };
   tbody.innerHTML = sorted.map((y, i) => {
     const dy = (+y.equity > 0) ? ((+y.divs / +y.equity) * 100).toFixed(1) + '%' : '—';
     let yoy = '—';
-    let yoyClass = '';
     if (i > 0) {
       const prev = +sorted[i-1].divs || 0;
       if (prev > 0) {
         const growth = (((+y.divs || 0) - prev) / prev) * 100;
-        const clean = sanitizeYoY(growth);
-        if (clean != null) {
-          yoy = (clean >= 0 ? '+' : '') + clean.toFixed(1) + '%';
-          yoyClass = clean >= 0 ? 'pos' : 'neg';
+        if (isFinite(growth) && Math.abs(growth) <= 1000) {
+          yoy = (growth >= 0 ? '+' : '') + growth.toFixed(1) + '%';
         }
       }
     }
-    return `<tr data-id="${y.id}"><td>${y.year}</td><td>${formatCompact(+y.equity||0)}</td><td>${formatCompact(+y.divs||0)}</td><td>${dy}</td><td class="${yoyClass}">${yoy}</td></tr>`;
+    const yoyClass = yoy.startsWith('+') ? 'pos' : (yoy.startsWith('-') ? 'neg' : '');
+    return `<tr data-id="${y.id}"><td>${y.year}</td><td>${compact(+y.equity||0)}</td><td>${compact(+y.divs||0)}</td><td>${dy}</td><td class="${yoyClass}">${yoy}</td></tr>`;
   }).join('');
   tbody.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => openYearlyModal(tr.dataset.id)));
 }
@@ -612,48 +1030,417 @@ function renderYearlyTable() {
 // ============================================================
 //                I10 AUTO-SYNC (via Cloudflare Worker)
 // ============================================================
+// ============================================================
+//  Categoria inference (Brazilian market)
+// ============================================================
+const FII_WHITELIST = new Set([
+  'HGLG11','MXRF11','KNRI11','XPLG11','BCFF11','VISC11','HGRE11','KNCR11','VRTA11','BTLG11',
+  'IRDM11','RBRR11','RECT11','HGRU11','RZAK11','HFOF11','BBPO11','PVBI11','HGCR11','DEVA11',
+  'KNHY11','MALL11','BTCR11','RBRF11','KFOF11','RBRP11','GGRC11','JSRE11','TRXF11','VINO11',
+  'XPML11','RBVA11','VGIR11','XPCI11','HGBS11','VILG11','MGFF11','ALZR11','HSML11','PATC11',
+  'CPTS11','MFII11','RVBI11','RBED11','RZTR11','HABT11','RCRB11','MCCI11','BPFF11','XPIN11',
+  'OUJP11','BARI11','RBRY11','VGHF11','URPR11','VIUR11','VIFI11','LVBI11','SARE11','PORD11',
+]);
+
+const ETF_BR_WHITELIST = new Set([
+  'BOVA11','SMAL11','BOVV11','XBOV11','DIVO11','ECOO11','PIBB11','FIND11','GOVE11','ISUS11',
+  'MATB11','MOBI11','SMAC11','BBSD11','HASH11','BDIF11','BRAX11','SPXB11','XINA11',
+]);
+
+const ETF_INTL_WHITELIST = new Set([
+  'IVVB11','SPXI11','NASD11','ACWI11','EURP11','ASIA11','GOLD11','WRLD11','XFIX11','ASHR11',
+]);
+
+const CRYPTO_WHITELIST = new Set([
+  'BTC','ETH','SOL','ADA','XRP','BNB','DOGE','MATIC','DOT','LINK','LTC','BCH','XLM','TRX',
+  'UNI','ATOM','AVAX','NEAR','SHIB','PEPE','BTC11','ETHE11','BITH11',
+]);
+
+// Map ticker -> category populated from /i10/diversification (real data from I10)
+let _i10TickerCategory = {};
+
+function inferCategory(asset) {
+  // 1. trust explicit field if present
+  if (asset.category) return asset.category;
+  if (asset.type) return asset.type;
+
+  const t = (asset.ticker || '').toUpperCase().trim();
+  if (!t) return 'Outros';
+
+  // 2. use real category from /i10/diversification if available
+  if (_i10TickerCategory[t]) return _i10TickerCategory[t];
+
+  // 3. fallback regex/whitelist
+  if (CRYPTO_WHITELIST.has(t) || /^(BTC|ETH)/.test(t)) return 'Criptomoedas';
+  if (/^TESOURO|^LFT|^LTN|^NTN/.test(t)) return 'Tesouro Direto';
+  if (ETF_INTL_WHITELIST.has(t)) return 'ETFs Internacionais';
+  if (ETF_BR_WHITELIST.has(t)) return 'ETFs Brasil';
+  if (FII_WHITELIST.has(t)) return 'FIIs';
+  if (/CDB|LCI|LCA|DEBENT/.test(t)) return 'Renda Fixa';
+  if (/FIA$|FIM$|FIC$|FUNDO/.test(t)) return 'Fundos de Investimento';
+
+  // Default for stock-like patterns (XXXX3, XXXX4, XXXX11 unknown)
+  if (/^[A-Z]{4}[0-9]{1,2}$/.test(t)) return 'Acoes';
+
+  return 'Outros';
+}
+
+const CATEGORY_ORDER = ['Acoes','FIIs','Renda Fixa','Tesouro Direto','Fundos de Investimento','ETFs Brasil','ETFs Internacionais','Criptomoedas','Outros'];
+
+const CATEGORY_ICONS = {
+  'Acoes':                   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><polyline points="7 14 11 10 15 14 19 10"/></svg>',
+  'FIIs':                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4 8 4v14"/><path d="M9 9h1m4 0h1m-6 4h1m4 0h1m-6 4h1m4 0h1"/></svg>',
+  'Renda Fixa':              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="7" y1="15" x2="9" y2="15"/></svg>',
+  'Tesouro Direto':          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 5v8l-8 5-8-5V8z"/><path d="M12 3v18"/></svg>',
+  'Fundos de Investimento':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
+  'ETFs Brasil':             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>',
+  'ETFs Internacionais':     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+  'Criptomoedas':            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 8h4.5a2.5 2.5 0 0 1 0 5H9V8zm0 5h5a2.5 2.5 0 0 1 0 5H9v-5z"/></svg>',
+  'Outros':                  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+};
+
+const CATEGORY_DISPLAY = {
+  'Acoes': 'Acoes',
+  'FIIs': 'FIIs',
+  'Renda Fixa': 'Renda Fixa',
+  'Tesouro Direto': 'Tesouro Direto',
+  'Fundos de Investimento': 'Fundos de Invest.',
+  'ETFs Brasil': 'ETFs Brasil',
+  'ETFs Internacionais': 'ETFs Intern.',
+  'Criptomoedas': 'Criptomoedas',
+  'Outros': 'Outros',
+};
+
+let _expandedCats = new Set(['Acoes']); // Acoes expanded by default
+
 function renderI10Assets() {
   const wrap = $('i10AssetsList');
   if (!wrap) return;
+  const categories = state.i10.categories || [];
   const assets = state.i10.assets || [];
-  if (assets.length === 0) {
-    wrap.innerHTML = `<div class="empty-table" style="padding:30px 10px"><h4>Nenhum ativo sincronizado</h4><p>Clique em "Sincronizar" pra importar sua carteira do Investidor 10.</p></div>`;
+
+  if (categories.length === 0 && assets.length === 0) {
+    wrap.innerHTML = '<div style="padding:30px 10px;color:var(--ink-muted);text-align:center;font-size:13px"><b style="color:var(--ink-2);display:block;margin-bottom:6px">Nenhum ativo sincronizado</b>Clique em "Sincronizar" pra importar sua carteira do Investidor 10.</div>';
     return;
   }
-  const totalEquity = assets.reduce((s, a) => s + (+a.equity || 0), 0) || 1;
-  // Ordena do maior pro menor por patrimônio no ativo
-  const sorted = [...assets].sort((a, b) => (+b.equity || 0) - (+a.equity || 0));
-  wrap.innerHTML = sorted.map(a => {
-    const pct = ((+a.equity || 0) / totalEquity) * 100;
-    const appr = +a.appreciation || 0;
-    const apprCls = appr >= 0 ? 'pos' : 'neg';
-    const apprSign = appr >= 0 ? '+' : '';
-    return `<div class="asset-row">
-      <div class="asset-head">
-        <div class="asset-ticker">
-          <span class="tk">${a.ticker || '—'}</span>
-          <span class="qty">${fmtInt(+a.quantity || 0)} cotas · PM ${fmtBRL(+a.avgPrice || 0)}</span>
-        </div>
-        <div class="asset-values">
-          <div class="asset-equity">${fmtBRL0(+a.equity || 0)}</div>
-          <div class="asset-appr ${apprCls}">${apprSign}${appr.toFixed(1)}%</div>
-        </div>
-      </div>
-      <div class="asset-bar"><i style="width:${pct.toFixed(2)}%"></i></div>
-      <div class="asset-foot">
-        <span>${pct.toFixed(1)}% da carteira</span>
-        <span>Atual ${fmtBRL(+a.currentPrice || 0)}</span>
-      </div>
+
+  // Map type -> icon (uses CATEGORY_ICONS that already exists in the file)
+  const TYPE_TO_LABEL = {
+    'Ticker': 'Acoes',
+    'Fii': 'FIIs',
+    'Etf': 'ETFs',
+    'EtfInternational': 'ETFs Intern.',
+    'Crypto': 'Criptomoedas',
+    'Treasure': 'Tesouro Direto',
+    'Fund': 'Fundos',
+    'FixedIncome': 'Renda Fixa',
+    'Fixedincome': 'Renda Fixa',
+  };
+  const TYPE_TO_ICON_KEY = {
+    'Ticker': 'Acoes',
+    'Fii': 'FIIs',
+    'Etf': 'ETFs Brasil',
+    'EtfInternational': 'ETFs Internacionais',
+    'Crypto': 'Criptomoedas',
+    'Treasure': 'Tesouro Direto',
+    'Fund': 'Fundos de Investimento',
+    'FixedIncome': 'Renda Fixa',
+    'Fixedincome': 'Renda Fixa',
+  };
+  const TYPE_ORDER = ['Ticker','Fii','FixedIncome','Fixedincome','Treasure','Fund','Etf','EtfInternational','Crypto'];
+
+  // Sort categories by predefined order, then by value desc
+  const sorted = [...categories].sort((a, b) => {
+    const ai = TYPE_ORDER.indexOf(a.type);
+    const bi = TYPE_ORDER.indexOf(b.type);
+    if (ai !== bi) return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    return (b.value || 0) - (a.value || 0);
+  });
+
+  const html = sorted.map(c => {
+    const label = TYPE_TO_LABEL[c.type] || c.name || c.type;
+    const iconKey = TYPE_TO_ICON_KEY[c.type] || 'Outros';
+    const icon = (typeof CATEGORY_ICONS !== 'undefined' && CATEGORY_ICONS[iconKey]) || (CATEGORY_ICONS && CATEGORY_ICONS['Outros']) || '';
+    const isAcoes = c.type === 'Ticker';
+    const itemCount = isAcoes ? assets.length : 0;
+    const countStr = isAcoes ? itemCount + (itemCount === 1 ? ' ATIVO' : ' ATIVOS') : '';
+    const chevronHtml = isAcoes
+      ? '<svg class="cat-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'
+      : '<span style="width:18px;display:inline-block"></span>';
+
+    let tickersHtml = '';
+    if (isAcoes && assets.length > 0) {
+      const sortedTickers = [...assets].sort((a, b) => (+b.equity || 0) - (+a.equity || 0));
+      tickersHtml = sortedTickers.map(a => {
+        const appr = +a.appreciation || 0;
+        const cls = appr >= 0 ? 'pos' : 'neg';
+        const sign = appr >= 0 ? '+' : '';
+        return '<div class="ticker-row"><div class="ticker-name">' + (a.ticker || '-') + '</div><div class="ticker-val">' + fmtBRL0(+a.equity || 0) + '</div><div class="ticker-appr ' + cls + '">' + sign + appr.toFixed(1) + '%</div></div>';
+      }).join('');
+    }
+
+    return '<div class="cat-row' + (isAcoes ? ' clickable' : '') + '" data-type="' + c.type + '">' +
+      '<div class="cat-icon">' + icon + '</div>' +
+      '<div class="cat-info">' +
+        '<div class="cat-name">' + label + '</div>' +
+        '<div class="cat-count">' + (countStr ? countStr + ' &middot; ' : '') + (c.percent || 0).toFixed(0) + '% DA CARTEIRA</div>' +
+      '</div>' +
+      '<div>' +
+        '<div class="cat-value">' + fmtBRL0(c.value || 0) + '</div>' +
+      '</div>' +
+      '<div class="cat-appr"></div>' +
+      chevronHtml +
+    '</div>' +
+    (isAcoes ? '<div class="cat-tickers">' + tickersHtml + '</div>' : '');
+  }).join('');
+
+  wrap.innerHTML = html;
+
+  // v8 Turno 8 — append USD row to portfolio list
+  const usd = +state.fx.usd || 0;
+  const rate = +state.fx.rateUSD || 0;
+  if (usd > 0 && rate > 0) {
+    const usdBRL = usd * rate;
+    const totalWallet = (+state.i10.equity || 0) + usdBRL;
+    const percent = totalWallet > 0 ? (usdBRL / totalWallet) * 100 : 0;
+    const rateStr = rate.toFixed(2).replace('.', ',');
+    const usdRowHTML = '<div class="cat-row fx-row" id="fxCatRow">' +
+      '<div class="cat-icon fx-icon">' +
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>' +
+      '</div>' +
+      '<div class="cat-info">' +
+        '<div class="cat-name">Dólar (USD)</div>' +
+        '<div class="cat-count">' + percent.toFixed(0) + '% DA CARTEIRA</div>' +
+        '<div class="fx-extra"><span class="fx-native">US$ ' + usd.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '</span><span class="fx-rate-chip">× ' + rateStr + '</span></div>' +
+      '</div>' +
+      '<div>' +
+        '<div class="cat-value">R$ ' + usdBRL.toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + '</div>' +
+      '</div>' +
+      '<button class="fx-edit-btn" id="fxEditBtn" type="button">Edit</button>' +
+    '</div>';
+    wrap.insertAdjacentHTML('beforeend', usdRowHTML);
+  } else {
+    // No holding yet: small "add" hint at the end
+    const addRowHTML = '<button class="fx-add-hint" id="fxEditBtn" type="button">+ Adicionar Dólar (USD)</button>';
+    wrap.insertAdjacentHTML('beforeend', addRowHTML);
+  }
+  const fxBtn = document.getElementById('fxEditBtn');
+  if (fxBtn) fxBtn.addEventListener('click', openFXModal);
+
+  // Wire expand/collapse only for Ações
+  wrap.querySelectorAll('.cat-row.clickable').forEach(row => {
+    row.addEventListener('click', () => {
+      row.classList.toggle('expanded');
+    });
+  });
+}
+
+// ============================================================
+//  CONTRIBUTIONS (aportes mensais em dinheiro)
+// ============================================================
+const MONTH_NAMES_SHORT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+function renderContributions() {
+  const wrap = document.getElementById('contribList');
+  const totalEl = document.getElementById('contribTotal');
+  const avgEl = document.getElementById('contribAvg');
+  if (!wrap) return;
+
+  const items = [...(state.contributions || [])];
+
+  if (items.length === 0) {
+    wrap.innerHTML = '<div style="padding:24px 10px;color:var(--ink-muted);text-align:center;font-size:13px">Nenhum aporte cadastrado. Clique em "+ Aporte" para comecar.</div>';
+    if (totalEl) totalEl.textContent = 'R$ 0';
+    if (avgEl) avgEl.textContent = 'R$ 0';
+    return;
+  }
+
+  // Group by year-month
+  const groups = {};
+  for (const c of items) {
+    const key = `${c.year}-${String(c.month).padStart(2,'0')}`;
+    if (!groups[key]) groups[key] = { year: c.year, month: c.month, items: [], total: 0 };
+    groups[key].items.push(c);
+    groups[key].total += +c.amount || 0;
+  }
+
+  const sortedGroups = Object.values(groups).sort((a, b) => {
+    return (b.year * 100 + b.month) - (a.year * 100 + a.month);
+  });
+
+  const total = items.reduce((s, c) => s + (+c.amount || 0), 0);
+  const monthsCount = sortedGroups.length;
+  const avg = monthsCount > 0 ? total / monthsCount : 0;
+  if (totalEl) totalEl.textContent = fmtBRL0(total);
+  if (avgEl) avgEl.textContent = fmtBRL0(avg);
+
+  wrap.innerHTML = sortedGroups.map(g => {
+    const monthLbl = MONTH_NAMES_SHORT[(g.month || 1) - 1] || '?';
+    const countBadge = g.items.length > 1
+      ? `<span style="display:inline-block;padding:2px 7px;background:var(--purple-soft);color:var(--purple-light);border-radius:999px;font-size:9px;font-weight:700;margin-left:6px;font-family:'Geist Mono',monospace">${g.items.length}</span>`
+      : '';
+    return `<div class="ticker-row" data-key="${g.year}-${g.month}" style="cursor:pointer">
+      <div class="ticker-name">${monthLbl}/${g.year || '?'}${countBadge}</div>
+      <div class="ticker-val">${fmtBRL0(g.total)}</div>
+      <div class="ticker-appr pos">aporte</div>
     </div>`;
   }).join('');
+
+  wrap.querySelectorAll('.ticker-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const [y, m] = row.dataset.key.split('-').map(Number);
+      openContribListModal(y, m);
+    });
+  });
+}
+
+let _editingContribId = null;
+let _editingMonth = null;
+
+function openContribListModal(year, month) {
+  _editingMonth = { year, month };
+  const modal = document.getElementById('contribListModal');
+  if (!modal) return;
+
+  const monthLbl = MONTH_NAMES_SHORT[(month || 1) - 1] || '?';
+  document.getElementById('contribListTitle').textContent = `${monthLbl}/${year}`;
+
+  const items = (state.contributions || []).filter(c => c.year === year && c.month === month)
+    .sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+
+  const total = items.reduce((s, c) => s + (+c.amount || 0), 0);
+  document.getElementById('contribListTotal').textContent = fmtBRL0(total) + ' total · ' + items.length + ' ' + (items.length === 1 ? 'aporte' : 'aportes');
+
+  const listEl = document.getElementById('contribListItems');
+  listEl.innerHTML = items.map(c => `
+    <div class="contrib-item" data-id="${c.id}">
+      <div class="contrib-val">${fmtBRL0(+c.amount || 0)}</div>
+      <button class="contrib-edit" data-action="edit" data-id="${c.id}" title="Edit">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      </button>
+      <button class="contrib-del" data-action="delete" data-id="${c.id}" title="Excluir">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  `).join('');
+
+  listEl.querySelectorAll('button[data-action]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      if (btn.dataset.action === 'edit') openContribModal(id);
+      else if (btn.dataset.action === 'delete') deleteContribById(id);
+    });
+  });
+
+  modal.classList.add('show');
+}
+
+function closeContribListModal() {
+  document.getElementById('contribListModal')?.classList.remove('show');
+  _editingMonth = null;
+}
+
+function openContribModal(id) {
+  _editingContribId = id || null;
+  const modal = document.getElementById('contribModal');
+  if (!modal) return;
+  if (id) {
+    const c = state.contributions.find(x => x.id === id);
+    if (c) {
+      document.getElementById('contribYear').value = c.year || new Date().getFullYear();
+      document.getElementById('contribMonth').value = c.month || (new Date().getMonth() + 1);
+      document.getElementById('contribAmount').value = c.amount || '';
+      document.getElementById('contribDelete').style.display = 'inline-flex';
+    }
+  } else if (_editingMonth) {
+    // Adding new to specific month from list modal
+    document.getElementById('contribYear').value = _editingMonth.year;
+    document.getElementById('contribMonth').value = _editingMonth.month;
+    document.getElementById('contribAmount').value = '';
+    document.getElementById('contribDelete').style.display = 'none';
+  } else {
+    const now = new Date();
+    document.getElementById('contribYear').value = now.getFullYear();
+    document.getElementById('contribMonth').value = now.getMonth() + 1;
+    document.getElementById('contribAmount').value = '';
+    document.getElementById('contribDelete').style.display = 'none';
+  }
+  modal.classList.add('show');
+  setTimeout(() => document.getElementById('contribAmount').focus(), 50);
+}
+
+function closeContribModal() {
+  document.getElementById('contribModal')?.classList.remove('show');
+  _editingContribId = null;
+}
+
+async function saveContrib() {
+  const year = parseInt(document.getElementById('contribYear').value, 10);
+  const month = parseInt(document.getElementById('contribMonth').value, 10);
+  const amount = parseFloat(document.getElementById('contribAmount').value);
+  if (!(year >= 2020 && year <= 2099)) { showToast('Ano invalido'); return; }
+  if (!(month >= 1 && month <= 12)) { showToast('Mes invalido'); return; }
+  if (!(amount > 0)) { showToast('Valor invalido'); return; }
+  try {
+    if (_editingContribId) {
+      const ref = doc(db, 'household', 'main', 'contributions', _editingContribId);
+      await setDoc(ref, { year, month, amount, updatedAt: serverTimestamp() }, { merge: true });
+    } else {
+      // Auto-generated ID - allows multiple contributions per month
+      const colRef = collection(db, 'household', 'main', 'contributions');
+      await addDoc(colRef, { year, month, amount, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdBy: state.user?.displayName || 'unknown' });
+    }
+    showToast(t('toast.saved'));
+    closeContribModal();
+    // Refresh list modal if it was open
+    if (_editingMonth) {
+      setTimeout(() => openContribListModal(_editingMonth.year, _editingMonth.month), 100);
+    }
+  } catch (e) {
+    console.error('saveContrib error', e);
+    showToast('Erro ao salvar: ' + (e.message || e.code));
+  }
+}
+
+async function deleteContrib() {
+  if (!_editingContribId) return;
+  if (!confirm('Excluir este aporte?')) return;
+  try {
+    await deleteDoc(doc(db, 'household', 'main', 'contributions', _editingContribId));
+    showToast(t('toast.deleted'));
+    closeContribModal();
+    if (_editingMonth) {
+      setTimeout(() => openContribListModal(_editingMonth.year, _editingMonth.month), 100);
+    }
+  } catch (e) {
+    showToast(t('toast.error.delete'));
+  }
+}
+
+async function deleteContribById(id) {
+  if (!confirm('Excluir este aporte?')) return;
+  try {
+    await deleteDoc(doc(db, 'household', 'main', 'contributions', id));
+    showToast(t('toast.deleted'));
+    if (_editingMonth) {
+      setTimeout(() => openContribListModal(_editingMonth.year, _editingMonth.month), 100);
+    }
+  } catch (e) {
+    showToast(t('toast.error.delete'));
+  }
 }
 
 
 // v8 Turno 7 — Louise wallet render
 function renderLouise() {
+  const chip = document.getElementById('louiseChip');
   const eq = $('louiseEquity');
-  if (!eq) return; // markup not yet rendered
-  eq.textContent = (state.i10Louise.equity || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  if (!eq) return;
+  const equity = +state.i10Louise.equity || 0;
+  // Hide chip entirely if there's no data yet
+  if (chip) chip.style.display = equity > 0 ? 'inline-flex' : 'none';
+  eq.textContent = 'R$ ' + equity.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
   const divEl = $('louiseDividends');
   if (divEl) divEl.textContent = 'R$ ' + (state.i10Louise.dividends || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
   const varEl = $('louiseVariation');
@@ -661,49 +1448,40 @@ function renderLouise() {
     const v = +state.i10Louise.variation || 0;
     const sign = v >= 0 ? '+' : '';
     varEl.textContent = sign + v.toFixed(1) + '%';
-    varEl.className = 'louise-var ' + (v >= 0 ? 'gain' : 'loss');
+    varEl.className = 'louise-chip-var ' + (v >= 0 ? 'gain' : 'loss');
   }
   const upd = $('louiseUpdated');
   if (upd) {
     upd.textContent = state.i10Louise.updatedAt
-      ? 'updated · ' + formatDateTimeBR(state.i10Louise.updatedAt)
+      ? 'updated \u00b7 ' + formatDateTimeBR(state.i10Louise.updatedAt)
       : 'not yet synced';
   }
 }
 
-// v8 Turno 7 — Louise wallet sync (piggybacks on main Sync button)
-// Mirrors syncFromI10 exactly — same endpoint shape, same parse keys, same query params
 async function syncLouise() {
   const workerUrl = state.i10Cfg.workerUrl || '';
   const walletId = state.i10LouiseCfg.walletId;
-  if (!workerUrl || !walletId) {
-    console.warn('Louise sync skipped: workerUrl or walletId missing', { workerUrl, walletId });
-    return;
-  }
+  if (!workerUrl || !walletId) { console.warn('Louise sync skipped: workerUrl or walletId missing'); return; }
   try {
     const year = new Date().getFullYear();
     const base = workerUrl.replace(/\/+$/, '');
     const url = `${base}/i10/all/${encodeURIComponent(walletId)}?year=${year}`;
-    console.log('Louise sync →', url);
+    console.log('Louise sync \u2192', url);
     const res = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const payload = await res.json();
-
     const m = payload.metrics || {};
     const equity = parseFloat(m.equity) || 0;
     const applied = parseFloat(m.applied) || 0;
     const variation = parseFloat(m.variation) || 0;
     const dividends = parseFloat(payload.earnings?.sum) || 0;
-
     await setDoc(docI10Louise, {
-      equity, dividends, applied, variation,
-      year,
+      equity, dividends, applied, variation, year,
       updatedAt: serverTimestamp(),
       updatedBy: (state.user?.displayName || 'unknown') + ' (auto)',
       source: 'investidor10-sync',
     }, { merge: true });
-
-    console.log('Louise sync ✓', { equity, dividends, applied, variation });
+    console.log('Louise sync \u2713', { equity, dividends });
   } catch (err) {
     console.warn('Louise sync failed:', err);
   }
@@ -720,17 +1498,20 @@ async function syncFromI10() {
   state.i10Syncing = true;
   const btn = $('btnSyncI10');
   const originalHTML = btn ? btn.innerHTML : '';
-  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Sincronizando...'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = 'Sincronizando...'; }
 
   try {
     const year = new Date().getFullYear();
     const base = workerUrl.replace(/\/+$/, ''); // remove trailing slash
+    // Worker only exposes /i10/all (not /i10/full). Use it directly.
+    let payload;
+    let usedFull = false;
     const res = await fetch(`${base}/i10/all/${encodeURIComponent(walletId)}?year=${year}`, {
       method: 'GET',
       headers: { 'Accept': 'application/json' },
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const payload = await res.json();
+    payload = await res.json();
 
     // Parse metrics (equity, applied, variation, profit_twr)
     const m = payload.metrics || {};
@@ -742,22 +1523,43 @@ async function syncFromI10() {
     // Parse earnings (sum of dividends YTD)
     const dividends = parseFloat(payload.earnings?.sum) || 0;
 
+    // Populate global ticker->category map from /i10/full diversification
+    if (payload.diversification?.tickerToCategory) {
+      _i10TickerCategory = payload.diversification.tickerToCategory;
+    }
+
+    // Parse diversification (categories summary from /patrimony/.../diversification/all,ideal-per-type)
+    let categories = [];
+    if (payload.diversification?.values && Array.isArray(payload.diversification.values)) {
+      categories = payload.diversification.values.map(c => ({
+        name: c.name || '',
+        type: c.type || '',
+        value: +c.value || 0,
+        percent: +c.percent || 0,
+      }));
+    }
+
     // Parse actives (list of tickers)
     const rawAssets = Array.isArray(payload.actives?.data) ? payload.actives.data : [];
-    const assets = rawAssets.map(a => ({
-      ticker: a.ticker || a.ticker_name || '',
-      quantity: +a.quantity || 0,
-      avgPrice: +a.avg_price || 0,
-      currentPrice: parseFloat(a.current_price) || 0,
-      equity: +a.equity_total || parseFloat(a.equity_brl) || 0,
-      appreciation: +a.appreciation || 0,
-      percentWallet: +a.percent_wallet || 0,
-      earnings: +a.earnings_received || 0,
-      image: a.image || '',
-      url: a.url || '',
-    }));
+    const assets = rawAssets.map(a => {
+      const ticker = a.ticker || a.ticker_name || '';
+      const tickerUpper = ticker.toUpperCase().trim();
+      return {
+        ticker,
+        quantity: +a.quantity || 0,
+        avgPrice: +a.avg_price || 0,
+        currentPrice: parseFloat(a.current_price) || 0,
+        equity: +a.equity_total || parseFloat(a.equity_brl) || 0,
+        appreciation: +a.appreciation || 0,
+        percentWallet: +a.percent_wallet || 0,
+        earnings: +a.earnings_received || 0,
+        image: a.image || '',
+        url: a.url || '',
+        category: 'Ações', // todos os actives sao tickers de acoes
+      };
+    });
 
-    // Persist in Firestore — both users share via onSnapshot
+    // Persist in Firestore - both users share via onSnapshot
     await setDoc(docI10, {
       equity,
       dividends,
@@ -765,22 +1567,99 @@ async function syncFromI10() {
       variation,
       profitTwr,
       assets,
+      categories,
       year,
       updatedAt: serverTimestamp(),
       updatedBy: (state.user?.displayName || 'unknown') + ' (auto)',
       source: 'investidor10-sync',
     }, { merge: true });
 
-    showToast(`✓ Synced · ${assets.length} assets`);
-    // Count-up replays on sync so the new equity number animates in — but chart trace does NOT.
-    state._entryAnimsPlayed = false;
-    // Louise's wallet syncs piggyback on the same button (fire-and-forget, doesn't block UI)
-    syncLouise().catch(e => console.warn('Louise piggyback sync error:', e));
+    // If /i10/full returned yearly data, auto-import it to dividendsYearly collection
+    if (usedFull && payload.yearly?.years && Array.isArray(payload.yearly.years)) {
+      const imported = await importYearlyData(payload.yearly.years);
+      showToast(`Sincronizado: ${assets.length} ativos, ${imported} anos`);
+    } else {
+      showToast(`Sincronizado: ${assets.length} ativos`);
+    }
+    // v8 Turno 7: piggyback Louise sync on every successful main sync (both branches)
+    syncLouise().catch(e => console.warn('Louise piggyback error:', e));
+    fetchFXRate().catch(e => console.warn('FX rate refresh error:', e));
   } catch (err) {
     console.error('I10 sync error:', err);
-    showToast('Sync failed: ' + (err.message || 'unknown error'));
+    showToast('Falha ao sincronizar: ' + (err.message || 'erro desconhecido'));
   } finally {
     state.i10Syncing = false;
+    if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
+  }
+}
+
+// ============================================================
+//  IMPORT YEARLY HISTORY FROM I10
+// ============================================================
+// Imports/updates documents in dividendsYearly collection.
+// Each year doc uses String(year) as ID to ensure idempotency.
+// Skips current year (managed by daily sync) and skips years with zero divs AND zero equity.
+async function importYearlyData(yearsArray) {
+  const currentYear = new Date().getFullYear();
+  let imported = 0;
+  for (const row of yearsArray) {
+    const year = parseInt(row.year, 10);
+    if (!Number.isFinite(year)) continue;
+    if (year >= currentYear) continue; // current year managed by daily I10 sync
+    const equity = Number.isFinite(+row.equity) ? +row.equity : null;
+    const divs = Number.isFinite(+row.divs) ? +row.divs : 0;
+    // Skip empty years
+    if ((!equity || equity === 0) && divs === 0) continue;
+    try {
+      const docRef = doc(db, 'household', 'main', 'dividendsYearly', String(year));
+      await setDoc(docRef, {
+        year,
+        equity,
+        divs,
+        applied: Number.isFinite(+row.applied) ? +row.applied : null,
+        flow: Number.isFinite(+row.flow) ? +row.flow : null,
+        updatedAt: serverTimestamp(),
+        updatedBy: (state.user?.displayName || state.user?.email || 'unknown') + ' (i10-import)',
+        source: 'investidor10-yearly-import',
+      }, { merge: true });
+      imported++;
+    } catch (e) {
+      console.error('importYearlyData error for', year, e);
+    }
+  }
+  return imported;
+}
+
+async function importHistoryFromI10() {
+  const { workerUrl, walletId } = state.i10Cfg;
+  if (!workerUrl || !walletId) {
+    showToast('Configure o Worker e Wallet ID primeiro');
+    openI10ConfigModal();
+    return;
+  }
+  const btn = $('btnImportHistory');
+  const originalHTML = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = 'Importando...'; }
+  try {
+    const base = workerUrl.replace(/\/+$/, '');
+    const res = await fetch(`${base}/i10/yearly/${encodeURIComponent(walletId)}`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const payload = await res.json();
+    if (payload.error) throw new Error(payload.error);
+    const years = Array.isArray(payload.years) ? payload.years : [];
+    if (years.length === 0) {
+      showToast('Nenhum ano retornado pelo I10');
+      return;
+    }
+    const imported = await importYearlyData(years);
+    showToast(`Importado: ${imported} ${imported === 1 ? 'ano' : 'anos'} do I10`);
+  } catch (err) {
+    console.error('importHistoryFromI10 error:', err);
+    showToast('Falha ao importar: ' + (err.message || 'erro desconhecido'));
+  } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
   }
 }
@@ -791,6 +1670,7 @@ async function syncFromI10() {
 function openI10ConfigModal() {
   $('i10CfgWorker').value = state.i10Cfg.workerUrl || '';
   $('i10CfgWallet').value = state.i10Cfg.walletId || '';
+  if ($('i10CfgHash')) $('i10CfgHash').value = state.i10Cfg.publicHash || '';
   $('i10CfgModal').classList.add('show');
   setTimeout(() => $('i10CfgWorker').focus(), 50);
 }
@@ -799,6 +1679,7 @@ function closeI10ConfigModal() { $('i10CfgModal').classList.remove('show'); }
 async function saveI10Config() {
   const workerUrl = ($('i10CfgWorker').value || '').trim();
   const walletId = ($('i10CfgWallet').value || '').trim();
+  const publicHash = (($('i10CfgHash') && $('i10CfgHash').value) || '').trim();
   if (!workerUrl || !/^https?:\/\//.test(workerUrl)) { showToast('Worker URL inválida'); return; }
   if (!walletId || !/^\d+$/.test(walletId)) { showToast('Wallet ID deve ser numérico'); return; }
   const btn = $('i10CfgSave');
@@ -807,6 +1688,7 @@ async function saveI10Config() {
     await setDoc(docI10Cfg, {
       workerUrl,
       walletId,
+      publicHash,
       updatedAt: serverTimestamp(),
       updatedBy: state.user?.displayName || 'unknown',
     }, { merge: true });
@@ -814,7 +1696,7 @@ async function saveI10Config() {
     closeI10ConfigModal();
     // Auto-sync right after saving, so user sees data immediately
     setTimeout(() => syncFromI10(), 300);
-  } catch (err) { console.error(err); showToast('Erro ao salvar'); }
+  } catch (err) { console.error(err); showToast(t('toast.error.save')); }
   finally { btn.disabled = false; btn.textContent = 'Salvar'; }
 }
 
@@ -850,7 +1732,7 @@ async function saveI10() {
     }, { merge: true });
     showToast('✓ Valores atualizados');
     closeI10Modal();
-  } catch (err) { console.error(err); showToast('Erro ao salvar'); }
+  } catch (err) { console.error(err); showToast(t('toast.error.save')); }
   finally { btn.disabled = false; btn.textContent = 'Salvar'; }
 }
 
@@ -898,7 +1780,7 @@ async function saveYearly() {
       showToast('✓ Ano adicionado');
     }
     closeYearlyModal();
-  } catch (err) { console.error(err); showToast('Erro ao salvar'); }
+  } catch (err) { console.error(err); showToast(t('toast.error.save')); }
   finally { btn.disabled = false; btn.textContent = 'Salvar'; }
 }
 
@@ -909,7 +1791,7 @@ async function deleteYearly() {
     await deleteDoc(docYearly(editingYearlyId));
     showToast('✓ Ano excluído');
     closeYearlyModal();
-  } catch (err) { console.error(err); showToast('Erro ao excluir'); }
+  } catch (err) { console.error(err); showToast(t('toast.error.delete')); }
 }
 
 // ============================================================
@@ -947,6 +1829,15 @@ $('i10Modal').addEventListener('click', e => { if (e.target.id === 'i10Modal') c
 
 // I10 Sync button + Config modal
 $('btnSyncI10')?.addEventListener('click', syncFromI10);
+$('btnImportHistory')?.addEventListener('click', importHistoryFromI10);
+document.getElementById('btnAddContrib')?.addEventListener('click', () => { _editingMonth = null; openContribModal(); });
+document.getElementById('contribCancel')?.addEventListener('click', closeContribModal);
+document.getElementById('contribSave')?.addEventListener('click', saveContrib);
+document.getElementById('contribDelete')?.addEventListener('click', deleteContrib);
+document.getElementById('contribModal')?.addEventListener('click', e => { if (e.target.id === 'contribModal') closeContribModal(); });
+document.getElementById('contribListClose')?.addEventListener('click', closeContribListModal);
+document.getElementById('contribListAdd')?.addEventListener('click', () => { closeContribListModal(); openContribModal(); });
+document.getElementById('contribListModal')?.addEventListener('click', e => { if (e.target.id === 'contribListModal') closeContribListModal(); });
 $('btnCfgI10')?.addEventListener('click', openI10ConfigModal);
 $('i10CfgCancel')?.addEventListener('click', closeI10ConfigModal);
 $('i10CfgSave')?.addEventListener('click', saveI10Config);
@@ -979,18 +1870,50 @@ function subscribeAll() {
   });
   unsub.yearly = onSnapshot(colYearly(), (snap) => {
     state.yearly = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    window.__ledgerYearly = state.yearly;
     if (state.mode === 'investments') renderInvestments();
   });
   unsub.config = onSnapshot(docConfig, (snap) => {
     const data = snap.data() || {};
     if (typeof data.dividendsYearlyGoal === 'number') state.dividendsYearlyGoal = data.dividendsYearlyGoal;
     if (typeof data.dividendsYearlyGoalYear === 'number') state.dividendsYearlyGoalYear = data.dividendsYearlyGoalYear;
+    // Sync theme from Firestore (cross-device)
+    if (data.theme === 'light' || data.theme === 'dark') {
+      const current = document.documentElement.getAttribute('data-theme');
+      if (current !== data.theme) {
+        document.documentElement.setAttribute('data-theme', data.theme);
+        try { localStorage.setItem('ledger-theme', data.theme); } catch(e) {}
+      }
+    }
+    // Sync lang from Firestore
+    if ((data.lang === 'pt' || data.lang === 'en') && data.lang !== getLang()) {
+      try { localStorage.setItem('ledger-lang', data.lang); } catch(e) {}
+      applyI18n();
+    }
     if (state.mode === 'investments') renderInvestments();
+  });
+  unsub.fx = onSnapshot(docFx, (snap) => {
+    if (snap.exists()) {
+      const d = snap.data();
+      let upd = null;
+      if (d.rateUpdatedAt) {
+        upd = typeof d.rateUpdatedAt.toDate === 'function' ? d.rateUpdatedAt.toDate() : d.rateUpdatedAt;
+      }
+      state.fx = {
+        usd: +d.usd || 0,
+        rateUSD: +d.rateUSD || 0,
+        rateUpdatedAt: upd,
+        rateSource: d.rateSource || '',
+        note: d.note || '',
+      };
+      renderFX();
+      // also re-render total net worth (hero) to pick up USD contribution
+      if (typeof renderInvestments === 'function' && state.mode === 'investments') renderInvestments();
+    }
   });
   unsub.i10Louise = onSnapshot(docI10Louise, (snap) => {
     if (snap.exists()) {
       const d = snap.data();
-      // Firestore serverTimestamp returns a Timestamp object with .toDate()
       let updatedAt = null;
       if (d.updatedAt) {
         updatedAt = typeof d.updatedAt.toDate === 'function' ? d.updatedAt.toDate() : d.updatedAt;
@@ -1008,20 +1931,32 @@ function subscribeAll() {
   unsub.i10 = onSnapshot(docI10, (snap) => {
     const data = snap.data() || {};
     state.i10.equity = +data.equity || 0;
+    window.__ledgerEquity = state.i10.equity;
     state.i10.dividends = +data.dividends || 0;
     state.i10.updatedAt = data.updatedAt?.toDate?.() || null;
     state.i10.year = data.year || new Date().getFullYear();
     state.i10.assets = Array.isArray(data.assets) ? data.assets : [];
+    state.i10.categories = Array.isArray(data.categories) ? data.categories : [];
     state.i10.applied = +data.applied || 0;
     state.i10.variation = +data.variation || 0;
     state.i10.profitTwr = +data.profitTwr || 0;
     state.i10.source = data.source || null;
+    // Restore ticker->category map persisted by syncFromI10
+    if (data.tickerCategories && typeof data.tickerCategories === 'object') {
+      _i10TickerCategory = data.tickerCategories;
+    }
     if (state.mode === 'investments') renderInvestments();
+  });
+  unsub.contributions = onSnapshot(colContrib(), (snap) => {
+    state.contributions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (state.mode === 'investments') renderContributions();
   });
   unsub.i10Cfg = onSnapshot(docI10Cfg, (snap) => {
     const data = snap.data() || {};
     state.i10Cfg.workerUrl = data.workerUrl || '';
     state.i10Cfg.walletId = data.walletId || '';
+    state.i10Cfg.publicHash = data.publicHash || '';
+    updateI10Link();
   });
 }
 function unsubscribeAll() { Object.values(unsub).forEach(fn => fn && fn()); unsub = {}; }
@@ -1030,19 +1965,51 @@ function unsubscribeAll() { Object.values(unsub).forEach(fn => fn && fn()); unsu
 //                 AUTH
 // ============================================================
 $('btnLogin').addEventListener('click', async () => {
+  console.log('[auth] Login button clicked');
   $('loginError').classList.remove('show');
-  $('btnLoginText').textContent = 'Entrando...';
-  try { await signInWithPopup(auth, provider); }
-  catch (err) {
-    console.error(err);
-    $('loginError').textContent = 'Erro ao entrar: ' + (err.message || err.code);
+  $('btnLoginText').textContent = getLang() === 'en' ? 'Signing in...' : 'Entrando...';
+  try {
+    console.log('[auth] Calling signInWithPopup...');
+    await signInWithPopup(auth, provider);
+    console.log('[auth] signInWithPopup resolved');
+  } catch (err) {
+    console.error('[auth] signInWithPopup error:', err);
+    const code = err.code || 'unknown';
+    const msg = err.message || String(err);
+    $('loginError').textContent = '[' + code + '] ' + msg;
     $('loginError').classList.add('show');
-    $('btnLoginText').textContent = 'Entrar com Google';
+    $('btnLoginText').textContent = t('login.button');
   }
 });
 $('btnLogout').addEventListener('click', async () => { unsubscribeAll(); await signOut(auth); });
 
+// ============================================================
+//  THEME TOGGLE (light/dark)
+// ============================================================
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  try { localStorage.setItem('ledger-theme', theme); } catch(e) {}
+}
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = current === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  // Persist to Firestore for cross-device sync
+  if (state.user) {
+    setDoc(docConfig, { theme: next, updatedAt: serverTimestamp() }, { merge: true }).catch(e => console.warn('theme save failed', e));
+  }
+}
+document.getElementById('btnThemeToggle')?.addEventListener('click', toggleTheme);
+
+// ============================================================
+//  i18n (PT/EN)
+// ============================================================
+
+document.getElementById('btnLangToggle')?.addEventListener('click', toggleLang);
+
 onAuthStateChanged(auth, async (user) => {
+  _mainAuthRegistered = true;
+  window.__bootLog && window.__bootLog('auth state: ' + (user ? 'LOGGED IN as ' + user.email : 'logged out'));
   if (user) {
     state.user = user;
     $('loginScreen').classList.add('hide');
@@ -1056,8 +2023,8 @@ onAuthStateChanged(auth, async (user) => {
         uid: user.uid,
       }, { merge: true });
       subscribeAll();
-      // Default mode: expenses
-      switchMode('expenses');
+      // Default mode: investments
+      switchMode('investments');
     } catch (err) {
       console.error('Firestore error:', err);
     }
@@ -1066,6 +2033,336 @@ onAuthStateChanged(auth, async (user) => {
     unsubscribeAll();
     $('loginScreen').classList.remove('hide');
     $('app').classList.remove('show');
-    $('btnLoginText').textContent = 'Entrar com Google';
+    $('btnLoginText').textContent = t('login.button');
   }
 });
+
+// Apply i18n on initial load (after onAuthStateChanged is registered)
+applyI18n();
+
+
+// ============================================================
+//  GOAL SIMULATOR (scoped to avoid $/fmtBRL collision with main module)
+// ============================================================
+{
+
+const TARGET = 1000000;
+const TARGET_YEAR = 2035;
+const START_YEAR = 2026;
+const DEFAULTS = { aporte: 24000, crescAporte: 10, dy: 8, reinv: 100, crescDiv: 6 };
+
+let saveDebounce = null;
+let isLoadingFromFirestore = false;
+let userLoaded = false;
+
+const $ = id => document.getElementById(id);
+const fmtBRL = v => 'R$ ' + Math.round(v).toLocaleString('pt-BR');
+const fmtBRLk = v => v >= 1e6 ? 'R$ ' + (v/1e6).toFixed(2).replace('.',',') + 'M' : 'R$ ' + Math.round(v/1000) + 'k';
+
+function getHistory() {
+  // Lê do window.__ledgerState que app.js expoe (yearly history)
+  const yearly = window.__ledgerYearly || [];
+  return yearly.filter(y => y.equity != null || y.divs != null).sort((a,b) => a.year - b.year)
+    .map(y => ({ year: y.year, equity: +y.equity || 0, divs: +y.divs || 0 }));
+}
+
+function getCurrentPL() {
+  return window.__ledgerEquity || 1795442;
+}
+
+function simulate(p) {
+  const proj = [];
+  let pl = getCurrentPL();
+  let metaHitYear = null;
+  for (let year = START_YEAR; year <= TARGET_YEAR + 10; year++) {
+    const yrIndex = year - START_YEAR;
+    const aporteAnual = p.aporte * 12 * Math.pow(1 + p.crescAporte/100, yrIndex);
+    const dyAjustado = (p.dy/100) * Math.pow(1 + p.crescDiv/100, yrIndex);
+    const divsRecebidos = pl * dyAjustado;
+    const reinvestido = divsRecebidos * (p.reinv/100);
+    proj.push({ year, pl, divs: divsRecebidos, aporte: aporteAnual });
+    if (divsRecebidos >= TARGET && metaHitYear === null) metaHitYear = year;
+    pl = pl + aporteAnual + reinvestido;
+  }
+  return { proj, metaHitYear };
+}
+
+function readSliders() {
+  // v8 Turno 3: inputs now text-formatted ("R$ 24.000", "10,0%/yr"). Parse via shared helper.
+  const parseV = (s) => {
+    if (s == null) return 0;
+    const c = String(s).replace(/R\$|\s|%|\/yr|\/ano|\./g, '').replace(',', '.');
+    const n = parseFloat(c);
+    return isFinite(n) ? n : 0;
+  };
+  return {
+    aporte: parseV($('gsAporte').value),
+    crescAporte: parseV($('gsCrescAporte').value),
+    dy: parseV($('gsDY').value),
+    reinv: parseV($('gsReinv').value),
+    crescDiv: parseV($('gsCrescDiv').value),
+  };
+}
+
+function applyParams(p) {
+  isLoadingFromFirestore = true;
+  // v8 Turno 3: write back as formatted strings to match the text inputs
+  const fmtBRLi = (n) => 'R$ ' + Math.round(n).toLocaleString('pt-BR');
+  const fmtPctY = (n) => n.toFixed(1).replace('.', ',') + '%/yr';
+  const fmtPctP = (n) => n.toFixed(1).replace('.', ',') + '%';
+  const fmtPctI = (n) => Math.round(n) + '%';
+  $('gsAporte').value = fmtBRLi(p.aporte);
+  $('gsCrescAporte').value = fmtPctY(p.crescAporte);
+  $('gsDY').value = fmtPctP(p.dy);
+  $('gsReinv').value = fmtPctI(p.reinv);
+  $('gsCrescDiv').value = fmtPctY(p.crescDiv);
+  isLoadingFromFirestore = false;
+  render();
+}
+
+function saveParams(p) {
+  if (saveDebounce) clearTimeout(saveDebounce);
+  saveDebounce = setTimeout(async () => {
+    try {
+      await setDoc(doc(db, 'household', 'main', 'config', 'goalParams'), p, { merge: true });
+    } catch (err) { console.warn('saveParams failed:', err); }
+  }, 600);
+}
+
+function render() {
+  const p = readSliders();
+  $('gvAporte').textContent = fmtBRL(p.aporte);
+  $('gvCrescAporte').textContent = p.crescAporte.toFixed(1).replace('.',',') + '%/ano';
+  $('gvDY').textContent = p.dy.toFixed(1).replace('.',',') + '%';
+  $('gvReinv').textContent = p.reinv + '%';
+  $('gvCrescDiv').textContent = p.crescDiv.toFixed(1).replace('.',',') + '%/ano';
+
+  const { proj, metaHitYear } = simulate(p);
+
+  let cls, txt;
+  const tt = (typeof window !== 'undefined' && window.t) ? window.t : (k => k);
+  if (metaHitYear === null || metaHitYear > TARGET_YEAR) { cls='red'; txt=tt('goal.status.red'); }
+  else if (metaHitYear <= TARGET_YEAR-2) { cls='green'; txt=tt('goal.status.green'); }
+  else { cls='yellow'; txt=tt('goal.status.yellow'); }
+  $('gStatusPill').className = 'status-pill ' + cls;
+  $('gStatusText').textContent = txt;
+
+  $('gStatHit').textContent = metaHitYear || '> '+TARGET_YEAR;
+  if (metaHitYear) {
+    const d = TARGET_YEAR - metaHitYear;
+    $('gStatHitSub').textContent = d > 0 ? d+(d===1?' year early':' years early') : (d < 0 ? Math.abs(d)+(Math.abs(d)===1?' year late':' years late') : 'on schedule');
+  } else $('gStatHitSub').textContent = t('goal.notreach');
+
+  const pAt = proj.find(x => x.year === TARGET_YEAR);
+  $('gStatPL').textContent = fmtBRLk(pAt?.pl || 0);
+  $('gStatPLSub').textContent = pAt?.divs ? fmtBRLk(pAt.divs)+'/ano' : '-';
+
+  let totApor = 0;
+  for (const px of proj) { if (px.year > TARGET_YEAR) break; totApor += px.aporte; }
+  $('gStatApor').textContent = fmtBRLk(totApor);
+
+  if (metaHitYear && metaHitYear <= TARGET_YEAR) {
+    const yrs = TARGET_YEAR - metaHitYear;
+    let phrase;
+    if (yrs > 0) {
+      phrase = tt('goal.phrase.before').replace('{year}', metaHitYear).replace('{n}', yrs).replace('{label}', yrs===1 ? tt('years.singular') : tt('years.plural'));
+    } else {
+      phrase = tt('goal.phrase.exact').replace('{year}', TARGET_YEAR);
+    }
+    $('gNarrative').innerHTML = phrase + tt('goal.phrase.suffix').replace('{amt}', fmtBRL(p.aporte)).replace('{g}', p.crescAporte).replace('{year}', TARGET_YEAR).replace('{pl}', fmtBRLk(pAt.pl));
+  } else if (metaHitYear) {
+    const yrs = metaHitYear - TARGET_YEAR;
+    $('gNarrative').innerHTML = tt('goal.phrase.after').replace('{year}', metaHitYear).replace('{n}', yrs).replace('{label}', yrs===1 ? tt('years.singular') : tt('years.plural'));
+  } else {
+    $('gNarrative').innerHTML = tt('goal.phrase.fail');
+  }
+
+  drawChart(proj, metaHitYear);
+  if (!isLoadingFromFirestore && userLoaded) saveParams(p);
+}
+
+function drawChart(proj, metaHitYear) {
+  const W=700, H=300, padL=50, padR=30, padT=30, padB=36;
+  const innerW=W-padL-padR, innerH=H-padT-padB;
+  const history = getHistory();
+  const realDivs = history.length ? history : [{year:2020,divs:0},{year:2025,divs:67557}];
+  const projDivs = proj.filter(p => p.year <= TARGET_YEAR).map(p => ({year:p.year, divs:p.divs}));
+  const minYear=2020, maxYear=TARGET_YEAR;
+  const maxDivs = Math.max(TARGET*1.1, ...realDivs.map(d=>d.divs), ...projDivs.map(d=>d.divs));
+  const xS = y => padL + ((y-minYear)/(maxYear-minYear))*innerW;
+  const yS = v => padT + innerH - (v/maxDivs)*innerH;
+
+  // v8 Turno 4: hatched area + classed paths so @keyframes from Turno 2 engage automatically.
+  // Classes the stylesheet hooks: .chart-svg .hatch-layer .history-line .projection-line .current-point .target-point .target-line
+  let svg = '<g class="chart-svg">';
+  svg += '<defs>';
+  svg += '<pattern id="hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">';
+  svg += '<line x1="0" y1="0" x2="0" y2="8" stroke="#AC5FDB" stroke-width="1.2" stroke-opacity=".38"/>';
+  svg += '</pattern>';
+  svg += '<linearGradient id="histLine" x1="0" y1="0" x2="1" y2="0">';
+  svg += '<stop offset="0" stop-color="#8b3fb8"/><stop offset="1" stop-color="#E3A2EE"/>';
+  svg += '</linearGradient>';
+  svg += '</defs>';
+
+  // Grid Y + labels
+  for (const t of [0, 250000, 500000, 750000, 1000000]) {
+    const y = yS(t);
+    svg += '<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>';
+    const lbl = t===0 ? '0' : (t>=1000000 ? '1M' : (t/1000)+'K');
+    svg += '<text x="'+(padL-8)+'" y="'+(y+3)+'" text-anchor="end" fill="#6b6473" font-family="Geist Mono, monospace" font-size="9">'+lbl+'</text>';
+  }
+  // X labels
+  for (const t of [2020,2025,2030,2035]) {
+    svg += '<text x="'+xS(t)+'" y="'+(H-padB+18)+'" text-anchor="middle" fill="#6b6473" font-family="Geist Mono, monospace" font-size="10">'+t+'</text>';
+  }
+
+  // Target horizontal line (1M) — animated via .target-line
+  const yT = yS(TARGET);
+  svg += '<line class="target-line" x1="'+padL+'" y1="'+yT+'" x2="'+(W-padR)+'" y2="'+yT+'" stroke="#E3A2EE" stroke-width="1" stroke-dasharray="2 3" opacity=".6"/>';
+  svg += '<text x="'+(padL+6)+'" y="'+(yT-6)+'" text-anchor="start" fill="#E3A2EE" font-weight="600" font-family="Geist Mono, monospace" font-size="9" letter-spacing="1" opacity=".7">TARGET 1M</text>';
+
+  // Hatched area under the history line — anchored at y of last real point, floors at bottom
+  const baseY = yS(0);
+  const histPts = realDivs.map(d => xS(d.year)+','+yS(d.divs)).join(' L');
+  if (realDivs.length >= 2) {
+    const firstX = xS(realDivs[0].year);
+    const lastX = xS(realDivs[realDivs.length-1].year);
+    const areaD = 'M'+firstX+','+baseY+' L'+histPts+' L'+lastX+','+baseY+' Z';
+    svg += '<path class="hatch-layer" d="'+areaD+'" fill="url(#hatch)" stroke="none"/>';
+  }
+
+  // History solid line — traced on load via tracePath() in app.js
+  if (realDivs.length >= 2) {
+    const lineD = 'M'+histPts;
+    svg += '<path class="history-line" d="'+lineD+'" fill="none" stroke="url(#histLine)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+  }
+
+  // Projection dashed line — shimmer animation via .projection-line
+  const lastReal = realDivs[realDivs.length-1];
+  const projPath = [lastReal, ...projDivs.filter(d => d.year > lastReal.year)];
+  if (projPath.length >= 2) {
+    const projD = 'M' + projPath.map(d => xS(d.year)+','+yS(d.divs)).join(' L');
+    svg += '<path class="projection-line" d="'+projD+'" fill="none" stroke="#E3A2EE" stroke-width="2" stroke-linecap="round" opacity=".85"/>';
+  }
+
+  // History point markers
+  for (const d of realDivs.slice(0, -1)) {
+    svg += '<circle cx="'+xS(d.year)+'" cy="'+yS(d.divs)+'" r="3" fill="#E3A2EE" stroke="#29262B" stroke-width="2"/>';
+  }
+  // Current point (last real) — pulses via .current-point
+  svg += '<circle class="current-point" cx="'+xS(lastReal.year)+'" cy="'+yS(lastReal.divs)+'" r="3.5" fill="#E3A2EE" stroke="#29262B" stroke-width="2"/>';
+
+  // Meta hit marker (green glow)
+  if (metaHitYear && metaHitYear <= TARGET_YEAR) {
+    const hit = proj.find(p => p.year === metaHitYear);
+    if (hit) {
+      const hx=xS(hit.year), hy=yS(hit.divs);
+      svg += '<circle cx="'+hx+'" cy="'+hy+'" r="9" fill="#34e17a" opacity="0.2"/>';
+      svg += '<circle cx="'+hx+'" cy="'+hy+'" r="5" fill="#34e17a" stroke="#29262B" stroke-width="2"/>';
+    }
+  }
+  // Target point at 2035 — pulses via .target-point + .target-ring radar ripple (Option C)
+  const f = proj.find(p => p.year === TARGET_YEAR);
+  if (f) {
+    const tx = xS(f.year), ty = yS(f.divs);
+    svg += '<circle class="target-ring" cx="'+tx+'" cy="'+ty+'"/>';
+    svg += '<circle class="target-point" cx="'+tx+'" cy="'+ty+'" r="4" fill="#fff" stroke="#E3A2EE" stroke-width="2"/>';
+  }
+
+  svg += '</g>';
+  $('gChart').innerHTML = svg;
+
+  // v8 Turno 4: one-shot stroke-dashoffset trace on first successful draw
+  if (!window._chartTraced) {
+    window._chartTraced = true;
+    requestAnimationFrame(() => {
+      const h = document.querySelector('#gChart .history-line');
+      const p = document.querySelector('#gChart .projection-line');
+      if (h && h.getTotalLength) {
+        const L = h.getTotalLength();
+        h.style.strokeDasharray = L;
+        h.style.strokeDashoffset = L;
+        h.getBoundingClientRect();
+        h.style.transition = 'stroke-dashoffset 1400ms cubic-bezier(.2,.8,.2,1)';
+        h.style.strokeDashoffset = 0;
+      }
+      if (p) {
+        p.style.opacity = '0';
+        setTimeout(() => {
+          p.style.transition = 'opacity .8s ease';
+          p.style.opacity = '.85';
+        }, 1600);
+      }
+    });
+  }
+}
+
+// Wire sliders — v8 Turno 3: text inputs fire on `change` (blur) not `input` to avoid reformatting mid-typing
+['gsAporte','gsCrescAporte','gsDY','gsReinv','gsCrescDiv'].forEach(id => {
+  const el = $(id);
+  el.addEventListener('change', render);
+  el.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } });
+});
+$('gBtnReset').addEventListener('click', () => { applyParams(DEFAULTS); });
+
+// Auth + Firestore params load
+onAuthStateChanged(auth, (user) => {
+  if (!user) return;
+  userLoaded = true;
+  onSnapshot(doc(db, 'household', 'main', 'config', 'goalParams'), (snap) => {
+    if (snap.exists()) {
+      const d = snap.data();
+      applyParams({
+        aporte: d.aporte ?? DEFAULTS.aporte,
+        crescAporte: d.crescAporte ?? DEFAULTS.crescAporte,
+        dy: d.dy ?? DEFAULTS.dy,
+        reinv: d.reinv ?? DEFAULTS.reinv,
+        crescDiv: d.crescDiv ?? DEFAULTS.crescDiv,
+      });
+    } else {
+      render();
+    }
+  });
+});
+
+// Re-render only when app.js actually updates yearly/equity data (change-detection, no blind polling)
+let _lastChartHash = '';
+function _chartHash() {
+  try {
+    const ye = (state.yearly || []).map(y => `${y.year}:${y.equity}:${y.divs}`).join('|');
+    const eq = state.i10 ? `${state.i10.equity}:${state.i10.dividends}` : '';
+    return ye + '#' + eq;
+  } catch (e) { return ''; }
+}
+setInterval(() => {
+  if (!userLoaded) return;
+  const h = _chartHash();
+  if (h === _lastChartHash) return; // nothing changed → skip redraw → no flash
+  _lastChartHash = h;
+  const sim = simulate(readSliders());
+  drawChart(sim.proj, sim.metaHitYear);
+}, 1500);
+
+// Initial render with defaults
+render();
+
+// v8 Turno 6 — range toggle listener for bar charts (syncs both cards + triggers re-render)
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-range-toggle] button[data-range]');
+  if (!btn) return;
+  const range = btn.dataset.range;
+  window.chartRange = range;
+  // Sync active state across all range-toggle instances
+  document.querySelectorAll('[data-range-toggle] button').forEach(b => {
+    b.classList.toggle('active', b.dataset.range === range);
+  });
+  // Re-render the bar charts
+  if (typeof renderDividendsChart === 'function') renderDividendsChart();
+  if (typeof renderPLChart === 'function') renderPLChart();
+});
+
+
+
+
+
+}
