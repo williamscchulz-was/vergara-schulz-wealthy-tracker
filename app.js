@@ -671,13 +671,15 @@ function renderInvestments() {
         .filter(y => y.year < currentYear)
         .reduce((s, y) => s + (+y.divs || 0), 0);
       const totalDivs = ytdDivs + pastDivs;
-      const totalReturn = ((state.i10.equity - state.i10.applied + totalDivs) / state.i10.applied) * 100;
+      // USD holdings count as both equity AND applied (cash position, no P&L)
+      const _appliedTotal = (+state.i10.applied || 0) + _usdBRL;
+      const totalReturn = ((_heroTotal - _appliedTotal + totalDivs) / _appliedTotal) * 100;
       const sign = totalReturn >= 0 ? '+' : '';
       const arrow = totalReturn >= 0
         ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>'
         : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>';
       const pillCls = totalReturn >= 0 ? 'return-pill' : 'return-pill neg';
-      subEl.innerHTML = `<div class="${pillCls}">${arrow}${sign}${totalReturn.toFixed(2)}% com dividendos</div><div class="applied-text">Aplicado <b>${fmtBRL0(state.i10.applied)}</b></div>`;
+      subEl.innerHTML = `<div class="${pillCls}">${arrow}${sign}${totalReturn.toFixed(2)}% com dividendos</div><div class="applied-text">Aplicado <b>${fmtBRL0(_appliedTotal)}</b></div>`;
     } else {
       subEl.innerHTML = '<div class="applied-text">Atualizacao manual &middot; configure sync pra automatico</div>';
     }
