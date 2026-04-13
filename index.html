@@ -903,6 +903,25 @@ body::before {
 .g-sl input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 .g-sl input[type=range]::-moz-range-thumb { width: 16px; height: 16px; background: var(--purple-light); border: 2px solid var(--bg-elevated); border-radius: 50%; cursor: pointer; box-shadow: 0 0 0 1px var(--purple), 0 4px 8px var(--purple-glow); }
 @media (max-width: 600px) { .g-sliders { grid-template-columns: 1fr; gap: 16px; } }
+
+/* ========== GOAL CARD — Option C (compact list) ========== */
+.goal-c-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+.goal-c-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.1; margin-top: 6px; color: var(--ink); }
+.goal-c-title-sub { font-size: 13px; color: var(--ink-3); font-weight: 400; margin-left: 8px; }
+.goal-c-list { display: flex; flex-direction: column; }
+.goal-c-row { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--border); gap: 16px; }
+.goal-c-row:last-child { border-bottom: none; }
+.goal-c-row .k { font-size: 11px; color: var(--ink-muted); letter-spacing: 1.4px; text-transform: uppercase; font-weight: 600; font-family: 'Geist Mono', monospace; flex-shrink: 0; }
+.goal-c-row .v { font-size: 16px; font-weight: 600; color: var(--ink); font-family: 'Geist Mono', monospace; text-align: right; }
+.goal-c-row .v small { font-size: 11px; color: var(--ink-3); font-weight: 400; margin-left: 6px; font-family: 'Inter', sans-serif; }
+.goal-c-acc { border-top: 1px solid var(--border); margin-top: 4px; }
+.goal-c-acc summary { display: flex; align-items: center; gap: 10px; padding: 14px 0; color: var(--ink-3); font-size: 12px; font-weight: 500; cursor: pointer; list-style: none; user-select: none; transition: color 0.2s var(--ease-out); }
+.goal-c-acc summary::-webkit-details-marker { display: none; }
+.goal-c-acc summary:hover { color: var(--ink-2); }
+.goal-c-acc summary .chev { width: 12px; height: 12px; color: var(--ink-muted); transition: transform 0.25s var(--ease-out); flex-shrink: 0; }
+.goal-c-acc[open] summary .chev { transform: rotate(90deg); color: var(--purple-light); }
+.goal-c-acc[open] summary { color: var(--ink-2); }
+
 /* CONTRIB ITEMS */
 .contrib-item { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 12px 14px; background: var(--bg-elevated-2); border: 1px solid var(--border); border-radius: var(--radius); transition: all 0.2s var(--ease-out); }
 .contrib-item:hover { border-color: var(--border-strong); background: var(--bg-elevated-3); }
@@ -1508,50 +1527,59 @@ body::before {
 
       <!-- GOAL SIMULATOR CARD -->
       <div class="card animate-in" id="goalCardV2">
-        <div class="card-head">
+        <div class="goal-c-head">
           <div>
             <div class="eyebrow" data-i18n="goal.eyebrow">LONG-TERM GOAL</div>
-            <div class="goal-target" style="font-size:46px;font-weight:700;letter-spacing:-1.5px;line-height:1;margin-top:12px;background:linear-gradient(135deg,#fff,var(--purple-light));-webkit-background-clip:text;background-clip:text;color:transparent">1M<span style="font-size:14px;color:var(--ink-3);margin-left:8px;font-weight:400;-webkit-text-fill-color:var(--ink-3)">/year</span></div>
-            <div class="goal-sub" style="font-size:10px;color:var(--ink-muted);font-family:'Geist Mono',monospace;margin-top:10px;letter-spacing:1px;text-transform:uppercase">dividends · target <span id="gTargetYearLabel">2035</span></div>
+            <div class="goal-c-title">R$ 1M<span class="goal-c-title-sub">/yr by <span id="gTargetYearLabel">2035</span></span></div>
           </div>
           <div class="status-pill green" id="gStatusPill">
             <span class="dot"></span>
             <span id="gStatusText">on track</span>
           </div>
         </div>
-        <div style="margin:6px -8px 18px"><svg id="gChart" viewBox="0 0 700 300" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block;overflow:visible"></svg></div>
-        <p id="gNarrative" style="display:none"></p>
-        <!-- v8 Option C: primary hero + 2 secondary side cells -->
-        <div class="stats-c">
-          <div class="stats-c-primary">
-            <div class="lbl" data-i18n="stat.hitgoal">Goal hit in</div>
-            <div class="val" id="gStatHit">-</div>
-            <div class="sub" id="gStatHitSub">-</div>
+
+        <div class="goal-c-list">
+          <div class="goal-c-row">
+            <span class="k" data-i18n="stat.hitgoal">Hit year</span>
+            <span class="v"><span id="gStatHit">-</span> <small id="gStatHitSub">-</small></span>
           </div>
-          <div class="stats-c-side">
-            <div class="stats-c-cell">
-              <div class="lbl" data-i18n="stat.netat">Net worth 2035</div>
-              <div class="val" id="gStatPL">-</div>
-              <div class="sub" id="gStatPLSub" style="display:none">-</div>
-            </div>
-            <div class="stats-c-cell">
-              <div class="lbl" data-i18n="stat.totalcontrib">Total invested</div>
-              <div class="val" id="gStatApor">-</div>
-              <div class="sub" style="display:none">10 years</div>
-            </div>
+          <div class="goal-c-row">
+            <span class="k" data-i18n="stat.projected">Projected</span>
+            <span class="v"><span id="gStatProj">-</span> <small data-i18n="stat.projected.sub">/yr in target year</small></span>
+          </div>
+          <div class="goal-c-row">
+            <span class="k" data-i18n="stat.netat">Net worth</span>
+            <span class="v"><span id="gStatPL">-</span> <small data-i18n="stat.in.target">in target year</small></span>
+          </div>
+          <div class="goal-c-row">
+            <span class="k" data-i18n="stat.totalcontrib">Contributed</span>
+            <span class="v"><span id="gStatApor">-</span> <small data-i18n="stat.total">total</small></span>
           </div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding-top:18px;border-top:1px solid var(--border);margin-bottom:16px">
-          <div class="eyebrow" data-i18n="goal.variables">VARIABLES</div>
-          <button class="btn-ghost" id="gBtnReset" style="padding:5px 12px;font-size:11px">Reset</button>
-        </div>
-        <div class="g-sliders">
-          <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.monthly">Monthly</span><span class="g-val" id="gvAporte">R$ 24.000</span></div><input type="text" inputmode="decimal" id="gsAporte" class="var-input-v8" value="R$ 24.000" autocomplete="off"></div>
-          <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.growthcontrib">Contrib growth</span><span class="g-val" id="gvCrescAporte">10,0%/ano</span></div><input type="text" inputmode="decimal" id="gsCrescAporte" class="var-input-v8" value="10,0%/yr" autocomplete="off"></div>
-          <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.dy">Expected DY</span><span class="g-val" id="gvDY">8,0%</span></div><input type="text" inputmode="decimal" id="gsDY" class="var-input-v8" value="8,0%" autocomplete="off"></div>
-          <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.reinvest">Reinvestment</span><span class="g-val" id="gvReinv">100%</span></div><input type="text" inputmode="decimal" id="gsReinv" class="var-input-v8" value="100%" autocomplete="off"></div>
-          <div class="g-sl" style="grid-column:1/-1"><div class="g-top"><span class="g-name" data-i18n="slider.growthdiv">Dividend growth</span><span class="g-val" id="gvCrescDiv">6,0%/ano</span></div><input type="text" inputmode="decimal" id="gsCrescDiv" class="var-input-v8" value="6,0%/yr" autocomplete="off"></div>
-        </div>
+
+        <details class="goal-c-acc">
+          <summary>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chev"><polyline points="9 18 15 12 9 6"/></svg>
+            <span data-i18n="goal.see.chart">See chart</span>
+          </summary>
+          <div style="margin:14px -8px 4px"><svg id="gChart" viewBox="0 0 700 300" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block;overflow:visible"></svg></div>
+          <p id="gNarrative" style="display:none"></p>
+        </details>
+
+        <details class="goal-c-acc">
+          <summary>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chev"><polyline points="9 18 15 12 9 6"/></svg>
+            <span data-i18n="goal.tweak">Tweak variables</span>
+            <button class="btn-ghost" id="gBtnReset" style="padding:4px 10px;font-size:10px;margin-left:auto">Reset</button>
+          </summary>
+          <div class="g-sliders" style="margin-top:14px">
+            <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.monthly">Monthly</span><span class="g-val" id="gvAporte">R$ 24.000</span></div><input type="text" inputmode="decimal" id="gsAporte" class="var-input-v8" value="R$ 24.000" autocomplete="off"></div>
+            <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.growthcontrib">Contrib growth</span><span class="g-val" id="gvCrescAporte">10,0%/ano</span></div><input type="text" inputmode="decimal" id="gsCrescAporte" class="var-input-v8" value="10,0%/yr" autocomplete="off"></div>
+            <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.dy">Expected DY</span><span class="g-val" id="gvDY">8,0%</span></div><input type="text" inputmode="decimal" id="gsDY" class="var-input-v8" value="8,0%" autocomplete="off"></div>
+            <div class="g-sl"><div class="g-top"><span class="g-name" data-i18n="slider.reinvest">Reinvestment</span><span class="g-val" id="gvReinv">100%</span></div><input type="text" inputmode="decimal" id="gsReinv" class="var-input-v8" value="100%" autocomplete="off"></div>
+            <div class="g-sl" style="grid-column:1/-1"><div class="g-top"><span class="g-name" data-i18n="slider.growthdiv">Dividend growth</span><span class="g-val" id="gvCrescDiv">6,0%/ano</span></div><input type="text" inputmode="decimal" id="gsCrescDiv" class="var-input-v8" value="6,0%/yr" autocomplete="off"></div>
+          </div>
+        </details>
       </div>
 
       <!-- YTD DUAL CARD -->

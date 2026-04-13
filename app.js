@@ -110,6 +110,12 @@ const I18N = {
     'stat.hitgoal': 'Meta atinge em',
     'stat.netat': 'PL em 2035',
     'stat.totalcontrib': 'Total aportado',
+    'stat.projected': 'Projetado',
+    'stat.projected.sub': '/ano no ano alvo',
+    'stat.in.target': 'no ano alvo',
+    'stat.total': 'total',
+    'goal.see.chart': 'Ver gráfico',
+    'goal.tweak': 'Ajustar variáveis',
     'slider.monthly': 'Aporte mensal',
     'slider.growthcontrib': 'Crescimento aporte',
     'slider.dy': 'DY esperado',
@@ -186,9 +192,15 @@ const I18N = {
     'th.dividends': 'Dividends',
     'th.dy': 'DY',
     'th.yoy': 'YoY',
-    'stat.hitgoal': 'Goal hit in',
-    'stat.netat': 'Net worth in 2035',
-    'stat.totalcontrib': 'Total contributed',
+    'stat.hitgoal': 'Hit year',
+    'stat.netat': 'Net worth',
+    'stat.totalcontrib': 'Contributed',
+    'stat.projected': 'Projected',
+    'stat.projected.sub': '/yr in target year',
+    'stat.in.target': 'in target year',
+    'stat.total': 'total',
+    'goal.see.chart': 'See chart',
+    'goal.tweak': 'Tweak variables',
     'slider.monthly': 'Monthly',
     'slider.growthcontrib': 'Contrib growth',
     'slider.dy': 'Expected DY',
@@ -2177,7 +2189,7 @@ function render() {
   const pAt = proj.find(x => x.year === TARGET_YEAR);            // divs durante TARGET_YEAR
   const pAtEnd = proj.find(x => x.year === TARGET_YEAR + 1);      // PL no FIM de TARGET_YEAR
   $('gStatPL').textContent = fmtBRLk(pAtEnd?.pl || 0);
-  $('gStatPLSub').textContent = pAt?.divs ? fmtBRLk(pAt.divs)+'/ano' : '-';
+  if ($('gStatProj')) $('gStatProj').textContent = pAt?.divs ? fmtBRLk(pAt.divs) : '-';
 
   let totApor = 0;
   for (const px of proj) { if (px.year > TARGET_YEAR) break; totApor += px.aporte; }
