@@ -117,6 +117,8 @@ const I18N = {
     'slider.growthdiv': 'Crescimento do dividendo (empresa)',
     'hero.manual': 'Manual update',
     'hero.manual.full': 'Manual update · configure sync for automatic',
+    'hero.return.label': 'com dividendos',
+    'hero.applied': 'Aplicado',
     'ytd.received': 'proventos recebidos neste ano',
     'ytd.alltime.from': 'desde {year} · {n} {label} de histórico',
     'ytd.alltime.empty': 'sem histórico ainda',
@@ -194,6 +196,8 @@ const I18N = {
     'slider.growthdiv': 'Dividend growth (company)',
     'hero.manual': 'Manual update',
     'hero.manual.full': 'Manual update · configure sync for automatic',
+    'hero.return.label': 'with dividends',
+    'hero.applied': 'Applied',
     'ytd.received': 'dividends received this year',
     'ytd.alltime.from': 'since {year} · {n} {label} of history',
     'ytd.alltime.empty': 'no history yet',
@@ -580,7 +584,7 @@ function renderFX() {
   const rateStr = String(rate.toFixed(2)).replace('.', ',');
   document.getElementById('fxUsdNative').textContent = usdStr;
   document.getElementById('fxRateChip').textContent = '\u00d7 ' + rateStr;
-  document.getElementById('fxPercent').textContent = percent.toFixed(0) + '% DA CARTEIRA';
+  document.getElementById('fxPercent').textContent = percent.toFixed(0) + '% ' + t('cat.label.suffix');
   document.getElementById('fxBrlValue').textContent = 'R$ ' + usdBRL.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
 }
 
@@ -687,9 +691,9 @@ function renderInvestments() {
         ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>'
         : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>';
       const pillCls = totalReturn >= 0 ? 'return-pill' : 'return-pill neg';
-      subEl.innerHTML = `<div class="${pillCls}">${arrow}${sign}${totalReturn.toFixed(2)}% com dividendos</div><div class="applied-text">Aplicado <b>${fmtBRL0(_appliedTotal)}</b></div>`;
+      subEl.innerHTML = `<div class="${pillCls}">${arrow}${sign}${totalReturn.toFixed(2)}% ${t('hero.return.label')}</div><div class="applied-text">${t('hero.applied')} <b>${fmtBRL0(_appliedTotal)}</b></div>`;
     } else {
-      subEl.innerHTML = '<div class="applied-text">Atualizacao manual &middot; configure sync pra automatico</div>';
+      subEl.innerHTML = `<div class="applied-text">${t('hero.manual.full')}</div>`;
     }
   }
 
@@ -751,7 +755,11 @@ function renderInvestments() {
     if (sortedYearly.length > 0) {
       const firstYear = sortedYearly[0].year;
       const yearsCount = sortedYearly.length;
-      allTimeSubEl.textContent = `desde ${firstYear} · ${yearsCount} ${yearsCount === 1 ? 'ano' : 'anos'} de historico`;
+      const yLabel = yearsCount === 1 ? t('years.singular') : t('years.plural');
+      allTimeSubEl.textContent = t('ytd.alltime.from')
+        .replace('{year}', firstYear)
+        .replace('{n}', yearsCount)
+        .replace('{label}', yLabel);
     } else {
       allTimeSubEl.textContent = t('ytd.alltime.empty');
     }
@@ -771,10 +779,12 @@ function renderInvestments() {
   if (countEl) {
     const assets = state.i10.assets || [];
     if (assets.length === 0) {
-      countEl.textContent = 'nenhum ativo sincronizado';
+      countEl.textContent = t('count.assets.none');
     } else {
       const cats = new Set(assets.map(a => inferCategory(a)));
-      countEl.textContent = `${assets.length} ativos · ${cats.size} ${cats.size === 1 ? 'categoria' : 'categorias'}`;
+      const aLbl = assets.length === 1 ? t('count.assets.singular') : t('count.assets.plural');
+      const cLbl = cats.size === 1 ? t('count.cat.singular') : t('count.cat.plural');
+      countEl.textContent = `${assets.length} ${aLbl} · ${cats.size} ${cLbl}`;
     }
   }
 
@@ -1173,7 +1183,7 @@ function renderI10Assets() {
     const icon = (typeof CATEGORY_ICONS !== 'undefined' && CATEGORY_ICONS[iconKey]) || (CATEGORY_ICONS && CATEGORY_ICONS['Outros']) || '';
     const isAcoes = c.type === 'Ticker';
     const itemCount = isAcoes ? assets.length : 0;
-    const countStr = isAcoes ? itemCount + (itemCount === 1 ? ' ATIVO' : ' ATIVOS') : '';
+    const countStr = isAcoes ? itemCount + ' ' + (itemCount === 1 ? t('cat.assets.singular') : t('cat.assets.plural')) : '';
     const chevronHtml = isAcoes
       ? '<svg class="cat-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'
       : '<span style="width:18px;display:inline-block"></span>';
@@ -1193,7 +1203,7 @@ function renderI10Assets() {
       '<div class="cat-icon">' + icon + '</div>' +
       '<div class="cat-info">' +
         '<div class="cat-name">' + label + '</div>' +
-        '<div class="cat-count">' + (countStr ? countStr + ' &middot; ' : '') + (c.percent || 0).toFixed(0) + '% DA CARTEIRA</div>' +
+        '<div class="cat-count">' + (countStr ? countStr + ' &middot; ' : '') + (c.percent || 0).toFixed(0) + '% ' + t('cat.label.suffix') + '</div>' +
       '</div>' +
       '<div>' +
         '<div class="cat-value">' + fmtBRL0(c.value || 0) + '</div>' +
@@ -1220,7 +1230,7 @@ function renderI10Assets() {
       '</div>' +
       '<div class="cat-info">' +
         '<div class="cat-name">Dólar (USD)</div>' +
-        '<div class="cat-count">' + percent.toFixed(0) + '% DA CARTEIRA</div>' +
+        '<div class="cat-count">' + percent.toFixed(0) + '% ' + t('cat.label.suffix') + '</div>' +
         '<div class="fx-extra"><span class="fx-native">US$ ' + usd.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '</span><span class="fx-rate-chip">× ' + rateStr + '</span></div>' +
       '</div>' +
       '<div>' +
@@ -1832,7 +1842,7 @@ $('expDelete').addEventListener('click', deleteExpense);
 $('expenseModal').addEventListener('click', e => { if (e.target.id === 'expenseModal') closeExpenseModal(); });
 
 // I10 modal
-$('btnEditI10').addEventListener('click', openI10Modal);
+$('btnEditI10')?.addEventListener('click', openI10Modal);
 $('i10Cancel').addEventListener('click', closeI10Modal);
 $('i10Save').addEventListener('click', saveI10);
 $('i10Modal').addEventListener('click', e => { if (e.target.id === 'i10Modal') closeI10Modal(); });
