@@ -330,6 +330,14 @@ function updateI10Link() {
   a.style.opacity = '';
 }
 
+// Expose net equity (i10 + USD converted) to the Goal Simulator via window.__ledgerEquity.
+// Called from i10 AND fx snapshots so the projection always starts from real net worth.
+function updateLedgerEquity() {
+  const i10Eq = +state.i10.equity || 0;
+  const usdBRL = (+state.fx.usd || 0) * (+state.fx.rateUSD || 0);
+  window.__ledgerEquity = i10Eq + usdBRL;
+}
+
 // ============================================================
 //                 MODE SWITCH (Expenses/Invest)
 // ============================================================
@@ -1908,6 +1916,7 @@ function subscribeAll() {
         rateSource: d.rateSource || '',
         note: d.note || '',
       };
+      updateLedgerEquity();
       renderFX();
       // also re-render total net worth (hero) to pick up USD contribution
       if (typeof renderInvestments === 'function' && state.mode === 'investments') renderInvestments();
@@ -1933,7 +1942,7 @@ function subscribeAll() {
   unsub.i10 = onSnapshot(docI10, (snap) => {
     const data = snap.data() || {};
     state.i10.equity = +data.equity || 0;
-    window.__ledgerEquity = state.i10.equity;
+    updateLedgerEquity();
     state.i10.dividends = +data.dividends || 0;
     state.i10.updatedAt = data.updatedAt?.toDate?.() || null;
     state.i10.year = data.year || new Date().getFullYear();
@@ -2155,8 +2164,9 @@ function render() {
     $('gStatHitSub').textContent = d > 0 ? d+(d===1?' year early':' years early') : (d < 0 ? Math.abs(d)+(Math.abs(d)===1?' year late':' years late') : 'on schedule');
   } else $('gStatHitSub').textContent = t('goal.notreach');
 
-  const pAt = proj.find(x => x.year === TARGET_YEAR);
-  $('gStatPL').textContent = fmtBRLk(pAt?.pl || 0);
+  const pAt = proj.find(x => x.year === TARGET_YEAR);            // divs durante TARGET_YEAR
+  const pAtEnd = proj.find(x => x.year === TARGET_YEAR + 1);      // PL no FIM de TARGET_YEAR
+  $('gStatPL').textContent = fmtBRLk(pAtEnd?.pl || 0);
   $('gStatPLSub').textContent = pAt?.divs ? fmtBRLk(pAt.divs)+'/ano' : '-';
 
   let totApor = 0;
@@ -2171,7 +2181,7 @@ function render() {
     } else {
       phrase = tt('goal.phrase.exact').replace('{year}', TARGET_YEAR);
     }
-    $('gNarrative').innerHTML = phrase + tt('goal.phrase.suffix').replace('{amt}', fmtBRL(p.aporte)).replace('{g}', p.crescAporte).replace('{year}', TARGET_YEAR).replace('{pl}', fmtBRLk(pAt.pl));
+    $('gNarrative').innerHTML = phrase + tt('goal.phrase.suffix').replace('{amt}', fmtBRL(p.aporte)).replace('{g}', p.crescAporte).replace('{year}', TARGET_YEAR).replace('{pl}', fmtBRLk(pAtEnd?.pl || 0));
   } else if (metaHitYear) {
     const yrs = metaHitYear - TARGET_YEAR;
     $('gNarrative').innerHTML = tt('goal.phrase.after').replace('{year}', metaHitYear).replace('{n}', yrs).replace('{label}', yrs===1 ? tt('years.singular') : tt('years.plural'));
