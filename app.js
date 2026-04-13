@@ -826,7 +826,19 @@ function filterByRange(years, values, range) {
 }
 
 function buildBarChart(years, values, opts = {}) {
-  const W = 780, H = 260, padL = 56, padR = 24, padT = 42, padB = 38;
+  // Mobile detection: narrower viewBox + bigger fonts so text stays readable when scaled to ~360px
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 600;
+  const W = isMobile ? 500 : 780;
+  const H = isMobile ? 320 : 260;
+  const padL = isMobile ? 50 : 56;
+  const padR = isMobile ? 16 : 24;
+  const padT = isMobile ? 50 : 42;
+  const padB = isMobile ? 44 : 38;
+  const fsAxis = isMobile ? 16 : 10;       // y-axis labels
+  const fsYear = isMobile ? 17 : 10;       // year labels under bars
+  const fsValue = isMobile ? 15 : 9;       // value labels above bars
+  const fsPill = isMobile ? 13 : 9;        // YoY pill text
+  const pillH = isMobile ? 22 : 14;
   const innerW = W - padL - padR;
   const innerH = H - padT - padB;
   if (!years.length) {
@@ -835,7 +847,7 @@ function buildBarChart(years, values, opts = {}) {
   const maxData = Math.max(...values, 0);
   const yMax = (maxData > 0 ? maxData * 1.18 : 1);
   const barSlot = innerW / years.length;
-  const barWidth = Math.min(barSlot * 0.55, 38);
+  const barWidth = Math.min(barSlot * 0.55, isMobile ? 44 : 38);
   const currentYearActual = new Date().getFullYear();
   const gradId = opts.gradId || 'barGradPurple';
   const gradIdCurrent = opts.gradIdCurrent || 'barGradPink';
@@ -864,7 +876,7 @@ function buildBarChart(years, values, opts = {}) {
     const y = padT + (innerH * i / 4);
     svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="2 4"/>';
     const val = yMax * (4 - i) / 4;
-    svg += '<text x="' + (padL - 10) + '" y="' + (y + 4) + '" text-anchor="end" fill="#7d6e96" font-family="Geist Mono,monospace" font-size="10" font-weight="600">' + shortMoney(val) + '</text>';
+    svg += '<text x="' + (padL - 10) + '" y="' + (y + 4) + '" text-anchor="end" fill="#7d6e96" font-family="Geist Mono,monospace" font-size="' + fsAxis + '" font-weight="600">' + shortMoney(val) + '</text>';
   }
 
   // Bars
@@ -873,7 +885,7 @@ function buildBarChart(years, values, opts = {}) {
     if (v <= 0) {
       // Empty year - draw label only
       const x = padL + barSlot * i + barSlot / 2;
-      svg += '<text x="' + x + '" y="' + (H - 14) + '" text-anchor="middle" fill="#4d4063" font-family="Geist Mono,monospace" font-size="10" font-weight="600">' + y + '</text>';
+      svg += '<text x="' + x + '" y="' + (H - 14) + '" text-anchor="middle" fill="#4d4063" font-family="Geist Mono,monospace" font-size="' + fsYear + '" font-weight="600">' + y + '</text>';
       return;
     }
     const barH = (v / yMax) * innerH;
@@ -888,9 +900,9 @@ function buildBarChart(years, values, opts = {}) {
     svg += '<rect x="' + x + '" y="' + barY + '" width="' + barWidth + '" height="' + barH + '" rx="5" fill="' + fillUrl + '"' + (isCurrent ? ' filter="url(#glowB' + uniqueId + ')"' : '') + '><title>' + y + ': ' + fmtBRL0(v) + '</title></rect>';
     // Value label above bar
     const valColor = isCurrent ? '#f472b6' : '#b8a8d4';
-    svg += '<text x="' + (x + barWidth / 2) + '" y="' + (barY - 6) + '" text-anchor="middle" fill="' + valColor + '" font-family="Geist Mono,monospace" font-size="9" font-weight="700">' + shortMoney(v) + '</text>';
+    svg += '<text x="' + (x + barWidth / 2) + '" y="' + (barY - (isMobile ? 10 : 6)) + '" text-anchor="middle" fill="' + valColor + '" font-family="Geist Mono,monospace" font-size="' + fsValue + '" font-weight="700">' + shortMoney(v) + '</text>';
     // Year label below
-    svg += '<text x="' + (x + barWidth / 2) + '" y="' + (H - 14) + '" text-anchor="middle" fill="' + yearColor + '" font-family="Geist Mono,monospace" font-size="10" font-weight="' + yearWeight + '">' + yearLabel + '</text>';
+    svg += '<text x="' + (x + barWidth / 2) + '" y="' + (H - 14) + '" text-anchor="middle" fill="' + yearColor + '" font-family="Geist Mono,monospace" font-size="' + fsYear + '" font-weight="' + yearWeight + '">' + yearLabel + '</text>';
   });
 
   // ========================================================
@@ -931,11 +943,10 @@ function buildBarChart(years, values, opts = {}) {
         // Pill centered on midpoint of the connector, opaque fill
         const midX = (prev.cx + cur.cx) / 2;
         const midY = (prev.top + cur.top) / 2;
-        const pillW = txt.length * 6 + 10;
-        const pillH = 14;
+        const pillW = txt.length * (isMobile ? 8 : 6) + (isMobile ? 14 : 10);
         const pillTop = midY - pillH / 2;
-        svg += '<g><rect x="' + (midX - pillW/2) + '" y="' + pillTop + '" width="' + pillW + '" height="' + pillH + '" rx="7" fill="' + bg + '" stroke="' + strokeCol + '" stroke-width="1"/>';
-        svg += '<text x="' + midX + '" y="' + (pillTop + 10) + '" text-anchor="middle" fill="#1a181d" font-family="Geist Mono,monospace" font-size="9" font-weight="700">' + txt + '</text></g>';
+        svg += '<g><rect x="' + (midX - pillW/2) + '" y="' + pillTop + '" width="' + pillW + '" height="' + pillH + '" rx="' + (pillH/2) + '" fill="' + bg + '" stroke="' + strokeCol + '" stroke-width="1"/>';
+        svg += '<text x="' + midX + '" y="' + (pillTop + pillH * 0.72) + '" text-anchor="middle" fill="#1a181d" font-family="Geist Mono,monospace" font-size="' + fsPill + '" font-weight="700">' + txt + '</text></g>';
       }
     } else if (yoyMode === 'line') {
       // Connected polyline over bar tops + dots
@@ -957,7 +968,7 @@ function buildBarChart(years, values, opts = {}) {
         for (const y of topYoys) {
           const sign = y.yoy >= 0 ? '+' : '';
           const col = y.yoy >= 0 ? '#34e17a' : '#ff5e57';
-          svg += '<text x="' + y.p.cx + '" y="' + (y.p.top - 10) + '" text-anchor="middle" fill="' + col + '" font-family="Geist Mono,monospace" font-size="9" font-weight="700">' + sign + y.yoy.toFixed(0) + '%</text>';
+          svg += '<text x="' + y.p.cx + '" y="' + (y.p.top - 10) + '" text-anchor="middle" fill="' + col + '" font-family="Geist Mono,monospace" font-size="' + fsValue + '" font-weight="700">' + sign + y.yoy.toFixed(0) + '%</text>';
         }
       }
     }
@@ -2072,6 +2083,23 @@ onAuthStateChanged(auth, async (user) => {
 
 // Apply i18n on initial load (after onAuthStateChanged is registered)
 applyI18n();
+
+// Re-render bar charts on resize (debounced) so mobile/desktop viewBox swap kicks in on rotate.
+let _resizeTimer = null;
+let _wasMobile = typeof window !== 'undefined' && window.innerWidth < 600;
+window.addEventListener('resize', () => {
+  if (_resizeTimer) clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => {
+    const isMobileNow = window.innerWidth < 600;
+    if (isMobileNow !== _wasMobile) {
+      _wasMobile = isMobileNow;
+      if (state.user && state.mode === 'investments') {
+        if (typeof renderDividendsChart === 'function') renderDividendsChart();
+        if (typeof renderPLChart === 'function') renderPLChart();
+      }
+    }
+  }, 200);
+});
 
 
 // ============================================================
