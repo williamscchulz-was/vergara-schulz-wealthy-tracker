@@ -704,32 +704,6 @@ async function saveFX() {
   });
 })();
 
-(function wireReserveModal() {
-  document.getElementById('reserveModalCancel')?.addEventListener('click', closeReserveModal);
-  document.getElementById('reserveModalSave')?.addEventListener('click', () => {
-    try { saveReserve(); } catch (e) { console.error('saveReserve failed:', e); }
-  });
-  document.getElementById('reserveDeleteBtn')?.addEventListener('click', () => {
-    try { deleteReserve(); } catch (e) { console.error('deleteReserve failed:', e); }
-  });
-  document.getElementById('reserveModal')?.addEventListener('click', (e) => {
-    if (e.target.id === 'reserveModal') closeReserveModal();
-  });
-})();
-
-(function wirePensionModal() {
-  document.getElementById('pensionModalCancel')?.addEventListener('click', () => closeCashModal('pension'));
-  document.getElementById('pensionModalSave')?.addEventListener('click', () => {
-    try { saveCash('pension'); } catch (e) { console.error('savePension failed:', e); }
-  });
-  document.getElementById('pensionDeleteBtn')?.addEventListener('click', () => {
-    try { deleteCash('pension'); } catch (e) { console.error('deletePension failed:', e); }
-  });
-  document.getElementById('pensionModal')?.addEventListener('click', (e) => {
-    if (e.target.id === 'pensionModal') closeCashModal('pension');
-  });
-})();
-
 async function fetchFXRate() {
   const workerUrl = state.i10Cfg.workerUrl || '';
   if (!workerUrl) return;
@@ -955,6 +929,33 @@ const openReserveModal  = (id) => openCashModal('reserves', id);
 const closeReserveModal = () => closeCashModal('reserves');
 const saveReserve       = () => saveCash('reserves');
 const deleteReserve     = () => deleteCash('reserves');
+
+// Wire modals AFTER const declarations above so TDZ doesn't fire on load.
+(function wireReserveModal() {
+  document.getElementById('reserveModalCancel')?.addEventListener('click', closeReserveModal);
+  document.getElementById('reserveModalSave')?.addEventListener('click', () => {
+    try { saveReserve(); } catch (e) { console.error('saveReserve failed:', e); }
+  });
+  document.getElementById('reserveDeleteBtn')?.addEventListener('click', () => {
+    try { deleteReserve(); } catch (e) { console.error('deleteReserve failed:', e); }
+  });
+  document.getElementById('reserveModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'reserveModal') closeReserveModal();
+  });
+})();
+
+(function wirePensionModal() {
+  document.getElementById('pensionModalCancel')?.addEventListener('click', () => closeCashModal('pension'));
+  document.getElementById('pensionModalSave')?.addEventListener('click', () => {
+    try { saveCash('pension'); } catch (e) { console.error('savePension failed:', e); }
+  });
+  document.getElementById('pensionDeleteBtn')?.addEventListener('click', () => {
+    try { deleteCash('pension'); } catch (e) { console.error('deletePension failed:', e); }
+  });
+  document.getElementById('pensionModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'pensionModal') closeCashModal('pension');
+  });
+})();
 
 function renderInvestments() {
   const currentYear = new Date().getFullYear();
