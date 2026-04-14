@@ -970,6 +970,20 @@ function renderInvestments() {
   const _pensionBRL = pensionTotal();
   const _heroTotal = (+state.i10.equity || 0) + _usdBRL + _reservesBRL + _pensionBRL;
   $('i10Equity').textContent = _heroTotal.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+
+  // USD equivalent (only shown when we have a valid FX rate)
+  const _usdEqEl = $('i10EquityUSD');
+  const _usdValEl = $('i10EquityUSDVal');
+  if (_usdEqEl && _usdValEl) {
+    const rate = +state.fx.rateUSD || 0;
+    if (rate > 0 && _heroTotal > 0) {
+      const usdEq = _heroTotal / rate;
+      _usdValEl.textContent = usdEq.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+      _usdEqEl.style.display = 'flex';
+    } else {
+      _usdEqEl.style.display = 'none';
+    }
+  }
   if (state.i10.updatedAt) {
     const sourceTag = state.i10.source === 'investidor10-sync' ? ' · via I10' : ' · manual';
     $('i10Updated').textContent = t('hero.updated.prefix') + ' ' + formatDateTimeBR(state.i10.updatedAt) + sourceTag;

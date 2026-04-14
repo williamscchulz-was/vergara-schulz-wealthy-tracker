@@ -607,6 +607,20 @@ body::before {
 .hero-amount .num { font-size: clamp(40px, 9vw, 56px); color: var(--ink); font-variant-numeric: tabular-nums; font-family: 'Inter', sans-serif; }
 
 .hero-meta-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 22px; position: relative; z-index: 1; }
+.hero-usd {
+  margin-top: 8px;
+  margin-bottom: 4px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 14px;
+  color: var(--ink-3);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  letter-spacing: 0.3px;
+  position: relative;
+  z-index: 1;
+}
+.hero-usd .usd-sym { color: var(--ink-muted); margin-right: 1px; font-weight: 500; }
 
 .return-pill {
   display: inline-flex; align-items: center; gap: 7px;
@@ -1557,6 +1571,10 @@ body::before {
         <div class="hero-amount">
           <span class="cur">R$</span>
           <span class="num" id="i10Equity">0</span>
+        </div>
+        <div class="hero-usd" id="i10EquityUSD" style="display:none">
+          <span class="usd-sym">US$</span>
+          <span id="i10EquityUSDVal">0</span>
         </div>
         <div class="hero-meta-row" id="i10EquitySub">
           <div class="applied-text" data-i18n="hero.manual">Manual update</div>
