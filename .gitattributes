@@ -1,0 +1,13 @@
+# Force LF on text files (avoids CRLF warnings on Windows)
+* text=auto eol=lf
+
+# Binaries
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.webp binary
+*.pdf  binary
+*.woff binary
+*.woff2 binary
