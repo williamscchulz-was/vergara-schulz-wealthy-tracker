@@ -93,5 +93,6 @@ Cada listener atualiza `state.*` e dispara o render apropriado.
 
 ## Regras (Firestore Rules)
 
-Vivem no console do Firebase, **não versionadas aqui**. Devem
-restringir leitura/escrita aos UIDs do casal (Google auth).
+Versionadas em [`firestore.rules`](../firestore.rules) na raiz do repo
+e deployadas via Firebase CLI. Ver [FIRESTORE-RULES.md](FIRESTORE-RULES.md)
+pra setup + deploy.

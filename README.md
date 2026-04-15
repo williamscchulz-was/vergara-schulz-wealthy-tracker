@@ -42,6 +42,7 @@ via Cloudflare Worker.
 |---|---|
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Diagrama + fluxos de dados |
 | [docs/FIRESTORE-SCHEMA.md](docs/FIRESTORE-SCHEMA.md) | Coleções e configs sob `household/main/*` |
+| [docs/FIRESTORE-RULES.md](docs/FIRESTORE-RULES.md) | Setup e deploy das security rules |
 | [docs/DEPLOY.md](docs/DEPLOY.md) | GitHub Pages (source: `main /public`) |
 | [docs/DEPLOY-WORKER.md](docs/DEPLOY-WORKER.md) | Publicar o CF Worker |
 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | Histórico v7 / v8 Turnos |

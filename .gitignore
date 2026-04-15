@@ -26,6 +26,11 @@ worker/dist/
 .env.local
 .env.*.local
 
+# Firebase CLI local state
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
 # Logs
 *.log
 npm-debug.log*

@@ -1,0 +1,42 @@
+rules_version = '2';
+
+// ============================================================
+//  Ledger — Firestore Security Rules
+// ------------------------------------------------------------
+//  Projeto: wealthy-tracker-68658
+//
+//  Modelo: household único (W + F). Só os dois UIDs do casal têm
+//  read/write em household/main/** e sub-estruturas derivadas.
+//  Qualquer outro caminho é negado por default.
+// ============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --------------------------------------------------------
+    // Whitelist de UIDs autorizados
+    // --------------------------------------------------------
+    // Pra descobrir os UIDs atuais: Firebase Console → Authentication
+    // → Users → copiar coluna "User UID" do W e da F e colar abaixo.
+    function isHouseholdMember() {
+      return request.auth != null && request.auth.uid in [
+        'REPLACE_WITH_WILLIAM_UID',
+        'REPLACE_WITH_FERNANDA_UID'
+      ];
+    }
+
+    // --------------------------------------------------------
+    // household/main/** — tudo do casal
+    // --------------------------------------------------------
+    match /household/{household}/{document=**} {
+      allow read, write: if isHouseholdMember() && household == 'main';
+    }
+
+    // --------------------------------------------------------
+    // Catch-all: nega o resto
+    // --------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
