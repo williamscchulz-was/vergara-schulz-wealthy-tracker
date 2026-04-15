@@ -26,13 +26,13 @@ O app é **single-page**, **client-side puro**, servido estaticamente (GitHub Pa
 | Database | Cloud Firestore (projeto `wealthy-tracker-68658`) |
 | Fontes | Inter (UI) + Geist Mono (números) via Google Fonts |
 | PWA | `manifest.json` + ícones padrão (iOS + Android + maskable) |
-| Proxy/integração | **Cloudflare Worker** (`worker.js`) publicado em `workers.cloudflare.com` — resolve CORS do Investidor 10 e faz cache de 5 min |
-| Charts | SVG inline desenhado à mão no próprio `app.js` (sem libs) |
+| Proxy/integração | **Cloudflare Worker** (`worker/src/worker.js`) publicado em `workers.cloudflare.com` — resolve CORS do Investidor 10 e faz cache de 5 min |
+| Charts | SVG inline desenhado à mão no próprio `public/js/app.js` (sem libs) |
 | Projeção de metas | Módulo auxiliar `goal-projection.js` (montecarlo/determinístico inline) |
 
 **Stack não negociável:** nada de build step, nada de framework, nada de TypeScript, nada de npm install. Edita arquivo, dá push, tá no ar. Isso é escolha do dono do projeto, não limitação.
 
-### Cloudflare Worker (`worker.js`)
+### Cloudflare Worker (`worker/src/worker.js`)
 
 - Proxy GET-only com whitelist de paths (`/i10/...`)
 - `walletId` validado por regex `^\d{1,12}$`
@@ -50,36 +50,64 @@ O app é **single-page**, **client-side puro**, servido estaticamente (GitHub Pa
 
 ## 3. Arquivos principais
 
+Layout do repo (pós-reorganização):
+
+```
+├── public/              → app estático (raiz do GitHub Pages)
+│   ├── index.html       → shell + todo o CSS (~2000 linhas, v7/v8)
+│   ├── manifest.json    → PWA
+│   ├── js/
+│   │   ├── app.js       → núcleo (~2800 linhas)
+│   │   └── goal-projection.js
+│   └── assets/icons/    → favicons + ícones PWA
+├── worker/
+│   ├── src/worker.js    → CF Worker (CORS proxy)
+│   ├── wrangler.toml
+│   └── README.md
+├── tools/               → one-shots (fora de produção)
+│   ├── seed.html, seed-history.html
+│   ├── fix-historico.html, import-historico.html
+│   ├── brand.html
+│   └── README.md
+├── docs/
+│   ├── ARCHITECTURE.md, FIRESTORE-SCHEMA.md
+│   ├── DEPLOY.md, DEPLOY-WORKER.md
+│   └── CHANGELOG.md
+├── .github/             → PR + issue templates
+├── CLAUDE.md, README.md, LICENSE
+└── .gitignore, .editorconfig, .gitattributes
+```
+
 ### App (os que NÃO se deve tratar como descartáveis)
 
 | Arquivo | Papel |
 |---|---|
-| `index.html` | Shell do app. Contém **todo o CSS** (~2000 linhas, tokens `v7`/`v8` — "Linear meets Apple", paleta roxo `#AC5FDB`). Também define toda a estrutura de DOM (cards, modais, login, tab bar). |
-| `app.js` | Núcleo da aplicação (~2800 linhas). Firebase init, state global, i18n PT/EN, renderers, listeners, sync com I10, lógica de despesas, investimentos, reservas, previdência, FX (USD→BRL), Louise wallet, contribuições, editores, modais. |
-| `goal-projection.js` | Card de projeção da meta de dividendos (1M/ano até 2035 por default). Cálculos de ritmo necessário vs. atual, gráfico projetado, edição dos parâmetros (meta, ano, aporte mensal, taxa esperada). Lê/escreve `household/main/config/goalParams`. |
-| `worker.js` | Cloudflare Worker (ver §2). **Publicado separadamente** em `https://ledger-i10-proxy.<sub>.workers.dev`. |
-| `manifest.json` | Manifesto PWA. |
-| Ícones (`icon*.png`, `favicon*`, `apple-touch-icon.png`, `icon.svg`) | Assets da marca. |
+| `public/index.html` | Shell do app. Contém **todo o CSS** (~2000 linhas, tokens `v7`/`v8` — "Linear meets Apple", paleta roxo `#AC5FDB`). Define toda a estrutura de DOM. |
+| `public/js/app.js` | Núcleo da aplicação (~2800 linhas). Firebase init, state global, i18n PT/EN, renderers, listeners, sync com I10, lógica de despesas, investimentos, reservas, previdência, FX (USD→BRL), Louise wallet, contribuições, editores, modais. |
+| `public/js/goal-projection.js` | Card de projeção da meta de dividendos (1M/ano até 2035 por default). Lê/escreve `household/main/config/goalParams`. |
+| `worker/src/worker.js` | Cloudflare Worker (ver §2). **Publicado separadamente** em `https://ledger-i10-proxy.<sub>.workers.dev`. |
+| `public/manifest.json` | Manifesto PWA. |
+| `public/assets/icons/*` | Assets da marca. |
 
-### Auxiliares / one-shot / descartáveis
+### Auxiliares / one-shot — `tools/`
 
-Estes **não são parte do app em runtime**. São ferramentas de seed / migração / debug que ficam no mesmo repo por conveniência, mas podem ser deletadas sem impacto no app:
+**Não fazem parte do app em runtime** e **não são servidos em produção** (o GH Pages serve só `public/`). Ficam no repo por conveniência, mas rodam localmente (`file://` ou server local em `tools/`):
 
 | Arquivo | Para quê serve | Quando rodar |
 |---|---|---|
-| `seed.html` | Popular Firestore pela primeira vez com as 11 ações + Bitcoin do W (antes de o I10 sync existir). | Uma vez, no setup inicial. Rodou → ignorar. |
-| `seed-history.html` | Seed inicial do histórico anual de dividendos (`dividendsYearly`) + objeto mensal em `config/dividends`. | Uma vez, no setup inicial. |
-| `fix-historico.html` | **Destrutivo**: apaga TODOS os docs em `dividendsYearly` e recria com os 6 anos hardcoded na tabela da página. Use com intenção explícita de consolidar valores históricos. | Raramente. Sempre confirmar com o dono antes. |
-| `import-historico.html` | Upsert (sem deletar) dos 6 anos de `dividendsYearly`. Variante não-destrutiva do acima. | Quando precisar realinhar sem perder lançamentos existentes. |
-| `brand.html` | Preview do brand kit (cores, tipografia, componentes). Página de referência visual, não é linkada no app. | Durante trabalho de UI / revisão de tokens. |
+| `tools/seed.html` | Popular Firestore com as 11 ações + BTC do W (pré-I10-sync). | Uma vez, setup inicial. |
+| `tools/seed-history.html` | Seed inicial de `dividendsYearly` + objeto mensal em `config/dividends`. | Uma vez, setup inicial. |
+| `tools/fix-historico.html` | **Destrutivo**: apaga TODOS os docs em `dividendsYearly` e recria. | Raramente. Sempre confirmar antes. |
+| `tools/import-historico.html` | Upsert (sem deletar) dos 6 anos de `dividendsYearly`. | Quando precisar realinhar sem perder dados. |
+| `tools/brand.html` | Preview do brand kit. | Durante trabalho de UI. |
 
-**Regra**: se o trabalho é em uma feature do app, **não encostar nos auxiliares**. Se for mexer num auxiliar, avisar o usuário antes porque quase todos são destrutivos.
+**Regra**: se o trabalho é feature do app, não encostar em `tools/`. Se for mexer em `tools/`, avisar antes — quase todos são destrutivos.
 
 ---
 
 ## 4. Estrutura de dados Firebase
 
-Projeto: **`wealthy-tracker-68658`**. Config do cliente está hardcoded em `app.js:10-17` (e tudo bem — é client-side, o que protege é Firestore Rules + Auth).
+Projeto: **`wealthy-tracker-68658`**. Config do cliente está hardcoded em `public/js/app.js:10-17` (e tudo bem — é client-side, o que protege é Firestore Rules + Auth). Schema completo em [docs/FIRESTORE-SCHEMA.md](docs/FIRESTORE-SCHEMA.md).
 
 Todas as coleções e documentos ficam sob `household/main/...` (a casa é uma só: W + F compartilham).
 
@@ -146,7 +174,7 @@ Todos os listeners principais estão em `app.js:2222-2358` (bloco `subscribeToFi
 
 1. Cliente chama `https://<worker>.workers.dev/i10/all/<walletId>?year=<year>`
 2. Worker valida path + walletId, dispara 3 fetches paralelos pra API interna do I10 (`investidor10.com.br/wallet/api/proxy/wallet-app/...`), agrega e devolve JSON
-3. `app.js` (`syncFromI10`, `syncLouise`) parseia o payload e persiste em `config/i10` ou `config/i10-louise`
+3. `public/js/app.js` (`syncFromI10`, `syncLouise`) parseia o payload e persiste em `config/i10` ou `config/i10-louise`
 4. `onSnapshot` nos dois docs propaga pro outro usuário em tempo real
 
 ### Endpoints do I10 consumidos (via worker)
@@ -236,7 +264,7 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 1. **Zero build step.** Vanilla JS ES modules. Se um dia precisar de build, isso é conversa — não decisão no meio de uma task.
 2. **Zero framework.** Sem React / Vue / Svelte. Funções que manipulam DOM direto, state global em objeto `state`, renderers idempotentes.
 3. **Sem dependências npm.** Firebase entra via import direto da CDN (`https://www.gstatic.com/firebasejs/10.12.0/...`). Fontes via Google Fonts CDN.
-4. **Um arquivo por responsabilidade grande, sem over-engineering.** `app.js` é monolítico de propósito — é mais fácil navegar 2800 linhas contíguas do que 40 módulos de 70 linhas.
+4. **Um arquivo por responsabilidade grande, sem over-engineering.** `public/js/app.js` é monolítico de propósito — é mais fácil navegar 2800 linhas contíguas do que 40 módulos de 70 linhas.
 5. **Firestore como fonte da verdade compartilhada.** Tudo que os dois usuários precisam ver em tempo real passa por Firestore + `onSnapshot`. Estado local é cache do Firestore, não fonte.
 6. **Worker fica simples.** Proxy GET-only, whitelist, cache, pronto. Se precisar de lógica complexa, ela vai no cliente — não no worker.
 7. **Estética importa.** Tokens de design (`v7`/`v8`), micro-interações, spring easings, liquid glass — isso é parte do produto, não enfeite. Mudanças visuais precisam preservar a linguagem atual (roxo, denso, mono pra números).
@@ -252,8 +280,8 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 3. **Commits pequenos e descritivos.** Mensagem em inglês, 1-2 sentenças, foco no "porquê". Co-author do Claude incluído quando a task foi de fato assistida (formato padrão do `/commit`).
 4. **Sem push direto pro `main`** quando a mudança não é trivial. Abrir PR, mesmo que o merge seja imediato — o histórico do PR ajuda depois.
 5. **Testar no navegador antes de declarar pronto.** Mudança de UI sem teste visual não fecha. Se não for possível testar (ex.: depende do Firestore real do casal), dizer explicitamente "não testei em ambiente real" — nunca fingir sucesso.
-6. **Mudanças no `worker.js`** → publicar no Cloudflare e validar contra a wallet real antes de dar por entregue. Mudança no worker afeta os dois usuários imediatamente.
-7. **`fix-historico.html` e variantes destrutivas** → nunca rodar sem confirmação explícita do dono, mesmo que peçam. São scripts que apagam histórico.
+6. **Mudanças no `worker/src/worker.js`** → publicar no Cloudflare e validar contra a wallet real antes de dar por entregue. Mudança no worker afeta os dois usuários imediatamente.
+7. **`tools/fix-historico.html` e variantes destrutivas** → nunca rodar sem confirmação explícita do dono, mesmo que peçam. São scripts que apagam histórico.
 
 ---
 
@@ -264,8 +292,8 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 - **Firestore listeners** são registrados uma vez em `subscribeToFirestore()` e guardados no objeto `unsub` pra unsub no logout.
 - **Atualizações persistidas** usam `setDoc(..., { merge: true })` quando é patch, `addDoc` quando é nova linha de coleção. `serverTimestamp()` sempre pra `updatedAt`/`createdAt`.
 - **Campos numéricos vindos do I10** sempre coagidos com `+value || 0` ou `parseFloat(value) || 0` porque a API devolve às vezes string, às vezes number, às vezes `null`.
-- **Formatação de valores**: helpers `fmtBRL0`, `fmtBRL2`, `formatDateTimeBR` em `app.js`. Nunca usar `toLocaleString` cru na UI — passa pelos helpers pra manter consistência.
-- **CSS em `index.html`** com tokens no `:root`. Não espalhar cores hex cruas — usar `var(--purple)`, `var(--ink-2)`, `var(--gain)`, etc.
+- **Formatação de valores**: helpers `fmtBRL0`, `fmtBRL2`, `formatDateTimeBR` em `public/js/app.js`. Nunca usar `toLocaleString` cru na UI — passa pelos helpers pra manter consistência.
+- **CSS em `public/index.html`** com tokens no `:root`. Não espalhar cores hex cruas — usar `var(--purple)`, `var(--ink-2)`, `var(--gain)`, etc.
 - **Animações respeitam `prefers-reduced-motion`** (bloco "v8 REDUCED MOTION" no CSS mata tudo quando ativo). Não adicionar animação sem respeitar isso.
 - **Datas**: armazenar como ISO string `YYYY-MM-DD` (despesas) ou `serverTimestamp` (metadados). Sempre absolutas — nada de "3 dias atrás" persistido.
 - **IDs de documento**: `dividendsYearly` usa o próprio ano como ID (`"2026"`). `expenses` e `contributions` usam ID auto do Firestore.
@@ -275,9 +303,9 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 ## 11. Coisas que NÃO devem acontecer
 
 - ❌ **Nunca** expor o(s) walletId(s) em logs públicos, mensagens de erro voltadas ao usuário, screenshots em issues públicas, dashboards compartilhados. São carteiras pessoais.
-- ❌ **Nunca** mexer em `worker.js` sem testar localmente (`wrangler dev` ou equivalente) e validar contra a wallet real antes de publicar. Worker quebrado = os dois usuários ficam sem dashboard.
+- ❌ **Nunca** mexer em `worker/src/worker.js` sem testar localmente (`wrangler dev` ou equivalente) e validar contra a wallet real antes de publicar. Worker quebrado = os dois usuários ficam sem dashboard.
 - ❌ **Nunca** adicionar dependência npm / build step / transpilação sem alinhar primeiro. O projeto é vanilla por decisão.
-- ❌ **Nunca** rodar `fix-historico.html` ou equivalentes destrutivos sem confirmação explícita do dono para essa execução específica. "Rodou outra vez" não autoriza rodar de novo.
+- ❌ **Nunca** rodar `tools/fix-historico.html` ou equivalentes destrutivos sem confirmação explícita do dono para essa execução específica. "Rodou outra vez" não autoriza rodar de novo.
 - ❌ **Nunca** renomear coleções / caminhos Firestore (`household/main/...`) sem plano de migração. Os dados reais do casal estão lá.
 - ❌ **Nunca** commitar arquivos com credenciais reais de outro serviço. A config do Firebase em `app.js:10` está ok (é client-side público, protegido por Rules) — mas **nada além disso**. Sem tokens de CF, chaves de API externas, secrets de worker.
 - ❌ **Nunca** assumir que a API do I10 é estável. Se um campo mudar, parse defensivo (`|| 0`, `|| ''`, `Array.isArray(...)`) precisa continuar funcionando e o app tem que degradar pro botão ✏️ manual, não quebrar.
@@ -295,6 +323,6 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 - **Main branch**: `main`
 - **Worker URL**: `https://ledger-i10-proxy.<sub>.workers.dev` (configurada no app pelo modal ⚙️, persistida em `config/i10sync.workerUrl`)
 - **Firebase project ID**: `wealthy-tracker-68658`
-- **Entrypoint**: `index.html` → importa `app.js` (ES module) → importa `goal-projection.js` quando o card de meta é renderizado
+- **Entrypoint**: `public/index.html` → importa `public/js/app.js` (ES module) → carrega `public/js/goal-projection.js` quando o card de meta é renderizado
 - **Deploy do worker**: `wrangler deploy` ou colar no dashboard do Cloudflare Workers
 - **Deploy do app**: push pro repo (GitHub Pages ou equivalente serve os estáticos)
