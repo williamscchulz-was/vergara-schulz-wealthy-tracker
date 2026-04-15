@@ -1,0 +1,11 @@
+name = "ledger-i10-proxy"
+main = "src/worker.js"
+compatibility_date = "2024-11-01"
+
+# Deploy: `wrangler deploy` from ./worker
+# Dev:    `wrangler dev`    from ./worker
+#
+# The worker has no bindings, no secrets, no KV. It's a stateless CORS
+# proxy in front of a public Investidor 10 endpoint. See ./README.md
+# for deployment instructions and ../docs/DEPLOY-WORKER.md for the
+# end-to-end setup.
