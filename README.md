@@ -15,7 +15,7 @@ via Cloudflare Worker.
 ├── public/              → app estático (o que o GitHub Pages serve)
 │   ├── index.html
 │   ├── manifest.json
-│   ├── js/              → app.js, goal-projection.js
+│   ├── js/              → app.js
 │   └── assets/icons/    → favicons + ícones PWA
 ├── worker/              → Cloudflare Worker (CORS proxy pro I10)
 │   ├── src/worker.js

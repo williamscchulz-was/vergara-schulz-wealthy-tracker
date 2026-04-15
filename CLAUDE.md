@@ -28,7 +28,6 @@ O app é **single-page**, **client-side puro**, servido estaticamente (GitHub Pa
 | PWA | `manifest.json` + ícones padrão (iOS + Android + maskable) |
 | Proxy/integração | **Cloudflare Worker** (`worker/src/worker.js`) publicado em `workers.cloudflare.com` — resolve CORS do Investidor 10 e faz cache de 5 min |
 | Charts | SVG inline desenhado à mão no próprio `public/js/app.js` (sem libs) |
-| Projeção de metas | Módulo auxiliar `goal-projection.js` (montecarlo/determinístico inline) |
 
 **Stack não negociável:** nada de build step, nada de framework, nada de TypeScript, nada de npm install. Edita arquivo, dá push, tá no ar. Isso é escolha do dono do projeto, não limitação.
 
@@ -57,8 +56,7 @@ Layout do repo (pós-reorganização):
 │   ├── index.html       → shell + todo o CSS (~2000 linhas, v7/v8)
 │   ├── manifest.json    → PWA
 │   ├── js/
-│   │   ├── app.js       → núcleo (~2800 linhas)
-│   │   └── goal-projection.js
+│   │   └── app.js       → núcleo (~2800 linhas)
 │   └── assets/icons/    → favicons + ícones PWA
 ├── worker/
 │   ├── src/worker.js    → CF Worker (CORS proxy)
@@ -84,7 +82,6 @@ Layout do repo (pós-reorganização):
 |---|---|
 | `public/index.html` | Shell do app. Contém **todo o CSS** (~2000 linhas, tokens `v7`/`v8` — "Linear meets Apple", paleta roxo `#AC5FDB`). Define toda a estrutura de DOM. |
 | `public/js/app.js` | Núcleo da aplicação (~2800 linhas). Firebase init, state global, i18n PT/EN, renderers, listeners, sync com I10, lógica de despesas, investimentos, reservas, previdência, FX (USD→BRL), Louise wallet, contribuições, editores, modais. |
-| `public/js/goal-projection.js` | Card de projeção da meta de dividendos (1M/ano até 2035 por default). Lê/escreve `household/main/config/goalParams`. |
 | `worker/src/worker.js` | Cloudflare Worker (ver §2). **Publicado separadamente** em `https://ledger-i10-proxy.<sub>.workers.dev`. |
 | `public/manifest.json` | Manifesto PWA. |
 | `public/assets/icons/*` | Assets da marca. |
@@ -214,7 +211,7 @@ A API interna do I10 é **não oficial** — mapeada por engenharia reversa do l
 - **Lista de ativos**: top 10 ordenados por patrimônio, com ticker, qtd, preço médio, preço atual, % da carteira, appreciation, tag "via I10" ou "manual"
 - **Diversificação por categoria** (Ações / FIIs / Tesouro / Cripto / etc) com barras e %
 - **Barchart 12m** com range toggle 1Y / 5Y / All, conector pontilhado entre topos + pill no meio (v8 Turno 9)
-- **Meta de dividendos anuais** (card `goal-projection.js`): meta R$ 1M até 2035 por default, com projeção determinística, ritmo necessário vs. atual, sliders editáveis
+- **Meta de dividendos anuais** (card `#goalCardV2` em `public/index.html`, lógica em `app.js`): meta R$ 1M até 2035 por default, com projeção determinística, ritmo necessário vs. atual, sliders editáveis. Persistida em `config/goalParams`.
 - **Aportes mensais** (`contributions`): visualização histórica por ano/mês
 - **Reservas** (CC/poupança): lista editável, com seed automático de 3 contas default no primeiro load
 - **Previdência** (Bradesco default): lista editável, com seed automático no primeiro load
@@ -323,6 +320,6 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 - **Main branch**: `main`
 - **Worker URL**: `https://ledger-i10-proxy.<sub>.workers.dev` (configurada no app pelo modal ⚙️, persistida em `config/i10sync.workerUrl`)
 - **Firebase project ID**: `wealthy-tracker-68658`
-- **Entrypoint**: `public/index.html` → importa `public/js/app.js` (ES module) → carrega `public/js/goal-projection.js` quando o card de meta é renderizado
+- **Entrypoint**: `public/index.html` → importa `public/js/app.js` (ES module, único arquivo JS do app)
 - **Deploy do worker**: `wrangler deploy` ou colar no dashboard do Cloudflare Workers
 - **Deploy do app**: push pro repo (GitHub Pages ou equivalente serve os estáticos)

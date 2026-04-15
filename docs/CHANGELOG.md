@@ -10,6 +10,11 @@ Datas em `YYYY-MM-DD`.
   `tools/` (one-shots), `docs/` (documentação)
 - `index.html` e `manifest.json` com paths relativos à nova estrutura
 - Worker ganha `wrangler.toml` pra `wrangler deploy` virar one-liner
+- GitHub Pages serve via Actions workflow (`/public` não é opção nativa)
+
+### Removed
+- `goal-projection.js` (código morto — não era importado em lugar
+  nenhum; o card `#goalCardV2` é gerenciado pelo `app.js`)
 
 ### Added
 - `CLAUDE.md` — contexto persistente do projeto
