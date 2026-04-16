@@ -1,0 +1,74 @@
+name: Sync commits to Linear
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  log-to-linear:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build changelog body
+        id: changelog
+        run: |
+          COMMITS=$(git log \
+            --pretty=format:"- %s ([\`%h\`](${{ github.server_url }}/${{ github.repository }}/commit/%H)) — %an" \
+            ${{ github.event.before }}..${{ github.event.after }})
+
+          if [ -z "$COMMITS" ]; then
+            echo "No new commits, skipping."
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          DATE=$(date -u '+%Y-%m-%d %H:%M UTC')
+
+          cat > /tmp/body.md <<EOF
+          **🚀 Changes pushed to \`main\`** — $DATE
+
+          **Repo:** ${{ github.repository }}
+          **Pushed by:** @${{ github.actor }}
+
+          ### Commits
+          $COMMITS
+
+          [Compare changes →](${{ github.event.compare }})
+          EOF
+
+          echo "skip=false" >> $GITHUB_OUTPUT
+
+      - name: Post update to Linear
+        if: steps.changelog.outputs.skip == 'false'
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          LINEAR_PROJECT_ID: ${{ secrets.LINEAR_PROJECT_ID }}
+        run: |
+          BODY=$(cat /tmp/body.md)
+
+          PAYLOAD=$(jq -n \
+            --arg projectId "$LINEAR_PROJECT_ID" \
+            --arg body "$BODY" \
+            '{
+              query: "mutation ProjectUpdateCreate($projectId: String!, $body: String!) { projectUpdateCreate(input: { projectId: $projectId, body: $body }) { success projectUpdate { id url } } }",
+              variables: { projectId: $projectId, body: $body }
+            }')
+
+          RESPONSE=$(curl -s -X POST https://api.linear.app/graphql \
+            -H "Authorization: $LINEAR_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD")
+
+          echo "Linear response: $RESPONSE"
+
+          if echo "$RESPONSE" | jq -e '.errors' > /dev/null; then
+            echo "❌ Linear API returned errors"
+            exit 1
+          fi
+
+          URL=$(echo "$RESPONSE" | jq -r '.data.projectUpdateCreate.projectUpdate.url')
+          echo "✅ Posted update: $URL"
