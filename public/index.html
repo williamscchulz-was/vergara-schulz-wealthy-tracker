@@ -851,37 +851,150 @@ body::before {
 .month-nav .current { font-size: 12px; font-weight: 600; color: var(--ink); min-width: 110px; text-align: center; text-transform: capitalize; font-family: 'Geist Mono', monospace; }
 .stats { display: grid; gap: 10px; margin-bottom: 16px; }
 .stats.three { grid-template-columns: repeat(3, 1fr); }
-.stat { padding: 20px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); transition: all 0.2s var(--ease-out); }
-.stat:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+.stat {
+  position: relative;
+  padding: 20px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: all 0.2s var(--ease-out);
+  overflow: hidden;
+}
+.stat::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 2px; height: 100%;
+  background: linear-gradient(180deg, transparent, var(--purple), transparent);
+  opacity: 0;
+  transition: opacity 0.25s var(--ease-out);
+}
+.stat:hover { border-color: var(--border-strong); transform: translateY(-1px); box-shadow: var(--shadow); }
+.stat:hover::before { opacity: 0.8; }
 .stat .lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); margin-bottom: 10px; }
-.stat .val { font-family: 'Geist Mono', monospace; font-size: 20px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; line-height: 1; }
-.stat .val.pos { color: var(--gain); }
-.stat .val.neg { color: var(--loss); }
-.stat .sub { font-size: 10px; color: var(--ink-muted); margin-top: 6px; font-family: 'Geist Mono', monospace; }
+.stat .val { font-family: 'Geist Mono', monospace; font-size: 22px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; line-height: 1; font-variant-numeric: tabular-nums; }
+.stat .val .pos, .stat .val span.pos { color: var(--gain); }
+.stat .val .neg, .stat .val span.neg { color: var(--loss); }
+.stat .sub { font-size: 10px; color: var(--ink-muted); margin-top: 8px; font-family: 'Geist Mono', monospace; letter-spacing: 0.02em; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-.cat-list-exp { display: flex; flex-direction: column; gap: 10px; }
-.cat-row-exp { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 6px 0; }
-.cat-row-exp .icon { width: 32px; height: 32px; border-radius: 9px; background: var(--purple-soft); border: 1px solid var(--border); display: grid; place-items: center; font-size: 14px; }
-.cat-row-exp .name { font-size: 12px; font-weight: 600; color: var(--ink-2); }
-.cat-row-exp .val { font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; color: var(--ink); }
-.cat-row-exp .bar { grid-column: 2 / 3; height: 3px; background: var(--bg-elevated-3); border-radius: 2px; overflow: hidden; margin-top: 4px; }
-.cat-row-exp .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--purple), var(--purple-light)); border-radius: 2px; transition: width 0.6s var(--ease-out); }
-#recentList { display: flex; flex-direction: column; gap: 0; }
-#recentList .recent-item, .recent-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 12px 8px; border-bottom: 1px solid var(--border); transition: background 0.15s; }
-#recentList .recent-item:last-child { border-bottom: none; }
-#recentList .recent-item:hover { background: var(--bg-elevated-2); }
-#recentList .icon { width: 30px; height: 30px; border-radius: 8px; background: var(--purple-soft); display: grid; place-items: center; font-size: 14px; }
-#recentList .desc { font-size: 12px; font-weight: 600; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#recentList .meta { font-size: 10px; color: var(--ink-muted); margin-top: 2px; font-family: 'Geist Mono', monospace; }
-#recentList .amt { font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; color: var(--ink); }
+
+/* ---- Category breakdown (v8) ---- */
+#catList { display: flex; flex-direction: column; gap: 14px; }
+.exp-cat-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 0;
+  opacity: 0;
+  animation: fadeUp 0.5s var(--ease-out) forwards;
+  animation-delay: var(--cat-delay, 0.05s);
+}
+.exp-cat-icon {
+  width: 34px; height: 34px;
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--cat-color) 18%, var(--bg-elevated-2));
+  border: 1px solid color-mix(in oklab, var(--cat-color) 30%, transparent);
+  display: grid; place-items: center;
+  font-size: 15px;
+  transition: transform 0.2s var(--ease-back), background 0.2s var(--ease-out);
+}
+.exp-cat-row:hover .exp-cat-icon { transform: scale(1.06) rotate(-3deg); background: color-mix(in oklab, var(--cat-color) 28%, var(--bg-elevated-2)); }
+.exp-cat-meta { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.exp-cat-name { font-size: 12px; font-weight: 600; color: var(--ink-2); letter-spacing: -0.005em; }
+.exp-cat-bar {
+  position: relative;
+  height: 4px;
+  background: var(--bg-elevated-3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.exp-cat-bar i {
+  position: absolute; inset: 0 auto 0 0;
+  width: var(--w, 0%);
+  background: linear-gradient(90deg,
+    color-mix(in oklab, var(--cat-color) 80%, transparent),
+    var(--cat-color));
+  border-radius: 2px;
+  box-shadow: 0 0 8px color-mix(in oklab, var(--cat-color) 50%, transparent);
+  transform-origin: left;
+  animation: barGrow 0.8s var(--ease-out) forwards;
+  animation-delay: calc(var(--cat-delay, 0.05s) + 0.1s);
+  transform: scaleX(0);
+}
+@keyframes barGrow { to { transform: scaleX(1); } }
+.exp-cat-v { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; font-family: 'Geist Mono', monospace; }
+.exp-cat-pct { font-size: 11px; font-weight: 700; color: var(--cat-color); letter-spacing: -0.01em; }
+.exp-cat-amt { font-size: 12px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* ---- Recent list (v8) ---- */
+#recentList { display: flex; flex-direction: column; }
+.exp-recent-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s var(--ease-out), padding 0.15s var(--ease-out);
+  border-radius: 8px;
+  opacity: 0;
+  animation: fadeUp 0.4s var(--ease-out) forwards;
+  animation-delay: var(--row-delay, 0.05s);
+}
+.exp-recent-row:last-child { border-bottom: none; }
+.exp-recent-row:hover { background: var(--bg-elevated-2); padding-left: 14px; }
+.exp-recent-icon {
+  width: 32px; height: 32px;
+  border-radius: 9px;
+  background: color-mix(in oklab, var(--cat-color) 18%, var(--bg-elevated-2));
+  border: 1px solid color-mix(in oklab, var(--cat-color) 28%, transparent);
+  display: grid; place-items: center;
+  font-size: 14px;
+}
+.exp-recent-main { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.exp-recent-desc { font-size: 12.5px; font-weight: 600; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: -0.005em; }
+.exp-recent-meta { font-size: 10px; color: var(--ink-muted); font-family: 'Geist Mono', monospace; letter-spacing: 0.02em; }
+.exp-recent-amt { font-family: 'Geist Mono', monospace; font-size: 13px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ---- Full table (v8) ---- */
 .table-wrap { overflow-x: auto; }
-.exp-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.exp-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; }
 .exp-table th { text-align: left; padding: 0 14px 12px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); border-bottom: 1px solid var(--border); }
-.exp-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); color: var(--ink-2); font-family: 'Geist Mono', monospace; }
-.exp-table tr { transition: background 0.15s; cursor: pointer; }
-.exp-table tr:hover td { background: var(--bg-elevated-2); }
-.exp-table .amt { font-weight: 700; color: var(--ink); text-align: right; }
+.exp-table th.exp-th-amt { text-align: right; }
+.exp-table td { padding: 13px 14px; border-bottom: 1px solid var(--border); color: var(--ink-2); vertical-align: middle; }
+.exp-table tr[data-id] { cursor: pointer; position: relative; transition: background 0.15s var(--ease-out); }
+.exp-table tr[data-id]::after {
+  content: "";
+  position: absolute;
+  left: 0; top: 10%; bottom: 10%;
+  width: 2px;
+  background: var(--cat-color, var(--purple));
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.2s var(--ease-out);
+}
+.exp-table tr[data-id]:hover td { background: var(--bg-elevated-2); }
+.exp-table tr[data-id]:hover::after { opacity: 0.8; }
 .exp-table tr:last-child td { border-bottom: none; }
+.exp-row-date { color: var(--ink-3); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 11.5px; }
+.exp-row-desc-cell { min-width: 0; }
+.exp-row-desc { font-size: 12.5px; font-weight: 600; color: var(--ink); letter-spacing: -0.005em; }
+.exp-row-notes { margin-top: 3px; font-size: 10.5px; color: var(--ink-muted); font-family: 'Geist Mono', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 360px; }
+.exp-row-amt { text-align: right; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.exp-cat-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px 4px 7px;
+  border-radius: var(--radius-pill);
+  font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.01em;
+  color: color-mix(in oklab, var(--cat-color) 85%, var(--ink));
+  background: color-mix(in oklab, var(--cat-color) 14%, transparent);
+  border: 1px solid color-mix(in oklab, var(--cat-color) 28%, transparent);
+  white-space: nowrap;
+}
+.exp-cat-pill-icon { font-size: 12px; line-height: 1; }
 
 /* ===========================================================
    MODALS
