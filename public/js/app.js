@@ -487,7 +487,7 @@ function renderExpenses() {
 function renderCategoryBreakdown(monthExp, total) {
   const wrap = $('catList');
   if (monthExp.length === 0) {
-    wrap.innerHTML = `<div class="empty-table" style="padding:30px 10px"><h4>Sem despesas</h4><p>Adicione a primeira despesa do mês.</p></div>`;
+    wrap.innerHTML = `<div class="exp-empty"><h4>Sem despesas</h4><p>Adicione a primeira despesa do mês.</p></div>`;
     return;
   }
   // Group by category
@@ -497,13 +497,19 @@ function renderCategoryBreakdown(monthExp, total) {
     byCat[cat] = (byCat[cat] || 0) + (+e.value||0);
   });
   const sorted = Object.entries(byCat).sort((a,b) => b[1] - a[1]);
-  wrap.innerHTML = sorted.map(([catKey, val]) => {
+  wrap.innerHTML = sorted.map(([catKey, val], idx) => {
     const cat = CATEGORIES[catKey] || CATEGORIES.outros;
     const pct = total > 0 ? (val / total) * 100 : 0;
-    return `<div class="cat-row">
-      <div class="name"><span class="dot" style="background:${cat.color}"></span>${cat.icon} ${cat.label}</div>
-      <div class="bar-wrap"><i style="width:${pct}%;background:${cat.color}"></i></div>
-      <div class="v"><b>${pct.toFixed(0)}%</b>${fmtBRL0(val)}</div>
+    return `<div class="exp-cat-row" style="--cat-color:${cat.color};--cat-delay:${0.05 + idx * 0.04}s">
+      <div class="exp-cat-icon">${cat.icon}</div>
+      <div class="exp-cat-meta">
+        <div class="exp-cat-name">${cat.label}</div>
+        <div class="exp-cat-bar"><i style="--w:${pct}%"></i></div>
+      </div>
+      <div class="exp-cat-v">
+        <div class="exp-cat-pct">${pct.toFixed(0)}%</div>
+        <div class="exp-cat-amt">${fmtBRL0(val)}</div>
+      </div>
     </div>`;
   }).join('');
 }
@@ -511,44 +517,48 @@ function renderCategoryBreakdown(monthExp, total) {
 function renderRecentList(monthExp) {
   const wrap = $('recentList');
   if (monthExp.length === 0) {
-    wrap.innerHTML = `<div class="empty-table" style="padding:30px 10px"><h4>Sem lançamentos</h4><p>Suas despesas recentes aparecerão aqui.</p></div>`;
-    $('recentMeta').textContent = '-';
+    wrap.innerHTML = `<div class="exp-empty"><h4>Sem lançamentos</h4><p>Suas despesas recentes aparecerão aqui.</p></div>`;
+    $('recentMeta').textContent = '—';
     return;
   }
   const sorted = [...monthExp]
     .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 6);
   $('recentMeta').textContent = `Últimas ${sorted.length} despesas`;
-  wrap.innerHTML = sorted.map(e => {
+  wrap.innerHTML = sorted.map((e, idx) => {
     const cat = CATEGORIES[e.category] || CATEGORIES.outros;
-    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);gap:12px">
-      <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:500;color:var(--ink-2);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${cat.icon} ${e.description || '-'}</div>
-        <div style="font-size:11px;color:var(--muted)">${formatDateBR(e.date)} · ${cat.label}</div>
+    return `<div class="exp-recent-row" data-id="${e.id}" style="--cat-color:${cat.color};--row-delay:${0.05 + idx * 0.04}s">
+      <div class="exp-recent-icon">${cat.icon}</div>
+      <div class="exp-recent-main">
+        <div class="exp-recent-desc">${e.description || '—'}</div>
+        <div class="exp-recent-meta">${formatDateBR(e.date)} · ${cat.label}</div>
       </div>
-      <div style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;color:var(--ink-2);white-space:nowrap">${fmtBRL(+e.value||0)}</div>
+      <div class="exp-recent-amt">${fmtBRL(+e.value||0)}</div>
     </div>`;
   }).join('');
-  // Remove last border
-  const rows = wrap.querySelectorAll('div[style*="border-bottom"]');
-  if (rows.length > 0) rows[rows.length-1].style.borderBottom = 'none';
+  wrap.querySelectorAll('.exp-recent-row[data-id]').forEach(row =>
+    row.addEventListener('click', () => openExpenseModal(row.dataset.id))
+  );
 }
 
 function renderExpenseTable(monthExp) {
   const tbody = $('expBody');
   if (monthExp.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-table"><h4>Nenhuma despesa neste mês</h4><p>Clique em "New expense" para começar.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4"><div class="exp-empty"><h4>Nenhuma despesa neste mês</h4><p>Clique em "+ New expense" para começar.</p></div></td></tr>`;
     return;
   }
   const sorted = [...monthExp].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   tbody.innerHTML = sorted.map(e => {
     const cat = CATEGORIES[e.category] || CATEGORIES.outros;
-    return `<tr data-id="${e.id}">
-      <td class="mono">${formatDateBR(e.date)}</td>
-      <td>${e.description || '-'}</td>
-      <td><span class="cat-pill" style="background:${cat.color}22;color:${cat.color}"><span class="dot" style="background:${cat.color}"></span>${cat.icon} ${cat.label}</span></td>
-      <td class="mono" style="font-weight:600">${fmtBRL(+e.value||0)}</td>
-      <td></td>
+    const notes = (e.notes || '').trim();
+    const descHtml = notes
+      ? `<div class="exp-row-desc">${e.description || '—'}</div><div class="exp-row-notes" title="${notes.replace(/"/g,'&quot;')}">${notes}</div>`
+      : `<div class="exp-row-desc">${e.description || '—'}</div>`;
+    return `<tr data-id="${e.id}" style="--cat-color:${cat.color}">
+      <td class="mono exp-row-date">${formatDateBR(e.date)}</td>
+      <td class="exp-row-desc-cell">${descHtml}</td>
+      <td><span class="exp-cat-pill" style="--cat-color:${cat.color}"><span class="exp-cat-pill-icon">${cat.icon}</span>${cat.label}</span></td>
+      <td class="mono exp-row-amt">${fmtBRL(+e.value||0)}</td>
     </tr>`;
   }).join('');
   tbody.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => openExpenseModal(tr.dataset.id)));

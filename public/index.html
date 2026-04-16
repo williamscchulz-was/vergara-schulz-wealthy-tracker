@@ -1506,9 +1506,12 @@ body::before {
         <button class="btn-primary" id="btnAddExpense">+ New expense</button>
       </div>
 
-      <div class="exp-hero">
+      <div class="exp-hero animate-in">
         <div class="left">
-          <div class="label">Total do mês</div>
+          <div class="exp-hero-eyebrow">
+            <div class="live-dot"></div>
+            <div class="label">Total do mês</div>
+          </div>
           <div class="amt"><span class="cur">R$</span><span id="expHeroAmt">0</span></div>
           <div class="amt-sub" id="expHeroSub">Nenhuma despesa registrada ainda</div>
         </div>
@@ -1520,17 +1523,17 @@ body::before {
       </div>
 
       <div class="stats three">
-        <div class="stat">
+        <div class="stat animate-in">
           <div class="lbl">Despesas este mês</div>
           <div class="val" id="expCount">0</div>
           <div class="sub">Lançamentos registrados</div>
         </div>
-        <div class="stat">
+        <div class="stat animate-in">
           <div class="lbl">vs mês anterior</div>
           <div class="val" id="expVsPrev">—</div>
           <div class="sub" id="expVsPrevSub">Comparação</div>
         </div>
-        <div class="stat">
+        <div class="stat animate-in">
           <div class="lbl">Maior despesa</div>
           <div class="val" id="expBiggest">—</div>
           <div class="sub" id="expBiggestSub">—</div>
@@ -1538,21 +1541,21 @@ body::before {
       </div>
 
       <div class="grid-2" style="margin-top:0">
-        <div class="card">
+        <div class="card animate-in">
           <div class="card-head"><h3>Por categoria</h3><div class="meta">Distribuição do mês</div></div>
           <div class="cat-list" id="catList"></div>
         </div>
-        <div class="card">
+        <div class="card animate-in">
           <div class="card-head"><h3>Lançamentos recentes</h3><div class="meta" id="recentMeta">Últimas 6 despesas</div></div>
           <div id="recentList"></div>
         </div>
       </div>
 
-      <div class="card" style="margin-top:20px">
+      <div class="card animate-in" style="margin-top:20px">
         <div class="card-head"><h3>Todas as despesas do mês</h3><div class="meta">Clique em uma linha para editar</div></div>
         <div class="table-wrap">
           <table class="exp-table">
-            <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Valor</th><th></th></tr></thead>
+            <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th class="exp-th-amt">Valor</th></tr></thead>
             <tbody id="expBody"></tbody>
           </table>
         </div>
