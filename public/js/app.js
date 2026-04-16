@@ -544,7 +544,7 @@ function renderRecentList(monthExp) {
 function renderExpenseTable(monthExp) {
   const tbody = $('expBody');
   if (monthExp.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4"><div class="exp-empty"><h4>Nenhuma despesa neste mês</h4><p>Clique em "+ New expense" para começar.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4"><div class="exp-empty"><h4>Nenhuma despesa neste mês</h4><p>Clique em "+ Nova despesa" para começar.</p></div></td></tr>`;
     return;
   }
   const sorted = [...monthExp].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -573,6 +573,7 @@ function openExpenseModal(id = null) {
   if (id) {
     const e = state.expenses.find(x => x.id === id); if (!e) return;
     $('expenseModalTitle').textContent = 'Editar despesa';
+    document.querySelector('#expenseModal .modal .sub').textContent = 'Edite os detalhes abaixo ou exclua a despesa.';
     $('expDesc').value = e.description || '';
     $('expValue').value = e.value || '';
     $('expDate').value = e.date || '';
@@ -580,7 +581,8 @@ function openExpenseModal(id = null) {
     $('expNotes').value = e.notes || '';
     $('expDelete').style.display = '';
   } else {
-    $('expenseModalTitle').textContent = 'New expense';
+    $('expenseModalTitle').textContent = 'Nova despesa';
+    document.querySelector('#expenseModal .modal .sub').textContent = 'Registre uma despesa. A categoria pode ser editada depois.';
     $('expDesc').value = '';
     $('expValue').value = '';
     // Default date = today
@@ -602,7 +604,7 @@ async function saveExpense() {
   const category = $('expCategory').value;
   const notes = $('expNotes').value.trim();
 
-  if (!description) { showToast('Description required'); return; }
+  if (!description) { showToast('Descrição obrigatória'); return; }
   if (!value || value <= 0) { showToast('Valor deve ser maior que zero'); return; }
   if (!date) { showToast('Data obrigatória'); return; }
 

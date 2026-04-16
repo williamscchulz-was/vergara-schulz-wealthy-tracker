@@ -845,10 +845,20 @@ body::before {
 .exp-empty { padding: 34px 16px; text-align: center; color: var(--ink-muted); }
 .exp-empty h4 { font-size: 13px; font-weight: 600; color: var(--ink-2); margin: 0 0 6px; letter-spacing: -0.01em; }
 .exp-empty p { font-size: 11px; margin: 0; font-family: 'Geist Mono', monospace; color: var(--ink-muted); }
-.month-nav { display: flex; align-items: center; gap: 8px; background: var(--bg-elevated-2); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 4px; }
-.month-nav button { width: 32px; height: 32px; border-radius: 50%; background: transparent; border: none; color: var(--ink-2); font-size: 18px; cursor: pointer; display: grid; place-items: center; font-family: inherit; transition: all 0.2s var(--ease-out); }
-.month-nav button:hover { background: var(--purple-soft); color: var(--purple-light); }
-.month-nav .current { font-size: 12px; font-weight: 600; color: var(--ink); min-width: 110px; text-align: center; text-transform: capitalize; font-family: 'Geist Mono', monospace; }
+.month-nav {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  padding: 4px;
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
+}
+.month-nav button { width: 34px; height: 34px; border-radius: 50%; background: transparent; border: none; color: var(--ink-2); font-size: 18px; cursor: pointer; display: grid; place-items: center; font-family: inherit; transition: all 0.2s var(--ease-out); }
+.month-nav button:hover { background: var(--purple-soft); color: var(--purple-light); transform: scale(1.06); }
+.month-nav button:active { transform: scale(0.95); }
+.month-nav .current { font-size: 12px; font-weight: 600; color: var(--ink); min-width: 120px; text-align: center; text-transform: capitalize; font-family: 'Geist Mono', monospace; letter-spacing: 0.02em; }
 .stats { display: grid; gap: 10px; margin-bottom: 16px; }
 .stats.three { grid-template-columns: repeat(3, 1fr); }
 .stat {
@@ -1001,7 +1011,33 @@ body::before {
    =========================================================== */
 .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(12px) saturate(140%); -webkit-backdrop-filter: blur(12px) saturate(140%); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
 .modal-bg.show { display: flex; animation: fadeIn 0.2s var(--ease-out); }
-.modal { background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 28px 26px; max-width: 440px; width: 100%; box-shadow: var(--shadow-lg), 0 0 60px rgba(172,95,219,0.20); animation: modalUp 0.3s var(--ease-back); max-height: 90vh; overflow-y: auto; }
+.modal { background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 28px 26px; max-width: 440px; width: 100%; box-shadow: var(--shadow-lg), 0 0 60px rgba(172,95,219,0.20); animation: modalUp 0.3s var(--ease-back); max-height: 90vh; overflow-y: auto; position: relative; }
+
+/* Liquid glass variant — the spinning ring + ambient glow */
+.modal.liquid::before {
+  content: "";
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--liquid-angle),
+    transparent 0%,
+    transparent 55%,
+    rgba(227,162,238,.42) 68%,
+    #E3A2EE 78%,
+    #ffffff 86%,
+    #E3A2EE 92%,
+    rgba(172,95,219,.42) 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: liquid-spin 4s linear infinite;
+  filter: drop-shadow(0 0 8px rgba(227,162,238,.6));
+  pointer-events: none;
+  opacity: 0.85;
+}
 @keyframes modalUp { from { opacity: 0; transform: translateY(16px) scale(0.97); } to { opacity: 1; transform: none; } }
 .modal h3 { font-size: 18px; font-weight: 700; color: var(--ink); margin: 0 0 6px; letter-spacing: -0.01em; }
 .modal .sub { font-size: 12px; color: var(--ink-muted); margin: 0 0 20px; }
@@ -1648,7 +1684,7 @@ body::before {
           <h2>Expenses</h2>
           <div class="meta">Controle mensal de gastos</div>
         </div>
-        <button class="btn-primary" id="btnAddExpense">+ New expense</button>
+        <button class="btn-primary" id="btnAddExpense">+ Nova despesa</button>
       </div>
 
       <div class="exp-hero animate-in">
@@ -1946,32 +1982,32 @@ body::before {
   </div>
 </div>
 
-<div class="modal-bg" id="expenseModal"><div class="modal">
-  <h3 id="expenseModalTitle">New expense</h3>
-  <p class="sub">Track an expense. Categories can be edited later.</p>
+<div class="modal-bg" id="expenseModal"><div class="modal liquid">
+  <h3 id="expenseModalTitle">Nova despesa</h3>
+  <p class="sub">Registre uma despesa. A categoria pode ser editada depois.</p>
   <div class="form-grid">
-    <div class="field full"><label>Description</label><input type="text" id="expDesc" placeholder="Ex: Groceries, Netflix, Uber..." autocomplete="off" /></div>
-    <div class="field"><label>Amount (R$)</label><input type="number" id="expValue" placeholder="0,00" min="0" step="0.01" /></div>
-    <div class="field"><label>Date</label><input type="date" id="expDate" /></div>
-    <div class="field full"><label>Category</label><select id="expCategory">
-      <option value="moradia">🏠 Housing</option>
-      <option value="alimentacao">🍽️ Food</option>
-      <option value="transporte">🚗 Transport</option>
-      <option value="saude">💊 Health</option>
-      <option value="lazer">🎮 Leisure</option>
-      <option value="educacao">📚 Education</option>
-      <option value="assinaturas">📱 Subscriptions</option>
-      <option value="cartao">💳 Credit card</option>
-      <option value="compras">🛍️ Shopping</option>
-      <option value="outros">📦 Other</option>
+    <div class="field full"><label>Descrição</label><input type="text" id="expDesc" placeholder="Ex: Mercado, Netflix, Uber..." autocomplete="off" /></div>
+    <div class="field"><label>Valor (R$)</label><input type="number" id="expValue" placeholder="0,00" min="0" step="0.01" /></div>
+    <div class="field"><label>Data</label><input type="date" id="expDate" /></div>
+    <div class="field full"><label>Categoria</label><select id="expCategory">
+      <option value="moradia">🏠 Moradia</option>
+      <option value="alimentacao">🍽️ Alimentação</option>
+      <option value="transporte">🚗 Transporte</option>
+      <option value="saude">💊 Saúde</option>
+      <option value="lazer">🎮 Lazer</option>
+      <option value="educacao">📚 Educação</option>
+      <option value="assinaturas">📱 Assinaturas</option>
+      <option value="cartao">💳 Cartão de crédito</option>
+      <option value="compras">🛍️ Compras</option>
+      <option value="outros">📦 Outros</option>
     </select></div>
-    <div class="field full"><label>Notes (optional)</label><textarea id="expNotes" placeholder="Additional details..." rows="2"></textarea></div>
+    <div class="field full"><label>Notas (opcional)</label><textarea id="expNotes" placeholder="Detalhes adicionais..." rows="2"></textarea></div>
   </div>
   <div class="modal-foot">
-    <button class="btn-danger" id="expDelete" style="display:none">Delete</button>
+    <button class="btn-danger" id="expDelete" style="display:none">Excluir</button>
     <div class="spacer"></div>
-    <button class="btn-secondary" id="expCancel">Cancel</button>
-    <button class="btn-primary" id="expSave">Save</button>
+    <button class="btn-secondary" id="expCancel">Cancelar</button>
+    <button class="btn-primary" id="expSave">Salvar</button>
   </div>
 </div></div>
 
