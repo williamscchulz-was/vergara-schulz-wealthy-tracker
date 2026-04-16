@@ -12,10 +12,12 @@ Despesas do mês.
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `date` | string | ISO `YYYY-MM-DD` |
-| `amount` | number | BRL |
-| `category` | string | chave de `CATEGORIES` em `app.js` |
+| `value` | number | BRL (⚠ nome do campo é `value`, não `amount`) |
+| `category` | string | chave de `CATEGORIES` em `public/js/app.js` |
 | `description` | string | livre |
-| `createdBy` | string | displayName do usuário |
+| `notes` | string | opcional, livre (hoje não é exibido na UI) |
+| `createdBy` | string | displayName do usuário que lançou |
+| `updatedBy` | string | displayName do último a editar |
 | `createdAt` | timestamp | serverTimestamp |
 | `updatedAt` | timestamp | serverTimestamp (em edições) |
 

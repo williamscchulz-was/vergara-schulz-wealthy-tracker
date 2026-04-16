@@ -113,10 +113,12 @@ Todas as coleções e documentos ficam sob `household/main/...` (a casa é uma s
 ```
 /household/main/expenses/{id}
   - date:        ISO string (YYYY-MM-DD)
-  - amount:      number (BRL)
+  - value:       number (BRL)                // ⚠ field name is `value`, not `amount`
   - category:    string (chave de CATEGORIES em app.js)
   - description: string
+  - notes:       string (opcional, ainda não exibido na UI)
   - createdBy:   string (displayName)
+  - updatedBy:   string (displayName)
   - createdAt:   serverTimestamp
   - updatedAt:   serverTimestamp (on edit)
 
@@ -219,10 +221,14 @@ A API interna do I10 é **não oficial** — mapeada por engenharia reversa do l
 
 ### Modo Despesas
 
-- Lançamento com categoria + descrição + valor + data
-- Snapshot do mês atual com total + breakdown por categoria
+- Lançamento com categoria + descrição + valor + data + `notes` (opcional)
+- Hero com total do mês + label do mês
+- 3 stats: contagem, delta vs mês anterior, maior despesa
+- Breakdown por categoria com barras + %
+- Lista de "recentes" (6 últimas) + tabela completa do mês (clique na linha edita)
 - Navegação por mês (`state.currentViewMonth`)
-- Histórico de dividendos por ano (card separado)
+- CRUD via modal (`#expenseModal`, delete via `confirm()` nativo hoje)
+- **Não implementado (ideias futuras)**: orçamento por categoria, busca/filtro, despesas recorrentes, export CSV, exibição do campo `notes` na UI
 
 ### Transversal
 
