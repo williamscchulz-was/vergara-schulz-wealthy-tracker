@@ -921,7 +921,7 @@ body::before {
 }
 .exp-cat-bar i {
   position: absolute; inset: 0 auto 0 0;
-  width: var(--w, 0%);
+  width: max(var(--w, 0%), 10px);
   background: linear-gradient(90deg,
     color-mix(in oklab, var(--cat-color) 80%, transparent),
     var(--cat-color));
@@ -1681,8 +1681,8 @@ body::before {
 
       <div class="section-head">
         <div>
-          <h2>Expenses</h2>
-          <div class="meta">Controle mensal de gastos</div>
+          <h2>Despesas</h2>
+          <div class="meta">Lançamentos e orçamento do mês</div>
         </div>
         <button class="btn-primary" id="btnAddExpense">+ Nova despesa</button>
       </div>
