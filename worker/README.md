@@ -25,13 +25,27 @@ Todos `GET`. `:walletId` precisa casar `^\d{1,12}$`.
   quanto no fetch upstream (via `cf: { cacheTtl, cacheEverything }`)
 - Free tier do CF Workers (100k req/dia) sobra com folga
 
+## Setup
+
+```bash
+cd worker
+npm install           # instala wrangler localmente
+npx wrangler login    # uma vez, abre o browser
+```
+
+## Scripts
+
+| Comando | O que faz |
+|---|---|
+| `npm run dev` | wrangler dev (server local em `:8787`) |
+| `npm run deploy` | wrangler deploy (publica no CF) |
+| `npm run tail` | wrangler tail (stream de logs em produção) |
+
 ## Deploy
 
 ```bash
 cd worker
-npm install -g wrangler   # uma vez
-wrangler login            # uma vez
-wrangler deploy
+npm run deploy
 ```
 
 Ou cole `src/worker.js` no dashboard do Cloudflare Workers e publique
@@ -47,10 +61,9 @@ Essa URL vai no app, em **Investimentos → ⚙️ → Worker URL**.
 
 ```bash
 cd worker
-wrangler dev
+npm run dev
+# abre http://localhost:8787/i10/all/1986068?year=2026
 ```
-
-Depois abre `http://localhost:8787/i10/all/1986068?year=2026`.
 
 ## Aviso
 

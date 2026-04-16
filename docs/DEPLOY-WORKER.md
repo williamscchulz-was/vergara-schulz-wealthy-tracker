@@ -5,16 +5,18 @@ Passo a passo pra publicar o proxy que fica na frente do Investidor 10.
 ## Opção A — Wrangler CLI (recomendado)
 
 ```bash
-# 1. Instalar a CLI (uma vez)
-npm install -g wrangler
+# 1. Entrar na pasta do worker e instalar deps (uma vez)
+cd worker
+npm install
 
-# 2. Login no Cloudflare (abre o browser)
-wrangler login
+# 2. Login no Cloudflare (uma vez, abre o browser)
+npx wrangler login
 
 # 3. Deploy
-cd worker
-wrangler deploy
+npm run deploy
 ```
+
+Outros scripts úteis: `npm run dev` (server local) e `npm run tail` (logs em produção).
 
 Saída esperada:
 
