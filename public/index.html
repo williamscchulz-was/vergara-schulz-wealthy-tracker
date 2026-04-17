@@ -1159,6 +1159,73 @@ body::before {
   white-space: nowrap;
 }
 
+/* Income/expense toggle at the top of the expense modal */
+.exp-type-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 16px;
+  background: var(--bg-elevated-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+}
+.exp-type-opt {
+  padding: 7px 18px;
+  background: transparent;
+  border: none;
+  color: var(--ink-3);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.18s var(--ease-out);
+}
+.exp-type-opt:hover { color: var(--ink-2); }
+.exp-type-opt.active {
+  background: linear-gradient(135deg, var(--purple), var(--purple-deep));
+  color: #fff;
+  box-shadow: 0 2px 10px var(--purple-glow);
+}
+.exp-type-opt[data-type="income"].active {
+  background: linear-gradient(135deg, var(--gain), #2ba05c);
+  box-shadow: 0 2px 10px var(--gain-soft);
+}
+
+/* Header group: + Ganho (secondary) next to + Nova despesa (primary) */
+.exp-add-group { display: inline-flex; gap: 8px; align-items: center; }
+.btn-add-income {
+  display: inline-flex; align-items: center;
+  padding: 9px 14px;
+  background: var(--gain-soft);
+  border: 1px solid color-mix(in oklab, var(--gain) 26%, transparent);
+  color: var(--gain);
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: all 0.18s var(--ease-out);
+}
+.btn-add-income:hover {
+  background: color-mix(in oklab, var(--gain) 18%, transparent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px color-mix(in oklab, var(--gain) 20%, transparent);
+}
+
+/* Income styling on existing row/pill/amount layouts */
+.exp-recent-row.is-income .exp-recent-amt,
+.exp-table tr.is-income .exp-row-amt { color: var(--gain); }
+.exp-recent-row.is-income .exp-recent-icon,
+.exp-table tr.is-income {
+  --cat-color: var(--gain);
+}
+.exp-cat-pill.is-income {
+  --cat-color: var(--gain);
+  color: color-mix(in oklab, var(--gain) 85%, var(--ink));
+}
+
 /* Live household net worth pill in Expenses — takes user to Investments on click */
 .exp-nw-pill {
   position: relative;
@@ -2086,7 +2153,10 @@ body::before {
           <h2 data-i18n="exp.section.title">Despesas</h2>
           <div class="meta" data-i18n="exp.section.meta">Lançamentos e orçamento do mês</div>
         </div>
-        <button class="btn-primary" id="btnAddExpense" data-i18n="exp.new">+ Nova despesa</button>
+        <div class="exp-add-group">
+          <button class="btn-ghost btn-add-income" id="btnAddIncome" data-i18n="exp.new.income" title="Novo ganho">+ Ganho</button>
+          <button class="btn-primary" id="btnAddExpense" data-i18n="exp.new">+ Nova despesa</button>
+        </div>
       </div>
 
       <!-- Live household net worth pill (clickable → Investments tab) -->
@@ -2491,13 +2561,18 @@ body::before {
 </div></div>
 
 <div class="modal-bg" id="expenseModal"><div class="modal liquid">
+  <div class="exp-type-toggle" role="tablist" aria-label="Tipo de lançamento">
+    <button type="button" class="exp-type-opt active" data-type="expense" role="tab" aria-selected="true" data-i18n="exp.type.expense">Saída</button>
+    <button type="button" class="exp-type-opt" data-type="income" role="tab" aria-selected="false" data-i18n="exp.type.income">Ganho</button>
+  </div>
   <h3 id="expenseModalTitle" data-i18n="exp.modal.new.title">Nova despesa</h3>
   <p class="sub" id="expenseModalSub" data-i18n="exp.modal.new.sub">Registre uma despesa. A categoria pode ser editada depois.</p>
   <div class="form-grid">
     <div class="field full"><label data-i18n="exp.f.desc">Descrição</label><input type="text" id="expDesc" data-i18n-ph="exp.f.desc.ph" placeholder="Ex: Mercado, Netflix, Uber..." autocomplete="off" /></div>
     <div class="field"><label data-i18n="exp.f.value">Valor (R$)</label><input type="text" inputmode="decimal" id="expValue" placeholder="R$ 0,00" autocomplete="off" /></div>
     <div class="field"><label data-i18n="exp.f.date">Data</label><input type="date" id="expDate" /></div>
-    <div class="field full"><label data-i18n="exp.f.cat">Categoria</label><select id="expCategory">
+    <!-- Category (only for expense); Source (only for income) — toggled by JS -->
+    <div class="field full" id="expCategoryField"><label data-i18n="exp.f.cat">Categoria</label><select id="expCategory">
       <option value="moradia">🏠 Moradia</option>
       <option value="alimentacao">🍽️ Alimentação</option>
       <option value="transporte">🚗 Transporte</option>
@@ -2507,6 +2582,15 @@ body::before {
       <option value="assinaturas">📱 Assinaturas</option>
       <option value="cartao">💳 Cartão de crédito</option>
       <option value="compras">🛍️ Compras</option>
+      <option value="outros">📦 Outros</option>
+    </select></div>
+    <div class="field full" id="expSourceField" hidden><label data-i18n="exp.f.source">Fonte</label><select id="expSource">
+      <option value="salario">💼 Salário</option>
+      <option value="freelance">🛠️ Freelance</option>
+      <option value="distribuicao">💹 Distribuição</option>
+      <option value="dividendos">📈 Dividendos</option>
+      <option value="venda">🏷️ Venda</option>
+      <option value="presente">🎁 Presente</option>
       <option value="outros">📦 Outros</option>
     </select></div>
     <div class="field full"><label data-i18n="exp.f.notes">Notas (opcional)</label><textarea id="expNotes" data-i18n-ph="exp.f.notes.ph" placeholder="Detalhes adicionais..." rows="2"></textarea></div>

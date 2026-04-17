@@ -70,6 +70,16 @@ const CATEGORIES = {
   compras:     { label: 'Compras',           icon: '🛍️', color: '#ffd60a' },
   outros:      { label: 'Outros',            icon: '📦', color: '#8e8e93' },
 };
+// Income sources (labels resolved via i18n at render time)
+const INCOME_SOURCES = {
+  salario:      { icon: '💼', color: '#30d158', labelKey: 'exp.sources.salario' },
+  freelance:    { icon: '🛠️', color: '#64d2ff', labelKey: 'exp.sources.freelance' },
+  distribuicao: { icon: '💹', color: '#AC5FDB', labelKey: 'exp.sources.distribuicao' },
+  dividendos:   { icon: '📈', color: '#E3A2EE', labelKey: 'exp.sources.dividendos' },
+  venda:        { icon: '🏷️', color: '#ffd60a', labelKey: 'exp.sources.venda' },
+  presente:     { icon: '🎁', color: '#ff9500', labelKey: 'exp.sources.presente' },
+  outros:       { icon: '📦', color: '#8e8e93', labelKey: 'exp.sources.outros' },
+};
 const MONTH_NAMES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const MONTH_NAMES_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -256,6 +266,7 @@ const I18N = {
     'exp.toast.err.value': 'Valor deve ser maior que zero',
     'exp.toast.err.date': 'Data obrigatória',
     'exp.delete.title': 'Excluir despesa?',
+    'exp.delete.income.title': 'Excluir ganho?',
     'exp.delete.sub': 'Esta ação não pode ser desfeita.',
     'exp.delete.confirm': 'Sim, excluir',
     // ---- Budget sub-feature ----
@@ -294,6 +305,26 @@ const I18N = {
     'exp.csv.filename': 'despesas-{month}-{year}.csv',
     'exp.nw.label': 'PATRIMÔNIO DA CASA',
     'exp.nw.goto': 'Ver investimentos',
+    // ---- Income/expense split ----
+    'exp.type.expense': 'Saída',
+    'exp.type.income': 'Ganho',
+    'exp.new.income': '+ Ganho',
+    'exp.f.source': 'Fonte',
+    'exp.modal.income.new.title': 'Novo ganho',
+    'exp.modal.income.new.sub': 'Registre uma entrada. A fonte pode ser editada depois.',
+    'exp.modal.income.edit.title': 'Editar ganho',
+    'exp.modal.income.edit.sub': 'Edite os detalhes abaixo ou exclua o ganho.',
+    'exp.toast.income.added': '✓ Ganho registrado',
+    'exp.toast.income.saved': '✓ Ganho atualizado',
+    'exp.toast.income.deleted': '✓ Ganho excluído',
+    'exp.income.pill': 'Ganho',
+    'exp.sources.salario': 'Salário',
+    'exp.sources.freelance': 'Freelance',
+    'exp.sources.distribuicao': 'Distribuição',
+    'exp.sources.dividendos': 'Dividendos',
+    'exp.sources.venda': 'Venda',
+    'exp.sources.presente': 'Presente',
+    'exp.sources.outros': 'Outros',
   },
   en: {
     'login.tagline': 'Personal finance tracker.<br/>Sign in with Google to continue.',
@@ -452,6 +483,7 @@ const I18N = {
     'exp.toast.err.value': 'Amount must be greater than zero',
     'exp.toast.err.date': 'Date required',
     'exp.delete.title': 'Delete expense?',
+    'exp.delete.income.title': 'Delete income?',
     'exp.delete.sub': 'This action cannot be undone.',
     'exp.delete.confirm': 'Yes, delete',
     // ---- Budget sub-feature ----
@@ -490,6 +522,26 @@ const I18N = {
     'exp.csv.filename': 'expenses-{month}-{year}.csv',
     'exp.nw.label': 'HOUSEHOLD NET WORTH',
     'exp.nw.goto': 'See investments',
+    // ---- Income/expense split ----
+    'exp.type.expense': 'Expense',
+    'exp.type.income': 'Income',
+    'exp.new.income': '+ Income',
+    'exp.f.source': 'Source',
+    'exp.modal.income.new.title': 'New income',
+    'exp.modal.income.new.sub': 'Record an income. Source can be edited later.',
+    'exp.modal.income.edit.title': 'Edit income',
+    'exp.modal.income.edit.sub': 'Edit the details below or delete the income.',
+    'exp.toast.income.added': '✓ Income recorded',
+    'exp.toast.income.saved': '✓ Income updated',
+    'exp.toast.income.deleted': '✓ Income deleted',
+    'exp.income.pill': 'Income',
+    'exp.sources.salario': 'Salary',
+    'exp.sources.freelance': 'Freelance',
+    'exp.sources.distribuicao': 'Distribution',
+    'exp.sources.dividendos': 'Dividends',
+    'exp.sources.venda': 'Sale',
+    'exp.sources.presente': 'Gift',
+    'exp.sources.outros': 'Other',
   }
 };
 
@@ -714,16 +766,33 @@ function filterExpensesByMonth(date) {
   });
 }
 
+// Legacy entries (pre-type-split) are treated as expenses.
+const isIncome = (e) => e && e.type === 'income';
+const isExpense = (e) => !isIncome(e);
+
+// Resolve icon/color/label for any entry, handling both CATEGORIES and
+// INCOME_SOURCES dictionaries.
+function entryMeta(e) {
+  if (isIncome(e)) {
+    const s = INCOME_SOURCES[e.category] || INCOME_SOURCES.outros;
+    return { icon: s.icon, color: s.color, label: t(s.labelKey) };
+  }
+  const c = CATEGORIES[e.category] || CATEGORIES.outros;
+  return { icon: c.icon, color: c.color, label: c.label };
+}
+
 function renderExpenses() {
   const viewDate = state.currentViewMonth;
-  const monthExp = filterExpensesByMonth(viewDate);
+  const all = filterExpensesByMonth(viewDate);
+  const monthExp = all.filter(isExpense);
+  const monthIncome = all.filter(isIncome);
   const prevDate = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1);
-  const prevMonthExp = filterExpensesByMonth(prevDate);
+  const prevMonthExp = filterExpensesByMonth(prevDate).filter(isExpense);
 
   const total = monthExp.reduce((s,e) => s + (+e.value||0), 0);
   const prevTotal = prevMonthExp.reduce((s,e) => s + (+e.value||0), 0);
 
-  // Hero
+  // Hero (still "Total do mês" here — commit 2 flips it to Saldo)
   $('currentMonthLabel').textContent = monthLabel(viewDate);
   $('expHeroAmt').textContent = total.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
   if (monthExp.length === 0) {
@@ -736,7 +805,7 @@ function renderExpenses() {
       .replace('{avg}', fmtBRL0(total / monthExp.length));
   }
 
-  // Stats
+  // Stats (expense-centric)
   $('expCount').textContent = monthExp.length;
 
   if (prevTotal > 0) {
@@ -753,7 +822,7 @@ function renderExpenses() {
     $('expVsPrevSub').textContent = t('exp.stat.vs.empty');
   }
 
-  // Biggest
+  // Biggest expense
   if (monthExp.length > 0) {
     const biggest = [...monthExp].sort((a,b) => (+b.value||0) - (+a.value||0))[0];
     $('expBiggest').textContent = fmtBRL0(+biggest.value||0);
@@ -763,13 +832,18 @@ function renderExpenses() {
     $('expBiggestSub').textContent = '—';
   }
 
+  // Expense-only surfaces (category breakdown, daily chart, trend, recurring, budgets)
+  const allExpHistory = (state.expenses || []).filter(isExpense);
   renderCategoryBreakdown(monthExp, total);
-  renderRecentList(monthExp);
-  renderExpenseTable(monthExp);
   renderDailyChart(monthExp, viewDate);
-  renderTrend12m(state.expenses || [], viewDate);
-  renderTopRecurring(state.expenses || [], viewDate);
+  renderTrend12m(allExpHistory, viewDate);
+  renderTopRecurring(allExpHistory, viewDate);
   updateHeroOverBudgetBadge(monthExp);
+
+  // Mixed surfaces (both income + expense — income rendered in green)
+  renderRecentList(all);
+  renderExpenseTable(all);
+
   renderExpensesNetWorthPill();
 }
 
@@ -849,26 +923,29 @@ function renderCategoryBreakdown(monthExp, total) {
   }
 }
 
-function renderRecentList(monthExp) {
+function renderRecentList(entries) {
   const wrap = $('recentList');
-  if (monthExp.length === 0) {
+  if (entries.length === 0) {
     wrap.innerHTML = `<div class="exp-empty"><h4>${t('exp.empty.recent.title')}</h4><p>${t('exp.empty.recent.sub')}</p></div>`;
     $('recentMeta').textContent = '—';
     return;
   }
-  const sorted = [...monthExp]
+  const sorted = [...entries]
     .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 6);
   $('recentMeta').textContent = t('exp.card.recent.sub').replace('{n}', sorted.length);
   wrap.innerHTML = sorted.map((e, idx) => {
-    const cat = CATEGORIES[e.category] || CATEGORIES.outros;
-    return `<div class="exp-recent-row" data-id="${e.id}" style="--cat-color:${cat.color};--row-delay:${0.05 + idx * 0.04}s">
-      <div class="exp-recent-icon">${cat.icon}</div>
+    const meta = entryMeta(e);
+    const isIn = isIncome(e);
+    const amt = (+e.value || 0);
+    const amtText = isIn ? `+ ${fmtBRL(amt)}` : fmtBRL(amt);
+    return `<div class="exp-recent-row${isIn ? ' is-income' : ''}" data-id="${e.id}" style="--cat-color:${meta.color};--row-delay:${0.05 + idx * 0.04}s">
+      <div class="exp-recent-icon">${meta.icon}</div>
       <div class="exp-recent-main">
         <div class="exp-recent-desc">${e.description || '—'}</div>
-        <div class="exp-recent-meta">${formatDateBR(e.date)} · ${cat.label}</div>
+        <div class="exp-recent-meta">${formatDateBR(e.date)} · ${meta.label}</div>
       </div>
-      <div class="exp-recent-amt">${fmtBRL(+e.value||0)}</div>
+      <div class="exp-recent-amt">${amtText}</div>
     </div>`;
   }).join('');
   wrap.querySelectorAll('.exp-recent-row[data-id]').forEach(row =>
@@ -881,27 +958,28 @@ function renderRecentList(monthExp) {
 let _lastMonthExp = [];
 let _expSearchQuery = '';
 
-function renderExpenseTable(monthExp) {
-  _lastMonthExp = monthExp;
+function renderExpenseTable(entries) {
+  _lastMonthExp = entries;
   const tbody = $('expBody');
-  if (monthExp.length === 0) {
+  if (entries.length === 0) {
     tbody.innerHTML = `<tr><td colspan="4"><div class="exp-empty"><h4>${t('exp.empty.table.title')}</h4><p>${t('exp.empty.table.sub')}</p></div></td></tr>`;
     return;
   }
 
-  // Apply search filter (description + category label + notes, case-insensitive)
+  // Apply search filter (description + category/source label + notes, case-insensitive)
   const q = _expSearchQuery.trim().toLowerCase();
   const filtered = q
-    ? monthExp.filter(e => {
-        const cat = CATEGORIES[e.category] || CATEGORIES.outros;
+    ? entries.filter(e => {
+        const meta = entryMeta(e);
         const hay = [
           e.description || '',
           e.notes || '',
-          cat.label,
+          meta.label,
+          isIncome(e) ? t('exp.income.pill') : '',
         ].join(' ').toLowerCase();
         return hay.includes(q);
       })
-    : monthExp;
+    : entries;
 
   if (filtered.length === 0) {
     const msg = t('exp.search.none').replace('{q}', _expSearchQuery.trim());
@@ -911,16 +989,20 @@ function renderExpenseTable(monthExp) {
 
   const sorted = [...filtered].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   tbody.innerHTML = sorted.map(e => {
-    const cat = CATEGORIES[e.category] || CATEGORIES.outros;
+    const meta = entryMeta(e);
+    const isIn = isIncome(e);
     const notes = (e.notes || '').trim();
     const descHtml = notes
       ? `<div class="exp-row-desc">${e.description || '—'}</div><div class="exp-row-notes" title="${notes.replace(/"/g,'&quot;')}">${notes}</div>`
       : `<div class="exp-row-desc">${e.description || '—'}</div>`;
-    return `<tr data-id="${e.id}" style="--cat-color:${cat.color}">
+    const amt = (+e.value || 0);
+    const amtText = isIn ? `+ ${fmtBRL(amt)}` : fmtBRL(amt);
+    const pillLabel = isIn ? t('exp.income.pill') : meta.label;
+    return `<tr data-id="${e.id}" class="${isIn ? 'is-income' : ''}" style="--cat-color:${meta.color}">
       <td class="mono exp-row-date">${formatDateBR(e.date)}</td>
       <td class="exp-row-desc-cell">${descHtml}</td>
-      <td><span class="exp-cat-pill" style="--cat-color:${cat.color}"><span class="exp-cat-pill-icon">${cat.icon}</span>${cat.label}</span></td>
-      <td class="mono exp-row-amt">${fmtBRL(+e.value||0)}</td>
+      <td><span class="exp-cat-pill ${isIn ? 'is-income' : ''}" style="--cat-color:${meta.color}"><span class="exp-cat-pill-icon">${meta.icon}</span>${pillLabel}</span></td>
+      <td class="mono exp-row-amt">${amtText}</td>
     </tr>`;
   }).join('');
   tbody.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => openExpenseModal(tr.dataset.id)));
@@ -936,16 +1018,19 @@ function exportCurrentMonthCSV() {
   const filename = t('exp.csv.filename').replace('{month}', monthStr).replace('{year}', yearStr);
 
   // CSV with BOM so Excel opens UTF-8 correctly. Separator = ';' (BR convention).
-  const rows = [['Data', 'Descrição', 'Categoria', 'Valor (BRL)', 'Notas']];
+  const rows = [['Data', 'Tipo', 'Descrição', 'Categoria/Fonte', 'Valor (BRL)', 'Notas']];
   [...monthExp]
     .sort((a, b) => new Date(a.date) - new Date(b.date))
     .forEach(e => {
-      const cat = CATEGORIES[e.category] || CATEGORIES.outros;
+      const meta = entryMeta(e);
+      const typeLabel = isIncome(e) ? t('exp.type.income') : t('exp.type.expense');
+      const signed = (isIncome(e) ? +e.value : -Math.abs(+e.value || 0)).toFixed(2).replace('.', ',');
       rows.push([
         e.date || '',
+        typeLabel,
         (e.description || '').replace(/"/g, '""'),
-        cat.label,
-        (+e.value || 0).toFixed(2).replace('.', ','),
+        meta.label,
+        signed,
         (e.notes || '').replace(/"/g, '""'),
       ]);
     });
@@ -1209,27 +1294,54 @@ function updateHeroOverBudgetBadge(monthExp) {
 //                 EXPENSES - MODAL
 // ============================================================
 let editingExpenseId = null;
-function openExpenseModal(id = null) {
+let _modalType = 'expense'; // 'expense' | 'income'
+
+// Toggle the modal's internal state between expense and income. Swaps
+// title/subtitle copy and which of {category, source} fields is visible.
+function setModalType(type) {
+  _modalType = type === 'income' ? 'income' : 'expense';
+  document.querySelectorAll('#expenseModal .exp-type-opt').forEach(b => {
+    const on = b.dataset.type === _modalType;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-selected', String(on));
+  });
+  // Swap category vs source field
+  $('expCategoryField').hidden = _modalType === 'income';
+  $('expSourceField').hidden = _modalType !== 'income';
+  // Swap title/sub based on new type + edit/create context
+  const editing = !!editingExpenseId;
+  const titleKey = _modalType === 'income'
+    ? (editing ? 'exp.modal.income.edit.title' : 'exp.modal.income.new.title')
+    : (editing ? 'exp.modal.edit.title' : 'exp.modal.new.title');
+  const subKey = _modalType === 'income'
+    ? (editing ? 'exp.modal.income.edit.sub' : 'exp.modal.income.new.sub')
+    : (editing ? 'exp.modal.edit.sub' : 'exp.modal.new.sub');
+  $('expenseModalTitle').textContent = t(titleKey);
+  $('expenseModalSub').textContent = t(subKey);
+}
+
+function openExpenseModal(id = null, opts = {}) {
   editingExpenseId = id;
+  const today = new Date();
   if (id) {
     const e = state.expenses.find(x => x.id === id); if (!e) return;
-    $('expenseModalTitle').textContent = t('exp.modal.edit.title');
-    $('expenseModalSub').textContent = t('exp.modal.edit.sub');
+    const type = e.type === 'income' ? 'income' : 'expense';
+    setModalType(type);
     $('expDesc').value = e.description || '';
     $('expValue').value = fmtBRLInput(e.value);
     $('expDate').value = e.date || '';
-    $('expCategory').value = e.category || 'outros';
+    if (type === 'income') $('expSource').value = e.category || 'outros';
+    else $('expCategory').value = e.category || 'outros';
     $('expNotes').value = e.notes || '';
     $('expDelete').style.display = '';
   } else {
-    $('expenseModalTitle').textContent = t('exp.modal.new.title');
-    $('expenseModalSub').textContent = t('exp.modal.new.sub');
+    // Starting a new entry. `opts.type` overrides default (for '+ Ganho' btn).
+    setModalType(opts.type === 'income' ? 'income' : 'expense');
     $('expDesc').value = '';
     $('expValue').value = '';
-    // Default date = today
-    const today = new Date();
     $('expDate').value = today.toISOString().split('T')[0];
     $('expCategory').value = 'outros';
+    $('expSource').value = 'salario';
     $('expNotes').value = '';
     $('expDelete').style.display = 'none';
   }
@@ -1242,15 +1354,16 @@ async function saveExpense() {
   const description = $('expDesc').value.trim();
   const value = parseBRLInput($('expValue').value);
   const date = $('expDate').value;
-  const category = $('expCategory').value;
+  const category = _modalType === 'income' ? $('expSource').value : $('expCategory').value;
   const notes = $('expNotes').value.trim();
+  const type = _modalType;
 
   if (!description) { showToast(t('exp.toast.err.desc')); return; }
   if (!value || value <= 0) { showToast(t('exp.toast.err.value')); return; }
   if (!date) { showToast(t('exp.toast.err.date')); return; }
 
   const data = {
-    description, value, date, category, notes,
+    type, description, value, date, category, notes,
     updatedAt: serverTimestamp(),
     updatedBy: state.user?.displayName || 'unknown',
   };
@@ -1260,10 +1373,10 @@ async function saveExpense() {
     btn.disabled = true; btn.textContent = t('exp.btn.saving');
     if (editingExpenseId) {
       await setDoc(docExpense(editingExpenseId), data, { merge: true });
-      showToast(t('exp.toast.saved'));
+      showToast(t(type === 'income' ? 'exp.toast.income.saved' : 'exp.toast.saved'));
     } else {
       await addDoc(colExpenses(), { ...data, createdAt: serverTimestamp() });
-      showToast(t('exp.toast.added'));
+      showToast(t(type === 'income' ? 'exp.toast.income.added' : 'exp.toast.added'));
     }
     closeExpenseModal();
   } catch (err) { console.error(err); showToast(t('toast.error.save')); }
@@ -1272,9 +1385,10 @@ async function saveExpense() {
 
 async function deleteExpense() {
   if (!editingExpenseId) return;
-  // Open the custom confirm modal instead of confirm()
+  const entry = state.expenses.find(x => x.id === editingExpenseId);
+  const isIncome = entry?.type === 'income';
   openConfirmModal({
-    title: t('exp.delete.title'),
+    title: t(isIncome ? 'exp.delete.income.title' : 'exp.delete.title'),
     sub: t('exp.delete.sub'),
     confirmLabel: t('exp.delete.confirm'),
     cancelLabel: t('exp.btn.cancel'),
@@ -1282,7 +1396,7 @@ async function deleteExpense() {
     onConfirm: async () => {
       try {
         await deleteDoc(docExpense(editingExpenseId));
-        showToast(t('exp.toast.deleted'));
+        showToast(t(isIncome ? 'exp.toast.income.deleted' : 'exp.toast.deleted'));
         closeExpenseModal();
       } catch (err) { console.error(err); showToast(t('toast.error.delete')); }
     },
@@ -2927,7 +3041,12 @@ $('budgetSave')?.addEventListener('click', saveBudgets);
 $('budgetModal')?.addEventListener('click', e => { if (e.target.id === 'budgetModal') closeBudgetModal(); });
 
 // Expense modal
-$('btnAddExpense').addEventListener('click', () => openExpenseModal());
+$('btnAddExpense').addEventListener('click', () => openExpenseModal(null, { type: 'expense' }));
+$('btnAddIncome')?.addEventListener('click', () => openExpenseModal(null, { type: 'income' }));
+// Modal type toggle (Saída / Ganho)
+document.querySelectorAll('#expenseModal .exp-type-opt').forEach(btn => {
+  btn.addEventListener('click', () => setModalType(btn.dataset.type));
+});
 $('expCancel').addEventListener('click', closeExpenseModal);
 $('expSave').addEventListener('click', saveExpense);
 $('expDelete').addEventListener('click', deleteExpense);
