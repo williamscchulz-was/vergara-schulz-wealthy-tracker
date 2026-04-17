@@ -30,6 +30,19 @@ Datas em `YYYY-MM-DD`.
   `over-budget` em vermelho, footer agregado "gasto / orçamento")
   e editor dedicado via `#budgetModal`
 
+### Expenses v3 (Fase C — Analytics)
+- **Sparkline diário** (`#expDailyChart`): acumulado do mês vs linha
+  de ritmo esperado (dotted), faixas de fim de semana, marcador do
+  dia, footer com delta em BRL acima/abaixo do pace
+- **Tendência 12 meses** (`#expTrendChart`): barras empilhadas por
+  categoria com legenda auto-gerada; mês corrente destacado
+- **Top descrições recorrentes** (`#expRecList`): groupBy YTD, ranking
+  por gasto total, filtra por count ≥ 2
+- **Over-budget hero badge**: pill vermelho animado substitui o sub
+  line quando alguma categoria estoura o limite mensal
+- 17 novas chaves `exp.daily.*` / `exp.trend.*` / `exp.rec.*` /
+  `exp.hero.over` em PT + EN
+
 ### Added
 - `CLAUDE.md` — contexto persistente do projeto
 - `LICENSE` — all rights reserved

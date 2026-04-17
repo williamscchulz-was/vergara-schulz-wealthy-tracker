@@ -238,7 +238,12 @@ A API interna do I10 é **não oficial** — mapeada por engenharia reversa do l
 - CRUD via modal (`#expenseModal` com liquid border)
 - Delete via modal custom `#confirmModal` (substituiu `confirm()` nativo)
 - i18n completo: todas as strings estáticas/dinâmicas passam por `t()`; PT/EN
-- **Não implementado (ideias futuras)**: busca/filtro na tabela, despesas recorrentes, export CSV, comparação YoY por categoria
+- **Analytics (Fase C)**:
+  - **Sparkline diário** (`#expDailyChart`): linha de gasto acumulado do mês + linha tracejada de "ritmo esperado" (total/dias × dia), faixas sutis de fim de semana, marcador pro dia de hoje, footer comparando "Hoje: R$ X" vs pace (↑ vermelho acima, ↓ verde abaixo)
+  - **Tendência 12m** (`#expTrendChart`): barras empilhadas por categoria dos últimos 12 meses, legenda auto-gerada, mês corrente destacado
+  - **Top recorrentes** (`#expRecList`): groupBy descrição YTD (case-insensitive), ranking de gasto, mostra os 6 com count ≥ 2
+  - **Over-budget badge no hero**: quando qualquer categoria ultrapassou seu limite mensal, pill animado substitui o sub line
+- **Não implementado (ideias futuras)**: busca/filtro na tabela, despesas recorrentes marcadas manualmente, export CSV
 
 ### Transversal
 
