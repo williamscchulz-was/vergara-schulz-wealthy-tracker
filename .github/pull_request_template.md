@@ -1,3 +1,10 @@
+<!--
+  ⚠️ Fluxo padrão deste repo é commit direto no `main` (ver CLAUDE.md §9.2).
+  Se você abriu um PR, ótimo — o template abaixo ajuda no review.
+  Mas a maioria das mudanças não passa por aqui; elas vão direto pro main
+  via `git commit` + `git push`.
+-->
+
 ## O que muda
 
 <!-- 1-3 bullets descrevendo a intenção da mudança (o porquê, não o quê) -->

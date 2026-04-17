@@ -311,9 +311,9 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 ## 9. Workflow de entrega
 
 1. **Conversa → plano.** Tarefas não-triviais começam com a gente alinhando escopo em texto antes de qualquer edit. Se for mudança UI, descrever o comportamento esperado e validar.
-2. **Branches em worktree.** O projeto trabalha em worktrees do Claude Code (`.claude/worktrees/<nome>/`). Cada task fica isolada em sua branch `claude/<nome>`. Ao terminar: commit, push, PR pro `main`.
+2. **Sempre no `main`, direto.** O projeto tem uma única branch ativa — `main`. Nada de worktrees isoladas, nada de branch `claude/<task>`, nada de PR com merge imediato. Commits pequenos, `git add` + `git commit` + `git push origin main`. Se houver um `.claude/worktrees/` no repo, é estado residual do início do projeto — ignorar, não operar ali. Quem está editando são os dois donos do repo; a única pessoa que o review protegeria é si mesmo, e o custo da cerimônia não compensa.
 3. **Commits pequenos e descritivos.** Mensagem em inglês, 1-2 sentenças, foco no "porquê". Co-author do Claude incluído quando a task foi de fato assistida (formato padrão do `/commit`).
-4. **Sem push direto pro `main`** quando a mudança não é trivial. Abrir PR, mesmo que o merge seja imediato — o histórico do PR ajuda depois.
+4. **Cada commit é auto-contido.** Código + docs que descrevem esse código (ver §9.8) + (se tiver) teste saem juntos. Nada de "depois eu arrumo o doc".
 5. **Testar no navegador antes de declarar pronto.** Mudança de UI sem teste visual não fecha. Se não for possível testar (ex.: depende do Firestore real do casal), dizer explicitamente "não testei em ambiente real" — nunca fingir sucesso.
 6. **Mudanças no `worker/src/worker.js`** → publicar no Cloudflare e validar contra a wallet real antes de dar por entregue. Mudança no worker afeta os dois usuários imediatamente.
 7. **`tools/fix-historico.html` e variantes destrutivas** → nunca rodar sem confirmação explícita do dono, mesmo que peçam. São scripts que apagam histórico.
