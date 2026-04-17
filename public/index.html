@@ -918,9 +918,10 @@ body::before {
   background: color-mix(in oklab, var(--cat-color) 18%, var(--bg-elevated-2));
   border: 1px solid color-mix(in oklab, var(--cat-color) 30%, transparent);
   display: grid; place-items: center;
-  font-size: 15px;
+  color: var(--cat-color);
   transition: transform 0.2s var(--ease-back), background 0.2s var(--ease-out);
 }
+.exp-cat-icon .icn { width: 17px; height: 17px; }
 .exp-cat-row:hover .exp-cat-icon { transform: scale(1.06) rotate(-3deg); background: color-mix(in oklab, var(--cat-color) 28%, var(--bg-elevated-2)); }
 .exp-cat-meta { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .exp-cat-name { font-size: 12px; font-weight: 600; color: var(--ink-2); letter-spacing: -0.005em; }
@@ -1034,8 +1035,10 @@ body::before {
   border-radius: 9px;
   background: color-mix(in oklab, var(--cat-color) 18%, var(--bg-elevated-3));
   border: 1px solid color-mix(in oklab, var(--cat-color) 30%, transparent);
-  display: grid; place-items: center; font-size: 14px;
+  display: grid; place-items: center;
+  color: var(--cat-color);
 }
+.budget-row-icon .icn { width: 16px; height: 16px; }
 .budget-row-name { font-size: 12.5px; font-weight: 600; color: var(--ink-2); letter-spacing: -0.005em; }
 .budget-row-input {
   width: 140px;
@@ -1454,6 +1457,15 @@ body::before {
   .exp-search { flex: 1; min-width: 0; }
 }
 
+/* Inline SVG icon base — all Lucide-style strokes use this class */
+.icn {
+  display: inline-block;
+  width: 1em; height: 1em;
+  flex-shrink: 0;
+  vertical-align: middle;
+  color: currentColor;
+}
+
 /* Over-budget hero warning pill */
 .exp-hero-overbudget {
   display: inline-flex; align-items: center; gap: 6px;
@@ -1466,6 +1478,7 @@ body::before {
   letter-spacing: 0.01em;
   animation: pulse-soft 2.4s ease-in-out infinite;
 }
+.exp-hero-overbudget .icn { width: 12px; height: 12px; }
 @keyframes pulse-soft {
   0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--loss) 30%, transparent); }
   50% { box-shadow: 0 0 0 4px color-mix(in oklab, var(--loss) 0%, transparent); }
@@ -1495,8 +1508,9 @@ body::before {
   background: color-mix(in oklab, var(--cat-color) 18%, var(--bg-elevated-2));
   border: 1px solid color-mix(in oklab, var(--cat-color) 28%, transparent);
   display: grid; place-items: center;
-  font-size: 14px;
+  color: var(--cat-color);
 }
+.exp-recent-icon .icn { width: 16px; height: 16px; }
 .exp-recent-main { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .exp-recent-desc { font-size: 12.5px; font-weight: 600; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: -0.005em; }
 .exp-recent-meta { font-size: 10px; color: var(--ink-muted); font-family: 'Geist Mono', monospace; letter-spacing: 0.02em; }
@@ -1538,7 +1552,8 @@ body::before {
   border: 1px solid color-mix(in oklab, var(--cat-color) 28%, transparent);
   white-space: nowrap;
 }
-.exp-cat-pill-icon { font-size: 12px; line-height: 1; }
+.exp-cat-pill-icon { display: inline-flex; align-items: center; color: var(--cat-color); }
+.exp-cat-pill-icon .icn { width: 12px; height: 12px; }
 
 /* ===========================================================
    MODALS
@@ -2384,7 +2399,7 @@ body::before {
           <div class="applied-text" data-i18n="hero.manual">Manual update</div>
         </div>
         <div class="louise-chip" id="louiseChip" style="display:none" title="Carteira da Louise (filha) — acompanhada separadamente, não soma no patrimônio da casa">
-          <span class="louise-chip-heart">♥</span>
+          <span class="louise-chip-heart"><svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
           <span class="louise-chip-name">Louise</span>
           <span class="louise-chip-sep">·</span>
           <span class="louise-chip-val" id="louiseEquity">R$ 0</span>
@@ -2638,25 +2653,25 @@ body::before {
     <div class="field"><label data-i18n="exp.f.date">Data</label><input type="date" id="expDate" /></div>
     <!-- Category (only for expense); Source (only for income) — toggled by JS -->
     <div class="field full" id="expCategoryField"><label data-i18n="exp.f.cat">Categoria</label><select id="expCategory">
-      <option value="moradia">🏠 Moradia</option>
-      <option value="alimentacao">🍽️ Alimentação</option>
-      <option value="transporte">🚗 Transporte</option>
-      <option value="saude">💊 Saúde</option>
-      <option value="lazer">🎮 Lazer</option>
-      <option value="educacao">📚 Educação</option>
-      <option value="assinaturas">📱 Assinaturas</option>
-      <option value="cartao">💳 Cartão de crédito</option>
-      <option value="compras">🛍️ Compras</option>
-      <option value="outros">📦 Outros</option>
+      <option value="moradia">Moradia</option>
+      <option value="alimentacao">Alimentação</option>
+      <option value="transporte">Transporte</option>
+      <option value="saude">Saúde</option>
+      <option value="lazer">Lazer</option>
+      <option value="educacao">Educação</option>
+      <option value="assinaturas">Assinaturas</option>
+      <option value="cartao">Cartão de crédito</option>
+      <option value="compras">Compras</option>
+      <option value="outros">Outros</option>
     </select></div>
     <div class="field full" id="expSourceField" hidden><label data-i18n="exp.f.source">Fonte</label><select id="expSource">
-      <option value="salario">💼 Salário</option>
-      <option value="freelance">🛠️ Freelance</option>
-      <option value="distribuicao">💹 Distribuição</option>
-      <option value="dividendos">📈 Dividendos</option>
-      <option value="venda">🏷️ Venda</option>
-      <option value="presente">🎁 Presente</option>
-      <option value="outros">📦 Outros</option>
+      <option value="salario">Salário</option>
+      <option value="freelance">Freelance</option>
+      <option value="distribuicao">Distribuição</option>
+      <option value="dividendos">Dividendos</option>
+      <option value="venda">Venda</option>
+      <option value="presente">Presente</option>
+      <option value="outros">Outros</option>
     </select></div>
     <div class="field full"><label data-i18n="exp.f.owner">De quem</label>
       <div class="exp-owner-seg" role="radiogroup" aria-label="De quem">

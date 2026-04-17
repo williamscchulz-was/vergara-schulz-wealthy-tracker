@@ -337,6 +337,7 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 - **Campos numéricos vindos do I10** sempre coagidos com `+value || 0` ou `parseFloat(value) || 0` porque a API devolve às vezes string, às vezes number, às vezes `null`.
 - **Formatação de valores**: helpers `fmtBRL0`, `fmtBRL2`, `formatDateTimeBR` em `public/js/app.js`. Nunca usar `toLocaleString` cru na UI — passa pelos helpers pra manter consistência.
 - **CSS em `public/index.html`** com tokens no `:root`. Não espalhar cores hex cruas — usar `var(--purple)`, `var(--ink-2)`, `var(--gain)`, etc.
+- **Iconografia = SVG, nunca emoji.** Registro central em `const ICONS = { home, utensils, car, ... }` em `public/js/app.js`, cada entrada é uma string SVG 24×24 stroke-only (Lucide-style) montada pelo helper `_svg(paths)`. Todas têm `class="icn"` + `stroke="currentColor"` — containers aplicam a cor via `color: var(--cat-color)` e a SVG herda. Tamanho via `.icn { width/height: ... }` em cada contexto (tile, pill, badge). Emoji unicode é banido da UI (inclusive em `<option>`, toasts e tooltips) porque o rendering varia entre OS/navegador e rompe a densidade v7/v8.
 - **Animações respeitam `prefers-reduced-motion`** (bloco "v8 REDUCED MOTION" no CSS mata tudo quando ativo). Não adicionar animação sem respeitar isso.
 - **Datas**: armazenar como ISO string `YYYY-MM-DD` (despesas) ou `serverTimestamp` (metadados). Sempre absolutas — nada de "3 dias atrás" persistido.
 - **IDs de documento**: `dividendsYearly` usa o próprio ano como ID (`"2026"`). `expenses` e `contributions` usam ID auto do Firestore.
@@ -358,6 +359,7 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 - ❌ **Nunca** ignorar `prefers-reduced-motion` em animação nova. É acessibilidade, não opcional.
 - ❌ **Nunca** remover o early auth guard (`app.js:24-36`) — ele existe porque o main app às vezes trava e sem ele o login fica preso.
 - ❌ **Nunca** commitar mudança de schema, feature visível, padrão técnico, pessoa/email/UID ou walletId **sem atualizar o `.md` correspondente NO MESMO commit**. Ver regra operacional em §9.8. Docs desatualizados contaminam sessões futuras com informação errada.
+- ❌ **Nunca** colocar emoji unicode (🏠 ✓ ⚠ ♥ 📱 etc.) em nenhum ponto da UI — `<option>`, toast, tooltip, botão, label, copy, header. Renderização de emoji depende de OS/navegador (Windows desenha diferente do iOS, etc.) e quebra a consistência v7/v8. Use SVG do registro `ICONS` (ou adicione uma nova chave lá). Se a mensagem precisa de símbolo de status, injete SVG via `innerHTML` (ex: toast não faz isso ainda — deixa só a cor comunicar).
 
 ---
 

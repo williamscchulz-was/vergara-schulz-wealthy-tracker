@@ -55,6 +55,29 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Iconografia: emoji → SVG (cross-platform consistency)
+- `const ICONS` registrado em `public/js/app.js` com 15 SVGs Lucide-style
+  (home, utensils, car, heartPulse, gamepad, book, repeat, creditCard,
+  shoppingBag, package, briefcase, wrench, pieChart, trendingUp, tag,
+  gift + utility: check, alertTri, heart)
+- Helper `_svg(paths)` gera `<svg class="icn" viewBox="0 0 24 24"
+  stroke="currentColor" ...>` consistente
+- `CATEGORIES.icon` e `INCOME_SOURCES.icon` agora referenciam
+  `ICONS.<key>` — todos os renderers existentes continuam usando
+  `${meta.icon}` sem mudança, agora produzindo SVG em vez de emoji
+- `<option>` do modal de categoria e fonte: removido prefixo emoji
+  (select HTML não renderiza SVG inline de qualquer forma)
+- Chip `♥` da Louise → SVG heart
+- `⚠` do hero over-budget → SVG alertTri via `ICONS.alertTri`
+- Toasts: removido prefixo `✓` de todas as 10+ mensagens de sucesso
+  (a cor verde da pill já sinaliza sucesso)
+- CSS: nova classe base `.icn` + `.exp-cat-icon .icn` / `.exp-recent-icon
+  .icn` / `.exp-cat-pill-icon .icn` / `.budget-row-icon .icn` /
+  `.exp-hero-overbudget .icn` com tamanhos contextualizados; containers
+  ganham `color: var(--cat-color)` pra o `currentColor` do SVG herdar
+- Regra nova em CLAUDE.md §11: emoji unicode é banido da UI (rendering
+  varia entre sistemas); §10 documenta o padrão do registro `ICONS`
+
 ### Expenses v4 — Movimentação (Fase D minimalista, sem nova aba)
 Absorvido de um sistema de referência que o William usa, filtrando
 apenas o que move ponteiro. Nada de aba Endividamento, Cartões ou
