@@ -840,6 +840,18 @@ body::before {
 .exp-hero .amt .cur { font-size: 20px; color: var(--ink-3); font-weight: 600; }
 .exp-hero .amt #expHeroAmt { font-size: clamp(36px, 8vw, 52px); font-variant-numeric: tabular-nums; }
 .exp-hero .amt-sub { font-size: 11px; color: var(--ink-muted); font-family: 'Geist Mono', monospace; letter-spacing: 0.02em; }
+.exp-hero .amt-sub .pos { color: var(--gain); font-weight: 600; }
+.exp-hero .amt-sub .neg { color: var(--loss); font-weight: 600; }
+
+/* Saldo state on hero */
+.exp-hero.is-positive .amt #expHeroAmt { color: var(--gain); }
+.exp-hero.is-positive .amt .cur        { color: color-mix(in oklab, var(--gain) 60%, var(--ink-3)); }
+.exp-hero.is-positive::after           { background: radial-gradient(ellipse, var(--gain-soft), transparent 70%); }
+.exp-hero.is-positive .live-dot        { background: var(--gain); box-shadow: 0 0 12px var(--gain); }
+.exp-hero.is-negative .amt #expHeroAmt { color: var(--loss); }
+.exp-hero.is-negative .amt .cur        { color: color-mix(in oklab, var(--loss) 60%, var(--ink-3)); }
+.exp-hero.is-negative::after           { background: radial-gradient(ellipse, var(--loss-soft), transparent 70%); }
+.exp-hero.is-negative .live-dot        { background: var(--loss); box-shadow: 0 0 12px var(--loss); }
 
 /* Empty state — used across all Expense cards */
 .exp-empty { padding: 34px 16px; text-align: center; color: var(--ink-muted); }
@@ -2177,7 +2189,7 @@ body::before {
         <div class="left">
           <div class="exp-hero-eyebrow">
             <div class="live-dot"></div>
-            <div class="label" data-i18n="exp.hero.total">Total do mês</div>
+            <div class="label" data-i18n="exp.hero.balance">Saldo do mês</div>
           </div>
           <div class="amt"><span class="cur">R$</span><span id="expHeroAmt">0</span></div>
           <div class="amt-sub" id="expHeroSub" data-i18n="exp.hero.empty">Nenhuma despesa registrada ainda</div>

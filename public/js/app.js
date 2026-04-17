@@ -218,7 +218,9 @@ const I18N = {
     'exp.section.meta': 'Lançamentos e orçamento do mês',
     'exp.new': '+ Nova despesa',
     'exp.hero.total': 'TOTAL DO MÊS',
-    'exp.hero.empty': 'Nenhuma despesa registrada ainda',
+    'exp.hero.balance': 'SALDO DO MÊS',
+    'exp.hero.balance.sub': '{in} entraram · {out} saíram',
+    'exp.hero.empty': 'Nenhum lançamento registrado ainda',
     'exp.hero.sub': '{n} {label} · média {avg}',
     'exp.count.singular': 'despesa',
     'exp.count.plural': 'despesas',
@@ -435,7 +437,9 @@ const I18N = {
     'exp.section.meta': 'Monthly spending and budget',
     'exp.new': '+ New expense',
     'exp.hero.total': 'MONTH TOTAL',
-    'exp.hero.empty': 'No expenses recorded yet',
+    'exp.hero.balance': 'MONTH BALANCE',
+    'exp.hero.balance.sub': '{in} in · {out} out',
+    'exp.hero.empty': 'No entries recorded yet',
     'exp.hero.sub': '{n} {label} · avg {avg}',
     'exp.count.singular': 'expense',
     'exp.count.plural': 'expenses',
@@ -792,17 +796,35 @@ function renderExpenses() {
   const total = monthExp.reduce((s,e) => s + (+e.value||0), 0);
   const prevTotal = prevMonthExp.reduce((s,e) => s + (+e.value||0), 0);
 
-  // Hero (still "Total do mês" here — commit 2 flips it to Saldo)
+  // Hero: "Saldo do mês" = ganhos − saídas
   $('currentMonthLabel').textContent = monthLabel(viewDate);
-  $('expHeroAmt').textContent = total.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
-  if (monthExp.length === 0) {
-    $('expHeroSub').textContent = t('exp.hero.empty');
+  const incomeTotal = monthIncome.reduce((s, e) => s + (+e.value || 0), 0);
+  const saldo = incomeTotal - total;
+  const heroAmtEl = $('expHeroAmt');
+  const heroCurEl = document.querySelector('.exp-hero .amt .cur');
+  const hero = document.querySelector('.exp-hero');
+  // Amount: show absolute; class on hero signals sign (positive vs negative)
+  heroAmtEl.textContent = Math.abs(saldo).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  if (hero) {
+    hero.classList.toggle('is-positive', saldo >= 0 && (incomeTotal > 0 || total > 0));
+    hero.classList.toggle('is-negative', saldo < 0);
+  }
+  // Prepend sign to currency label so "R$ 46" for positive, "−R$ 46" for negative
+  if (heroCurEl) heroCurEl.textContent = saldo < 0 ? '− R$' : 'R$';
+  // Subline: "↑ 46k entraram · ↓ 82k saíram" — or empty state
+  const heroSub = $('expHeroSub');
+  if (monthExp.length === 0 && monthIncome.length === 0) {
+    heroSub.textContent = t('exp.hero.empty');
   } else {
-    const label = monthExp.length > 1 ? t('exp.count.plural') : t('exp.count.singular');
-    $('expHeroSub').textContent = t('exp.hero.sub')
-      .replace('{n}', monthExp.length)
-      .replace('{label}', label)
-      .replace('{avg}', fmtBRL0(total / monthExp.length));
+    heroSub.innerHTML = t('exp.hero.balance.sub')
+      .replace('{in}', `<span class="pos">↑ ${fmtBRL0(incomeTotal)}</span>`)
+      .replace('{out}', `<span class="neg">↓ ${fmtBRL0(total)}</span>`);
+  }
+  // Label swap "TOTAL DO MÊS" → "SALDO DO MÊS" (also honored by data-i18n)
+  const heroLabelEl = document.querySelector('.exp-hero-eyebrow .label');
+  if (heroLabelEl) {
+    heroLabelEl.setAttribute('data-i18n', 'exp.hero.balance');
+    heroLabelEl.textContent = t('exp.hero.balance');
   }
 
   // Stats (expense-centric)
