@@ -53,8 +53,10 @@ Aportes mensais.
 ### `/household/main/config/i10`
 Snapshot da carteira do W sincronizada do Investidor 10.
 Campos: `equity`, `applied`, `variation`, `profitTwr`, `dividends`,
-`year`, `assets[]`, `categories[]`, `tickerCategories{}`, `updatedAt`,
-`updatedBy`, `source`.
+`year`, `assets[]`, `categories[]`, `monthly[]` (histórico mensal de
+PL dos últimos 12 meses, shape `[{ year, month, equity }]` ordenado
+cronologicamente; alimenta o card "rentabilidade mês a mês"),
+`tickerCategories{}`, `updatedAt`, `updatedBy`, `source`.
 
 ### `/household/main/config/i10-louise`
 Idem pra carteira da F (walletId `2699282`).

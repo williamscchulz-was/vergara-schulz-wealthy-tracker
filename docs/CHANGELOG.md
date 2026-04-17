@@ -55,6 +55,41 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Rentabilidade mês a mês
+Novo card `#monthlyReturnsCard` na aba Investimentos, entre "patrimônio
+por ano" e "aportes mensais". Responde a pergunta "quais meses foram
+bons?" sem abrir nova aba.
+
+- `worker/src/worker.js` — `/i10/all` agora agrega também o
+  `/summary/barchart/{walletId}/12/all` do I10 (com `.catch(() => null)`
+  para que falha do barchart não derrube o resto da resposta).
+  **⚠ REDEPLOY DO WORKER NECESSÁRIO** (`cd worker && npm run deploy`).
+- `parseI10Barchart(raw)` em `public/js/app.js` normaliza a resposta
+  upstream (shape pode variar entre versões do I10) para um array
+  `[{ year, month, equity }]` ordenado. Suporta 4 shapes comuns +
+  fallback gracioso para `[]`.
+- `state.i10.monthly` persiste em Firestore (`config/i10.monthly`),
+  propaga pelos dois usuários via `onSnapshot`.
+- `computeMonthlyReturns(monthly, contribs, yearly)` calcula retorno
+  por mês usando **modified Dietz**: `(end - start - netCashFlow) /
+  (start + netCashFlow/2)`, onde `netCashFlow = contrib - dividends`
+  (dividendos reduzem o cashflow externo porque fazem parte do retorno,
+  não são retirada). Proventos anuais são distribuídos ratably em 1/12
+  por mês (melhor aproximação possível sem dado mensal do I10).
+- `renderMonthlyReturns()` desenha SVG inline de 12 barras (verde/
+  vermelho), labels de valor acima/abaixo de cada barra, baseline
+  tracejada no zero, labels de mês em geist mono. Badge no card-head
+  mostra "média +X% · últimos N meses" em verde ou vermelho.
+  `<details>` expande tabela com 7 colunas: Mês, PL início, PL fim,
+  Aporte, Proventos, Retorno R$, Retorno %. Tudo em Geist Mono com
+  tabular-nums.
+- 14 novas chaves i18n (`card.monthlyreturn`, `sub.monthlyreturn`,
+  `mr.see.table`, `mr.th.*`, `mr.empty`, `mr.avg`) em PT + EN.
+
+QA: parser passou em 5/6 shapes (incluindo null/garbage); Dietz bate
+matematicamente (+10% simples, +9.09% com aporte, +2.01% com dividendo
+no denominador); render produz 11 barras para 12 meses de histórico.
+
 ### Iconografia: emoji → SVG (cross-platform consistency)
 - `const ICONS` registrado em `public/js/app.js` com 15 SVGs Lucide-style
   (home, utensils, car, heartPulse, gamepad, book, repeat, creditCard,

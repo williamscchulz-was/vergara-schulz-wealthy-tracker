@@ -149,7 +149,9 @@ Todas as coleções e documentos ficam sob `household/main/...` (a casa é uma s
 /household/main/config/settings         // lang, theme, etc
 /household/main/config/i10              // snapshot sincronizado da carteira do W
     equity, applied, variation, profitTwr, dividends, year,
-    assets[], categories[], tickerCategories{}, updatedAt, updatedBy, source
+    assets[], categories[], monthly[], tickerCategories{}, updatedAt, updatedBy, source
+    // monthly[]: [{ year, month, equity }] sorted asc — backbone do card
+    // de rentabilidade mês a mês (vem do /summary/barchart/... do I10)
 
 /household/main/config/i10-louise       // idem para carteira da F (walletId 2699282)
     equity, applied, variation, dividends, year, updatedAt, updatedBy, source
@@ -228,6 +230,7 @@ A API interna do I10 é **não oficial** — mapeada por engenharia reversa do l
 - **Lista de ativos**: top 10 ordenados por patrimônio, com ticker, qtd, preço médio, preço atual, % da carteira, appreciation, tag "via I10" ou "manual"
 - **Diversificação por categoria** (Ações / FIIs / Tesouro / Cripto / etc) com barras e %
 - **Barchart 12m** com range toggle 1Y / 5Y / All, conector pontilhado entre topos + pill no meio (v8 Turno 9)
+- **Rentabilidade mês a mês** (`#monthlyReturnsCard`, abaixo do "patrimônio por ano"): bar chart de ~11 barras (verde positivo, vermelho negativo) + badge "média +X% · últimos N meses" + tabela expansível (`<details>`) com PL início, PL fim, Aporte, Proventos, Retorno R$ e %. Fórmula: **modified Dietz** com **total return** (dividendos contam como parte do retorno, não saída). Helper: `computeMonthlyReturns(state.i10.monthly, state.contributions, state.yearly)` em `public/js/app.js`. Dados vêm do endpoint `/i10/barchart/:walletId` agregado em `/i10/all` — shape é normalizado por `parseI10Barchart()` (aceita várias formas: array de {date, value}, {data: []}, {labels: [], values: []}, ou {year, month, equity} já explícitos). Proventos são distribuídos proporcionalmente 1/12 por mês a partir de `dividendsYearly` (aproximação; se quiser granular mensal, precisaria de outro endpoint do I10).
 - **Meta de dividendos anuais** (card `#goalCardV2` em `public/index.html`, lógica em `app.js`): meta R$ 1M até 2035 por default, com projeção determinística, ritmo necessário vs. atual, sliders editáveis. Persistida em `config/goalParams`.
 - **Aportes mensais** (`contributions`): visualização histórica por ano/mês
 - **Reservas** (CC/poupança): lista editável, com seed automático de 3 contas default no primeiro load

@@ -101,17 +101,21 @@ async function handle(request) {
     }
 
     if (kind === 'all') {
-      // Busca em paralelo tudo que o Ledger precisa em UMA chamada
+      // Busca em paralelo tudo que o Ledger precisa em UMA chamada.
+      // Barchart é tolerante a falha: se quebrar, o resto da resposta
+      // continua válida e o app trata `barchart === null`.
       const { start, end } = currentYearRange(url.searchParams.get('year'));
-      const [metrics, earnings, actives] = await Promise.all([
+      const [metrics, earnings, actives, barchart] = await Promise.all([
         fetchI10(`/summary/metrics/${walletId}?type=without-earnings&raw=1`),
         fetchI10(`/earnings/total-period/${walletId}?start_date=${start}&end_date=${end}`),
         fetchI10(`/summary/actives/${walletId}/Ticker?raw=1&selected_wallet_currency=BRL`),
+        fetchI10(`/summary/barchart/${walletId}/12/all`).catch(() => null),
       ]);
       return json({
         metrics,
         earnings,
         actives,
+        barchart,
         fetchedAt: new Date().toISOString(),
         walletId,
       });

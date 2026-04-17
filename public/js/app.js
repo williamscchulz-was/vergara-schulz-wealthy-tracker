@@ -120,7 +120,7 @@ const state = {
   mode: 'investments',          // 'expenses' | 'investments'
   expenses: [],
   yearly: [],
-  i10: { equity: 0, dividends: 0, updatedAt: null, year: new Date().getFullYear(), assets: [], categories: [] },
+  i10: { equity: 0, dividends: 0, updatedAt: null, year: new Date().getFullYear(), assets: [], categories: [], monthly: [] },
   contributions: [],
   i10Cfg: { workerUrl: '', walletId: '', publicHash: '', autoSync: false },
   i10Louise: { equity: 0, dividends: 0, applied: 0, variation: 0, updatedAt: null },
@@ -152,6 +152,18 @@ const I18N = {
     'card.portfolio': 'minha carteira',
     'card.dividends': 'dividendos por ano',
     'card.networth': 'patrimônio por ano',
+    'card.monthlyreturn': 'rentabilidade mês a mês',
+    'sub.monthlyreturn': 'variação percentual sobre o PL, Dietz modificado + proventos',
+    'mr.see.table': 'Ver tabela detalhada',
+    'mr.th.month': 'Mês',
+    'mr.th.start': 'PL início',
+    'mr.th.end': 'PL fim',
+    'mr.th.contrib': 'Aporte',
+    'mr.th.divs': 'Proventos',
+    'mr.th.retbrl': 'Retorno',
+    'mr.th.retpct': '%',
+    'mr.empty': 'Sincronize com I10 pelo menos uma vez pra gerar o histórico mensal. A rentabilidade precisa de ≥2 meses de PL conhecidos.',
+    'mr.avg': 'média {pct} · últimos {n} meses',
     'card.contributions': 'aportes mensais',
     'card.history': 'histórico anual',
     'tab.investments': 'Investimentos',
@@ -378,6 +390,18 @@ const I18N = {
     'card.portfolio': 'my portfolio',
     'card.dividends': 'dividends per year',
     'card.networth': 'net worth per year',
+    'card.monthlyreturn': 'monthly returns',
+    'sub.monthlyreturn': 'modified Dietz, dividends-inclusive',
+    'mr.see.table': 'See detailed table',
+    'mr.th.month': 'Month',
+    'mr.th.start': 'Start NW',
+    'mr.th.end': 'End NW',
+    'mr.th.contrib': 'Contrib',
+    'mr.th.divs': 'Dividends',
+    'mr.th.retbrl': 'Return',
+    'mr.th.retpct': '%',
+    'mr.empty': 'Sync with I10 at least once to seed the monthly history. Monthly return needs ≥2 known-NW months.',
+    'mr.avg': 'avg {pct} · last {n} months',
     'card.contributions': 'monthly contributions',
     'card.history': 'yearly history',
     'tab.investments': 'Investments',
@@ -669,6 +693,60 @@ function fmtBRLInput(n) {
   if (n == null || n === '' || !isFinite(+n)) return '';
   return 'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+
+// Normalize the I10 barchart response to [{ year, month, equity }] sorted
+// ascending by (year, month). The upstream shape has drifted between API
+// versions — we try a handful of common shapes and give up gracefully.
+// Returns [] on anything unrecognized.
+function parseI10Barchart(raw) {
+  if (!raw) return [];
+  // Possible shapes:
+  //   [ { date: '2025-11-01', value: 123 }, ... ]
+  //   { data: [ ... ] }
+  //   { labels: ['Nov/25', ...], values: [123, ...] }
+  //   [ { month: 11, year: 2025, equity: 123 }, ... ]
+  let rows = [];
+  if (Array.isArray(raw)) rows = raw;
+  else if (Array.isArray(raw.data)) rows = raw.data;
+  else if (Array.isArray(raw.values) && Array.isArray(raw.labels)) {
+    // labels + values parallel arrays. Labels like "Nov/25" or "2025-11".
+    rows = raw.labels.map((lab, i) => ({ label: lab, value: raw.values[i] }));
+  } else if (Array.isArray(raw.result)) rows = raw.result;
+  else return [];
+
+  const parseLabel = (lab) => {
+    if (!lab) return null;
+    const s = String(lab);
+    // Try YYYY-MM(-DD)
+    let m = s.match(/^(\d{4})[-/](\d{1,2})/);
+    if (m) return { year: +m[1], month: +m[2] };
+    // Try 'MonPT/YY' e.g. 'Nov/25'
+    const monthMap = { jan: 1, fev: 2, mar: 3, abr: 4, mai: 5, jun: 6, jul: 7, ago: 8, set: 9, out: 10, nov: 11, dez: 12, feb: 2, apr: 4, may: 5, aug: 8, sep: 9, oct: 10, dec: 12 };
+    m = s.match(/^([a-zA-Zç]{3})\/(\d{2,4})/i);
+    if (m) {
+      const mo = monthMap[m[1].toLowerCase()];
+      if (!mo) return null;
+      let yr = +m[2];
+      if (yr < 100) yr += 2000;
+      return { year: yr, month: mo };
+    }
+    return null;
+  };
+
+  const out = rows.map(r => {
+    const equity = +r.value ?? +r.equity ?? +r.patrimony ?? +r.patrimonio ?? +r.total ?? 0;
+    let year = +r.year || 0, month = +r.month || 0;
+    if ((!year || !month) && (r.date || r.label)) {
+      const parsed = parseLabel(r.date || r.label);
+      if (parsed) { year = parsed.year; month = parsed.month; }
+    }
+    if (!year || !month || !isFinite(equity)) return null;
+    return { year, month, equity: +equity };
+  }).filter(Boolean);
+
+  out.sort((a, b) => (a.year - b.year) || (a.month - b.month));
+  return out;
+}
 function shortMoney(n) {
   if (Math.abs(n) >= 1_000_000) return (n/1_000_000).toFixed(1) + 'M';
   if (Math.abs(n) >= 1_000) return (n/1_000).toFixed(0) + 'k';
@@ -735,6 +813,78 @@ function updateLedgerEquity() {
 // Mirrors renderInvestments' _heroTotal: I10 (W) + USD·rate + reserves
 // + pension. Louise's wallet is tracked separately (as a chip) and
 // intentionally NOT summed into the household total here.
+// Monthly return calculator — modified Dietz with total return.
+//
+// Inputs:
+//   monthlyEquity: [{ year, month, equity }] sorted asc (from I10 barchart)
+//   contributions: state.contributions = [{ year, month, amount }]
+//   dividends:     state.yearly = [{ year, amount, ... }] (yearly only — we
+//                  distribute ratably across 12 months as a fallback when
+//                  per-month dividend data isn't available)
+//
+// Output per month (except the first one, which has no 'start'):
+//   { year, month, start, end, contrib, dividends, returnBRL, returnPct }
+//
+// Formula (modified Dietz):
+//   cash_flow = contrib - dividends_received_in_month  // net cash in
+//   return_brl = end - start - cash_flow
+//   denom = start + (cash_flow / 2)
+//   return_pct = denom > 0 ? return_brl / denom : 0
+//
+// "Total return" here: we ADD back dividends paid out to the return
+// numerator by treating them as negative cash flow (they reduced end
+// but shouldn't count as a withdrawal). This keeps the mental model
+// "dividends are part of your return, not cash taken out".
+function computeMonthlyReturns(monthlyEquity, contributions, yearlyDividends) {
+  if (!Array.isArray(monthlyEquity) || monthlyEquity.length < 2) return [];
+
+  // Build { 'YYYY-MM': amount } for contributions
+  const contribMap = {};
+  (contributions || []).forEach(c => {
+    const k = `${+c.year}-${String(+c.month).padStart(2, '0')}`;
+    contribMap[k] = (contribMap[k] || 0) + (+c.amount || 0);
+  });
+
+  // Distribute yearly dividends evenly across 12 months (best-effort
+  // approximation; if a month has 0 equity it gets 0).
+  const divMonthlyMap = {};
+  (yearlyDividends || []).forEach(y => {
+    const per = (+y.amount || 0) / 12;
+    for (let mo = 1; mo <= 12; mo++) {
+      const k = `${+y.year}-${String(mo).padStart(2, '0')}`;
+      divMonthlyMap[k] = (divMonthlyMap[k] || 0) + per;
+    }
+  });
+
+  const out = [];
+  for (let i = 1; i < monthlyEquity.length; i++) {
+    const prev = monthlyEquity[i - 1];
+    const curr = monthlyEquity[i];
+    const k = `${curr.year}-${String(curr.month).padStart(2, '0')}`;
+    const contrib = +contribMap[k] || 0;
+    const divs = +divMonthlyMap[k] || 0;
+    const start = +prev.equity || 0;
+    const end = +curr.equity || 0;
+    // Net external cash flow: contribution into the portfolio, minus
+    // dividends paid out (which are part of return, not withdrawal).
+    const cashFlow = contrib - divs;
+    const returnBRL = end - start - cashFlow;
+    const denom = start + cashFlow / 2;
+    const returnPct = denom > 0 ? (returnBRL / denom) * 100 : 0;
+    out.push({
+      year: curr.year,
+      month: curr.month,
+      start,
+      end,
+      contrib,
+      dividends: divs,
+      returnBRL,
+      returnPct,
+    });
+  }
+  return out;
+}
+
 function calcTotalNetWorth() {
   const i10Eq = +state.i10.equity || 0;
   const usdBRL = (+state.fx.usd || 0) * (+state.fx.rateUSD || 0);
@@ -1997,6 +2147,7 @@ function renderInvestments() {
   renderPLChart();
   renderYearlyTable();
   renderI10Assets();
+  renderMonthlyReturns();
   renderContributions();
 }
 
@@ -2475,9 +2626,92 @@ function renderI10Assets() {
 }
 
 // ============================================================
-//  CONTRIBUTIONS (aportes mensais em dinheiro)
+//  MONTHLY RETURNS (rentabilidade mês a mês)
 // ============================================================
 const MONTH_NAMES_SHORT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const MONTH_NAMES_SHORT_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function renderMonthlyReturns() {
+  const svg = document.getElementById('mrChart');
+  const wrap = document.getElementById('mrChartWrap');
+  const tbody = document.getElementById('mrTableBody');
+  const empty = document.getElementById('mrEmpty');
+  const badge = document.getElementById('mrReturnBadge');
+  if (!svg || !tbody) return;
+
+  const rows = computeMonthlyReturns(state.i10.monthly || [], state.contributions || [], state.yearly || []);
+  if (rows.length === 0) {
+    wrap.style.display = 'none';
+    if (empty) {
+      empty.hidden = false;
+      empty.innerHTML = `<p>${t('mr.empty')}</p>`;
+    }
+    tbody.innerHTML = '';
+    if (badge) badge.hidden = true;
+    return;
+  }
+  wrap.style.display = '';
+  if (empty) empty.hidden = true;
+
+  // --- Chart ---
+  const W = 700, H = 200, PAD_X = 28, PAD_BOTTOM = 28, PAD_TOP = 14;
+  const slot = (W - PAD_X * 2) / rows.length;
+  const barW = Math.max(10, slot - 8);
+  const mid = H - PAD_BOTTOM - (H - PAD_BOTTOM - PAD_TOP) / 2; // vertical center = 0%
+  const maxAbs = Math.max(2, ...rows.map(r => Math.abs(r.returnPct))); // min 2% to avoid flat vis
+  const halfPlot = (H - PAD_BOTTOM - PAD_TOP) / 2;
+  const yAt = (pct) => mid - (pct / maxAbs) * halfPlot;
+  const monthNames = getLang() === 'en' ? MONTH_NAMES_SHORT_EN : MONTH_NAMES_SHORT;
+
+  const bars = rows.map((r, i) => {
+    const x = PAD_X + i * slot + (slot - barW) / 2;
+    const pct = r.returnPct;
+    const y = pct >= 0 ? yAt(pct) : mid;
+    const h = Math.abs(yAt(pct) - mid);
+    const color = pct >= 0 ? 'var(--gain)' : 'var(--loss)';
+    const labelY = H - PAD_BOTTOM + 14;
+    const monthChar = monthNames[r.month - 1];
+    const valLabelY = pct >= 0 ? (y - 4) : (y + h + 10);
+    const valText = (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%';
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(1, h).toFixed(1)}" fill="${color}" opacity="0.85" rx="2"><title>${monthChar}/${String(r.year).slice(-2)}: ${valText}</title></rect>
+      <text x="${(x + barW/2).toFixed(1)}" y="${valLabelY.toFixed(1)}" text-anchor="middle" fill="${color}" font-size="9.5" font-family="'Geist Mono', monospace" font-weight="600" opacity="0.85">${valText}</text>
+      <text x="${(x + barW/2).toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" fill="var(--ink-muted)" font-size="10" font-family="'Geist Mono', monospace">${monthChar}</text>`;
+  }).join('');
+
+  // Zero baseline
+  const baseline = `<line x1="${PAD_X.toFixed(1)}" y1="${mid.toFixed(1)}" x2="${(W - PAD_X).toFixed(1)}" y2="${mid.toFixed(1)}" stroke="var(--ink-muted)" stroke-width="0.5" stroke-dasharray="3 4" opacity="0.4"/>`;
+
+  svg.innerHTML = baseline + bars;
+
+  // Badge: average of last N (max 12)
+  if (badge) {
+    const lastN = rows.slice(-12);
+    const avg = lastN.reduce((s, r) => s + r.returnPct, 0) / lastN.length;
+    badge.hidden = false;
+    badge.className = 'mr-badge ' + (avg >= 0 ? 'pos' : 'neg');
+    badge.textContent = t('mr.avg').replace('{pct}', (avg >= 0 ? '+' : '') + avg.toFixed(1) + '%').replace('{n}', lastN.length);
+  }
+
+  // --- Table ---
+  tbody.innerHTML = [...rows].reverse().map(r => {
+    const pctCls = r.returnPct >= 0 ? 'pos' : 'neg';
+    const brlCls = r.returnBRL >= 0 ? 'pos' : 'neg';
+    const monthChar = monthNames[r.month - 1];
+    return `<tr>
+      <td class="mono mr-td-month">${monthChar}/${String(r.year).slice(-2)}</td>
+      <td class="mono mr-num">${fmtBRL0(r.start)}</td>
+      <td class="mono mr-num">${fmtBRL0(r.end)}</td>
+      <td class="mono mr-num">${r.contrib > 0 ? fmtBRL0(r.contrib) : '—'}</td>
+      <td class="mono mr-num">${r.dividends > 0 ? fmtBRL0(r.dividends) : '—'}</td>
+      <td class="mono mr-num ${brlCls}">${(r.returnBRL >= 0 ? '+' : '') + fmtBRL0(r.returnBRL)}</td>
+      <td class="mono mr-num ${pctCls}">${(r.returnPct >= 0 ? '+' : '') + r.returnPct.toFixed(2)}%</td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+//  CONTRIBUTIONS (aportes mensais em dinheiro)
+// ============================================================
 
 function renderContributions() {
   const wrap = document.getElementById('contribList');
@@ -2778,6 +3012,11 @@ async function syncFromI10() {
       }));
     }
 
+    // Parse barchart (12-month equity history). Shape is unknown across
+    // I10 API versions; normalize to [{ year, month, equity }] sorted
+    // ascending. Any failure here is non-fatal — we fall back to [].
+    const monthly = parseI10Barchart(payload.barchart);
+
     // Parse actives (list of tickers)
     const rawAssets = Array.isArray(payload.actives?.data) ? payload.actives.data : [];
     const assets = rawAssets.map(a => {
@@ -2807,6 +3046,7 @@ async function syncFromI10() {
       profitTwr,
       assets,
       categories,
+      monthly,
       year,
       updatedAt: serverTimestamp(),
       updatedBy: (state.user?.displayName || 'unknown') + ' (auto)',
@@ -3299,6 +3539,7 @@ function subscribeAll() {
     state.i10.year = data.year || new Date().getFullYear();
     state.i10.assets = Array.isArray(data.assets) ? data.assets : [];
     state.i10.categories = Array.isArray(data.categories) ? data.categories : [];
+    state.i10.monthly = Array.isArray(data.monthly) ? data.monthly : [];
     state.i10.applied = +data.applied || 0;
     state.i10.variation = +data.variation || 0;
     state.i10.profitTwr = +data.profitTwr || 0;
