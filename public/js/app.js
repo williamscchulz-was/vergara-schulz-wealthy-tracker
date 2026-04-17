@@ -50,6 +50,7 @@ const docFx = doc(db, "household", "main", "config", "fx");
 const docI10Cfg   = doc(db, "household", "main", "config", "i10sync");
 const docReserves = doc(db, "household", "main", "config", "reserves");
 const docPension  = doc(db, "household", "main", "config", "pension");
+const docBudgets  = doc(db, "household", "main", "config", "budgets");
 
 // ---- Constants ----
 const CATEGORIES = {
@@ -81,6 +82,7 @@ const state = {
   fx: { usd: 0, rateUSD: 0, rateUpdatedAt: null, rateSource: '', note: '' },
   reserves: { accounts: [], loaded: false, editingId: null },
   pension:  { accounts: [], loaded: false, editingId: null },
+  budgets: {},                   // { [categoryKey]: monthlyLimitBRL }
   i10Syncing: false,
   dividendsYearlyGoal: 1_000_000,
   dividendsYearlyGoalYear: 2035,
@@ -250,6 +252,18 @@ const I18N = {
     'exp.delete.title': 'Excluir despesa?',
     'exp.delete.sub': 'Esta ação não pode ser desfeita.',
     'exp.delete.confirm': 'Sim, excluir',
+    // ---- Budget sub-feature ----
+    'exp.budget.editTitle': 'Orçamento por categoria',
+    'exp.budget.editSub': 'Defina um limite mensal para cada categoria. Deixe em branco para desativar.',
+    'exp.budget.btn': 'Orçamento',
+    'exp.budget.col.cat': 'Categoria',
+    'exp.budget.col.limit': 'Limite mensal (R$)',
+    'exp.budget.toast.saved': '✓ Orçamentos atualizados',
+    'exp.budget.over': '{pct}% do limite',
+    'exp.budget.of': 'de {limit}',
+    'exp.budget.noLimit': 'sem limite',
+    'exp.budget.total': 'Gasto / orçamento',
+    'exp.budget.total.empty': 'Sem orçamento definido',
   },
   en: {
     'login.tagline': 'Personal finance tracker.<br/>Sign in with Google to continue.',
@@ -410,6 +424,18 @@ const I18N = {
     'exp.delete.title': 'Delete expense?',
     'exp.delete.sub': 'This action cannot be undone.',
     'exp.delete.confirm': 'Yes, delete',
+    // ---- Budget sub-feature ----
+    'exp.budget.editTitle': 'Monthly budget per category',
+    'exp.budget.editSub': 'Set a monthly limit for each category. Leave blank to disable.',
+    'exp.budget.btn': 'Budget',
+    'exp.budget.col.cat': 'Category',
+    'exp.budget.col.limit': 'Monthly limit (R$)',
+    'exp.budget.toast.saved': '✓ Budgets updated',
+    'exp.budget.over': '{pct}% of limit',
+    'exp.budget.of': 'of {limit}',
+    'exp.budget.noLimit': 'no limit',
+    'exp.budget.total': 'Spent / budget',
+    'exp.budget.total.empty': 'No budget set',
   }
 };
 
@@ -632,32 +658,78 @@ function renderExpenses() {
 
 function renderCategoryBreakdown(monthExp, total) {
   const wrap = $('catList');
+  const totalEl = $('expBudgetTotal');
+  const budgets = state.budgets || {};
+
   if (monthExp.length === 0) {
     wrap.innerHTML = `<div class="exp-empty"><h4>${t('exp.empty.cat.title')}</h4><p>${t('exp.empty.cat.sub')}</p></div>`;
+    if (totalEl) totalEl.hidden = true;
     return;
   }
-  // Group by category
+  // Group by category (include cats with a budget even if no spend)
   const byCat = {};
   monthExp.forEach(e => {
     const cat = e.category || 'outros';
     byCat[cat] = (byCat[cat] || 0) + (+e.value||0);
   });
-  const sorted = Object.entries(byCat).sort((a,b) => b[1] - a[1]);
+  Object.keys(budgets).forEach(k => { if (!(k in byCat)) byCat[k] = 0; });
+
+  // Sort: rows with spending first (desc), then 0-spend budgeted cats alpha
+  const sorted = Object.entries(byCat).sort((a, b) => {
+    if (a[1] === 0 && b[1] === 0) return a[0].localeCompare(b[0]);
+    return b[1] - a[1];
+  });
+
   wrap.innerHTML = sorted.map(([catKey, val], idx) => {
     const cat = CATEGORIES[catKey] || CATEGORIES.outros;
-    const pct = total > 0 ? (val / total) * 100 : 0;
-    return `<div class="exp-cat-row" style="--cat-color:${cat.color};--cat-delay:${0.05 + idx * 0.04}s">
+    const limit = +budgets[catKey] || 0;
+    // Bar width: % of month total if no budget; % of own limit if budgeted
+    const barPct = limit > 0
+      ? Math.min(100, (val / limit) * 100)
+      : (total > 0 ? (val / total) * 100 : 0);
+    const overBudget = limit > 0 && val > limit;
+    const pctOfLimit = limit > 0 ? (val / limit) * 100 : null;
+    const shareOfMonth = total > 0 ? (val / total) * 100 : 0;
+
+    // Primary right-side value: % of limit (when budgeted) or % of month
+    const rightPctStr = limit > 0 ? `${Math.round(pctOfLimit)}%` : `${Math.round(shareOfMonth)}%`;
+    const amtStr = limit > 0
+      ? `${fmtBRL0(val)} <span class="exp-cat-of">${t('exp.budget.of').replace('{limit}', fmtBRL0(limit))}</span>`
+      : fmtBRL0(val);
+
+    return `<div class="exp-cat-row${overBudget ? ' over-budget' : ''}${limit > 0 ? ' has-budget' : ''}" style="--cat-color:${cat.color};--cat-delay:${0.05 + idx * 0.04}s">
       <div class="exp-cat-icon">${cat.icon}</div>
       <div class="exp-cat-meta">
         <div class="exp-cat-name">${cat.label}</div>
-        <div class="exp-cat-bar"><i style="--w:${pct}%"></i></div>
+        <div class="exp-cat-bar"><i style="--w:${barPct}%"></i></div>
       </div>
       <div class="exp-cat-v">
-        <div class="exp-cat-pct">${pct.toFixed(0)}%</div>
-        <div class="exp-cat-amt">${fmtBRL0(val)}</div>
+        <div class="exp-cat-pct">${rightPctStr}</div>
+        <div class="exp-cat-amt">${amtStr}</div>
       </div>
     </div>`;
   }).join('');
+
+  // Footer: total spent vs total budgeted (across categories that have a limit)
+  if (totalEl) {
+    const totalBudget = Object.values(budgets).reduce((s, v) => s + (+v || 0), 0);
+    if (totalBudget > 0) {
+      const totalSpentInBudgeted = Object.keys(budgets).reduce((s, k) => s + (byCat[k] || 0), 0);
+      const pct = (totalSpentInBudgeted / totalBudget) * 100;
+      const over = totalSpentInBudgeted > totalBudget;
+      totalEl.hidden = false;
+      totalEl.className = 'exp-budget-total' + (over ? ' over' : '');
+      totalEl.innerHTML = `
+        <div class="exp-budget-total-head">
+          <span class="lbl">${t('exp.budget.total')}</span>
+          <span class="v">${fmtBRL0(totalSpentInBudgeted)} <span class="sep">/</span> ${fmtBRL0(totalBudget)}</span>
+        </div>
+        <div class="exp-budget-total-bar"><i style="width:${Math.min(100, pct)}%"></i></div>
+      `;
+    } else {
+      totalEl.hidden = true;
+    }
+  }
 }
 
 function renderRecentList(monthExp) {
@@ -2337,6 +2409,57 @@ $('btnNextMonth').addEventListener('click', () => {
   renderExpenses();
 });
 
+// ============================================================
+//                 EXPENSES - BUDGET EDITOR
+// ============================================================
+function openBudgetModal() {
+  const list = $('budgetList');
+  if (!list) return;
+  const budgets = state.budgets || {};
+  list.innerHTML = Object.entries(CATEGORIES).map(([key, cat]) => {
+    const current = +budgets[key] || 0;
+    const value = current > 0 ? fmtBRLInput(current) : '';
+    return `<div class="budget-row" style="--cat-color:${cat.color}">
+      <div class="budget-row-icon">${cat.icon}</div>
+      <div class="budget-row-name">${cat.label}</div>
+      <input type="text" inputmode="decimal" class="budget-row-input" data-cat="${key}" value="${value}" placeholder="—" autocomplete="off" />
+    </div>`;
+  }).join('');
+  // Wire BRL mask to each input (blur to format, Enter to commit)
+  list.querySelectorAll('.budget-row-input').forEach(inp => {
+    inp.addEventListener('blur', () => {
+      const n = parseBRLInput(inp.value);
+      inp.value = n > 0 ? fmtBRLInput(n) : '';
+    });
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); inp.blur(); saveBudgets(); }
+    });
+  });
+  $('budgetModal').classList.add('show');
+}
+function closeBudgetModal() { $('budgetModal')?.classList.remove('show'); }
+async function saveBudgets() {
+  const btn = $('budgetSave');
+  const originalLabel = t('exp.btn.save');
+  const out = {};
+  document.querySelectorAll('#budgetList .budget-row-input').forEach(inp => {
+    const key = inp.dataset.cat;
+    const n = parseBRLInput(inp.value);
+    if (n > 0) out[key] = n;
+  });
+  try {
+    btn.disabled = true; btn.textContent = t('exp.btn.saving');
+    await setDoc(docBudgets, {
+      categories: out,
+      updatedAt: serverTimestamp(),
+      updatedBy: state.user?.displayName || 'unknown',
+    }, { merge: false });
+    showToast(t('exp.budget.toast.saved'));
+    closeBudgetModal();
+  } catch (err) { console.error(err); showToast(t('toast.error.save')); }
+  finally { btn.disabled = false; btn.textContent = originalLabel; }
+}
+
 // Generic confirm modal — replaces native confirm() across the app
 let _confirmState = null;
 function openConfirmModal({ title, sub, confirmLabel, cancelLabel, danger, onConfirm } = {}) {
@@ -2361,6 +2484,12 @@ $('confirmOk')?.addEventListener('click', async () => {
   if (cb) await cb();
 });
 $('confirmModal')?.addEventListener('click', e => { if (e.target.id === 'confirmModal') closeConfirmModal(); });
+
+// Budget modal
+$('btnEditBudgets')?.addEventListener('click', openBudgetModal);
+$('budgetCancel')?.addEventListener('click', closeBudgetModal);
+$('budgetSave')?.addEventListener('click', saveBudgets);
+$('budgetModal')?.addEventListener('click', e => { if (e.target.id === 'budgetModal') closeBudgetModal(); });
 
 // Expense modal
 $('btnAddExpense').addEventListener('click', () => openExpenseModal());
@@ -2567,6 +2696,18 @@ function subscribeAll() {
     }
     updateLedgerEquity();
     if (state.mode === 'investments') renderInvestments();
+  });
+  unsub.budgets = onSnapshot(docBudgets, (snap) => {
+    const data = snap.exists() ? (snap.data() || {}) : {};
+    // Accept both shapes: { categories: {...} } or a flat map with numeric values
+    if (data.categories && typeof data.categories === 'object') {
+      state.budgets = { ...data.categories };
+    } else {
+      const flat = {};
+      Object.entries(data).forEach(([k, v]) => { if (typeof v === 'number' && k in CATEGORIES) flat[k] = v; });
+      state.budgets = flat;
+    }
+    if (state.mode === 'expenses') renderExpenses();
   });
 }
 function unsubscribeAll() { Object.values(unsub).forEach(fn => fn && fn()); unsub = {}; }
