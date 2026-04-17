@@ -54,7 +54,9 @@ Scripts one-shot de seed/migração. Fora do bundle de produção. Ver
    actives) via `Promise.all`, agrega e responde JSON
 4. Cliente parseia o payload e faz `setDoc(docI10, {...}, { merge: true })`
 5. Firestore propaga via `onSnapshot` pro outro usuário
-6. Logo em seguida, `syncLouise()` é disparado (piggyback do Turno 7)
+6. Logo em seguida, `syncLouise()` é disparado (piggyback do Turno 7) —
+   sincroniza a carteira da filha (Louise, walletId `2699282`) que é
+   acompanhada read-only e **não entra** no total do patrimônio da casa
 
 ### Edição manual
 

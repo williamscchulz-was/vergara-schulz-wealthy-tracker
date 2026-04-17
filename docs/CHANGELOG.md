@@ -91,7 +91,7 @@ Iteração atual do design "Linear meets Apple". Turnos incrementais:
   (>1000% → —), hatched area + classed paths, one-shot trace do path
 - **Turno 6** — Bar chart range toggle (1Y / 5Y / All) com sync entre
   os dois cards
-- **Turno 7** — Card da Louise (wallet F) + piggyback sync (sync do W
+- **Turno 7** — Chip da carteira da Louise (filha, read-only) + piggyback sync (sync do W
   dispara sync da F)
 - **Turno 8** — FX: holdings em USD + cotação via worker, USD entra no
   hero total de patrimônio

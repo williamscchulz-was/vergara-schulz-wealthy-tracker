@@ -8,6 +8,11 @@ Contexto persistente do projeto. Mantenha este arquivo atualizado. Quando algo a
 
 **Ledger** é um PWA pessoal de finanças do casal **William Schulz (W)** e **Flávia (F)**. Roda no celular (adicionar à tela inicial) e no desktop. Serve dois casos de uso que convivem no mesmo app:
 
+> ℹ️ **Composição familiar referenciada no app**:
+> - **W** — William (titular principal)
+> - **F** — Flávia (esposa, também usuária autenticada)
+> - **Louise** — a filha. Tem uma carteira pública no Investidor 10 (walletId `2699282`) que o app acompanha read-only: aparece como chip compacto na hero de Investments e **não é somada** no patrimônio da casa. Louise não é usuária do app.
+>
 > ⚠️ O nome "Fernanda" foi uma alucinação minha no primeiro draft deste doc e ficou propagado por várias seções até Abr/2026 — foi removido. Se aparecer "Fernanda" em qualquer lugar do repo, é erro meu, corrigir.
 
 - **Expenses**: lançamento e categorização de despesas mensais da casa, com snapshot do mês atual e histórico anual de dividendos recebidos.
@@ -197,9 +202,9 @@ Todos os listeners principais estão em `app.js:2222-2358` (bloco `subscribeToFi
 ### WalletIds
 
 - **William (W, principal):** `1986068`
-- **Louise (F):** `2699282` (hardcoded em `state.i10LouiseCfg.walletId` em `app.js:79`)
+- **Louise (filha — carteira read-only acompanhada):** `2699282` (hardcoded em `state.i10LouiseCfg.walletId` em `public/js/app.js:80`)
 
-O walletId do W é configurável pela UI (modal ⚙️ em Investimentos, salva em `config/i10sync`). O da Louise hoje é hardcoded — se precisar mudar, editar código.
+O walletId do W é configurável pela UI (modal ⚙️ em Investimentos, salva em `config/i10sync`). O da Louise é hardcoded — se precisar mudar, editar código.
 
 ### Autenticação
 
@@ -215,9 +220,9 @@ A API interna do I10 é **não oficial** — mapeada por engenharia reversa do l
 
 ### Modo Investimentos (default)
 
-- **Hero de patrimônio total** = I10 (W) + I10 (Louise) + Reservas + Previdência + FX (USD × rate)
+- **Hero de patrimônio total** = I10 (W) + Reservas + Previdência + FX (USD × rate). A carteira da Louise (filha) **não é somada** — é acompanhada separada no chip. Fórmula em `calcTotalNetWorth()` (`public/js/app.js`, compartilhada com o pill do Expenses).
 - **Card I10 do W**: PL, aplicado, variação %, Profit TWR, dividendos YTD, botão 🔄 Sincronizar, botão ⚙️ de config, botão ✏️ de edição manual, link pra carteira pública
-- **Card I10 da Louise** (chip compacto): equity, variação, dividendos, timestamp
+- **Chip da carteira da Louise** (filha, compacto): equity, variação, dividendos, timestamp — read-only, acompanhado apenas
 - **Lista de ativos**: top 10 ordenados por patrimônio, com ticker, qtd, preço médio, preço atual, % da carteira, appreciation, tag "via I10" ou "manual"
 - **Diversificação por categoria** (Ações / FIIs / Tesouro / Cripto / etc) com barras e %
 - **Barchart 12m** com range toggle 1Y / 5Y / All, conector pontilhado entre topos + pill no meio (v8 Turno 9)
@@ -277,7 +282,7 @@ Marcadores `v8 Turno N` visíveis no código indicam iterações recentes:
 - **v8 Turno 3** — Inputs numéricos do goal-projection convertidos pra text format (R$ 24.000, 10,0%/yr), parse via helper compartilhado, fire on `change` (blur).
 - **v8 Turno 4** — Compact values (64,2K / 1,34M), YoY sanitizado (>1000% → —), hatched area + classed paths pra engajar keyframes, stroke-dashoffset trace one-shot.
 - **v8 Turno 6** — Bar chart range toggle (1Y / 5Y / All) com sync entre os dois cards.
-- **v8 Turno 7** — Louise wallet render + piggyback sync (toda sync do W dispara sync da F).
+- **v8 Turno 7** — Render do chip da carteira da Louise (filha) + piggyback sync (cada sync do W dispara também sync da carteira da Louise).
 - **v8 Turno 8** — FX module (USD holdings + taxa USD→BRL via worker), USD incluído no hero total.
 - **v8 Turno 9** — Bar chart: conector pontilhado entre topos + pill opaca central.
 - **Liquid glass tokens / liquid border** — tokens `--glass-*` + `@property --liquid-angle` + anel animado `.liquid-border::before`.
