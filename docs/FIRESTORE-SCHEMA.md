@@ -76,6 +76,22 @@ Campos: `accounts: [{ id, name, bank, amount, ... }]`, `updatedAt`,
 Previdência privada (Bradesco default).
 Campos: `accounts: [...]`, `updatedAt`, `updatedBy`, `seeded`.
 
+### `/household/main/config/userPrefs`
+Preferências por usuário. Map indexado por UID.
+```
+{
+  [uid]: {
+    defaultMode: 'expenses' | 'investments',
+    updatedAt
+  }
+}
+```
+Persistido automaticamente sempre que o usuário troca de aba via
+`switchMode()`. O login lê este doc (getDoc one-shot) pra decidir a
+aba inicial; se o UID ainda não tem entry, cai no fallback por email
+(`KNOWN_PRIMARY_EMAIL` em `public/js/app.js` → investments, qualquer
+outro UID → expenses).
+
 ### `/household/main/config/budgets`
 Orçamento mensal por categoria de despesa.
 Campos:

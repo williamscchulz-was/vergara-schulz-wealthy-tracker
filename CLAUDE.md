@@ -159,6 +159,9 @@ Todas as coleções e documentos ficam sob `household/main/...` (a casa é uma s
 /household/main/config/budgets          // orçamento mensal por categoria
     categories: { [catKey]: number }, updatedAt, updatedBy
 
+/household/main/config/userPrefs        // preferências por UID (map)
+    { [uid]: { defaultMode: 'expenses' | 'investments', updatedAt } }
+
 /household/main/config/goalParams       // meta de dividendos anuais
     dividendsYearlyGoal, dividendsYearlyGoalYear, monthlyContribution, expectedRate
 
@@ -245,6 +248,8 @@ A API interna do I10 é **não oficial** — mapeada por engenharia reversa do l
   - **Over-budget badge no hero**: quando qualquer categoria ultrapassou seu limite mensal, pill animado substitui o sub line
 - **Busca live** na tabela (`#expSearch`): filtra por descrição + categoria + notas, case-insensitive; estado `_expSearchQuery` persiste entre re-renders
 - **Export CSV** (`#btnExportCsv`): baixa despesas do mês atual como CSV UTF-8 com BOM (Excel friendly), separador `;` (convenção BR), aspas duplas escapadas
+- **Pill de patrimônio da casa** (`#expNwPill`): chip clicável no topo do módulo mostrando o mesmo total da hero de Investments em tempo real (fórmula em `calcTotalNetWorth()`: i10 + USD·rate + reservas + previdência); clicar leva pra aba Investments; se esconde quando o total é zero
+- **Default mode por usuário**: `config/userPrefs.{uid}.defaultMode` persistido automaticamente toda vez que `switchMode()` é chamado. Login lê via `getDoc` one-shot; se não houver entry pro UID, cai no fallback: email conhecido `KNOWN_PRIMARY_EMAIL` → investments, qualquer outro → expenses
 - **Não implementado (ideias futuras)**: despesas recorrentes marcadas manualmente, visão anual, comparativo YoY por categoria
 
 ### Transversal

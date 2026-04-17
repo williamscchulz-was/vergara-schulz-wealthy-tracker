@@ -4,7 +4,7 @@
 // ============================================================
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // ---- Firebase ----
 const firebaseConfig = {
@@ -51,6 +51,11 @@ const docI10Cfg   = doc(db, "household", "main", "config", "i10sync");
 const docReserves = doc(db, "household", "main", "config", "reserves");
 const docPension  = doc(db, "household", "main", "config", "pension");
 const docBudgets  = doc(db, "household", "main", "config", "budgets");
+const docUserPrefs = doc(db, "household", "main", "config", "userPrefs");
+
+// Known primary account → defaults to Investments on first login.
+// Any other UID defaults to Expenses (household spouse use case).
+const KNOWN_PRIMARY_EMAIL = 'williamscchulz@gmail.com';
 
 // ---- Constants ----
 const CATEGORIES = {
@@ -83,6 +88,7 @@ const state = {
   reserves: { accounts: [], loaded: false, editingId: null },
   pension:  { accounts: [], loaded: false, editingId: null },
   budgets: {},                   // { [categoryKey]: monthlyLimitBRL }
+  userPrefs: {},                 // { [uid]: { defaultMode, updatedAt } }
   i10Syncing: false,
   dividendsYearlyGoal: 1_000_000,
   dividendsYearlyGoalYear: 2035,
@@ -286,6 +292,8 @@ const I18N = {
     'exp.search.none': 'Nenhuma despesa encontrada para "{q}"',
     'exp.csv': 'CSV',
     'exp.csv.filename': 'despesas-{month}-{year}.csv',
+    'exp.nw.label': 'PATRIMÔNIO DA CASA',
+    'exp.nw.goto': 'Ver investimentos',
   },
   en: {
     'login.tagline': 'Personal finance tracker.<br/>Sign in with Google to continue.',
@@ -480,6 +488,8 @@ const I18N = {
     'exp.search.none': 'No expense found for "{q}"',
     'exp.csv': 'CSV',
     'exp.csv.filename': 'expenses-{month}-{year}.csv',
+    'exp.nw.label': 'HOUSEHOLD NET WORTH',
+    'exp.nw.goto': 'See investments',
   }
 };
 
@@ -614,15 +624,47 @@ function pensionTotal() {
 
 // Expose net equity (i10 + USD + reserves + pension) to the Goal Simulator via window.__ledgerEquity.
 function updateLedgerEquity() {
+  window.__ledgerEquity = calcTotalNetWorth();
+  // Whenever the underlying numbers move, refresh the Expenses net-worth
+  // pill if it's on screen (idempotent on Investments mode).
+  renderExpensesNetWorthPill();
+}
+
+// Shared formula between the Investments hero and the Expenses pill.
+// Mirrors renderInvestments' _heroTotal: I10 (W) + USD·rate + reserves
+// + pension. Louise's wallet is tracked separately (as a chip) and
+// intentionally NOT summed into the household total here.
+function calcTotalNetWorth() {
   const i10Eq = +state.i10.equity || 0;
   const usdBRL = (+state.fx.usd || 0) * (+state.fx.rateUSD || 0);
-  window.__ledgerEquity = i10Eq + usdBRL + reservesTotal() + pensionTotal();
+  return i10Eq + usdBRL + reservesTotal() + pensionTotal();
+}
+
+// Live household net worth pill shown on the Expenses tab.
+// Hidden when we have no data at all yet (both i10.equity and FX empty).
+function renderExpensesNetWorthPill() {
+  const pill = $('expNwPill');
+  if (!pill) return;
+  const total = calcTotalNetWorth();
+  if (total <= 0) { pill.hidden = true; return; }
+  pill.hidden = false;
+  $('expNwAmt').textContent = total.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  // Meta line: "atualizado DD/MM · via I10" or "manual" — mirrors investments hero
+  const meta = $('expNwMeta');
+  if (meta) {
+    if (state.i10.updatedAt) {
+      const sourceTag = state.i10.source === 'investidor10-sync' ? t('via.i10') : 'manual';
+      meta.textContent = `${t('hero.updated.prefix')} ${formatDateTimeBR(state.i10.updatedAt)} · ${sourceTag}`;
+    } else {
+      meta.textContent = t('hero.updated.never');
+    }
+  }
 }
 
 // ============================================================
 //                 MODE SWITCH (Expenses/Invest)
 // ============================================================
-function switchMode(mode) {
+function switchMode(mode, opts = {}) {
   state.mode = mode;
   document.querySelectorAll('.mode-switch button').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
   document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
@@ -633,6 +675,32 @@ function switchMode(mode) {
     $('moduleInvestments').classList.add('active');
     renderInvestments();
   }
+  // Persist this as the user's preferred default for next session.
+  // `opts.persist === false` skips writing (used during the initial boot
+  // so we don't overwrite the value we just read).
+  if (opts.persist !== false && state.user?.uid) {
+    const uid = state.user.uid;
+    setDoc(docUserPrefs, {
+      [uid]: { defaultMode: mode, updatedAt: serverTimestamp() }
+    }, { merge: true }).catch(err => console.warn('[prefs] persist failed:', err));
+  }
+}
+
+// Decide the initial mode for a just-logged-in user:
+// 1. Previously-persisted choice in config/userPrefs.{uid}.defaultMode
+// 2. Known primary email → 'investments'
+// 3. Anyone else → 'expenses' (household spouse / secondary user)
+async function pickInitialMode(user) {
+  try {
+    const snap = await getDoc(docUserPrefs);
+    const data = snap.exists() ? (snap.data() || {}) : {};
+    const persisted = data?.[user.uid]?.defaultMode;
+    if (persisted === 'expenses' || persisted === 'investments') return persisted;
+  } catch (err) {
+    console.warn('[prefs] read failed, falling back to email default:', err);
+  }
+  const email = (user.email || '').toLowerCase().trim();
+  return email === KNOWN_PRIMARY_EMAIL ? 'investments' : 'expenses';
 }
 
 // ============================================================
@@ -702,6 +770,7 @@ function renderExpenses() {
   renderTrend12m(state.expenses || [], viewDate);
   renderTopRecurring(state.expenses || [], viewDate);
   updateHeroOverBudgetBadge(monthExp);
+  renderExpensesNetWorthPill();
 }
 
 function renderCategoryBreakdown(monthExp, total) {
@@ -2839,6 +2908,9 @@ $('confirmOk')?.addEventListener('click', async () => {
 });
 $('confirmModal')?.addEventListener('click', e => { if (e.target.id === 'confirmModal') closeConfirmModal(); });
 
+// Net-worth pill → jump to Investments tab
+$('expNwPill')?.addEventListener('click', () => switchMode('investments'));
+
 // Table search — live filter, only the current month's rows are touched
 $('expSearch')?.addEventListener('input', e => {
   _expSearchQuery = e.target.value || '';
@@ -3060,6 +3132,9 @@ function subscribeAll() {
     updateLedgerEquity();
     if (state.mode === 'investments') renderInvestments();
   });
+  unsub.userPrefs = onSnapshot(docUserPrefs, (snap) => {
+    state.userPrefs = snap.exists() ? (snap.data() || {}) : {};
+  });
   unsub.budgets = onSnapshot(docBudgets, (snap) => {
     const data = snap.exists() ? (snap.data() || {}) : {};
     // Accept both shapes: { categories: {...} } or a flat map with numeric values
@@ -3137,8 +3212,11 @@ onAuthStateChanged(auth, async (user) => {
         uid: user.uid,
       }, { merge: true });
       subscribeAll();
-      // Default mode: investments
-      switchMode('investments');
+      // Initial mode honors the user's last choice (config/userPrefs.{uid}),
+      // falls back to 'investments' for the known primary email and
+      // 'expenses' for everyone else (spouse/secondary user).
+      const initialMode = await pickInitialMode(user);
+      switchMode(initialMode, { persist: false });
     } catch (err) {
       console.error('Firestore error:', err);
     }

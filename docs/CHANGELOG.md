@@ -55,6 +55,22 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Household UX
+- **Patrimônio da casa em tempo real no Expenses** (`#expNwPill`):
+  chip clicável no topo da aba mostrando o mesmo total da hero de
+  Investments (i10 + USD·rate + reservas + previdência), com live-dot
+  + timestamp + "via I10"/"manual"; atualiza automaticamente via
+  `updateLedgerEquity()` sempre que as fontes mudam; clicar leva
+  pra aba Investments. Extraímos `calcTotalNetWorth()` pra não
+  duplicar a fórmula.
+- **Aba padrão por usuário** persistida em `config/userPrefs.{uid}`:
+  a última aba usada fica marcada como default da próxima sessão.
+  No primeiro login de um UID novo, fallback por email
+  (`KNOWN_PRIMARY_EMAIL` → investments, qualquer outro → expenses).
+  `switchMode()` ganhou opção `{ persist: false }` pra não sobrescrever
+  o valor durante o próprio boot.
+- 2 novas chaves (`exp.nw.label`, `exp.nw.goto`) em PT + EN.
+
 ### Added
 - `CLAUDE.md` — contexto persistente do projeto
 - `LICENSE` — all rights reserved
