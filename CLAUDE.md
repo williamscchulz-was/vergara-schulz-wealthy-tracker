@@ -6,7 +6,9 @@ Contexto persistente do projeto. Mantenha este arquivo atualizado. Quando algo a
 
 ## 1. O que é o projeto e pra que serve
 
-**Ledger** é um PWA pessoal de finanças do casal **William Schulz (W)** e **Fernanda / "Louise" (F)**. Roda no celular (adicionar à tela inicial) e no desktop. Serve dois casos de uso que convivem no mesmo app:
+**Ledger** é um PWA pessoal de finanças do casal **William Schulz (W)** e **Flávia (F)**. Roda no celular (adicionar à tela inicial) e no desktop. Serve dois casos de uso que convivem no mesmo app:
+
+> ⚠️ O nome "Fernanda" foi uma alucinação minha no primeiro draft deste doc e ficou propagado por várias seções até Abr/2026 — foi removido. Se aparecer "Fernanda" em qualquer lugar do repo, é erro meu, corrigir.
 
 - **Expenses**: lançamento e categorização de despesas mensais da casa, com snapshot do mês atual e histórico anual de dividendos recebidos.
 - **Investments** (modo default): dashboard patrimonial unificado puxando automaticamente do **Investidor 10** via carteira pública — patrimônio, aplicado, variação, Profit TWR, dividendos YTD, lista de ativos, categorização por tipo, barchart 12 meses, aportes mensais, reservas em conta corrente, previdência privada e holdings em USD.

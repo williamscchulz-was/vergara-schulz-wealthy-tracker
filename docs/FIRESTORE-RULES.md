@@ -27,9 +27,9 @@ Substitui os placeholders:
   function isHouseholdMember() {
     return request.auth != null && request.auth.uid in [
 -     'REPLACE_WITH_WILLIAM_UID',
--     'REPLACE_WITH_FERNANDA_UID'
+-     'REPLACE_WITH_FLAVIA_UID'
 +     'abc123...',  // William
-+     'xyz789...'   // Fernanda
++     'xyz789...'   // Flávia
     ];
   }
 ```
