@@ -264,6 +264,23 @@ const I18N = {
     'exp.budget.noLimit': 'sem limite',
     'exp.budget.total': 'Gasto / orçamento',
     'exp.budget.total.empty': 'Sem orçamento definido',
+    // ---- Analytics cards (Fase C) ----
+    'exp.daily.title': 'Ritmo diário',
+    'exp.daily.sub': 'Gasto acumulado do mês',
+    'exp.daily.legend.spent': 'Acumulado',
+    'exp.daily.legend.pace': 'Ritmo esperado',
+    'exp.daily.today': 'Hoje: {val}',
+    'exp.daily.pace.ahead': '↑ {val} acima do ritmo',
+    'exp.daily.pace.behind': '↓ {val} abaixo do ritmo',
+    'exp.daily.pace.match': 'No ritmo · {val}/dia',
+    'exp.trend.title': 'Últimos 12 meses',
+    'exp.trend.sub': 'Gasto por categoria',
+    'exp.trend.empty': 'Precisamos de mais meses de histórico pra gerar a tendência.',
+    'exp.rec.title': 'Descrições recorrentes',
+    'exp.rec.sub': 'Top do ano',
+    'exp.rec.empty': 'Sem despesas repetidas ainda. Adicione algumas pra ver padrões.',
+    'exp.rec.times': '{n}× · média {avg}',
+    'exp.hero.over': '⚠ {n} categoria(s) acima do orçamento',
   },
   en: {
     'login.tagline': 'Personal finance tracker.<br/>Sign in with Google to continue.',
@@ -436,6 +453,23 @@ const I18N = {
     'exp.budget.noLimit': 'no limit',
     'exp.budget.total': 'Spent / budget',
     'exp.budget.total.empty': 'No budget set',
+    // ---- Analytics cards ----
+    'exp.daily.title': 'Daily pace',
+    'exp.daily.sub': 'Cumulative spend this month',
+    'exp.daily.legend.spent': 'Cumulative',
+    'exp.daily.legend.pace': 'Expected pace',
+    'exp.daily.today': 'Today: {val}',
+    'exp.daily.pace.ahead': '↑ {val} above pace',
+    'exp.daily.pace.behind': '↓ {val} below pace',
+    'exp.daily.pace.match': 'On pace · {val}/day',
+    'exp.trend.title': 'Last 12 months',
+    'exp.trend.sub': 'Spend per category',
+    'exp.trend.empty': 'Need more history to show a trend.',
+    'exp.rec.title': 'Recurring descriptions',
+    'exp.rec.sub': 'Top of the year',
+    'exp.rec.empty': 'No repeated expenses yet. Add more to spot patterns.',
+    'exp.rec.times': '{n}× · avg {avg}',
+    'exp.hero.over': '⚠ {n} category over budget',
   }
 };
 
@@ -654,6 +688,10 @@ function renderExpenses() {
   renderCategoryBreakdown(monthExp, total);
   renderRecentList(monthExp);
   renderExpenseTable(monthExp);
+  renderDailyChart(monthExp, viewDate);
+  renderTrend12m(state.expenses || [], viewDate);
+  renderTopRecurring(state.expenses || [], viewDate);
+  updateHeroOverBudgetBadge(monthExp);
 }
 
 function renderCategoryBreakdown(monthExp, total) {
@@ -780,6 +818,247 @@ function renderExpenseTable(monthExp) {
     </tr>`;
   }).join('');
   tbody.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => openExpenseModal(tr.dataset.id)));
+}
+
+// ============================================================
+//                 EXPENSES - ANALYTICS (Fase C)
+// ============================================================
+
+// Daily spending sparkline: cumulative spend across the viewed month,
+// overlaid with a dotted "expected pace" line (month total / days).
+function renderDailyChart(monthExp, viewDate) {
+  const svg = $('expDailyChart');
+  const footer = $('expDailyFooter');
+  if (!svg) return;
+
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const isCurrentMonth = (new Date().getFullYear() === year) && (new Date().getMonth() === month);
+  const todayDay = isCurrentMonth ? new Date().getDate() : daysInMonth;
+
+  // Aggregate per-day spend
+  const perDay = new Array(daysInMonth + 1).fill(0); // 1-indexed
+  monthExp.forEach(e => {
+    const d = new Date(e.date);
+    if (d.getFullYear() === year && d.getMonth() === month) {
+      perDay[d.getDate()] += (+e.value || 0);
+    }
+  });
+
+  const total = perDay.reduce((s, v) => s + v, 0);
+  const cumul = new Array(daysInMonth + 1).fill(0);
+  for (let i = 1; i <= daysInMonth; i++) cumul[i] = cumul[i - 1] + perDay[i];
+
+  // Paint
+  const W = 700, H = 180, PAD_X = 14, PAD_Y = 18;
+  const xAt = d => PAD_X + ((d - 1) / Math.max(1, daysInMonth - 1)) * (W - PAD_X * 2);
+  const maxY = Math.max(total, 1);
+  const yAt = v => H - PAD_Y - (v / maxY) * (H - PAD_Y * 2);
+
+  // Cumulative path (only up to today)
+  const endDay = isCurrentMonth ? todayDay : daysInMonth;
+  const cumPoints = [];
+  for (let d = 1; d <= endDay; d++) cumPoints.push(`${xAt(d).toFixed(1)},${yAt(cumul[d]).toFixed(1)}`);
+  const linePath = cumPoints.length ? `M ${cumPoints[0]} L ${cumPoints.slice(1).join(' L ')}` : '';
+  const areaPath = cumPoints.length
+    ? `M ${xAt(1).toFixed(1)},${(H - PAD_Y).toFixed(1)} L ${cumPoints.join(' L ')} L ${xAt(endDay).toFixed(1)},${(H - PAD_Y).toFixed(1)} Z`
+    : '';
+
+  // Expected pace line: starts at (1, 0), ends at (daysInMonth, total)
+  const pacePath = `M ${xAt(1).toFixed(1)},${yAt(0).toFixed(1)} L ${xAt(daysInMonth).toFixed(1)},${yAt(total).toFixed(1)}`;
+
+  // Weekend tint bands
+  const bands = [];
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dow = new Date(year, month, d).getDay();
+    if (dow === 0 || dow === 6) {
+      const x = xAt(d - 0.5);
+      const w = (W - PAD_X * 2) / Math.max(1, daysInMonth - 1);
+      bands.push(`<rect x="${x.toFixed(1)}" y="${PAD_Y.toFixed(1)}" width="${w.toFixed(1)}" height="${(H - PAD_Y * 2).toFixed(1)}" fill="var(--ink-muted)" opacity="0.04"/>`);
+    }
+  }
+
+  const todayX = xAt(todayDay);
+  const todayY = yAt(cumul[endDay]);
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="expDailyFill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"  stop-color="var(--purple)"       stop-opacity="0.30"/>
+        <stop offset="100%" stop-color="var(--purple)"      stop-opacity="0.02"/>
+      </linearGradient>
+    </defs>
+    ${bands.join('')}
+    <path d="${pacePath}" stroke="var(--ink-3)" stroke-width="1.2" stroke-dasharray="3 4" fill="none" opacity="0.55"/>
+    ${areaPath ? `<path d="${areaPath}" fill="url(#expDailyFill)"/>` : ''}
+    ${linePath ? `<path d="${linePath}" fill="none" stroke="var(--purple-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 6px var(--purple-glow));"/>` : ''}
+    ${cumPoints.length ? `<circle cx="${todayX.toFixed(1)}" cy="${todayY.toFixed(1)}" r="4" fill="var(--purple-light)" stroke="var(--bg-elevated)" stroke-width="2"/>` : ''}
+  `;
+
+  // Footer: pace comparison
+  if (footer) {
+    const expected = (total / daysInMonth) * endDay;
+    const actual = cumul[endDay];
+    const diff = actual - expected;
+    const avgPerDay = endDay > 0 ? actual / endDay : 0;
+    let paceHtml;
+    if (total === 0) {
+      paceHtml = `<span class="exp-daily-pace-label">${t('exp.daily.pace.match').replace('{val}', fmtBRL0(0))}</span>`;
+    } else if (Math.abs(diff) < total * 0.02) {
+      paceHtml = `<span class="exp-daily-pace-label match">${t('exp.daily.pace.match').replace('{val}', fmtBRL0(avgPerDay))}</span>`;
+    } else if (diff > 0) {
+      paceHtml = `<span class="exp-daily-pace-label neg">${t('exp.daily.pace.ahead').replace('{val}', fmtBRL0(Math.abs(diff)))}</span>`;
+    } else {
+      paceHtml = `<span class="exp-daily-pace-label pos">${t('exp.daily.pace.behind').replace('{val}', fmtBRL0(Math.abs(diff)))}</span>`;
+    }
+    footer.innerHTML = `
+      <div class="exp-daily-today">${t('exp.daily.today').replace('{val}', fmtBRL0(actual))}</div>
+      ${paceHtml}
+    `;
+  }
+}
+
+// 12-month stacked bar chart by category, ending in viewDate's month.
+function renderTrend12m(allExp, viewDate) {
+  const svg = $('expTrendChart');
+  const legendEl = $('expTrendLegend');
+  if (!svg) return;
+
+  const months = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(viewDate.getFullYear(), viewDate.getMonth() - i, 1);
+    months.push({ year: d.getFullYear(), month: d.getMonth(), key: `${d.getFullYear()}-${d.getMonth()}` });
+  }
+
+  // Group sums by {monthKey, category}
+  const byMonth = Object.fromEntries(months.map(m => [m.key, {}]));
+  const categoriesSeen = new Set();
+  allExp.forEach(e => {
+    const d = new Date(e.date);
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    if (!byMonth[key]) return;
+    const cat = e.category || 'outros';
+    byMonth[key][cat] = (byMonth[key][cat] || 0) + (+e.value || 0);
+    categoriesSeen.add(cat);
+  });
+
+  const monthTotals = months.map(m => Object.values(byMonth[m.key]).reduce((s,v) => s+v, 0));
+  const maxTotal = Math.max(1, ...monthTotals);
+
+  // If no history at all, show empty state
+  if (monthTotals.every(v => v === 0)) {
+    svg.innerHTML = `<text x="350" y="120" text-anchor="middle" fill="var(--ink-muted)" font-size="12" font-family="Inter, sans-serif">${t('exp.trend.empty')}</text>`;
+    if (legendEl) legendEl.innerHTML = '';
+    return;
+  }
+
+  const W = 700, H = 240, PAD_X = 24, PAD_BOTTOM = 26, PAD_TOP = 12;
+  const barGap = 6;
+  const slot = (W - PAD_X * 2) / months.length;
+  const barW = Math.max(8, slot - barGap);
+  const plotH = H - PAD_BOTTOM - PAD_TOP;
+
+  // Category draw order: by total desc (biggest at bottom of stack)
+  const catTotals = {};
+  categoriesSeen.forEach(c => {
+    catTotals[c] = months.reduce((s, m) => s + (byMonth[m.key][c] || 0), 0);
+  });
+  const orderedCats = [...categoriesSeen].sort((a, b) => catTotals[b] - catTotals[a]);
+
+  // Build bars
+  const bars = months.map((m, i) => {
+    const x = PAD_X + i * slot + (slot - barW) / 2;
+    let y = H - PAD_BOTTOM;
+    const total = monthTotals[i];
+    const rects = orderedCats.map(cat => {
+      const v = byMonth[m.key][cat] || 0;
+      if (v <= 0) return '';
+      const h = (v / maxTotal) * plotH;
+      y -= h;
+      const c = CATEGORIES[cat] || CATEGORIES.outros;
+      return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" fill="${c.color}" opacity="0.78" rx="1.5"><title>${c.label}: ${fmtBRL0(v)}</title></rect>`;
+    }).join('');
+    // Month label
+    const labelY = H - PAD_BOTTOM + 14;
+    const isCurrent = m.year === viewDate.getFullYear() && m.month === viewDate.getMonth();
+    const monthChar = ['J','F','M','A','M','J','J','A','S','O','N','D'][m.month];
+    const labelFill = isCurrent ? 'var(--purple-light)' : 'var(--ink-muted)';
+    const labelWeight = isCurrent ? 700 : 500;
+    // Total on top of bar (only if visible and not tiny)
+    const totalLabel = total > 0 ? `<text x="${(x + barW/2).toFixed(1)}" y="${(y - 5).toFixed(1)}" text-anchor="middle" fill="var(--ink-3)" font-size="9" font-family="'Geist Mono', monospace" opacity="0.7">${shortMoney(total)}</text>` : '';
+    return `${rects}${totalLabel}<text x="${(x + barW/2).toFixed(1)}" y="${labelY}" text-anchor="middle" fill="${labelFill}" font-weight="${labelWeight}" font-size="10" font-family="'Geist Mono', monospace">${monthChar}</text>`;
+  }).join('');
+
+  svg.innerHTML = bars;
+
+  // Legend (only categories that contributed this year)
+  if (legendEl) {
+    legendEl.innerHTML = orderedCats.map(cat => {
+      const c = CATEGORIES[cat] || CATEGORIES.outros;
+      return `<span class="exp-trend-legend-item"><span class="swatch" style="background:${c.color}"></span>${c.label}</span>`;
+    }).join('');
+  }
+}
+
+// Top recurring descriptions for the year-to-date of viewDate.
+// Normalizes description casing/whitespace, groups, ranks by total spend.
+function renderTopRecurring(allExp, viewDate) {
+  const listEl = $('expRecList');
+  if (!listEl) return;
+  const year = viewDate.getFullYear();
+
+  const groups = {};
+  allExp.forEach(e => {
+    const d = new Date(e.date);
+    if (d.getFullYear() !== year) return;
+    const raw = (e.description || '').trim();
+    if (!raw) return;
+    const key = raw.toLowerCase().replace(/\s+/g, ' ');
+    if (!groups[key]) groups[key] = { label: raw, count: 0, total: 0, category: e.category || 'outros' };
+    groups[key].count += 1;
+    groups[key].total += (+e.value || 0);
+  });
+
+  const rows = Object.values(groups)
+    .filter(g => g.count >= 2)
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 6);
+
+  if (rows.length === 0) {
+    listEl.innerHTML = `<div class="exp-empty"><h4>${t('exp.empty.recent.title')}</h4><p>${t('exp.rec.empty')}</p></div>`;
+    return;
+  }
+
+  listEl.innerHTML = rows.map((g, idx) => {
+    const c = CATEGORIES[g.category] || CATEGORIES.outros;
+    const avg = g.total / g.count;
+    return `<div class="exp-rec-row" style="--cat-color:${c.color};--row-delay:${0.05 + idx * 0.04}s">
+      <div class="exp-rec-icon">${c.icon}</div>
+      <div class="exp-rec-main">
+        <div class="exp-rec-desc">${g.label}</div>
+        <div class="exp-rec-meta">${t('exp.rec.times').replace('{n}', g.count).replace('{avg}', fmtBRL0(avg))}</div>
+      </div>
+      <div class="exp-rec-amt">${fmtBRL0(g.total)}</div>
+    </div>`;
+  }).join('');
+}
+
+// Over-budget hero badge: if any category exceeded its monthly limit, surface it.
+function updateHeroOverBudgetBadge(monthExp) {
+  const heroSub = $('expHeroSub');
+  if (!heroSub) return;
+  const budgets = state.budgets || {};
+  if (Object.keys(budgets).length === 0) return;
+  const byCat = {};
+  monthExp.forEach(e => {
+    const k = e.category || 'outros';
+    byCat[k] = (byCat[k] || 0) + (+e.value || 0);
+  });
+  const over = Object.entries(budgets).filter(([k, v]) => (byCat[k] || 0) > +v).length;
+  if (over === 0) return;
+  // Replace the sub line with the warning
+  heroSub.innerHTML = `<span class="exp-hero-overbudget">${t('exp.hero.over').replace('{n}', over)}</span>`;
 }
 
 // ============================================================

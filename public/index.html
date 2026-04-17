@@ -1046,6 +1046,136 @@ body::before {
 }
 .budget-row-input::placeholder { color: var(--ink-muted); font-weight: 400; }
 
+/* ===========================================================
+   EXPENSES — Analytics cards (Fase C)
+   =========================================================== */
+.exp-daily-card { margin-bottom: 16px; }
+.exp-daily-legend {
+  display: flex; align-items: center; gap: 14px;
+  font-size: 10.5px; font-weight: 500;
+  color: var(--ink-3);
+  font-family: 'Geist Mono', monospace;
+  letter-spacing: 0.02em;
+}
+.exp-legend-swatch {
+  display: inline-block;
+  width: 14px; height: 2px;
+  border-radius: 2px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.exp-legend-swatch.exp-legend-spent {
+  height: 2px;
+  background: var(--purple-light);
+  box-shadow: 0 0 4px var(--purple-glow);
+}
+.exp-legend-swatch.exp-legend-pace {
+  height: 2px;
+  background: repeating-linear-gradient(to right, var(--ink-3) 0 3px, transparent 3px 7px);
+  box-shadow: none;
+}
+.exp-daily-chart { margin: 14px 0 8px; }
+.exp-daily-footer {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+  font-family: 'Geist Mono', monospace;
+}
+.exp-daily-today {
+  font-size: 12px; font-weight: 700; color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.exp-daily-pace-label {
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ink-3);
+}
+.exp-daily-pace-label.pos { color: var(--gain); }
+.exp-daily-pace-label.neg { color: var(--loss); }
+.exp-daily-pace-label.match { color: var(--ink-2); }
+
+/* Trend chart */
+.exp-trend-chart { margin-top: 10px; }
+.exp-trend-legend {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+  display: flex; flex-wrap: wrap; gap: 8px 14px;
+  font-family: 'Geist Mono', monospace;
+}
+.exp-trend-legend-item {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 10.5px; font-weight: 500;
+  color: var(--ink-3);
+}
+.exp-trend-legend-item .swatch {
+  width: 10px; height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+/* Top recurring list */
+.exp-rec-list { display: flex; flex-direction: column; }
+.exp-rec-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border);
+  border-radius: 8px;
+  transition: background 0.15s var(--ease-out), padding 0.15s var(--ease-out);
+  opacity: 0;
+  animation: fadeUp 0.4s var(--ease-out) forwards;
+  animation-delay: var(--row-delay, 0.05s);
+}
+.exp-rec-row:last-child { border-bottom: none; }
+.exp-rec-row:hover { background: var(--bg-elevated-2); padding-left: 14px; }
+.exp-rec-icon {
+  width: 32px; height: 32px;
+  border-radius: 9px;
+  background: color-mix(in oklab, var(--cat-color) 18%, var(--bg-elevated-2));
+  border: 1px solid color-mix(in oklab, var(--cat-color) 28%, transparent);
+  display: grid; place-items: center;
+  font-size: 14px;
+}
+.exp-rec-main { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.exp-rec-desc {
+  font-size: 12.5px; font-weight: 600; color: var(--ink-2);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  letter-spacing: -0.005em; text-transform: capitalize;
+}
+.exp-rec-meta {
+  font-size: 10px; color: var(--ink-muted);
+  font-family: 'Geist Mono', monospace;
+  letter-spacing: 0.02em;
+}
+.exp-rec-amt {
+  font-family: 'Geist Mono', monospace;
+  font-size: 13px; font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Over-budget hero warning pill */
+.exp-hero-overbudget {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px;
+  background: color-mix(in oklab, var(--loss) 14%, transparent);
+  border: 1px solid color-mix(in oklab, var(--loss) 28%, transparent);
+  border-radius: var(--radius-pill);
+  color: var(--loss);
+  font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.01em;
+  animation: pulse-soft 2.4s ease-in-out infinite;
+}
+@keyframes pulse-soft {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--loss) 30%, transparent); }
+  50% { box-shadow: 0 0 0 4px color-mix(in oklab, var(--loss) 0%, transparent); }
+}
+
 /* ---- Recent list (v8) ---- */
 #recentList { display: flex; flex-direction: column; }
 .exp-recent-row {
@@ -1830,6 +1960,24 @@ body::before {
         </div>
       </div>
 
+      <!-- Daily spending sparkline (Fase C) -->
+      <div class="card animate-in exp-daily-card">
+        <div class="card-head">
+          <div>
+            <h3 data-i18n="exp.daily.title">Ritmo diário</h3>
+            <div class="meta" id="expDailyMeta" data-i18n="exp.daily.sub">Gasto acumulado do mês</div>
+          </div>
+          <div class="exp-daily-legend">
+            <span class="exp-legend-swatch exp-legend-spent"></span><span data-i18n="exp.daily.legend.spent">Acumulado</span>
+            <span class="exp-legend-swatch exp-legend-pace"></span><span data-i18n="exp.daily.legend.pace">Ritmo esperado</span>
+          </div>
+        </div>
+        <div class="exp-daily-chart">
+          <svg id="expDailyChart" viewBox="0 0 700 180" preserveAspectRatio="none" style="width:100%;height:180px;display:block"></svg>
+        </div>
+        <div class="exp-daily-footer" id="expDailyFooter"></div>
+      </div>
+
       <div class="grid-2" style="margin-top:0">
         <div class="card animate-in">
           <div class="card-head">
@@ -1858,6 +2006,31 @@ body::before {
             <thead><tr><th data-i18n="exp.th.date">Data</th><th data-i18n="exp.th.desc">Descrição</th><th data-i18n="exp.th.cat">Categoria</th><th class="exp-th-amt" data-i18n="exp.th.amount">Valor</th></tr></thead>
             <tbody id="expBody"></tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- Analytics: 12m trend + top recurring (Fase C) -->
+      <div class="grid-2" style="margin-top:20px">
+        <div class="card animate-in">
+          <div class="card-head">
+            <div>
+              <h3 data-i18n="exp.trend.title">Últimos 12 meses</h3>
+              <div class="meta" id="expTrendMeta" data-i18n="exp.trend.sub">Gasto por categoria</div>
+            </div>
+          </div>
+          <div class="exp-trend-chart">
+            <svg id="expTrendChart" viewBox="0 0 700 240" preserveAspectRatio="none" style="width:100%;height:240px;display:block;overflow:visible"></svg>
+          </div>
+          <div class="exp-trend-legend" id="expTrendLegend"></div>
+        </div>
+        <div class="card animate-in">
+          <div class="card-head">
+            <div>
+              <h3 data-i18n="exp.rec.title">Descrições recorrentes</h3>
+              <div class="meta" id="expRecMeta" data-i18n="exp.rec.sub">Top do ano</div>
+            </div>
+          </div>
+          <div id="expRecList" class="exp-rec-list"></div>
         </div>
       </div>
 
