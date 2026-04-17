@@ -21,6 +21,12 @@
 ## Checklist
 
 - [ ] Paths relativos em `public/` ainda fecham (ícones, manifest, módulos)
-- [ ] `CHANGELOG.md` atualizado se for mudança visível
-- [ ] `CLAUDE.md` / docs atualizados se estrutura ou padrão mudou
 - [ ] Nenhum walletId/email em log público
+
+### Docs no mesmo commit (regra CLAUDE.md §9.8)
+- [ ] Mudou schema Firestore? → `docs/FIRESTORE-SCHEMA.md` + `CLAUDE.md §4`
+- [ ] Feature visível nova ou fluxo mudou? → `CLAUDE.md §6` + `docs/CHANGELOG.md [Unreleased]`
+- [ ] Novo padrão/convenção/helper compartilhado? → `CLAUDE.md §10` (+ `docs/ARCHITECTURE.md` se aplicar)
+- [ ] Deploy/rules mexidos? → `docs/DEPLOY.md` / `docs/DEPLOY-WORKER.md` / `docs/FIRESTORE-RULES.md`
+- [ ] Pessoas/emails/UIDs/walletIds tocados? → conferir `CLAUDE.md §1` e §5
+- [ ] N/A — mudança não toca nenhum dos itens acima

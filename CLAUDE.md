@@ -317,6 +317,14 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 5. **Testar no navegador antes de declarar pronto.** Mudança de UI sem teste visual não fecha. Se não for possível testar (ex.: depende do Firestore real do casal), dizer explicitamente "não testei em ambiente real" — nunca fingir sucesso.
 6. **Mudanças no `worker/src/worker.js`** → publicar no Cloudflare e validar contra a wallet real antes de dar por entregue. Mudança no worker afeta os dois usuários imediatamente.
 7. **`tools/fix-historico.html` e variantes destrutivas** → nunca rodar sem confirmação explícita do dono, mesmo que peçam. São scripts que apagam histórico.
+8. **🔒 Docs sempre junto do código.** Toda mudança que afete qualquer um destes deve atualizar **os arquivos `.md` correspondentes no MESMO commit**, nunca em "commit de docs depois":
+   - **Schema Firestore** (novo campo, tipo mudou, coleção nova, default diferente) → `docs/FIRESTORE-SCHEMA.md` + `CLAUDE.md §4`
+   - **Nova feature ou mudança de fluxo** visível ao usuário → `CLAUDE.md §6` + `docs/CHANGELOG.md` [Unreleased]
+   - **Nova convenção, padrão técnico, helper compartilhado, ou regra arquitetural** → `CLAUDE.md §10` + `docs/ARCHITECTURE.md` se aplicar
+   - **Deploy/setup/rules** mexidos → `docs/DEPLOY.md`, `docs/DEPLOY-WORKER.md` ou `docs/FIRESTORE-RULES.md`
+   - **Pessoas, emails, UIDs ou walletIds** — sempre conferir `CLAUDE.md §1` e §5 quando mexer
+   
+   Motivação: o CLAUDE.md é o contexto carregado em toda sessão futura. Se ficar desatualizado, sessões novas tomam decisões baseadas em informação errada (já aconteceu — "Fernanda" ficou propagando meses porque ninguém corrigiu o doc). **Regra operacional:** antes de `git commit`, revisar se o diff do commit toca schema/feature/padrão; se tocar, o diff TEM que incluir o `.md` correspondente.
 
 ---
 
@@ -349,6 +357,7 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 - ❌ **Nunca** mudar a paleta / tipografia / spacing sem contexto de design. A linguagem visual é `v7`/`v8` — edições pontuais sim, virada de estilo só em conversa explícita.
 - ❌ **Nunca** ignorar `prefers-reduced-motion` em animação nova. É acessibilidade, não opcional.
 - ❌ **Nunca** remover o early auth guard (`app.js:24-36`) — ele existe porque o main app às vezes trava e sem ele o login fica preso.
+- ❌ **Nunca** commitar mudança de schema, feature visível, padrão técnico, pessoa/email/UID ou walletId **sem atualizar o `.md` correspondente NO MESMO commit**. Ver regra operacional em §9.8. Docs desatualizados contaminam sessões futuras com informação errada.
 
 ---
 
