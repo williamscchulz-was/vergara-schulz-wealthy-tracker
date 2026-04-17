@@ -327,6 +327,13 @@ const I18N = {
     'exp.sources.venda': 'Venda',
     'exp.sources.presente': 'Presente',
     'exp.sources.outros': 'Outros',
+    'exp.f.owner': 'De quem',
+    'exp.owner.william': 'William',
+    'exp.owner.flavia': 'Flávia',
+    'exp.owner.joint': 'Conjunto',
+    'exp.owner.short.william': 'W',
+    'exp.owner.short.flavia': 'F',
+    'exp.owner.short.joint': 'W+F',
   },
   en: {
     'login.tagline': 'Personal finance tracker.<br/>Sign in with Google to continue.',
@@ -546,6 +553,13 @@ const I18N = {
     'exp.sources.venda': 'Sale',
     'exp.sources.presente': 'Gift',
     'exp.sources.outros': 'Other',
+    'exp.f.owner': 'Whose',
+    'exp.owner.william': 'William',
+    'exp.owner.flavia': 'Flávia',
+    'exp.owner.joint': 'Joint',
+    'exp.owner.short.william': 'W',
+    'exp.owner.short.flavia': 'F',
+    'exp.owner.short.joint': 'W+F',
   }
 };
 
@@ -945,6 +959,16 @@ function renderCategoryBreakdown(monthExp, total) {
   }
 }
 
+// Owner short chip renderer — returns '' when the owner tag adds no info
+// (undefined or a legacy entry without owner field).
+function ownerChipHtml(e) {
+  const owner = e.owner;
+  if (!owner) return '';
+  const short = t(`exp.owner.short.${owner}`);
+  const full = t(`exp.owner.${owner}`);
+  return `<span class="exp-owner-chip exp-owner-${owner}" title="${full}">${short}</span>`;
+}
+
 function renderRecentList(entries) {
   const wrap = $('recentList');
   if (entries.length === 0) {
@@ -961,10 +985,11 @@ function renderRecentList(entries) {
     const isIn = isIncome(e);
     const amt = (+e.value || 0);
     const amtText = isIn ? `+ ${fmtBRL(amt)}` : fmtBRL(amt);
+    const ownerChip = ownerChipHtml(e);
     return `<div class="exp-recent-row${isIn ? ' is-income' : ''}" data-id="${e.id}" style="--cat-color:${meta.color};--row-delay:${0.05 + idx * 0.04}s">
       <div class="exp-recent-icon">${meta.icon}</div>
       <div class="exp-recent-main">
-        <div class="exp-recent-desc">${e.description || '—'}</div>
+        <div class="exp-recent-desc">${e.description || '—'}${ownerChip}</div>
         <div class="exp-recent-meta">${formatDateBR(e.date)} · ${meta.label}</div>
       </div>
       <div class="exp-recent-amt">${amtText}</div>
@@ -988,7 +1013,8 @@ function renderExpenseTable(entries) {
     return;
   }
 
-  // Apply search filter (description + category/source label + notes, case-insensitive)
+  // Apply search filter (description + category/source label + notes +
+  // owner full/short label, case-insensitive)
   const q = _expSearchQuery.trim().toLowerCase();
   const filtered = q
     ? entries.filter(e => {
@@ -998,6 +1024,8 @@ function renderExpenseTable(entries) {
           e.notes || '',
           meta.label,
           isIncome(e) ? t('exp.income.pill') : '',
+          e.owner ? t(`exp.owner.${e.owner}`) : '',
+          e.owner ? t(`exp.owner.short.${e.owner}`) : '',
         ].join(' ').toLowerCase();
         return hay.includes(q);
       })
@@ -1014,9 +1042,11 @@ function renderExpenseTable(entries) {
     const meta = entryMeta(e);
     const isIn = isIncome(e);
     const notes = (e.notes || '').trim();
+    const ownerChip = ownerChipHtml(e);
+    const descMain = `<div class="exp-row-desc">${e.description || '—'}${ownerChip}</div>`;
     const descHtml = notes
-      ? `<div class="exp-row-desc">${e.description || '—'}</div><div class="exp-row-notes" title="${notes.replace(/"/g,'&quot;')}">${notes}</div>`
-      : `<div class="exp-row-desc">${e.description || '—'}</div>`;
+      ? `${descMain}<div class="exp-row-notes" title="${notes.replace(/"/g,'&quot;')}">${notes}</div>`
+      : descMain;
     const amt = (+e.value || 0);
     const amtText = isIn ? `+ ${fmtBRL(amt)}` : fmtBRL(amt);
     const pillLabel = isIn ? t('exp.income.pill') : meta.label;
@@ -1040,16 +1070,18 @@ function exportCurrentMonthCSV() {
   const filename = t('exp.csv.filename').replace('{month}', monthStr).replace('{year}', yearStr);
 
   // CSV with BOM so Excel opens UTF-8 correctly. Separator = ';' (BR convention).
-  const rows = [['Data', 'Tipo', 'Descrição', 'Categoria/Fonte', 'Valor (BRL)', 'Notas']];
+  const rows = [['Data', 'Tipo', 'De quem', 'Descrição', 'Categoria/Fonte', 'Valor (BRL)', 'Notas']];
   [...monthExp]
     .sort((a, b) => new Date(a.date) - new Date(b.date))
     .forEach(e => {
       const meta = entryMeta(e);
       const typeLabel = isIncome(e) ? t('exp.type.income') : t('exp.type.expense');
+      const ownerLabel = e.owner ? t(`exp.owner.${e.owner}`) : '';
       const signed = (isIncome(e) ? +e.value : -Math.abs(+e.value || 0)).toFixed(2).replace('.', ',');
       rows.push([
         e.date || '',
         typeLabel,
+        ownerLabel,
         (e.description || '').replace(/"/g, '""'),
         meta.label,
         signed,
@@ -1317,6 +1349,25 @@ function updateHeroOverBudgetBadge(monthExp) {
 // ============================================================
 let editingExpenseId = null;
 let _modalType = 'expense'; // 'expense' | 'income'
+let _modalOwner = 'joint';  // 'william' | 'flavia' | 'joint'
+
+// Map Firebase Auth email → owner slot. William hardcoded; any other
+// authenticated user defaults to Flávia (the spouse). 'joint' is a
+// manual choice in the modal.
+function ownerFromUser(user) {
+  const email = (user?.email || '').toLowerCase().trim();
+  if (email === KNOWN_PRIMARY_EMAIL) return 'william';
+  return 'flavia';
+}
+
+function setModalOwner(owner) {
+  _modalOwner = (owner === 'william' || owner === 'flavia' || owner === 'joint') ? owner : 'joint';
+  document.querySelectorAll('#expenseModal .exp-owner-opt').forEach(b => {
+    const on = b.dataset.owner === _modalOwner;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-checked', String(on));
+  });
+}
 
 // Toggle the modal's internal state between expense and income. Swaps
 // title/subtitle copy and which of {category, source} fields is visible.
@@ -1349,6 +1400,7 @@ function openExpenseModal(id = null, opts = {}) {
     const e = state.expenses.find(x => x.id === id); if (!e) return;
     const type = e.type === 'income' ? 'income' : 'expense';
     setModalType(type);
+    setModalOwner(e.owner || 'joint');
     $('expDesc').value = e.description || '';
     $('expValue').value = fmtBRLInput(e.value);
     $('expDate').value = e.date || '';
@@ -1359,6 +1411,7 @@ function openExpenseModal(id = null, opts = {}) {
   } else {
     // Starting a new entry. `opts.type` overrides default (for '+ Ganho' btn).
     setModalType(opts.type === 'income' ? 'income' : 'expense');
+    setModalOwner(ownerFromUser(state.user));
     $('expDesc').value = '';
     $('expValue').value = '';
     $('expDate').value = today.toISOString().split('T')[0];
@@ -1386,6 +1439,7 @@ async function saveExpense() {
 
   const data = {
     type, description, value, date, category, notes,
+    owner: _modalOwner,
     updatedAt: serverTimestamp(),
     updatedBy: state.user?.displayName || 'unknown',
   };
@@ -3068,6 +3122,10 @@ $('btnAddIncome')?.addEventListener('click', () => openExpenseModal(null, { type
 // Modal type toggle (Saída / Ganho)
 document.querySelectorAll('#expenseModal .exp-type-opt').forEach(btn => {
   btn.addEventListener('click', () => setModalType(btn.dataset.type));
+});
+// Modal owner segmented picker
+document.querySelectorAll('#expenseModal .exp-owner-opt').forEach(btn => {
+  btn.addEventListener('click', () => setModalOwner(btn.dataset.owner));
 });
 $('expCancel').addEventListener('click', closeExpenseModal);
 $('expSave').addEventListener('click', saveExpense);

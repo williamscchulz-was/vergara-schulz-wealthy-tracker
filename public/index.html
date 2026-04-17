@@ -1226,6 +1226,59 @@ body::before {
   box-shadow: 0 4px 14px color-mix(in oklab, var(--gain) 20%, transparent);
 }
 
+/* Owner segmented picker in modal */
+.exp-owner-seg {
+  display: inline-grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px;
+  background: var(--bg-elevated-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: 100%;
+}
+.exp-owner-opt {
+  padding: 9px 10px;
+  background: transparent;
+  border: none;
+  color: var(--ink-3);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border-radius: calc(var(--radius) - 6px);
+  cursor: pointer;
+  transition: all 0.18s var(--ease-out);
+}
+.exp-owner-opt:hover { color: var(--ink-2); background: var(--bg-elevated-3); }
+.exp-owner-opt.active {
+  color: #fff;
+  background: var(--purple-soft);
+  border: 1px solid color-mix(in oklab, var(--purple) 40%, transparent);
+  color: var(--purple-light);
+}
+.exp-owner-opt[data-owner="william"].active { color: #8dd0ff; background: color-mix(in oklab, #64d2ff 14%, transparent); border-color: color-mix(in oklab, #64d2ff 32%, transparent); }
+.exp-owner-opt[data-owner="flavia"].active  { color: #ffbce1; background: color-mix(in oklab, #ff6bd6 14%, transparent); border-color: color-mix(in oklab, #ff6bd6 32%, transparent); }
+.exp-owner-opt[data-owner="joint"].active   { color: var(--purple-light); background: var(--purple-soft); border: 1px solid color-mix(in oklab, var(--purple) 32%, transparent); }
+
+/* Owner chip in extract (recent list + table) */
+.exp-owner-chip {
+  display: inline-flex; align-items: center; justify-content: center;
+  margin-left: 8px;
+  padding: 1px 7px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 9.5px; font-weight: 700;
+  letter-spacing: 0.04em;
+  border-radius: var(--radius-pill);
+  vertical-align: middle;
+  border: 1px solid var(--border);
+  color: var(--ink-3);
+  background: var(--bg-elevated-2);
+}
+.exp-owner-chip.exp-owner-william { color: #8dd0ff; background: color-mix(in oklab, #64d2ff 12%, transparent); border-color: color-mix(in oklab, #64d2ff 28%, transparent); }
+.exp-owner-chip.exp-owner-flavia  { color: #ffbce1; background: color-mix(in oklab, #ff6bd6 12%, transparent); border-color: color-mix(in oklab, #ff6bd6 28%, transparent); }
+.exp-owner-chip.exp-owner-joint   { color: var(--purple-light); background: var(--purple-soft); border-color: color-mix(in oklab, var(--purple) 28%, transparent); }
+
 /* Income styling on existing row/pill/amount layouts */
 .exp-recent-row.is-income .exp-recent-amt,
 .exp-table tr.is-income .exp-row-amt { color: var(--gain); }
@@ -2605,6 +2658,13 @@ body::before {
       <option value="presente">🎁 Presente</option>
       <option value="outros">📦 Outros</option>
     </select></div>
+    <div class="field full"><label data-i18n="exp.f.owner">De quem</label>
+      <div class="exp-owner-seg" role="radiogroup" aria-label="De quem">
+        <button type="button" class="exp-owner-opt" data-owner="william" role="radio" aria-checked="false" data-i18n="exp.owner.william">William</button>
+        <button type="button" class="exp-owner-opt" data-owner="flavia" role="radio" aria-checked="false" data-i18n="exp.owner.flavia">Flávia</button>
+        <button type="button" class="exp-owner-opt" data-owner="joint" role="radio" aria-checked="false" data-i18n="exp.owner.joint">Conjunto</button>
+      </div>
+    </div>
     <div class="field full"><label data-i18n="exp.f.notes">Notas (opcional)</label><textarea id="expNotes" data-i18n-ph="exp.f.notes.ph" placeholder="Detalhes adicionais..." rows="2"></textarea></div>
   </div>
   <div class="modal-foot">
