@@ -43,6 +43,18 @@ Datas em `YYYY-MM-DD`.
 - 17 novas chaves `exp.daily.*` / `exp.trend.*` / `exp.rec.*` /
   `exp.hero.over` em PT + EN
 
+### Expenses v3.1 (polish)
+- Hero over-budget badge agora coexiste com a sub-line "N despesas ·
+  média R$ X" em vez de substituí-la (novo wrapper `#expHeroAlert`)
+- Pluralização da mensagem over-budget (singular vs plural nas duas
+  línguas)
+- **Busca live na tabela** (`#expSearch`): filtra descrição +
+  categoria + notas em tempo real, case-insensitive; empty state com
+  a query ecoada
+- **Export CSV** (`#btnExportCsv`): baixa o mês atual como CSV UTF-8
+  com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
+  escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
+
 ### Added
 - `CLAUDE.md` — contexto persistente do projeto
 - `LICENSE` — all rights reserved

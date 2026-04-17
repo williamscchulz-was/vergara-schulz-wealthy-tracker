@@ -243,7 +243,9 @@ A API interna do I10 é **não oficial** — mapeada por engenharia reversa do l
   - **Tendência 12m** (`#expTrendChart`): barras empilhadas por categoria dos últimos 12 meses, legenda auto-gerada, mês corrente destacado
   - **Top recorrentes** (`#expRecList`): groupBy descrição YTD (case-insensitive), ranking de gasto, mostra os 6 com count ≥ 2
   - **Over-budget badge no hero**: quando qualquer categoria ultrapassou seu limite mensal, pill animado substitui o sub line
-- **Não implementado (ideias futuras)**: busca/filtro na tabela, despesas recorrentes marcadas manualmente, export CSV
+- **Busca live** na tabela (`#expSearch`): filtra por descrição + categoria + notas, case-insensitive; estado `_expSearchQuery` persiste entre re-renders
+- **Export CSV** (`#btnExportCsv`): baixa despesas do mês atual como CSV UTF-8 com BOM (Excel friendly), separador `;` (convenção BR), aspas duplas escapadas
+- **Não implementado (ideias futuras)**: despesas recorrentes marcadas manualmente, visão anual, comparativo YoY por categoria
 
 ### Transversal
 

@@ -280,7 +280,12 @@ const I18N = {
     'exp.rec.sub': 'Top do ano',
     'exp.rec.empty': 'Sem despesas repetidas ainda. Adicione algumas pra ver padrões.',
     'exp.rec.times': '{n}× · média {avg}',
-    'exp.hero.over': '⚠ {n} categoria(s) acima do orçamento',
+    'exp.hero.over': '⚠ {n} categorias acima do orçamento',
+    'exp.hero.over.one': '⚠ 1 categoria acima do orçamento',
+    'exp.search.ph': 'Buscar descrição, categoria, notas...',
+    'exp.search.none': 'Nenhuma despesa encontrada para "{q}"',
+    'exp.csv': 'CSV',
+    'exp.csv.filename': 'despesas-{month}-{year}.csv',
   },
   en: {
     'login.tagline': 'Personal finance tracker.<br/>Sign in with Google to continue.',
@@ -469,7 +474,12 @@ const I18N = {
     'exp.rec.sub': 'Top of the year',
     'exp.rec.empty': 'No repeated expenses yet. Add more to spot patterns.',
     'exp.rec.times': '{n}× · avg {avg}',
-    'exp.hero.over': '⚠ {n} category over budget',
+    'exp.hero.over': '⚠ {n} categories over budget',
+    'exp.hero.over.one': '⚠ 1 category over budget',
+    'exp.search.ph': 'Search description, category, notes...',
+    'exp.search.none': 'No expense found for "{q}"',
+    'exp.csv': 'CSV',
+    'exp.csv.filename': 'expenses-{month}-{year}.csv',
   }
 };
 
@@ -797,13 +807,40 @@ function renderRecentList(monthExp) {
   );
 }
 
+// Keep last rendered month so CSV export + search filter can operate
+// on the same dataset without re-querying state.
+let _lastMonthExp = [];
+let _expSearchQuery = '';
+
 function renderExpenseTable(monthExp) {
+  _lastMonthExp = monthExp;
   const tbody = $('expBody');
   if (monthExp.length === 0) {
     tbody.innerHTML = `<tr><td colspan="4"><div class="exp-empty"><h4>${t('exp.empty.table.title')}</h4><p>${t('exp.empty.table.sub')}</p></div></td></tr>`;
     return;
   }
-  const sorted = [...monthExp].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  // Apply search filter (description + category label + notes, case-insensitive)
+  const q = _expSearchQuery.trim().toLowerCase();
+  const filtered = q
+    ? monthExp.filter(e => {
+        const cat = CATEGORIES[e.category] || CATEGORIES.outros;
+        const hay = [
+          e.description || '',
+          e.notes || '',
+          cat.label,
+        ].join(' ').toLowerCase();
+        return hay.includes(q);
+      })
+    : monthExp;
+
+  if (filtered.length === 0) {
+    const msg = t('exp.search.none').replace('{q}', _expSearchQuery.trim());
+    tbody.innerHTML = `<tr><td colspan="4"><div class="exp-empty"><h4>${msg}</h4><p>${t('exp.empty.table.sub')}</p></div></td></tr>`;
+    return;
+  }
+
+  const sorted = [...filtered].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   tbody.innerHTML = sorted.map(e => {
     const cat = CATEGORIES[e.category] || CATEGORIES.outros;
     const notes = (e.notes || '').trim();
@@ -818,6 +855,40 @@ function renderExpenseTable(monthExp) {
     </tr>`;
   }).join('');
   tbody.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => openExpenseModal(tr.dataset.id)));
+}
+
+// CSV export of the currently viewed month (ignores search filter — users
+// usually want the full month, not a filtered view).
+function exportCurrentMonthCSV() {
+  const monthExp = _lastMonthExp || [];
+  const viewDate = state.currentViewMonth || new Date();
+  const monthStr = String(viewDate.getMonth() + 1).padStart(2, '0');
+  const yearStr = String(viewDate.getFullYear());
+  const filename = t('exp.csv.filename').replace('{month}', monthStr).replace('{year}', yearStr);
+
+  // CSV with BOM so Excel opens UTF-8 correctly. Separator = ';' (BR convention).
+  const rows = [['Data', 'Descrição', 'Categoria', 'Valor (BRL)', 'Notas']];
+  [...monthExp]
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .forEach(e => {
+      const cat = CATEGORIES[e.category] || CATEGORIES.outros;
+      rows.push([
+        e.date || '',
+        (e.description || '').replace(/"/g, '""'),
+        cat.label,
+        (+e.value || 0).toFixed(2).replace('.', ','),
+        (e.notes || '').replace(/"/g, '""'),
+      ]);
+    });
+  const csv = '\ufeff' + rows.map(r => r.map(cell => `"${cell}"`).join(';')).join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
 }
 
 // ============================================================
@@ -1046,19 +1117,23 @@ function renderTopRecurring(allExp, viewDate) {
 
 // Over-budget hero badge: if any category exceeded its monthly limit, surface it.
 function updateHeroOverBudgetBadge(monthExp) {
-  const heroSub = $('expHeroSub');
-  if (!heroSub) return;
+  const alertEl = $('expHeroAlert');
+  if (!alertEl) return;
   const budgets = state.budgets || {};
-  if (Object.keys(budgets).length === 0) return;
   const byCat = {};
   monthExp.forEach(e => {
     const k = e.category || 'outros';
     byCat[k] = (byCat[k] || 0) + (+e.value || 0);
   });
   const over = Object.entries(budgets).filter(([k, v]) => (byCat[k] || 0) > +v).length;
-  if (over === 0) return;
-  // Replace the sub line with the warning
-  heroSub.innerHTML = `<span class="exp-hero-overbudget">${t('exp.hero.over').replace('{n}', over)}</span>`;
+  if (over === 0 || Object.keys(budgets).length === 0) {
+    alertEl.hidden = true;
+    alertEl.innerHTML = '';
+    return;
+  }
+  const key = over === 1 ? 'exp.hero.over.one' : 'exp.hero.over';
+  alertEl.hidden = false;
+  alertEl.innerHTML = `<span class="exp-hero-overbudget">${t(key).replace('{n}', over)}</span>`;
 }
 
 // ============================================================
@@ -2763,6 +2838,15 @@ $('confirmOk')?.addEventListener('click', async () => {
   if (cb) await cb();
 });
 $('confirmModal')?.addEventListener('click', e => { if (e.target.id === 'confirmModal') closeConfirmModal(); });
+
+// Table search — live filter, only the current month's rows are touched
+$('expSearch')?.addEventListener('input', e => {
+  _expSearchQuery = e.target.value || '';
+  renderExpenseTable(_lastMonthExp);
+});
+
+// CSV export
+$('btnExportCsv')?.addEventListener('click', exportCurrentMonthCSV);
 
 // Budget modal
 $('btnEditBudgets')?.addEventListener('click', openBudgetModal);

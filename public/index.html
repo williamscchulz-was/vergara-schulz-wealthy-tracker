@@ -1159,6 +1159,69 @@ body::before {
   white-space: nowrap;
 }
 
+/* Over-budget hero wrapper — coexists with the count/avg sub line */
+.exp-hero-alert { margin-top: 10px; }
+.exp-hero-alert[hidden] { display: none; }
+
+/* Table toolbar (search + CSV export) */
+.exp-table-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.exp-search {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 12px;
+  background: var(--bg-elevated-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  color: var(--ink-3);
+  transition: all 0.18s var(--ease-out);
+  min-width: 220px;
+}
+.exp-search:focus-within {
+  border-color: var(--border-strong);
+  background: var(--bg-elevated-3);
+  box-shadow: 0 0 0 3px var(--purple-soft);
+  color: var(--purple-light);
+}
+.exp-search svg { opacity: 0.8; flex-shrink: 0; }
+.exp-search input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 12px;
+  letter-spacing: -0.005em;
+  min-width: 0;
+}
+.exp-search input::placeholder { color: var(--ink-muted); }
+.exp-search input::-webkit-search-cancel-button { appearance: none; }
+
+.btn-csv {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  background: var(--bg-elevated-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  color: var(--ink-2);
+  font-family: inherit;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.18s var(--ease-out);
+}
+.btn-csv:hover {
+  background: var(--purple-soft);
+  border-color: color-mix(in oklab, var(--purple) 28%, transparent);
+  color: var(--purple-light);
+  transform: translateY(-1px);
+}
+.btn-csv svg { opacity: 0.9; }
+
+@media (max-width: 720px) {
+  .exp-table-tools { width: 100%; }
+  .exp-search { flex: 1; min-width: 0; }
+}
+
 /* Over-budget hero warning pill */
 .exp-hero-overbudget {
   display: inline-flex; align-items: center; gap: 6px;
@@ -1934,6 +1997,7 @@ body::before {
           </div>
           <div class="amt"><span class="cur">R$</span><span id="expHeroAmt">0</span></div>
           <div class="amt-sub" id="expHeroSub" data-i18n="exp.hero.empty">Nenhuma despesa registrada ainda</div>
+          <div class="exp-hero-alert" id="expHeroAlert" hidden></div>
         </div>
         <div class="month-nav">
           <button id="btnPrevMonth" title="Mês anterior">‹</button>
@@ -2000,7 +2064,22 @@ body::before {
       </div>
 
       <div class="card animate-in" style="margin-top:20px">
-        <div class="card-head"><h3 data-i18n="exp.card.all">Todas as despesas do mês</h3><div class="meta" data-i18n="exp.card.all.sub">Clique em uma linha para editar</div></div>
+        <div class="card-head">
+          <div>
+            <h3 data-i18n="exp.card.all">Todas as despesas do mês</h3>
+            <div class="meta" data-i18n="exp.card.all.sub">Clique em uma linha para editar</div>
+          </div>
+          <div class="exp-table-tools">
+            <label class="exp-search">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+              <input type="search" id="expSearch" data-i18n-ph="exp.search.ph" placeholder="Buscar descrição, categoria..." autocomplete="off" />
+            </label>
+            <button class="btn-ghost btn-csv" id="btnExportCsv" title="Exportar CSV">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span data-i18n="exp.csv">CSV</span>
+            </button>
+          </div>
+        </div>
         <div class="table-wrap">
           <table class="exp-table">
             <thead><tr><th data-i18n="exp.th.date">Data</th><th data-i18n="exp.th.desc">Descrição</th><th data-i18n="exp.th.cat">Categoria</th><th class="exp-th-amt" data-i18n="exp.th.amount">Valor</th></tr></thead>
