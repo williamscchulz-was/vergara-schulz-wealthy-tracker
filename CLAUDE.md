@@ -156,6 +156,9 @@ Todas as coleções e documentos ficam sob `household/main/...` (a casa é uma s
 /household/main/config/pension          // previdência privada (Bradesco default)
     accounts: [{ id, name, amount, ... }]
 
+/household/main/config/budgets          // orçamento mensal por categoria
+    categories: { [catKey]: number }, updatedAt, updatedBy
+
 /household/main/config/goalParams       // meta de dividendos anuais
     dividendsYearlyGoal, dividendsYearlyGoalYear, monthlyContribution, expectedRate
 
@@ -221,14 +224,21 @@ A API interna do I10 é **não oficial** — mapeada por engenharia reversa do l
 
 ### Modo Despesas
 
-- Lançamento com categoria + descrição + valor + data + `notes` (opcional)
-- Hero com total do mês + label do mês
+- Lançamento com categoria + descrição + valor (com máscara BRL) + data + `notes` (opcional)
+- Hero com total do mês + label do mês + live-dot
 - 3 stats: contagem, delta vs mês anterior, maior despesa
-- Breakdown por categoria com barras + %
-- Lista de "recentes" (6 últimas) + tabela completa do mês (clique na linha edita)
+- Breakdown por categoria com barras + % + **orçamento por categoria**:
+  - `config/budgets.categories` guarda limite mensal por categoria
+  - Quando há limite: barra mostra % do próprio limite, pct vira "X% do limite", amount adiciona "de R$ Y"
+  - Estado `over-budget` pinta barra/valores de vermelho
+  - Footer "Gasto / orçamento" com progresso agregado
+  - Editor via botão "Orçamento" no card → `#budgetModal`
+- Lista de "recentes" (6 últimas, clicáveis) + tabela completa do mês (clique na linha edita; `notes` aparece como segunda linha)
 - Navegação por mês (`state.currentViewMonth`)
-- CRUD via modal (`#expenseModal`, delete via `confirm()` nativo hoje)
-- **Não implementado (ideias futuras)**: orçamento por categoria, busca/filtro, despesas recorrentes, export CSV, exibição do campo `notes` na UI
+- CRUD via modal (`#expenseModal` com liquid border)
+- Delete via modal custom `#confirmModal` (substituiu `confirm()` nativo)
+- i18n completo: todas as strings estáticas/dinâmicas passam por `t()`; PT/EN
+- **Não implementado (ideias futuras)**: busca/filtro na tabela, despesas recorrentes, export CSV, comparação YoY por categoria
 
 ### Transversal
 

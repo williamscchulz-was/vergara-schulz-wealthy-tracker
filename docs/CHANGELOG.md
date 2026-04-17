@@ -16,6 +16,20 @@ Datas em `YYYY-MM-DD`.
 - `goal-projection.js` (código morto — não era importado em lugar
   nenhum; o card `#goalCardV2` é gerenciado pelo `app.js`)
 
+### Expenses v2 (Fase B)
+- **i18n de verdade**: 47+ chaves `exp.*` em PT/EN, `data-i18n` em
+  todo HTML estático, `t()` nos renderers, `applyI18n` re-renderiza
+  o módulo de despesas quando a lang muda
+- **Máscara BRL** no input de valor: `parseBRLInput`/`fmtBRLInput`
+  tolerantes a múltiplos formatos, blur formata, Enter salva
+- **Confirm modal custom** (`#confirmModal` + `openConfirmModal`)
+  substitui `confirm()` nativo; helper reusável pra próximas ações
+  destrutivas
+- **Orçamento por categoria** — novo doc `config/budgets.categories`,
+  integrado no breakdown (barras relativas ao limite, estado
+  `over-budget` em vermelho, footer agregado "gasto / orçamento")
+  e editor dedicado via `#budgetModal`
+
 ### Added
 - `CLAUDE.md` — contexto persistente do projeto
 - `LICENSE` — all rights reserved

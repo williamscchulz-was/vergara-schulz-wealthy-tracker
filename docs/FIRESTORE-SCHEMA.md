@@ -76,6 +76,14 @@ Campos: `accounts: [{ id, name, bank, amount, ... }]`, `updatedAt`,
 Previdência privada (Bradesco default).
 Campos: `accounts: [...]`, `updatedAt`, `updatedBy`, `seeded`.
 
+### `/household/main/config/budgets`
+Orçamento mensal por categoria de despesa.
+Campos:
+- `categories`: `{ [catKey]: number }` — limite em BRL por categoria
+  (apenas categorias em `CATEGORIES` de `app.js`; valores <= 0 são
+  tratados como "sem limite")
+- `updatedAt`, `updatedBy`
+
 ### `/household/main/config/goalParams`
 Meta de dividendos anuais.
 Campos: `dividendsYearlyGoal`, `dividendsYearlyGoalYear`,
