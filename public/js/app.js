@@ -65,6 +65,7 @@ const CATEGORIES = {
   outros:      { label: 'Outros',            icon: '📦', color: '#8e8e93' },
 };
 const MONTH_NAMES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const MONTH_NAMES_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 // ---- State ----
 const state = {
@@ -194,6 +195,61 @@ const I18N = {
     'goal.phrase.before': 'You reach the goal in <b>{year}</b>, <span style="color:var(--purple-light);font-weight:600">{n} {label} early</span>.',
     'goal.phrase.exact': 'You hit the goal exactly in <b>{year}</b>.',
     'goal.phrase.after': 'You only reach R$ 1M/yr in <b>{year}</b>, <span style="color:var(--loss);font-weight:600">{n} {label} late</span>. Raise contribution or expected DY.',
+    // ---- Expenses tab (Fase B: i18n de verdade) ----
+    'exp.section.title': 'Despesas',
+    'exp.section.meta': 'Lançamentos e orçamento do mês',
+    'exp.new': '+ Nova despesa',
+    'exp.hero.total': 'TOTAL DO MÊS',
+    'exp.hero.empty': 'Nenhuma despesa registrada ainda',
+    'exp.hero.sub': '{n} {label} · média {avg}',
+    'exp.count.singular': 'despesa',
+    'exp.count.plural': 'despesas',
+    'exp.stat.count': 'DESPESAS ESTE MÊS',
+    'exp.stat.count.sub': 'Lançamentos registrados',
+    'exp.stat.vs': 'VS MÊS ANTERIOR',
+    'exp.stat.vs.empty': 'Sem dados do mês anterior',
+    'exp.stat.vs.sub': '{diff} vs {prev}',
+    'exp.stat.biggest': 'MAIOR DESPESA',
+    'exp.card.bycat': 'Por categoria',
+    'exp.card.bycat.sub': 'Distribuição do mês',
+    'exp.card.recent': 'Lançamentos recentes',
+    'exp.card.recent.sub': 'Últimas {n} despesas',
+    'exp.card.all': 'Todas as despesas do mês',
+    'exp.card.all.sub': 'Clique em uma linha para editar',
+    'exp.th.date': 'Data',
+    'exp.th.desc': 'Descrição',
+    'exp.th.cat': 'Categoria',
+    'exp.th.amount': 'Valor',
+    'exp.empty.cat.title': 'Sem despesas',
+    'exp.empty.cat.sub': 'Adicione a primeira despesa do mês.',
+    'exp.empty.recent.title': 'Sem lançamentos',
+    'exp.empty.recent.sub': 'Suas despesas recentes aparecerão aqui.',
+    'exp.empty.table.title': 'Nenhuma despesa neste mês',
+    'exp.empty.table.sub': 'Clique em "+ Nova despesa" para começar.',
+    'exp.modal.new.title': 'Nova despesa',
+    'exp.modal.new.sub': 'Registre uma despesa. A categoria pode ser editada depois.',
+    'exp.modal.edit.title': 'Editar despesa',
+    'exp.modal.edit.sub': 'Edite os detalhes abaixo ou exclua a despesa.',
+    'exp.f.desc': 'Descrição',
+    'exp.f.value': 'Valor (R$)',
+    'exp.f.date': 'Data',
+    'exp.f.cat': 'Categoria',
+    'exp.f.notes': 'Notas (opcional)',
+    'exp.f.desc.ph': 'Ex: Mercado, Netflix, Uber...',
+    'exp.f.notes.ph': 'Detalhes adicionais...',
+    'exp.btn.delete': 'Excluir',
+    'exp.btn.cancel': 'Cancelar',
+    'exp.btn.save': 'Salvar',
+    'exp.btn.saving': 'Salvando...',
+    'exp.toast.saved': '✓ Despesa atualizada',
+    'exp.toast.added': '✓ Despesa registrada',
+    'exp.toast.deleted': '✓ Despesa excluída',
+    'exp.toast.err.desc': 'Descrição obrigatória',
+    'exp.toast.err.value': 'Valor deve ser maior que zero',
+    'exp.toast.err.date': 'Data obrigatória',
+    'exp.delete.title': 'Excluir despesa?',
+    'exp.delete.sub': 'Esta ação não pode ser desfeita.',
+    'exp.delete.confirm': 'Sim, excluir',
   },
   en: {
     'login.tagline': 'Personal finance tracker.<br/>Sign in with Google to continue.',
@@ -299,6 +355,61 @@ const I18N = {
     'goal.phrase.before': 'You reach the goal in <b>{year}</b>, <span style="color:var(--purple-light);font-weight:600">{n} {label} early</span>.',
     'goal.phrase.exact': 'You hit the goal exactly in <b>{year}</b>.',
     'goal.phrase.after': 'You only reach R$ 1M/year in <b>{year}</b>, <span style="color:var(--loss);font-weight:600">{n} {label} late</span>. Increase contribution or expected DY.',
+    // ---- Expenses tab ----
+    'exp.section.title': 'Expenses',
+    'exp.section.meta': 'Monthly spending and budget',
+    'exp.new': '+ New expense',
+    'exp.hero.total': 'MONTH TOTAL',
+    'exp.hero.empty': 'No expenses recorded yet',
+    'exp.hero.sub': '{n} {label} · avg {avg}',
+    'exp.count.singular': 'expense',
+    'exp.count.plural': 'expenses',
+    'exp.stat.count': 'THIS MONTH',
+    'exp.stat.count.sub': 'Entries recorded',
+    'exp.stat.vs': 'VS PREVIOUS MONTH',
+    'exp.stat.vs.empty': 'No data for last month',
+    'exp.stat.vs.sub': '{diff} vs {prev}',
+    'exp.stat.biggest': 'BIGGEST EXPENSE',
+    'exp.card.bycat': 'By category',
+    'exp.card.bycat.sub': 'Month distribution',
+    'exp.card.recent': 'Recent entries',
+    'exp.card.recent.sub': 'Last {n} expenses',
+    'exp.card.all': 'All expenses this month',
+    'exp.card.all.sub': 'Click a row to edit',
+    'exp.th.date': 'Date',
+    'exp.th.desc': 'Description',
+    'exp.th.cat': 'Category',
+    'exp.th.amount': 'Amount',
+    'exp.empty.cat.title': 'No expenses',
+    'exp.empty.cat.sub': 'Add the first expense of the month.',
+    'exp.empty.recent.title': 'No entries',
+    'exp.empty.recent.sub': 'Your recent expenses will show up here.',
+    'exp.empty.table.title': 'No expenses this month',
+    'exp.empty.table.sub': 'Click "+ New expense" to get started.',
+    'exp.modal.new.title': 'New expense',
+    'exp.modal.new.sub': 'Record an expense. Category can be edited later.',
+    'exp.modal.edit.title': 'Edit expense',
+    'exp.modal.edit.sub': 'Edit the details below or delete the expense.',
+    'exp.f.desc': 'Description',
+    'exp.f.value': 'Amount (R$)',
+    'exp.f.date': 'Date',
+    'exp.f.cat': 'Category',
+    'exp.f.notes': 'Notes (optional)',
+    'exp.f.desc.ph': 'Ex: Groceries, Netflix, Uber...',
+    'exp.f.notes.ph': 'Additional details...',
+    'exp.btn.delete': 'Delete',
+    'exp.btn.cancel': 'Cancel',
+    'exp.btn.save': 'Save',
+    'exp.btn.saving': 'Saving...',
+    'exp.toast.saved': '✓ Expense updated',
+    'exp.toast.added': '✓ Expense recorded',
+    'exp.toast.deleted': '✓ Expense deleted',
+    'exp.toast.err.desc': 'Description required',
+    'exp.toast.err.value': 'Amount must be greater than zero',
+    'exp.toast.err.date': 'Date required',
+    'exp.delete.title': 'Delete expense?',
+    'exp.delete.sub': 'This action cannot be undone.',
+    'exp.delete.confirm': 'Yes, delete',
   }
 };
 
@@ -320,13 +431,18 @@ function applyI18n() {
     if (val.includes('<')) el.innerHTML = val;
     else el.textContent = val;
   });
+  // Placeholders (input/textarea)
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph')));
+  });
   // Update lang label in topbar
   const label = document.getElementById('langLabel');
   if (label) label.textContent = lang === 'pt' ? 'EN' : 'PT';
   // Re-render dynamic views ONLY if app is loaded and user is logged in
   try {
-    if (typeof state !== 'undefined' && state && state.user && typeof renderInvestments === 'function' && state.mode === 'investments') {
-      renderInvestments();
+    if (typeof state !== 'undefined' && state && state.user) {
+      if (state.mode === 'investments' && typeof renderInvestments === 'function') renderInvestments();
+      if (state.mode === 'expenses' && typeof renderExpenses === 'function') renderExpenses();
     }
   } catch (err) {
     console.warn('[i18n] re-render skipped:', err);
@@ -349,6 +465,29 @@ const fmtBRL = (n) => 'R$ ' + (n || 0).toLocaleString('pt-BR', { minimumFraction
 const fmtBRL0 = (n) => 'R$ ' + (n || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
 const fmtInt = (n) => (n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 const fmtPct = (n) => (n >= 0 ? '+' : '') + n.toFixed(1) + '%';
+
+// Currency helpers for typed BRL inputs ("R$ 1.234,56" ⇄ 1234.56).
+// Tolerates raw numbers ("1234.56"), dot-thousands ("1.234,56"),
+// and plain comma decimal ("1234,56").
+function parseBRLInput(raw) {
+  if (typeof raw === 'number') return raw;
+  if (!raw) return 0;
+  let s = String(raw).replace(/R\$\s?/gi, '').trim();
+  if (!s) return 0;
+  // If both '.' and ',' are present: '.' is thousands, ',' is decimal.
+  if (s.includes(',') && s.includes('.')) s = s.replace(/\./g, '').replace(',', '.');
+  // Only ',': treat it as decimal.
+  else if (s.includes(',')) s = s.replace(',', '.');
+  // Only '.': if there's more than one dot, treat them as thousands;
+  // a single '.' is kept as the decimal separator (user typed "12.50").
+  else if ((s.match(/\./g) || []).length > 1) s = s.replace(/\./g, '');
+  const n = parseFloat(s);
+  return isFinite(n) ? n : 0;
+}
+function fmtBRLInput(n) {
+  if (n == null || n === '' || !isFinite(+n)) return '';
+  return 'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 function shortMoney(n) {
   if (Math.abs(n) >= 1_000_000) return (n/1_000_000).toFixed(1) + 'M';
   if (Math.abs(n) >= 1_000) return (n/1_000).toFixed(0) + 'k';
@@ -376,7 +515,8 @@ function monthKey(d) {
 }
 function monthLabel(d) {
   const dt = d instanceof Date ? d : new Date(d);
-  return `${MONTH_NAMES_PT[dt.getMonth()]} ${dt.getFullYear()}`;
+  const names = getLang() === 'en' ? MONTH_NAMES_EN : MONTH_NAMES_PT;
+  return `${names[dt.getMonth()]} ${dt.getFullYear()}`;
 }
 
 // Build the public I10 wallet link from i10Cfg (no hardcoded wallet/hash in HTML).
@@ -449,9 +589,13 @@ function renderExpenses() {
   $('currentMonthLabel').textContent = monthLabel(viewDate);
   $('expHeroAmt').textContent = total.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
   if (monthExp.length === 0) {
-    $('expHeroSub').textContent = 'Nenhuma despesa registrada ainda';
+    $('expHeroSub').textContent = t('exp.hero.empty');
   } else {
-    $('expHeroSub').textContent = `${monthExp.length} despesa${monthExp.length>1?'s':''} · média ${fmtBRL0(total/monthExp.length)}`;
+    const label = monthExp.length > 1 ? t('exp.count.plural') : t('exp.count.singular');
+    $('expHeroSub').textContent = t('exp.hero.sub')
+      .replace('{n}', monthExp.length)
+      .replace('{label}', label)
+      .replace('{avg}', fmtBRL0(total / monthExp.length));
   }
 
   // Stats
@@ -460,23 +604,25 @@ function renderExpenses() {
   if (prevTotal > 0) {
     const diff = total - prevTotal;
     const pct = (diff / prevTotal) * 100;
-    const cls = diff >= 0 ? 'dn' : 'up';
     const arrow = diff >= 0 ? '↑' : '↓';
     $('expVsPrev').innerHTML = `<span class="${diff>=0?'neg':'pos'}">${arrow} ${fmtPct(Math.abs(pct) * (diff>=0?1:-1))}</span>`;
-    $('expVsPrevSub').innerHTML = `${diff>=0?'+':''}${fmtBRL0(diff)} vs ${MONTH_NAMES_PT[prevDate.getMonth()]}`;
+    const prevLabel = (getLang() === 'en' ? MONTH_NAMES_EN : MONTH_NAMES_PT)[prevDate.getMonth()];
+    $('expVsPrevSub').textContent = t('exp.stat.vs.sub')
+      .replace('{diff}', (diff>=0?'+':'') + fmtBRL0(diff))
+      .replace('{prev}', prevLabel);
   } else {
-    $('expVsPrev').textContent = '-';
-    $('expVsPrevSub').textContent = 'Sem dados do mês anterior';
+    $('expVsPrev').textContent = '—';
+    $('expVsPrevSub').textContent = t('exp.stat.vs.empty');
   }
 
   // Biggest
   if (monthExp.length > 0) {
     const biggest = [...monthExp].sort((a,b) => (+b.value||0) - (+a.value||0))[0];
     $('expBiggest').textContent = fmtBRL0(+biggest.value||0);
-    $('expBiggestSub').textContent = biggest.description || '-';
+    $('expBiggestSub').textContent = biggest.description || '—';
   } else {
-    $('expBiggest').textContent = '-';
-    $('expBiggestSub').textContent = '-';
+    $('expBiggest').textContent = '—';
+    $('expBiggestSub').textContent = '—';
   }
 
   renderCategoryBreakdown(monthExp, total);
@@ -487,7 +633,7 @@ function renderExpenses() {
 function renderCategoryBreakdown(monthExp, total) {
   const wrap = $('catList');
   if (monthExp.length === 0) {
-    wrap.innerHTML = `<div class="exp-empty"><h4>Sem despesas</h4><p>Adicione a primeira despesa do mês.</p></div>`;
+    wrap.innerHTML = `<div class="exp-empty"><h4>${t('exp.empty.cat.title')}</h4><p>${t('exp.empty.cat.sub')}</p></div>`;
     return;
   }
   // Group by category
@@ -517,14 +663,14 @@ function renderCategoryBreakdown(monthExp, total) {
 function renderRecentList(monthExp) {
   const wrap = $('recentList');
   if (monthExp.length === 0) {
-    wrap.innerHTML = `<div class="exp-empty"><h4>Sem lançamentos</h4><p>Suas despesas recentes aparecerão aqui.</p></div>`;
+    wrap.innerHTML = `<div class="exp-empty"><h4>${t('exp.empty.recent.title')}</h4><p>${t('exp.empty.recent.sub')}</p></div>`;
     $('recentMeta').textContent = '—';
     return;
   }
   const sorted = [...monthExp]
     .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 6);
-  $('recentMeta').textContent = `Últimas ${sorted.length} despesas`;
+  $('recentMeta').textContent = t('exp.card.recent.sub').replace('{n}', sorted.length);
   wrap.innerHTML = sorted.map((e, idx) => {
     const cat = CATEGORIES[e.category] || CATEGORIES.outros;
     return `<div class="exp-recent-row" data-id="${e.id}" style="--cat-color:${cat.color};--row-delay:${0.05 + idx * 0.04}s">
@@ -544,7 +690,7 @@ function renderRecentList(monthExp) {
 function renderExpenseTable(monthExp) {
   const tbody = $('expBody');
   if (monthExp.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4"><div class="exp-empty"><h4>Nenhuma despesa neste mês</h4><p>Clique em "+ Nova despesa" para começar.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4"><div class="exp-empty"><h4>${t('exp.empty.table.title')}</h4><p>${t('exp.empty.table.sub')}</p></div></td></tr>`;
     return;
   }
   const sorted = [...monthExp].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -572,17 +718,17 @@ function openExpenseModal(id = null) {
   editingExpenseId = id;
   if (id) {
     const e = state.expenses.find(x => x.id === id); if (!e) return;
-    $('expenseModalTitle').textContent = 'Editar despesa';
-    document.querySelector('#expenseModal .modal .sub').textContent = 'Edite os detalhes abaixo ou exclua a despesa.';
+    $('expenseModalTitle').textContent = t('exp.modal.edit.title');
+    $('expenseModalSub').textContent = t('exp.modal.edit.sub');
     $('expDesc').value = e.description || '';
-    $('expValue').value = e.value || '';
+    $('expValue').value = fmtBRLInput(e.value);
     $('expDate').value = e.date || '';
     $('expCategory').value = e.category || 'outros';
     $('expNotes').value = e.notes || '';
     $('expDelete').style.display = '';
   } else {
-    $('expenseModalTitle').textContent = 'Nova despesa';
-    document.querySelector('#expenseModal .modal .sub').textContent = 'Registre uma despesa. A categoria pode ser editada depois.';
+    $('expenseModalTitle').textContent = t('exp.modal.new.title');
+    $('expenseModalSub').textContent = t('exp.modal.new.sub');
     $('expDesc').value = '';
     $('expValue').value = '';
     // Default date = today
@@ -599,14 +745,14 @@ function closeExpenseModal() { $('expenseModal').classList.remove('show'); editi
 
 async function saveExpense() {
   const description = $('expDesc').value.trim();
-  const value = parseFloat($('expValue').value);
+  const value = parseBRLInput($('expValue').value);
   const date = $('expDate').value;
   const category = $('expCategory').value;
   const notes = $('expNotes').value.trim();
 
-  if (!description) { showToast('Descrição obrigatória'); return; }
-  if (!value || value <= 0) { showToast('Valor deve ser maior que zero'); return; }
-  if (!date) { showToast('Data obrigatória'); return; }
+  if (!description) { showToast(t('exp.toast.err.desc')); return; }
+  if (!value || value <= 0) { showToast(t('exp.toast.err.value')); return; }
+  if (!date) { showToast(t('exp.toast.err.date')); return; }
 
   const data = {
     description, value, date, category, notes,
@@ -614,28 +760,38 @@ async function saveExpense() {
     updatedBy: state.user?.displayName || 'unknown',
   };
   const btn = $('expSave');
+  const originalLabel = t('exp.btn.save');
   try {
-    btn.disabled = true; btn.textContent = 'Salvando...';
+    btn.disabled = true; btn.textContent = t('exp.btn.saving');
     if (editingExpenseId) {
       await setDoc(docExpense(editingExpenseId), data, { merge: true });
-      showToast('✓ Despesa atualizada');
+      showToast(t('exp.toast.saved'));
     } else {
       await addDoc(colExpenses(), { ...data, createdAt: serverTimestamp() });
-      showToast('✓ Despesa registrada');
+      showToast(t('exp.toast.added'));
     }
     closeExpenseModal();
   } catch (err) { console.error(err); showToast(t('toast.error.save')); }
-  finally { btn.disabled = false; btn.textContent = 'Salvar'; }
+  finally { btn.disabled = false; btn.textContent = originalLabel; }
 }
 
 async function deleteExpense() {
   if (!editingExpenseId) return;
-  if (!confirm('Excluir esta despesa? Esta ação não pode ser desfeita.')) return;
-  try {
-    await deleteDoc(docExpense(editingExpenseId));
-    showToast('✓ Despesa excluída');
-    closeExpenseModal();
-  } catch (err) { console.error(err); showToast(t('toast.error.delete')); }
+  // Open the custom confirm modal instead of confirm()
+  openConfirmModal({
+    title: t('exp.delete.title'),
+    sub: t('exp.delete.sub'),
+    confirmLabel: t('exp.delete.confirm'),
+    cancelLabel: t('exp.btn.cancel'),
+    danger: true,
+    onConfirm: async () => {
+      try {
+        await deleteDoc(docExpense(editingExpenseId));
+        showToast(t('exp.toast.deleted'));
+        closeExpenseModal();
+      } catch (err) { console.error(err); showToast(t('toast.error.delete')); }
+    },
+  });
 }
 
 // ============================================================
@@ -2181,12 +2337,56 @@ $('btnNextMonth').addEventListener('click', () => {
   renderExpenses();
 });
 
+// Generic confirm modal — replaces native confirm() across the app
+let _confirmState = null;
+function openConfirmModal({ title, sub, confirmLabel, cancelLabel, danger, onConfirm } = {}) {
+  const modal = $('confirmModal');
+  if (!modal) { if (confirm((title || '') + '\n' + (sub || ''))) onConfirm?.(); return; }
+  $('confirmTitle').textContent = title || t('exp.delete.title');
+  $('confirmSub').textContent = sub || t('exp.delete.sub');
+  const okBtn = $('confirmOk');
+  const cancelBtn = $('confirmCancel');
+  okBtn.textContent = confirmLabel || t('exp.delete.confirm');
+  cancelBtn.textContent = cancelLabel || t('exp.btn.cancel');
+  okBtn.className = danger === false ? 'btn-primary' : 'btn-danger';
+  _confirmState = { onConfirm };
+  modal.classList.add('show');
+  setTimeout(() => cancelBtn.focus(), 50);
+}
+function closeConfirmModal() { $('confirmModal')?.classList.remove('show'); _confirmState = null; }
+$('confirmCancel')?.addEventListener('click', closeConfirmModal);
+$('confirmOk')?.addEventListener('click', async () => {
+  const cb = _confirmState?.onConfirm;
+  closeConfirmModal();
+  if (cb) await cb();
+});
+$('confirmModal')?.addEventListener('click', e => { if (e.target.id === 'confirmModal') closeConfirmModal(); });
+
 // Expense modal
 $('btnAddExpense').addEventListener('click', () => openExpenseModal());
 $('expCancel').addEventListener('click', closeExpenseModal);
 $('expSave').addEventListener('click', saveExpense);
 $('expDelete').addEventListener('click', deleteExpense);
 $('expenseModal').addEventListener('click', e => { if (e.target.id === 'expenseModal') closeExpenseModal(); });
+
+// Live BRL mask on the value input — format on blur + keep cursor-friendly typing
+(() => {
+  const el = $('expValue');
+  if (!el) return;
+  el.addEventListener('blur', () => {
+    const n = parseBRLInput(el.value);
+    el.value = n > 0 ? fmtBRLInput(n) : '';
+  });
+  // Allow only digits, comma, dot, R, $, space — quietly strip the rest
+  el.addEventListener('input', () => {
+    const cleaned = el.value.replace(/[^\d.,R$\s]/gi, '');
+    if (cleaned !== el.value) el.value = cleaned;
+  });
+  // Enter commits mask then triggers save
+  el.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { el.blur(); saveExpense(); }
+  });
+})();
 
 // I10 modal
 $('btnEditI10')?.addEventListener('click', openI10Modal);
