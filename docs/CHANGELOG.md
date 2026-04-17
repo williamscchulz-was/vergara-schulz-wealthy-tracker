@@ -55,6 +55,37 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Expenses v4 — Movimentação (Fase D minimalista, sem nova aba)
+Absorvido de um sistema de referência que o William usa, filtrando
+apenas o que move ponteiro. Nada de aba Endividamento, Cartões ou
+Streak — tudo dentro do módulo Expenses existente.
+
+- **type: income | expense** em cada entry. Toggle no topo do
+  `#expenseModal` (Saída | Ganho), swap entre `CATEGORIES` e
+  `INCOME_SOURCES` (7 fontes: salário, freelance, distribuição,
+  dividendos, venda, presente, outros). Novo botão `+ Ganho` no
+  header ao lado do `+ Nova despesa`. Legacy entries sem `type`
+  continuam sendo tratadas como expense via isExpense/isIncome guards.
+- **Hero vira Saldo do mês**: amount absoluto, verde se positivo,
+  vermelho se negativo, prefixo `−` no R$ quando negativo. Sub inline
+  `↑ R$X entraram · ↓ R$Y saíram`. Radial glow e live-dot no hero
+  acompanham a cor do saldo (gain/loss).
+- **owner**: cada entry ganha William/Flávia/Conjunto via picker
+  segmentado com tints distintos (blue/pink/purple). Default do
+  picker em nova entrada é inferido do user autenticado. Chip
+  discreto W/F/W+F aparece ao lado da descrição no extrato (recent
+  list + tabela completa) com o tom correspondente.
+- **Busca** agora reconhece nomes de pessoa (completo ou letra curta).
+- **CSV** ganha coluna "Tipo" e "De quem", valores assinados
+  (`=SUM(F:F)` = saldo do mês direto).
+- 30+ novas chaves i18n em PT + EN (`exp.type.*`, `exp.f.source`,
+  `exp.modal.income.*`, `exp.toast.income.*`, `exp.sources.*`,
+  `exp.income.*`, `exp.f.owner`, `exp.owner.*`, `exp.owner.short.*`,
+  `exp.hero.balance*`).
+- O que foi INTENCIONALMENTE deixado de fora: aba Endividamento,
+  aba Cartões, streak, toggle Mensal/Anual, dica contextual, vídeo
+  tutorial, extrato em card separado. Minimalismo sobre inchaço.
+
 ### Household UX
 - **Patrimônio da casa em tempo real no Expenses** (`#expNwPill`):
   chip clicável no topo da aba mostrando o mesmo total da hero de

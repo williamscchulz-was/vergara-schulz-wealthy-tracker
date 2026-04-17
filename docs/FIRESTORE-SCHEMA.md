@@ -13,9 +13,11 @@ Despesas do mês.
 |---|---|---|
 | `date` | string | ISO `YYYY-MM-DD` |
 | `value` | number | BRL (⚠ nome do campo é `value`, não `amount`) |
-| `category` | string | chave de `CATEGORIES` em `public/js/app.js` |
+| `type` | string | `'income'` \| `'expense'` — ausência = legacy (tratado como expense) |
+| `category` | string | quando `type='expense'`: chave de `CATEGORIES`; quando `type='income'`: chave de `INCOME_SOURCES` (salario, freelance, distribuicao, dividendos, venda, presente, outros) |
+| `owner` | string | `'william'` \| `'flavia'` \| `'joint'` (opcional; ausência = sem atribuição) |
 | `description` | string | livre |
-| `notes` | string | opcional, livre (hoje não é exibido na UI) |
+| `notes` | string | opcional, livre |
 | `createdBy` | string | displayName do usuário que lançou |
 | `updatedBy` | string | displayName do último a editar |
 | `createdAt` | timestamp | serverTimestamp |

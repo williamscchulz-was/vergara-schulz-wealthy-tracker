@@ -121,9 +121,11 @@ Todas as coleções e documentos ficam sob `household/main/...` (a casa é uma s
 /household/main/expenses/{id}
   - date:        ISO string (YYYY-MM-DD)
   - value:       number (BRL)                // ⚠ field name is `value`, not `amount`
-  - category:    string (chave de CATEGORIES em app.js)
+  - type:        'income' | 'expense'        // ausência = legacy, tratado como 'expense'
+  - category:    string                       // expense: key de CATEGORIES; income: key de INCOME_SOURCES
+  - owner:       'william' | 'flavia' | 'joint' (opcional)
   - description: string
-  - notes:       string (opcional, ainda não exibido na UI)
+  - notes:       string (opcional)
   - createdBy:   string (displayName)
   - updatedBy:   string (displayName)
   - createdAt:   serverTimestamp
@@ -234,9 +236,10 @@ A API interna do I10 é **não oficial** — mapeada por engenharia reversa do l
 
 ### Modo Despesas
 
-- Lançamento com categoria + descrição + valor (com máscara BRL) + data + `notes` (opcional)
-- Hero com total do mês + label do mês + live-dot
-- 3 stats: contagem, delta vs mês anterior, maior despesa
+- **Lançamento unificado** via `#expenseModal`: toggle no topo entre **Saída** (tipo `expense`) e **Ganho** (tipo `income`), swap do seletor entre `CATEGORIES` (10 opções) e `INCOME_SOURCES` (7 opções). Descrição + valor com máscara BRL + data + `notes` (opcional).
+- **Owner** (`william` | `flavia` | `joint`) via picker segmentado com cores distintas. Default inferido do user autenticado (William/KNOWN_PRIMARY_EMAIL → `william`; qualquer outro → `flavia`).
+- **Hero = Saldo do mês** (ganhos − saídas): verde quando positivo, vermelho quando negativo, prefixo `−` no R$ quando negativo. Sub inline: `↑ R$X entraram · ↓ R$Y saíram`.
+- 3 stats expense-only: contagem, delta vs mês anterior (comparando despesas), maior despesa
 - Breakdown por categoria com barras + % + **orçamento por categoria**:
   - `config/budgets.categories` guarda limite mensal por categoria
   - Quando há limite: barra mostra % do próprio limite, pct vira "X% do limite", amount adiciona "de R$ Y"
@@ -253,11 +256,11 @@ A API interna do I10 é **não oficial** — mapeada por engenharia reversa do l
   - **Tendência 12m** (`#expTrendChart`): barras empilhadas por categoria dos últimos 12 meses, legenda auto-gerada, mês corrente destacado
   - **Top recorrentes** (`#expRecList`): groupBy descrição YTD (case-insensitive), ranking de gasto, mostra os 6 com count ≥ 2
   - **Over-budget badge no hero**: quando qualquer categoria ultrapassou seu limite mensal, pill animado substitui o sub line
-- **Busca live** na tabela (`#expSearch`): filtra por descrição + categoria + notas, case-insensitive; estado `_expSearchQuery` persiste entre re-renders
-- **Export CSV** (`#btnExportCsv`): baixa despesas do mês atual como CSV UTF-8 com BOM (Excel friendly), separador `;` (convenção BR), aspas duplas escapadas
+- **Busca live** na tabela (`#expSearch`): filtra por descrição + categoria/fonte + notas + owner (nome completo ou letra curta), case-insensitive; estado `_expSearchQuery` persiste entre re-renders
+- **Export CSV** (`#btnExportCsv`): baixa lançamentos do mês atual como CSV UTF-8 com BOM (Excel friendly), separador `;` (convenção BR). Colunas: Data, Tipo, De quem, Descrição, Categoria/Fonte, Valor (BRL — assinado, ganhos positivos, despesas negativas), Notas. `=SUM(F:F)` dá o saldo direto.
 - **Pill de patrimônio da casa** (`#expNwPill`): chip clicável no topo do módulo mostrando o mesmo total da hero de Investments em tempo real (fórmula em `calcTotalNetWorth()`: i10 + USD·rate + reservas + previdência); clicar leva pra aba Investments; se esconde quando o total é zero
 - **Default mode por usuário**: `config/userPrefs.{uid}.defaultMode` persistido automaticamente toda vez que `switchMode()` é chamado. Login lê via `getDoc` one-shot; se não houver entry pro UID, cai no fallback: email conhecido `KNOWN_PRIMARY_EMAIL` → investments, qualquer outro → expenses
-- **Não implementado (ideias futuras)**: despesas recorrentes marcadas manualmente, visão anual, comparativo YoY por categoria
+- **Não implementado (ideias futuras)**: despesas recorrentes marcadas manualmente, parcelas com projeção (aba Endividamento ficou fora intencionalmente no minimalista), cartões de crédito como entidade separada, comparativo YoY por categoria, visão anual
 
 ### Transversal
 
