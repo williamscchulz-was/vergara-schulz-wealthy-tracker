@@ -3000,6 +3000,15 @@ async function syncFromI10() {
       try { payload.barchart = await barRes.json(); }
       catch (e) { console.warn('[i10] barchart fetch parse failed:', e); }
     }
+    // Diagnostic log — helps identify the real I10 barchart shape when
+    // parseI10Barchart() fails to extract months. Safe to leave on for
+    // now; will remove once the monthly-returns card is confirmed working
+    // end-to-end against the live API.
+    console.log('[i10-barchart] raw payload shape:', payload.barchart);
+    console.log('[i10-barchart] type:', Object.prototype.toString.call(payload.barchart),
+      'topLevelKeys:', payload.barchart && typeof payload.barchart === 'object' && !Array.isArray(payload.barchart) ? Object.keys(payload.barchart) : '(array or null)',
+      'barRes.ok:', barRes?.ok, 'barRes.status:', barRes?.status);
+    console.log('[i10-barchart] parsed months:', parseI10Barchart(payload.barchart));
 
     // Parse metrics (equity, applied, variation, profit_twr)
     const m = payload.metrics || {};
