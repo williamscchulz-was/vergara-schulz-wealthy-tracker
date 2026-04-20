@@ -62,8 +62,14 @@ bons?" sem abrir nova aba.
 
 - `worker/src/worker.js` — `/i10/all` agora agrega também o
   `/summary/barchart/{walletId}/12/all` do I10 (com `.catch(() => null)`
-  para que falha do barchart não derrube o resto da resposta).
-  **⚠ REDEPLOY DO WORKER NECESSÁRIO** (`cd worker && npm run deploy`).
+  para que falha do barchart não derrube o resto da resposta). Essa
+  mudança é **opcional** — o redeploy economiza uma HTTP round-trip,
+  mas o app funciona hoje sem ele (ver próximo item).
+- `syncFromI10()` agora faz fetch paralelo de `/i10/all` + `/i10/barchart`
+  (o segundo endpoint já existe no worker em produção desde o início,
+  só nunca foi consumido). Se o `/all` trouxer `barchart` inline
+  (worker redeployado), usa direto; senão, cai no resultado do fetch
+  paralelo. Zero exigência de deploy pra feature funcionar.
 - `parseI10Barchart(raw)` em `public/js/app.js` normaliza a resposta
   upstream (shape pode variar entre versões do I10) para um array
   `[{ year, month, equity }]` ordenado. Suporta 4 shapes comuns +

@@ -2976,15 +2976,30 @@ async function syncFromI10() {
   try {
     const year = new Date().getFullYear();
     const base = workerUrl.replace(/\/+$/, ''); // remove trailing slash
-    // Worker only exposes /i10/all (not /i10/full). Use it directly.
+    // Fetch /i10/all (metrics + earnings + actives) in parallel with
+    // /i10/barchart (12m equity history). The barchart endpoint has
+    // been live on the worker since day 1 but never consumed; polling
+    // it alongside /all avoids needing a worker redeploy just to add
+    // a new field to /all. If /all ships a `barchart` field in the
+    // future (worker.js already does this but needs redeploy), we
+    // prefer it and skip the second request.
     let payload;
     let usedFull = false;
-    const res = await fetch(`${base}/i10/all/${encodeURIComponent(walletId)}?year=${year}`, {
-      method: 'GET',
-      headers: { 'Accept': 'application/json' },
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    payload = await res.json();
+    const allUrl = `${base}/i10/all/${encodeURIComponent(walletId)}?year=${year}`;
+    const barUrl = `${base}/i10/barchart/${encodeURIComponent(walletId)}`;
+    const [allRes, barRes] = await Promise.all([
+      fetch(allUrl, { method: 'GET', headers: { 'Accept': 'application/json' } }),
+      fetch(barUrl, { method: 'GET', headers: { 'Accept': 'application/json' } }).catch(() => null),
+    ]);
+    if (!allRes.ok) throw new Error(`HTTP ${allRes.status}`);
+    payload = await allRes.json();
+    // If /all didn't include barchart (worker not yet redeployed), pull
+    // it from the dedicated endpoint. Failure is non-fatal — monthly
+    // returns card will just show its empty state.
+    if (!payload.barchart && barRes && barRes.ok) {
+      try { payload.barchart = await barRes.json(); }
+      catch (e) { console.warn('[i10] barchart fetch parse failed:', e); }
+    }
 
     // Parse metrics (equity, applied, variation, profit_twr)
     const m = payload.metrics || {};
