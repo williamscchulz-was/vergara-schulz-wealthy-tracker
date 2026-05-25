@@ -55,6 +55,20 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### William's I10 walletId migrated: 1986068 → 2814459
+William trocou de carteira principal no Investidor 10. Atualizado em
+todos os docs, placeholders, exemplos e comentários do código. O dado
+em produção (`config/i10sync.walletId` no Firestore) precisa ser
+trocado manualmente via o modal ⚙️ na aba Investments — não tenho como
+escrever no Firestore daqui.
+
+Toques:
+- CLAUDE.md §5: walletId novo + nota da migração
+- docs/DEPLOY-WORKER.md: smoke test e exemplo de `wrangler dev`
+- README.md, worker/README.md: comandos de exemplo
+- public/index.html: placeholder do input do modal de config
+- worker/src/worker.js: comentário do parse de path
+
 ### Rentabilidade mês a mês
 Novo card `#monthlyReturnsCard` na aba Investimentos, entre "patrimônio
 por ano" e "aportes mensais". Responde a pergunta "quais meses foram

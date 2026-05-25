@@ -40,13 +40,13 @@ Copia essa URL.
 1. Abrir o Ledger
 2. **Investimentos → ⚙️**
 3. Colar a URL do worker
-4. Wallet ID: `1986068` (ou outro)
+4. Wallet ID: `2814459` (ou outro)
 5. Salvar → dispara sync automático
 
 ## Smoke test
 
 ```bash
-curl 'https://ledger-i10-proxy.<SEU-SUB>.workers.dev/i10/all/1986068?year=2026'
+curl 'https://ledger-i10-proxy.<SEU-SUB>.workers.dev/i10/all/2814459?year=2026'
 ```
 
 Esperado: JSON com `metrics`, `earnings`, `actives`, `fetchedAt`.
@@ -56,7 +56,7 @@ Esperado: JSON com `metrics`, `earnings`, `actives`, `fetchedAt`.
 ```bash
 cd worker
 wrangler dev
-# abre http://localhost:8787/i10/all/1986068?year=2026
+# abre http://localhost:8787/i10/all/2814459?year=2026
 ```
 
 ## Free tier

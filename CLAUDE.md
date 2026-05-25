@@ -205,7 +205,7 @@ Todos os listeners principais estão em `app.js:2222-2358` (bloco `subscribeToFi
 
 ### WalletIds
 
-- **William (W, principal):** `1986068`
+- **William (W, principal):** `2814459` _(carteira atual; a anterior era `1986068`, trocada em 2026-04)_
 - **Louise (filha — carteira read-only acompanhada):** `2699282` (hardcoded em `state.i10LouiseCfg.walletId` em `public/js/app.js:80`)
 
 O walletId do W é configurável pela UI (modal ⚙️ em Investimentos, salva em `config/i10sync`). O da Louise é hardcoded — se precisar mudar, editar código.

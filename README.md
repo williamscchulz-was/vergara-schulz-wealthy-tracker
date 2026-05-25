@@ -58,7 +58,7 @@ cd public && python -m http.server 8000
 
 # Worker
 cd worker && wrangler dev
-# abre http://localhost:8787/i10/all/1986068?year=2026
+# abre http://localhost:8787/i10/all/2814459?year=2026
 ```
 
 ## Deploy

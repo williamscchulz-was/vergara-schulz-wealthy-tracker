@@ -62,7 +62,7 @@ Essa URL vai no app, em **Investimentos → ⚙️ → Worker URL**.
 ```bash
 cd worker
 npm run dev
-# abre http://localhost:8787/i10/all/1986068?year=2026
+# abre http://localhost:8787/i10/all/2814459?year=2026
 ```
 
 ## Aviso

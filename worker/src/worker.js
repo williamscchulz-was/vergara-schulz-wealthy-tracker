@@ -71,7 +71,7 @@ async function handle(request) {
   if (request.method !== 'GET') return err('Method not allowed', 405);
 
   const url = new URL(request.url);
-  const parts = url.pathname.split('/').filter(Boolean); // ['i10', 'metrics', '1986068']
+  const parts = url.pathname.split('/').filter(Boolean); // ['i10', 'metrics', '2814459']
   if (parts[0] !== 'i10') return err('Not found', 404);
 
   const kind = parts[1];
