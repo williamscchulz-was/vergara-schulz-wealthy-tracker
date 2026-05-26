@@ -720,6 +720,15 @@ function parseI10Barchart(raw) {
     // Try YYYY-MM(-DD)
     let m = s.match(/^(\d{4})[-/](\d{1,2})/);
     if (m) return { year: +m[1], month: +m[2] };
+    // Try MM/YY or MM/YYYY (I10's actual format — e.g. '05/25')
+    m = s.match(/^(\d{1,2})\/(\d{2,4})$/);
+    if (m) {
+      const mo = +m[1];
+      let yr = +m[2];
+      if (mo < 1 || mo > 12) return null;
+      if (yr < 100) yr += 2000;
+      return { year: yr, month: mo };
+    }
     // Try 'MonPT/YY' e.g. 'Nov/25'
     const monthMap = { jan: 1, fev: 2, mar: 3, abr: 4, mai: 5, jun: 6, jul: 7, ago: 8, set: 9, out: 10, nov: 11, dez: 12, feb: 2, apr: 4, may: 5, aug: 8, sep: 9, oct: 10, dec: 12 };
     m = s.match(/^([a-zA-Zç]{3})\/(\d{2,4})/i);
@@ -734,14 +743,22 @@ function parseI10Barchart(raw) {
   };
 
   const out = rows.map(r => {
-    const equity = +r.value ?? +r.equity ?? +r.patrimony ?? +r.patrimonio ?? +r.total ?? 0;
-    let year = +r.year || 0, month = +r.month || 0;
-    if ((!year || !month) && (r.date || r.label)) {
-      const parsed = parseLabel(r.date || r.label);
+    // I10 uses sum_equity as the canonical "patrimônio" field. We fall
+    // through other names in case the upstream changes shape later.
+    const equityRaw = r.sum_equity ?? r.equity ?? r.value ?? r.patrimony ?? r.patrimonio ?? r.total ?? 0;
+    const equity = +equityRaw;
+    let year = 0, month = 0;
+    // I10's `month` and `date` fields are strings like '05/25', NOT
+    // numeric. So parse the label first; only fall back to numeric
+    // year/month if the upstream provided those explicitly.
+    if (r.date || r.label || r.month) {
+      const parsed = parseLabel(r.date || r.label || r.month);
       if (parsed) { year = parsed.year; month = parsed.month; }
     }
+    if (!year && +r.year) year = +r.year;
+    if (!month && typeof r.month === 'number') month = r.month;
     if (!year || !month || !isFinite(equity)) return null;
-    return { year, month, equity: +equity };
+    return { year, month, equity };
   }).filter(Boolean);
 
   out.sort((a, b) => (a.year - b.year) || (a.month - b.month));
@@ -3000,15 +3017,6 @@ async function syncFromI10() {
       try { payload.barchart = await barRes.json(); }
       catch (e) { console.warn('[i10] barchart fetch parse failed:', e); }
     }
-    // Diagnostic log — helps identify the real I10 barchart shape when
-    // parseI10Barchart() fails to extract months. Safe to leave on for
-    // now; will remove once the monthly-returns card is confirmed working
-    // end-to-end against the live API.
-    console.log('[i10-barchart] raw payload shape:', payload.barchart);
-    console.log('[i10-barchart] type:', Object.prototype.toString.call(payload.barchart),
-      'topLevelKeys:', payload.barchart && typeof payload.barchart === 'object' && !Array.isArray(payload.barchart) ? Object.keys(payload.barchart) : '(array or null)',
-      'barRes.ok:', barRes?.ok, 'barRes.status:', barRes?.status);
-    console.log('[i10-barchart] parsed months:', parseI10Barchart(payload.barchart));
 
     // Parse metrics (equity, applied, variation, profit_twr)
     const m = payload.metrics || {};
