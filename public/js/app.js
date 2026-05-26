@@ -3112,6 +3112,12 @@ async function syncFromI10() {
     // v8 Turno 7: piggyback Louise sync on every successful main sync (both branches)
     syncLouise().catch(e => console.warn('Louise piggyback error:', e));
     fetchFXRate().catch(e => console.warn('FX rate refresh error:', e));
+    // Piggyback yearly history refresh — silent + throttled to 24h to
+    // avoid hammering /i10/yearly (which fans out per-year upstream).
+    if (Date.now() - _autoYearlyLastRun > AUTO_YEARLY_INTERVAL_HOURS * 3600_000) {
+      _autoYearlyLastRun = Date.now();
+      importHistoryFromI10({ silent: true }).catch(e => console.warn('yearly piggyback error:', e));
+    }
   } catch (err) {
     console.error('I10 sync error:', err);
     showToast('Falha ao sincronizar: ' + (err.message || 'erro desconhecido'));
@@ -3128,7 +3134,11 @@ async function syncFromI10() {
 //  least one of the two users opening the app each day. They share
 //  the same Firestore doc, so whoever fires first updates everyone.
 // ============================================================
-const AUTO_SYNC_INTERVAL_HOURS = 12;
+const AUTO_SYNC_INTERVAL_HOURS = 1;
+// Yearly history (dividendsYearly) é mais pesado de sincronizar
+// (chama o worker uma vez por ano). Throttle separado: 24h.
+const AUTO_YEARLY_INTERVAL_HOURS = 24;
+let _autoYearlyLastRun = 0;
 let _autoSyncLastCheck = 0;
 
 function maybeAutoSync(reason = 'unknown') {
@@ -3211,14 +3221,17 @@ async function importYearlyData(yearsArray) {
   return imported;
 }
 
-async function importHistoryFromI10() {
+async function importHistoryFromI10(opts = {}) {
+  const silent = !!opts.silent;
   const { workerUrl, walletId } = state.i10Cfg;
   if (!workerUrl || !walletId) {
-    showToast('Configure o Worker e Wallet ID primeiro');
-    openI10ConfigModal();
+    if (!silent) {
+      showToast('Configure o Worker e Wallet ID primeiro');
+      openI10ConfigModal();
+    }
     return;
   }
-  const btn = $('btnImportHistory');
+  const btn = silent ? null : $('btnImportHistory');
   const originalHTML = btn ? btn.innerHTML : '';
   if (btn) { btn.disabled = true; btn.innerHTML = 'Importando...'; }
   try {
@@ -3232,14 +3245,15 @@ async function importHistoryFromI10() {
     if (payload.error) throw new Error(payload.error);
     const years = Array.isArray(payload.years) ? payload.years : [];
     if (years.length === 0) {
-      showToast('Nenhum ano retornado pelo I10');
+      if (!silent) showToast('Nenhum ano retornado pelo I10');
       return;
     }
     const imported = await importYearlyData(years);
-    showToast(`Importado: ${imported} ${imported === 1 ? 'ano' : 'anos'} do I10`);
+    if (!silent) showToast(`Importado: ${imported} ${imported === 1 ? 'ano' : 'anos'} do I10`);
+    else console.log(`[autosync] yearly refreshed: ${imported} anos`);
   } catch (err) {
     console.error('importHistoryFromI10 error:', err);
-    showToast('Falha ao importar: ' + (err.message || 'erro desconhecido'));
+    if (!silent) showToast('Falha ao importar: ' + (err.message || 'erro desconhecido'));
   } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
   }

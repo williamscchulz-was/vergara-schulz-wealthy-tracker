@@ -55,6 +55,26 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Auto-sync mais agressivo + atualiza TUDO
+User reportou que abria o app e nada atualizava, e que só algumas
+coisas estavam no auto-sync. Dois ajustes:
+
+- **Threshold 12h → 1h**. Antes: abria o app de manhã e tarde, só
+  uma sync rodava no dia. Agora: cada visita após 1h dispara sync
+  automática. Combinado com o cache de 5min do worker, custo de
+  upstream API é desprezível.
+- **Yearly history entra no piggyback**: o `syncFromI10` agora chama
+  `importHistoryFromI10({ silent: true })` (sem toast, logado no
+  console). Throttled internamente a 24h (`AUTO_YEARLY_INTERVAL_HOURS`)
+  porque o `/i10/yearly` faz N upstream calls (1 por ano) e os anos
+  passados não mudam.
+- `importHistoryFromI10` ganha opção `{ silent: true }` que suprime
+  toast + UI de loading no botão.
+
+Resultado: cada sync (auto ou manual) refresca: metrics, earnings YTD,
+actives todas as classes, barchart 12m, Louise, USD-BRL, **e** o
+histórico anual quando faz mais de 24h.
+
 ### Worker: fan-out actives por tipo + equity histórico do barchart
 
 Dois bugs num único redeploy do worker:
