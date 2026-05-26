@@ -3165,20 +3165,29 @@ async function importYearlyData(yearsArray) {
     if (year >= currentYear) continue; // current year managed by daily I10 sync
     const equity = Number.isFinite(+row.equity) ? +row.equity : null;
     const divs = Number.isFinite(+row.divs) ? +row.divs : 0;
+    const applied = Number.isFinite(+row.applied) ? +row.applied : null;
+    const flow = Number.isFinite(+row.flow) ? +row.flow : null;
     // Skip empty years
     if ((!equity || equity === 0) && divs === 0) continue;
     try {
       const docRef = doc(db, 'household', 'main', 'dividendsYearly', String(year));
-      await setDoc(docRef, {
+      // Only include fields that actually have a value. Sending a key
+      // with `null` would still WIPE the previous Firestore value (bug
+      // hit 2026-04-20 — the I10 yearly endpoint returns null for the
+      // fields it can't recover, and the prior setDoc was clobbering
+      // hand-seeded equity history). When the source has no equity to
+      // give, the previous value is preserved.
+      const data = {
         year,
-        equity,
         divs,
-        applied: Number.isFinite(+row.applied) ? +row.applied : null,
-        flow: Number.isFinite(+row.flow) ? +row.flow : null,
         updatedAt: serverTimestamp(),
         updatedBy: (state.user?.displayName || state.user?.email || 'unknown') + ' (i10-import)',
         source: 'investidor10-yearly-import',
-      }, { merge: true });
+      };
+      if (equity != null) data.equity = equity;
+      if (applied != null) data.applied = applied;
+      if (flow != null) data.flow = flow;
+      await setDoc(docRef, data, { merge: true });
       imported++;
     } catch (e) {
       console.error('importYearlyData error for', year, e);

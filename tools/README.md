@@ -27,6 +27,7 @@ Todos requerem login Google na mesma conta do casal.
 | `fix-historico.html` | **Apaga TODOS** os docs em `dividendsYearly` e recria com 6 anos hardcoded | 🔴 **destrutivo** |
 | `import-historico.html` | Upsert dos 6 anos sem deletar nada | ✅ seguro |
 | `brand.html` | Preview do brand kit (cores, tipografia) | ✅ visual apenas |
+| `restore-equity.html` | Repor `equity` de 2020-2025 em `dividendsYearly` (fix do bug 2026-04-20 onde o import I10 zerou os equity). Não toca `divs`. | ✅ merge-safe |
 
 ## Regra
 

@@ -55,6 +55,21 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Fix: importYearlyData clobbering equity with null
+Quando o user clicou "I10" no card "Histórico anual", todos os
+patrimônios anuais zeraram. Causa: o worker (`/i10/yearly`) retorna
+`equity: null` (nem o I10 expõe equity por ano), e o app fazia
+`setDoc(..., { merge: true })` com `equity: null` no payload — merge
+de null sobrescreve.
+
+- `importYearlyData` agora monta o payload condicionalmente: campos
+  vazios (equity/applied/flow == null) **não entram no setDoc**, então
+  o valor anterior em Firestore é preservado. `divs` continua sendo
+  sempre escrito (sempre tem valor, pode ser 0).
+- Novo `tools/restore-equity.html` pra repor os 6 anos perdidos
+  (2020-2025) com os valores arredondados do snapshot anterior.
+  Merge-safe — só toca o campo `equity`.
+
 ### Worker: endpoint /i10/yearly (rebackfill anual)
 O botão "I10" do card "Histórico anual" chamava `/i10/yearly/:walletId`
 mas o worker nunca expôs essa rota — vinha 404. App não conseguia
