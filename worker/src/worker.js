@@ -43,8 +43,14 @@ function err(message, status = 400) {
 
 async function fetchI10(path) {
   const url = `${I10_BASE}${path}`;
+  // NOTA: removido `cacheEverything: true` (era 100% truncado em 2026-04
+  // quando uma wallet privada gerou 502 e o erro ficou cacheado mesmo
+  // depois de a wallet ser publicada). Sem `cacheEverything`, Cloudflare
+  // só cacheia respostas 2xx que o upstream marcar como cacheáveis — é
+  // o comportamento default e o que a gente quer. Performance fica
+  // praticamente igual pra respostas válidas.
   const res = await fetch(url, {
-    cf: { cacheTtl: CACHE_TTL, cacheEverything: true },
+    cf: { cacheTtl: CACHE_TTL },
     headers: {
       // Alguns endpoints são picky com o User-Agent
       'User-Agent': 'Mozilla/5.0 (compatible; LedgerBot/1.0)',
