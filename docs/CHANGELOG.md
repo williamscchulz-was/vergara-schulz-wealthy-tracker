@@ -55,6 +55,35 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Worker: fan-out actives por tipo + equity histórico do barchart
+
+Dois bugs num único redeploy do worker:
+
+**Bug A** — só puxava Ações. O endpoint `/summary/actives/<id>/Ticker`
+filtra por tipo. Antes, hardcoded em `Ticker`. Agora a função nova
+`fetchAllActives()` chama 8 tipos em paralelo (`Ticker`,
+`TesouroDireto`, `RendaFixa`, `Fii`, `Etf`, `Bdr`, `FundoInvestimento`,
+`Criptomoeda`), tagueia cada item com `__assetClass` e devolve a
+união. Falha individual = lista vazia (não derruba os outros).
+
+**Bug B** — equity anual hardcoded/null. O `/i10/yearly` agora puxa um
+barchart longo (120 meses, fallback 60) e usa o `sum_equity` do último
+mês de cada ano como "patrimônio de fim de ano". Sem aproximação,
+direto do I10. Divs continua via `/earnings/total-period`.
+
+App side:
+- `syncFromI10` deixa de hardcodar `category: 'Ações'`. Lê o
+  `__assetClass` que o worker injeta e mapeia pra label PT-BR via
+  `I10_TYPE_TO_CAT`. Fallback: `inferCategory(ticker)` (heurística por
+  ticker que já existia).
+- Resultado: o card "My Portfolio" deve passar a mostrar tantas
+  categorias quantas o I10 reconhece — Ações, Tesouro Direto, Renda
+  Fixa, ETFs, etc.
+
+`tools/restore-equity.html` agora é fallback redundante — depois do
+redeploy, clicar "I10" no card "Histórico anual" preenche equity real
+de cada ano direto do barchart.
+
 ### Fix: importYearlyData clobbering equity with null
 Quando o user clicou "I10" no card "Histórico anual", todos os
 patrimônios anuais zeraram. Causa: o worker (`/i10/yearly`) retorna

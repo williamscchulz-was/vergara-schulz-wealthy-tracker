@@ -69,6 +69,37 @@ function isValidWalletId(id) {
 
 // AwesomeAPI is a free, no-auth Brazilian endpoint that gives spot
 // USD→BRL pretty close to PTAX. Bid is what consumer apps usually show.
+// I10 returns one /summary/actives endpoint per asset type. We don't
+// have a single endpoint that returns 'all assets across all types',
+// so we fan out and merge. Each failure is non-fatal: a missing type
+// just contributes an empty list to the merged result.
+const I10_ASSET_TYPES = [
+  'Ticker',           // ações
+  'TesouroDireto',
+  'RendaFixa',
+  'Fii',              // fundos imobiliários
+  'Etf',
+  'Bdr',
+  'FundoInvestimento',
+  'Criptomoeda',
+];
+
+async function fetchAllActives(walletId) {
+  const fetches = I10_ASSET_TYPES.map(async (type) => {
+    try {
+      const data = await fetchI10(`/summary/actives/${walletId}/${type}?raw=1&selected_wallet_currency=BRL`);
+      const rows = Array.isArray(data?.data) ? data.data : [];
+      // Tag each row with the upstream type so the app maps to a
+      // human-friendly category without guessing from the ticker.
+      return rows.map(r => ({ ...r, __assetClass: type }));
+    } catch (e) {
+      return []; // Asset type not present in this wallet — fine.
+    }
+  });
+  const results = await Promise.all(fetches);
+  return { data: results.flat() };
+}
+
 async function fetchUSDBRL() {
   const url = 'https://economia.awesomeapi.com.br/last/USD-BRL';
   const res = await fetch(url, {
@@ -129,7 +160,7 @@ async function handle(request) {
     }
 
     if (kind === 'actives') {
-      const data = await fetchI10(`/summary/actives/${walletId}/Ticker?raw=1&selected_wallet_currency=BRL`);
+      const data = await fetchAllActives(walletId);
       return json(data);
     }
 
@@ -139,20 +170,67 @@ async function handle(request) {
     }
 
     if (kind === 'yearly') {
-      // Reconstrói histórico anual de proventos chamando o endpoint
-      // total-period uma vez por ano. Não temos um endpoint nativo do
-      // I10 que devolva tudo de uma vez (pelo menos, não mapeado).
+      // Reconstrói histórico anual real:
+      //  - equity: pega o último mês de cada ano do barchart longo
+      //    (/summary/barchart/<id>/<months>/all). O parâmetro de meses
+      //    aceita números maiores que 12 — pedimos 120 (10 anos) e o I10
+      //    devolve o que tiver. Cada item: { month: 'MM/YY', sum_equity,
+      //    sum_applied, sum_flow }.
+      //  - divs: continua via /earnings/total-period (um por ano).
       const startYear = Number(url.searchParams.get('start') || '2018');
       const currentYear = new Date().getUTCFullYear();
+
+      // 1) Long barchart for equity. Try 120 months; fall back to 60.
+      let barchart = null;
+      try { barchart = await fetchI10(`/summary/barchart/${walletId}/120/all`); }
+      catch (e) {
+        try { barchart = await fetchI10(`/summary/barchart/${walletId}/60/all`); }
+        catch (e2) { barchart = null; }
+      }
+
+      // Parse barchart → { 'YYYY': { month, equity, applied, flow } }
+      // Keep the LATEST month seen for each year so December (or the most
+      // recent available) wins.
+      const yearEnd = {};
+      if (Array.isArray(barchart)) {
+        for (const row of barchart) {
+          const lab = row && (row.month || row.date);
+          if (!lab) continue;
+          const m = String(lab).match(/^(\d{1,2})\/(\d{2,4})$/);
+          if (!m) continue;
+          const mo = +m[1];
+          let yr = +m[2]; if (yr < 100) yr += 2000;
+          const eq = +row.sum_equity || 0;
+          if (eq <= 0) continue;
+          const cur = yearEnd[String(yr)];
+          if (!cur || cur.month < mo) {
+            yearEnd[String(yr)] = {
+              month: mo,
+              equity: eq,
+              applied: +row.sum_applied || null,
+              flow: +row.sum_flow || null,
+            };
+          }
+        }
+      }
+
+      // 2) For each year, get divs from /earnings/total-period (parallel).
       const years = [];
       for (let y = startYear; y <= currentYear; y++) years.push(y);
       const results = await Promise.all(years.map(async (y) => {
+        let divs = 0;
         try {
           const d = await fetchI10(`/earnings/total-period/${walletId}?start_date=${y}-01-01&end_date=${y}-12-31`);
-          return { year: y, divs: +d.sum || 0, equity: null, applied: null, flow: null };
-        } catch (e) {
-          return { year: y, divs: 0, equity: null, applied: null, flow: null, error: e.message };
-        }
+          divs = +d.sum || 0;
+        } catch (e) {}
+        const e = yearEnd[String(y)];
+        return {
+          year: y,
+          divs,
+          equity: e ? e.equity : null,
+          applied: e ? e.applied : null,
+          flow: e ? e.flow : null,
+        };
       }));
       return json({ years: results, walletId });
     }
@@ -165,7 +243,7 @@ async function handle(request) {
       const [metrics, earnings, actives, barchart] = await Promise.all([
         fetchI10(`/summary/metrics/${walletId}?type=without-earnings&raw=1`),
         fetchI10(`/earnings/total-period/${walletId}?start_date=${start}&end_date=${end}`),
-        fetchI10(`/summary/actives/${walletId}/Ticker?raw=1&selected_wallet_currency=BRL`),
+        fetchAllActives(walletId),
         fetchI10(`/summary/barchart/${walletId}/12/all`).catch(() => null),
       ]);
       return json({

@@ -3053,9 +3053,24 @@ async function syncFromI10() {
 
     // Parse actives (list of tickers)
     const rawAssets = Array.isArray(payload.actives?.data) ? payload.actives.data : [];
+    // The worker now tags each row with `__assetClass` based on which
+    // /summary/actives/<TYPE> endpoint it came from. Map that to a
+    // human-friendly category label. Fallback to inferCategory() (the
+    // ticker-based heuristic) for legacy/unexpected rows.
+    const I10_TYPE_TO_CAT = {
+      Ticker: 'Ações',
+      TesouroDireto: 'Tesouro Direto',
+      RendaFixa: 'Renda Fixa',
+      Fii: 'FIIs',
+      Etf: 'ETFs',
+      Bdr: 'BDRs',
+      FundoInvestimento: 'Fundos',
+      Criptomoeda: 'Criptomoedas',
+    };
     const assets = rawAssets.map(a => {
       const ticker = a.ticker || a.ticker_name || '';
       const tickerUpper = ticker.toUpperCase().trim();
+      const fromType = a.__assetClass ? I10_TYPE_TO_CAT[a.__assetClass] : null;
       return {
         ticker,
         quantity: +a.quantity || 0,
@@ -3067,7 +3082,7 @@ async function syncFromI10() {
         earnings: +a.earnings_received || 0,
         image: a.image || '',
         url: a.url || '',
-        category: 'Ações', // todos os actives sao tickers de acoes
+        category: fromType || inferCategory({ ticker }),
       };
     });
 
