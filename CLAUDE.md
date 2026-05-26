@@ -134,8 +134,12 @@ Todas as coleções e documentos ficam sob `household/main/...` (a casa é uma s
 
 /household/main/dividendsYearly/{year}    // id = "2020", "2021", ...
   - year:      number
-  - amount:    number (total anual recebido)
-  - createdAt / updatedAt
+  - divs:      number (total anual recebido — ⚠ nome é `divs`, não `amount`)
+  - equity:    number|null (PL ao fim do ano, vem do import I10)
+  - applied:   number|null (aportes acumulados ao fim do ano)
+  - flow:      number|null (fluxo compras−vendas)
+  - source:    string  ('investidor10-yearly-import' quando importado)
+  - updatedAt / updatedBy: serverTimestamp / displayName
 
 /household/main/contributions/{id}         // aportes mensais
   - year:      number

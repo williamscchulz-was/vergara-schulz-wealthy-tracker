@@ -28,11 +28,16 @@ Despesas do mês.
 Total de dividendos recebidos por ano. **ID do doc = ano como string**
 (`"2020"`, `"2021"`, ...).
 
-| Campo | Tipo |
-|---|---|
-| `year` | number |
-| `amount` | number |
-| `createdAt` / `updatedAt` | timestamp |
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `year` | number | mesmo valor do ID do doc |
+| `divs` | number | total de dividendos recebidos no ano (⚠ nome é `divs`, não `amount`) |
+| `equity` | number\|null | PL ao fim do ano (vem do import I10) |
+| `applied` | number\|null | aportes acumulados ao fim do ano (idem) |
+| `flow` | number\|null | fluxo (compras − vendas) do ano (idem) |
+| `source` | string | `'investidor10-yearly-import'` quando importado pelo I10 |
+| `updatedBy` | string | displayName + tag de origem |
+| `createdAt` / `updatedAt` | timestamp | serverTimestamp |
 
 ### `/household/main/contributions/{autoId}`
 
