@@ -2105,7 +2105,9 @@ function renderInvestments() {
 
   // All-time dividends
   const allTime = state.yearly.reduce((s,y) => s + (+y.divs||0), 0);
-  $('divAllTime').textContent = fmtBRL0(allTime);
+  // Pair element already has a static <span class="cur">R$</span> sibling
+  // in the HTML, so we render just the number here (matches i10Dividends).
+  $('divAllTime').textContent = (allTime || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
 
   // YTD progress bar (% of yearly goal)
   const ytdProgressEl = document.getElementById('ytdProgressBar');
