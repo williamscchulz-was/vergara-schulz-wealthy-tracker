@@ -55,6 +55,24 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Worker: endpoint /fx/rate (cotação USD→BRL)
+O app chamava `${workerUrl}/fx/rate` há tempos pra atualizar a taxa do
+USD mas o worker nunca expôs essa rota — vinha 404 em toda sync. Card
+de FX/USD ficava com a última taxa salva manualmente.
+
+- `worker/src/worker.js`: nova função `fetchUSDBRL()` consome
+  `https://economia.awesomeapi.com.br/last/USD-BRL` (Brasileira, free,
+  sem auth, retorno simples). Pega `USDBRL.bid` como taxa, propaga
+  `create_date` como timestamp.
+- Roteamento: novo branch `/fx/rate` antes do check de `i10` no `handle`
+- Cache: 15min via `cf.cacheTtl` no fetch upstream (FX_CACHE_TTL=900s) +
+  `Cache-Control: public, max-age=900` na resposta
+- App: `fetchFXRate()` já estava pronto pra parsear `{ rateUSD,
+  rateSource, rateUpdatedAt }` e gravar em `config/fx`
+
+**Requer redeploy do worker** via dashboard (mesma cerimônia da última
+vez, copy/paste do arquivo no editor do Cloudflare).
+
 ### Auto-sync do I10 (sem scheduler externo)
 `maybeAutoSync()` em `public/js/app.js` dispara `syncFromI10()` em
 background quando a última sync foi há ≥12h. Três triggers:

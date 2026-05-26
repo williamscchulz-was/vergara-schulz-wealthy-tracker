@@ -10,13 +10,14 @@
 //    /i10/actives/:walletId          → lista de ativos (tickers)
 //    /i10/barchart/:walletId         → histórico mensal (12m)
 //    /i10/all/:walletId?year=        → tudo de uma vez (recomendado)
+//    /fx/rate                        → cotação USD→BRL (AwesomeAPI)
 //
-//  Segurança: só permite paths conhecidos do Investidor10.
-//  Não é um proxy aberto.
+//  Segurança: só permite paths em allowlist. Não é proxy aberto.
 // ============================================================
 
 const I10_BASE = 'https://investidor10.com.br/wallet/api/proxy/wallet-app';
 const CACHE_TTL = 300; // 5 min — reduz carga no I10 e melhora resposta
+const FX_CACHE_TTL = 900; // 15 min pra cotação USD→BRL
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -65,6 +66,25 @@ function isValidWalletId(id) {
   return /^\d{1,12}$/.test(id);
 }
 
+// AwesomeAPI is a free, no-auth Brazilian endpoint that gives spot
+// USD→BRL pretty close to PTAX. Bid is what consumer apps usually show.
+async function fetchUSDBRL() {
+  const url = 'https://economia.awesomeapi.com.br/last/USD-BRL';
+  const res = await fetch(url, {
+    cf: { cacheTtl: FX_CACHE_TTL },
+    headers: { 'Accept': 'application/json', 'User-Agent': 'LedgerBot/1.0' },
+  });
+  if (!res.ok) throw new Error(`AwesomeAPI ${res.status}`);
+  const data = await res.json();
+  const node = data && data.USDBRL;
+  if (!node || !node.bid) throw new Error('AwesomeAPI unexpected shape');
+  return {
+    rateUSD: +node.bid,
+    rateSource: 'awesomeapi:USD-BRL',
+    rateUpdatedAt: node.create_date || new Date().toISOString(),
+  };
+}
+
 function currentYearRange(year) {
   const y = year && /^\d{4}$/.test(year) ? year : new Date().getUTCFullYear();
   return { start: `${y}-01-01`, end: `${y}-12-31` };
@@ -78,6 +98,17 @@ async function handle(request) {
 
   const url = new URL(request.url);
   const parts = url.pathname.split('/').filter(Boolean); // ['i10', 'metrics', '2814459']
+
+  // /fx/rate — cotação USD→BRL (independente do I10)
+  if (parts[0] === 'fx' && parts[1] === 'rate') {
+    try {
+      const data = await fetchUSDBRL();
+      return json(data, 200, { 'Cache-Control': `public, max-age=${FX_CACHE_TTL}` });
+    } catch (e) {
+      return err('FX upstream error: ' + e.message, 502);
+    }
+  }
+
   if (parts[0] !== 'i10') return err('Not found', 404);
 
   const kind = parts[1];

@@ -15,6 +15,7 @@ Todos `GET`. `:walletId` precisa casar `^\d{1,12}$`.
 | `/i10/actives/:walletId` | lista detalhada de ativos |
 | `/i10/barchart/:walletId` | histórico mensal (12m) |
 | `/i10/all/:walletId?year=YYYY` | **agregado — o que o app usa** |
+| `/fx/rate` | cotação USD→BRL via AwesomeAPI (cache 15min) |
 
 ## Segurança
 
