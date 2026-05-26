@@ -55,6 +55,28 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Auto-sync do I10 (sem scheduler externo)
+`maybeAutoSync()` em `public/js/app.js` dispara `syncFromI10()` em
+background quando a última sync foi há ≥12h. Três triggers:
+
+1. 3s após `onAuthStateChanged` resolver com usuário logado
+2. `visibilitychange → visible` (usuário voltou pra aba)
+3. `setInterval` de 1h pra sessões deixadas abertas o dia todo
+
+Preconditions: `state.user` presente, `state.i10Syncing` falso,
+`workerUrl` + `walletId` configurados, **e ao menos uma sync prévia**
+(pra não disparar no primeiro setup — o user precisa ver a primeira
+sync funcionar manualmente, dá confiança).
+
+Debounce de 60s no `maybeAutoSync` evita spam quando vários eventos
+disparam juntos. Como os 2 usuários (W + F) compartilham
+`config/i10`, quem fizer a checagem primeiro dispara a sync e os
+dois recebem via `onSnapshot`.
+
+Resultado prático: ~2 syncs/dia se ambos abrem o app de manhã e à
+noite, 1/dia se só abrir 1x. Zero infraestrutura nova (worker, cron,
+GitHub Actions, etc.) — usa apenas o cliente já autenticado.
+
 ### William's I10 walletId migrated: 1986068 → 2814459
 William trocou de carteira principal no Investidor 10. Atualizado em
 todos os docs, placeholders, exemplos e comentários do código. O dado

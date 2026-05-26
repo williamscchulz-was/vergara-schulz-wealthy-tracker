@@ -3097,6 +3097,50 @@ async function syncFromI10() {
 }
 
 // ============================================================
+//  AUTO-SYNC — fires syncFromI10 when last sync is older than
+//  AUTO_SYNC_INTERVAL_HOURS, triggered by login + visibility change
+//  + hourly heartbeat. No external scheduler needed — relies on at
+//  least one of the two users opening the app each day. They share
+//  the same Firestore doc, so whoever fires first updates everyone.
+// ============================================================
+const AUTO_SYNC_INTERVAL_HOURS = 12;
+let _autoSyncLastCheck = 0;
+
+function maybeAutoSync(reason = 'unknown') {
+  // Debounce: don't re-check more than once per 60s no matter how
+  // many events fire. Cheap protection against tab-switch spam.
+  if (Date.now() - _autoSyncLastCheck < 60_000) return;
+  _autoSyncLastCheck = Date.now();
+
+  // Preconditions: must be logged in, must have wallet config, must
+  // not already be syncing, must have at least one prior sync (so we
+  // don't fire on a fresh install — the user kicks off the first one
+  // manually so they can see it succeed).
+  if (!state.user) return;
+  if (state.i10Syncing) return;
+  if (!state.i10Cfg.workerUrl || !state.i10Cfg.walletId) return;
+  if (!state.i10.updatedAt) return;
+
+  const hoursAgo = (Date.now() - state.i10.updatedAt.getTime()) / 3600000;
+  if (hoursAgo < AUTO_SYNC_INTERVAL_HOURS) return;
+
+  console.log(`[autosync] reason=${reason} lastSync=${hoursAgo.toFixed(1)}h ago — firing background sync`);
+  syncFromI10();
+}
+
+// Hook 1: when the tab becomes visible again (user came back to the
+// app after switching away). Visibility events also fire on focus.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') maybeAutoSync('visibility');
+});
+
+// Hook 2: hourly heartbeat for tabs left open all day long.
+setInterval(() => maybeAutoSync('heartbeat'), 60 * 60 * 1000);
+
+// Hook 3 (post-login) is wired inside onAuthStateChanged after the
+// Firestore listeners have a chance to populate state.i10.updatedAt.
+
+// ============================================================
 //  IMPORT YEARLY HISTORY FROM I10
 // ============================================================
 // Imports/updates documents in dividendsYearly collection.
@@ -3712,6 +3756,9 @@ onAuthStateChanged(auth, async (user) => {
       // 'expenses' for everyone else (spouse/secondary user).
       const initialMode = await pickInitialMode(user);
       switchMode(initialMode, { persist: false });
+      // Auto-sync on login: give Firestore listeners ~3s to populate
+      // state.i10.updatedAt + state.i10Cfg, then check if a sync is due.
+      setTimeout(() => maybeAutoSync('login'), 3000);
     } catch (err) {
       console.error('Firestore error:', err);
     }
