@@ -49,6 +49,7 @@ O app é **single-page**, **client-side puro**, servido estaticamente (GitHub Pa
   - `/i10/actives/:walletId` — lista detalhada de ativos (ticker, qtd, preço médio, preço atual, %, appreciation)
   - `/i10/barchart/:walletId` — histórico mensal 12 meses
   - `/i10/all/:walletId?year=YYYY` — **endpoint consolidado usado pelo app** (dispara metrics + earnings + actives + barchart em paralelo com `Promise.all`)
+  - `/i10/yearly/:walletId?start=YYYY` — proventos ano a ano (reconstruído chamando `/earnings/total-period` em loop). Default `start=2018`. Usado pelo botão "I10" do card "histórico anual" pra rebackfill `dividendsYearly`.
   - `/fx/rate` — cotação USD→BRL via AwesomeAPI (`economia.awesomeapi.com.br`, free, sem auth), cache de 15min. Retorna `{ rateUSD, rateSource, rateUpdatedAt }`
 - Nenhuma autenticação / cookie / token — só o ID público da carteira
 - Free tier (100k req/dia) sobra muito

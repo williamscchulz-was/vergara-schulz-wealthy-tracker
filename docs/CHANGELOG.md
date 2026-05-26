@@ -55,6 +55,23 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Worker: endpoint /i10/yearly (rebackfill anual)
+O botão "I10" do card "Histórico anual" chamava `/i10/yearly/:walletId`
+mas o worker nunca expôs essa rota — vinha 404. App não conseguia
+reimportar proventos ano a ano e o total all-time ficava preso no que
+foi seeded manualmente no passado.
+
+- Nova branch `if (kind === 'yearly')` no worker, com loop ano a ano
+  chamando `/earnings/total-period` (endpoint que já funcionava).
+  Default: 2018 até ano atual. Override via `?start=YYYY`.
+- Resposta: `{ years: [{ year, divs, equity, applied, flow, error? }], walletId }`.
+  Equity/applied/flow ficam null porque não temos endpoint nativo do
+  I10 que devolva esses campos por ano (só o `divs` é recuperável).
+- App: `importYearlyData` já estava pronto e tolerante a null nesses
+  campos — só preenche `divs` mesmo quando importa do I10.
+
+Requer redeploy do worker via dashboard.
+
 ### Worker: endpoint /fx/rate (cotação USD→BRL)
 O app chamava `${workerUrl}/fx/rate` há tempos pra atualizar a taxa do
 USD mas o worker nunca expôs essa rota — vinha 404 em toda sync. Card

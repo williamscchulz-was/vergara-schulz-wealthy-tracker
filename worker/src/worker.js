@@ -9,6 +9,7 @@
 //    /i10/earnings/:walletId?year=   → soma de proventos no ano
 //    /i10/actives/:walletId          → lista de ativos (tickers)
 //    /i10/barchart/:walletId         → histórico mensal (12m)
+//    /i10/yearly/:walletId           → soma de proventos ano a ano
 //    /i10/all/:walletId?year=        → tudo de uma vez (recomendado)
 //    /fx/rate                        → cotação USD→BRL (AwesomeAPI)
 //
@@ -135,6 +136,25 @@ async function handle(request) {
     if (kind === 'barchart') {
       const data = await fetchI10(`/summary/barchart/${walletId}/12/all`);
       return json(data);
+    }
+
+    if (kind === 'yearly') {
+      // Reconstrói histórico anual de proventos chamando o endpoint
+      // total-period uma vez por ano. Não temos um endpoint nativo do
+      // I10 que devolva tudo de uma vez (pelo menos, não mapeado).
+      const startYear = Number(url.searchParams.get('start') || '2018');
+      const currentYear = new Date().getUTCFullYear();
+      const years = [];
+      for (let y = startYear; y <= currentYear; y++) years.push(y);
+      const results = await Promise.all(years.map(async (y) => {
+        try {
+          const d = await fetchI10(`/earnings/total-period/${walletId}?start_date=${y}-01-01&end_date=${y}-12-31`);
+          return { year: y, divs: +d.sum || 0, equity: null, applied: null, flow: null };
+        } catch (e) {
+          return { year: y, divs: 0, equity: null, applied: null, flow: null, error: e.message };
+        }
+      }));
+      return json({ years: results, walletId });
     }
 
     if (kind === 'all') {
