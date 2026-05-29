@@ -16,7 +16,7 @@
 <title>Ledger</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
 <style>
 /* ===========================================================
    LEDGER v7 - "Linear meets Apple"
@@ -185,6 +185,15 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
      only disable transforms/translates that move large layout chunks */
   .card, .hero-card, .mode-switch { animation: none !important; }
   .mode-switch { transform: translateX(-50%) !important; }
+  /* CRITICAL: elements that animate IN from opacity:0 / scaleX(0) with
+     `forwards` must be force-shown, not just have animation killed —
+     otherwise they'd stay invisible/collapsed under reduced motion. */
+  .animate-in, .exp-recent-row, .exp-rec-row, .exp-cat-row, .ticker-row {
+    animation: none !important; opacity: 1 !important; transform: none !important;
+  }
+  .exp-cat-bar i { animation: none !important; transform: scaleX(1) !important; }
+  /* Layout-moving decorative loops off; non-moving glows can stay. */
+  .exp-hero-overbudget { animation: none !important; }
 }
 
 /* ===========================================================
@@ -1353,6 +1362,7 @@ body::before {
 .exp-nw-amt {
   grid-area: amt;
   display: inline-flex; align-items: baseline; gap: 6px;
+  font-family: 'Geist Mono', monospace;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1;
@@ -2087,6 +2097,14 @@ body::before {
 .louise-chip-var.gain { color: var(--gain); }
 .louise-chip-var.loss { color: var(--loss); }
 :root[data-theme="light"] .louise-chip { background: rgba(244,114,182,.08); border-color: rgba(244,114,182,.25); }
+/* Owner chips: light-theme overrides (the dark-theme text tints are too
+   light to read on the frosted-white card). Darken text + lighten bg. */
+:root[data-theme="light"] .exp-owner-chip.exp-owner-william,
+:root[data-theme="light"] .exp-owner-opt[data-owner="william"].active { color: #1769b0; background: rgba(100,210,255,.16); border-color: rgba(23,105,176,.30); }
+:root[data-theme="light"] .exp-owner-chip.exp-owner-flavia,
+:root[data-theme="light"] .exp-owner-opt[data-owner="flavia"].active { color: #c01f86; background: rgba(255,107,214,.16); border-color: rgba(192,31,134,.30); }
+:root[data-theme="light"] .exp-owner-chip.exp-owner-joint,
+:root[data-theme="light"] .exp-owner-opt[data-owner="joint"].active { color: var(--purple-deep); }
 
 /* v8 Turno 8 — FX (USD) styles */
 :root { --usd: #E3A2EE; --usd-bg: rgba(172,95,219,.10); --usd-strong: rgba(172,95,219,.24); }
@@ -2348,7 +2366,7 @@ body::before {
           </div>
         </div>
         <div class="exp-daily-chart">
-          <svg id="expDailyChart" viewBox="0 0 700 180" preserveAspectRatio="none" style="width:100%;height:180px;display:block"></svg>
+          <svg id="expDailyChart" viewBox="0 0 700 180" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;aspect-ratio:700/180;display:block"></svg>
         </div>
         <div class="exp-daily-footer" id="expDailyFooter"></div>
       </div>
@@ -2409,7 +2427,7 @@ body::before {
             </div>
           </div>
           <div class="exp-trend-chart">
-            <svg id="expTrendChart" viewBox="0 0 700 240" preserveAspectRatio="none" style="width:100%;height:240px;display:block;overflow:visible"></svg>
+            <svg id="expTrendChart" viewBox="0 0 700 240" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;aspect-ratio:700/240;display:block;overflow:visible"></svg>
           </div>
           <div class="exp-trend-legend" id="expTrendLegend"></div>
         </div>
@@ -2613,7 +2631,7 @@ body::before {
             <div id="mrReturnBadge" class="mr-badge" hidden></div>
           </div>
           <div id="mrChartWrap" class="mr-chart-wrap">
-            <svg id="mrChart" viewBox="0 0 700 200" preserveAspectRatio="none" style="width:100%;height:200px;display:block;overflow:visible"></svg>
+            <svg id="mrChart" viewBox="0 0 700 200" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;aspect-ratio:700/200;display:block;overflow:visible"></svg>
           </div>
           <div id="mrEmpty" class="exp-empty" hidden></div>
           <details class="mr-table-details">

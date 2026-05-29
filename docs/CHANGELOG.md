@@ -55,6 +55,25 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Auditoria — lote 3 (design / mobile / tema claro)
+- **Charts espremidos no mobile** (UX #3): os 3 SVGs com texto
+  (`expDailyChart`, `expTrendChart`, `mrChart`) usavam
+  `preserveAspectRatio="none"` + altura fixa → texto distorcido no
+  celular. Trocado pra `xMidYMid meet` + `height:auto` +
+  `aspect-ratio`, escalando uniforme sem deformar.
+- **Net-worth pill** (Design): número agora em `Geist Mono` (estava
+  herdando Inter, inconsistente com todo o resto monetário).
+- **Owner chips ilegíveis no tema claro** (Design HIGH): texto azul/rosa
+  claro em card branco. Adicionados overrides `data-theme="light"` com
+  tons escuros pros chips W/F/Conjunto e pro segmented control.
+- **reduced-motion incompleto** (Design HIGH): elementos que animam de
+  `opacity:0`/`scaleX(0)` com `forwards` (linhas de extrato, barras de
+  categoria) agora são forçados a `opacity:1`/`scaleX(1)` sob
+  reduced-motion — sem risco de ficarem invisíveis.
+- **Instrument Serif** (Design MEDIUM): era referenciada em 5 lugares
+  mas nunca carregada (fallback serif genérico). Adicionada ao link do
+  Google Fonts (`ital@0;1`).
+
 ### Auditoria — lote 2 (timezone, i18n PT, error copy)
 - **Bug de timezone** (robustez M2): datas de despesa são `YYYY-MM-DD`;
   `new Date()` parseava como UTC-meia-noite → em BRT (UTC-3) a despesa
