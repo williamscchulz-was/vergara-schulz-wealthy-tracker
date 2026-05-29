@@ -55,6 +55,23 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Auditoria — lote 4 (limpeza final: confirm modais + código morto)
+- **`confirm()` nativo → modal custom** nos 4 lugares restantes (excluir
+  conta de reserva/previdência, aporte ×2, ano de histórico). Todos
+  usam `openConfirmModal` agora, consistente com o delete de despesa e
+  funcionando no PWA do iOS.
+- **`renderFX()` removido** — estava morto E nocivo: referenciava ids
+  inexistentes (`fxUsdNative` etc.) e lançava erro quando a taxa do USD
+  mudava com o card já renderizado, bloqueando o `renderInvestments()`
+  seguinte. O USD já é renderizado por `renderI10Assets`. Listener de FX
+  agora chama `renderInvestments()` direto.
+- **Modal órfão `#goalEditModal` removido** do HTML (zero referências em
+  JS — a meta é editada pelos sliders inline).
+- **Branch morta `usedFull`** removida do `syncFromI10` (nunca era true;
+  referenciava `payload.yearly` que o worker não envia).
+- Toast técnico ("Erro ao salvar: " + code) em `saveContrib` trocado por
+  `t('toast.error.save')`.
+
 ### Segurança: regras Firestore confirmadas OK + repo sincronizado
 A auditoria flagou as regras como CRÍTICO porque o `firestore.rules` do
 repo tinha `REPLACE_WITH_*_UID`. Verificado no console: as regras

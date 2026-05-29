@@ -1701,30 +1701,6 @@ async function deleteExpense() {
 // ============================================================
 
 // v8 Turno 8 — FX (USD holdings) render + edit
-function renderFX() {
-  // USD BRL equivalent
-  const usd = +state.fx.usd || 0;
-  const rate = +state.fx.rateUSD || 0;
-  const usdBRL = usd * rate;
-  // Nothing to do if there's no USD holding
-  const rowEl = document.getElementById('fxCatRow');
-  if (!rowEl) return;
-  if (usd <= 0 || rate <= 0) {
-    rowEl.style.display = 'none';
-    return;
-  }
-  rowEl.style.display = '';
-  // Compute % of total wallet (I10 + fx)
-  const totalWallet = (+state.i10.equity || 0) + usdBRL;
-  const percent = totalWallet > 0 ? (usdBRL / totalWallet) * 100 : 0;
-  const usdStr = 'US$ ' + usd.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
-  const rateStr = String(rate.toFixed(2)).replace('.', ',');
-  document.getElementById('fxUsdNative').textContent = usdStr;
-  document.getElementById('fxRateChip').textContent = '\u00d7 ' + rateStr;
-  document.getElementById('fxPercent').textContent = percent.toFixed(0) + '% ' + t('cat.label.suffix');
-  document.getElementById('fxBrlValue').textContent = 'R$ ' + usdBRL.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
-}
-
 function openFXModal() {
   const modal = document.getElementById('fxModal');
   if (!modal) return;
@@ -1922,10 +1898,17 @@ async function deleteCash(type) {
   const cfg = CASH_CAT[type];
   const id = cfg.state().editingId;
   if (!id) return;
-  if (!confirm('Excluir esta conta?')) return;
-  cfg.state().accounts = cfg.state().accounts.filter(a => a.id !== id);
-  await persistCash(type);
-  closeCashModal(type);
+  openConfirmModal({
+    title: type === 'pension' ? 'Excluir previdência?' : 'Excluir conta?',
+    sub: 'Esta ação não pode ser desfeita.',
+    confirmLabel: 'Sim, excluir',
+    danger: true,
+    onConfirm: async () => {
+      cfg.state().accounts = cfg.state().accounts.filter(a => a.id !== id);
+      await persistCash(type);
+      closeCashModal(type);
+    },
+  });
 }
 
 // Render category row + expanded list inside the My Portfolio wrap.
@@ -2918,36 +2901,43 @@ async function saveContrib() {
     }
   } catch (e) {
     console.error('saveContrib error', e);
-    showToast('Erro ao salvar: ' + (e.message || e.code));
+    showToast(t('toast.error.save'));
   }
 }
 
 async function deleteContrib() {
   if (!_editingContribId) return;
-  if (!confirm('Excluir este aporte?')) return;
-  try {
-    await deleteDoc(doc(db, 'household', 'main', 'contributions', _editingContribId));
-    showToast(t('toast.deleted'));
-    closeContribModal();
-    if (_editingMonth) {
-      setTimeout(() => openContribListModal(_editingMonth.year, _editingMonth.month), 100);
-    }
-  } catch (e) {
-    showToast(t('toast.error.delete'));
-  }
+  const id = _editingContribId;
+  openConfirmModal({
+    title: 'Excluir aporte?', sub: 'Esta ação não pode ser desfeita.',
+    confirmLabel: 'Sim, excluir', danger: true,
+    onConfirm: async () => {
+      try {
+        await deleteDoc(doc(db, 'household', 'main', 'contributions', id));
+        showToast(t('toast.deleted'));
+        closeContribModal();
+        if (_editingMonth) {
+          setTimeout(() => openContribListModal(_editingMonth.year, _editingMonth.month), 100);
+        }
+      } catch (e) { showToast(t('toast.error.delete')); }
+    },
+  });
 }
 
 async function deleteContribById(id) {
-  if (!confirm('Excluir este aporte?')) return;
-  try {
-    await deleteDoc(doc(db, 'household', 'main', 'contributions', id));
-    showToast(t('toast.deleted'));
-    if (_editingMonth) {
-      setTimeout(() => openContribListModal(_editingMonth.year, _editingMonth.month), 100);
-    }
-  } catch (e) {
-    showToast(t('toast.error.delete'));
-  }
+  openConfirmModal({
+    title: 'Excluir aporte?', sub: 'Esta ação não pode ser desfeita.',
+    confirmLabel: 'Sim, excluir', danger: true,
+    onConfirm: async () => {
+      try {
+        await deleteDoc(doc(db, 'household', 'main', 'contributions', id));
+        showToast(t('toast.deleted'));
+        if (_editingMonth) {
+          setTimeout(() => openContribListModal(_editingMonth.year, _editingMonth.month), 100);
+        }
+      } catch (e) { showToast(t('toast.error.delete')); }
+    },
+  });
 }
 
 
@@ -3030,7 +3020,6 @@ async function syncFromI10() {
     // future (worker.js already does this but needs redeploy), we
     // prefer it and skip the second request.
     let payload;
-    let usedFull = false;
     const allUrl = `${base}/i10/all/${encodeURIComponent(walletId)}?year=${year}`;
     const barUrl = `${base}/i10/barchart/${encodeURIComponent(walletId)}`;
     const [allRes, barRes] = await Promise.all([
@@ -3129,13 +3118,7 @@ async function syncFromI10() {
       source: 'investidor10-sync',
     }, { merge: true });
 
-    // If /i10/full returned yearly data, auto-import it to dividendsYearly collection
-    if (usedFull && payload.yearly?.years && Array.isArray(payload.yearly.years)) {
-      const imported = await importYearlyData(payload.yearly.years);
-      showToast(`Sincronizado: ${assets.length} ativos, ${imported} anos`);
-    } else {
-      showToast(`Sincronizado: ${assets.length} ativos`);
-    }
+    showToast(`Sincronizado: ${assets.length} ativos`);
     // v8 Turno 7: piggyback Louise sync on every successful main sync (both branches)
     syncLouise().catch(e => console.warn('Louise piggyback error:', e));
     fetchFXRate().catch(e => console.warn('FX rate refresh error:', e));
@@ -3408,12 +3391,18 @@ async function saveYearly() {
 
 async function deleteYearly() {
   if (!editingYearlyId) return;
-  if (!confirm('Excluir este ano? Esta ação não pode ser desfeita.')) return;
-  try {
-    await deleteDoc(docYearly(editingYearlyId));
-    showToast('Ano excluído');
-    closeYearlyModal();
-  } catch (err) { console.error(err); showToast(t('toast.error.delete')); }
+  const id = editingYearlyId;
+  openConfirmModal({
+    title: 'Excluir este ano?', sub: 'Esta ação não pode ser desfeita.',
+    confirmLabel: 'Sim, excluir', danger: true,
+    onConfirm: async () => {
+      try {
+        await deleteDoc(docYearly(id));
+        showToast('Ano excluído');
+        closeYearlyModal();
+      } catch (err) { console.error(err); showToast(t('toast.error.delete')); }
+    },
+  });
 }
 
 // ============================================================
@@ -3651,9 +3640,10 @@ function subscribeAll() {
         note: d.note || '',
       };
       updateLedgerEquity();
-      renderFX();
-      // also re-render total net worth (hero) to pick up USD contribution
-      if (typeof renderInvestments === 'function' && state.mode === 'investments') renderInvestments();
+      // The USD row + hero are fully rebuilt by renderInvestments →
+      // renderI10Assets. (Old renderFX() was dead+broken — it targeted
+      // ids that don't exist and threw, blocking this re-render.)
+      if (state.mode === 'investments') renderInvestments();
     }
   });
   unsub.i10Louise = onSnapshot(docI10Louise, (snap) => {
