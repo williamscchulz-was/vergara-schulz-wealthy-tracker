@@ -55,6 +55,25 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Layout desktop: de coluna mobile pra dashboard 2 colunas
+O app parecia mobile no desktop — `.page` era `max-width: 980px`, então
+num monitor de 1680px sobravam ~686px (41%) vazios e tudo ficava numa
+coluna estreita empilhada. Como o uso real é desktop, virou dashboard:
+
+- `.page` max-width 980 → **1320px**.
+- `@media (min-width: 1100px)`: `#moduleInvestments.active` vira
+  `display:grid` 2 colunas. Hero de patrimônio + a tabela de histórico
+  anual (classe nova `.dash-span`) ocupam largura total; goal, YTD,
+  carteira, dividendos, PL, rentabilidade e aportes fluem lado a lado.
+  Margem de card zerada dentro do grid (gap cuida do espaçamento).
+- Despesas: já pareia cards via `.grid-2` interno → só herda o container
+  largo (stats 3-col, pares categoria|recentes e trend|recorrentes
+  preenchem 1320px).
+- `≤720px` continua colapsando tudo pra 1 coluna (mobile intacto).
+
+Validado em viewport 1680px: módulo em grid 2×623px, hero 1264px full,
+container 1320px.
+
 ### Restore de equity histórico executado + tool removida de produção
 Os patrimônios de fim de ano 2020-2025 (zerados pelo incidente do import
 I10) foram restaurados via `restore-equity.html` com os valores do

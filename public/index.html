@@ -463,9 +463,33 @@ body::before {
 .page {
   position: relative;
   z-index: 1;
-  max-width: 980px;
+  max-width: 1320px;
   margin: 0 auto;
-  padding: 24px 20px 80px;
+  padding: 24px 28px 80px;
+}
+
+/* ===========================================================
+   DESKTOP DASHBOARD — 2-column layout for wide screens.
+   Mobile-first stack stays the default; at ≥1100px the
+   Investments module flows into a 2-col grid (hero + the wide
+   yearly table span full width, the rest sit side-by-side).
+   Expenses already pairs its cards via .grid-2 internally, so
+   it just gets the wider container.
+   =========================================================== */
+@media (min-width: 1100px) {
+  #moduleInvestments.active {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+  /* kill per-card stacking margin inside the grid (gap handles spacing) */
+  #moduleInvestments.active > .card,
+  #moduleInvestments.active > .hero-card { margin-bottom: 0; }
+  /* full-width spanners: the net-worth hero and anything tagged dash-span
+     (the yearly history table — too wide for a half column) */
+  #moduleInvestments.active > .hero-card,
+  #moduleInvestments.active > .dash-span { grid-column: 1 / -1; }
 }
 
 /* ===========================================================
@@ -2689,7 +2713,7 @@ body::before {
       </div>
 
       <!-- HISTORICO ANUAL -->
-      <div class="card animate-in">
+      <div class="card animate-in dash-span">
         <div class="card-body">
           <div class="card-head">
             <div>
