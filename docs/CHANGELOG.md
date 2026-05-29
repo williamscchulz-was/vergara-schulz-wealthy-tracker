@@ -55,6 +55,15 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Aporte ganha campo de descrição (+ modal traduzido)
+- Novo campo `note` (opcional, livre) no aporte — pra anotar pra onde
+  foi (ex: "ITSA4", "Tesouro IPCA", "aporte XP"). Persiste em
+  `contributions.{id}.note`.
+- Aparece: na lista do mês (modal de detalhe) sempre; na lista principal
+  inline quando o mês tem 1 aporte só (escapado via `esc()`).
+- De quebra, traduzido o modal que estava em inglês ("Monthly
+  contribution"→"Aporte mensal", "Year"→"Ano", botões Cancel/Save/Delete).
+
 ### Fix: aporte não salvava ("20.000" virava 20 ou NaN) + parse BRL
 O modal de aporte usava `type="number"` + `parseFloat` cru. Digitar
 "20.000" (vinte mil, ponto de milhar BR): em `type=number` algumas

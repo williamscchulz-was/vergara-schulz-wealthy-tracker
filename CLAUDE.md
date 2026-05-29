@@ -146,6 +146,7 @@ Todas as coleções e documentos ficam sob `household/main/...` (a casa é uma s
   - year:      number
   - month:     number (1-12)
   - amount:    number
+  - note:      string (opcional — anotação livre: pra onde foi o aporte)
   - createdBy, createdAt, updatedAt
 ```
 

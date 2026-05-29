@@ -2795,8 +2795,12 @@ function renderContributions() {
     const countBadge = g.items.length > 1
       ? `<span style="display:inline-block;padding:2px 7px;background:var(--purple-soft);color:var(--purple-light);border-radius:999px;font-size:9px;font-weight:700;margin-left:6px;font-family:'Geist Mono',monospace">${g.items.length}</span>`
       : '';
+    // Single-contribution months show their note inline; multi-month rows
+    // just show the count badge (notes visible in the detail modal).
+    const note = (g.items.length === 1 && g.items[0].note) ? g.items[0].note : '';
+    const noteHtml = note ? `<div class="contrib-row-note">${esc(note)}</div>` : '';
     return `<div class="ticker-row" data-key="${g.year}-${g.month}" style="cursor:pointer">
-      <div class="ticker-name">${monthLbl}/${g.year || '?'}${countBadge}</div>
+      <div class="ticker-name">${monthLbl}/${g.year || '?'}${countBadge}${noteHtml}</div>
       <div class="ticker-val">${fmtBRL0(g.total)}</div>
       <div class="ticker-appr pos">aporte</div>
     </div>`;
@@ -2830,8 +2834,8 @@ function openContribListModal(year, month) {
   const listEl = document.getElementById('contribListItems');
   listEl.innerHTML = items.map(c => `
     <div class="contrib-item" data-id="${c.id}">
-      <div class="contrib-val">${fmtBRL0(+c.amount || 0)}</div>
-      <button class="contrib-edit" data-action="edit" data-id="${c.id}" title="Edit">
+      <div class="contrib-val">${fmtBRL0(+c.amount || 0)}${c.note ? `<span class="contrib-note">${esc(c.note)}</span>` : ''}</div>
+      <button class="contrib-edit" data-action="edit" data-id="${c.id}" title="Editar">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
       </button>
       <button class="contrib-del" data-action="delete" data-id="${c.id}" title="Excluir">
@@ -2867,6 +2871,7 @@ function openContribModal(id) {
       document.getElementById('contribYear').value = c.year || new Date().getFullYear();
       document.getElementById('contribMonth').value = c.month || (new Date().getMonth() + 1);
       document.getElementById('contribAmount').value = fmtBRLInput(c.amount);
+      document.getElementById('contribNote').value = c.note || '';
       document.getElementById('contribDelete').style.display = 'inline-flex';
     }
   } else if (_editingMonth) {
@@ -2874,12 +2879,14 @@ function openContribModal(id) {
     document.getElementById('contribYear').value = _editingMonth.year;
     document.getElementById('contribMonth').value = _editingMonth.month;
     document.getElementById('contribAmount').value = '';
+    document.getElementById('contribNote').value = '';
     document.getElementById('contribDelete').style.display = 'none';
   } else {
     const now = new Date();
     document.getElementById('contribYear').value = now.getFullYear();
     document.getElementById('contribMonth').value = now.getMonth() + 1;
     document.getElementById('contribAmount').value = '';
+    document.getElementById('contribNote').value = '';
     document.getElementById('contribDelete').style.display = 'none';
   }
   modal.classList.add('show');
@@ -2895,17 +2902,18 @@ async function saveContrib() {
   const year = parseInt(document.getElementById('contribYear').value, 10);
   const month = parseInt(document.getElementById('contribMonth').value, 10);
   const amount = parseBRLInput(document.getElementById('contribAmount').value);
+  const note = (document.getElementById('contribNote')?.value || '').trim();
   if (!(year >= 2020 && year <= 2099)) { showToast('Ano inválido'); return; }
   if (!(month >= 1 && month <= 12)) { showToast('Mês inválido'); return; }
   if (!(amount > 0)) { showToast('Valor inválido'); return; }
   try {
     if (_editingContribId) {
       const ref = doc(db, 'household', 'main', 'contributions', _editingContribId);
-      await setDoc(ref, { year, month, amount, updatedAt: serverTimestamp() }, { merge: true });
+      await setDoc(ref, { year, month, amount, note, updatedAt: serverTimestamp() }, { merge: true });
     } else {
       // Auto-generated ID - allows multiple contributions per month
       const colRef = collection(db, 'household', 'main', 'contributions');
-      await addDoc(colRef, { year, month, amount, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdBy: state.user?.displayName || 'unknown' });
+      await addDoc(colRef, { year, month, amount, note, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdBy: state.user?.displayName || 'unknown' });
     }
     showToast(t('toast.saved'));
     closeContribModal();

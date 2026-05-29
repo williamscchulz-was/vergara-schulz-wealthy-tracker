@@ -48,6 +48,7 @@ Aportes mensais.
 | `year` | number |
 | `month` | number (1-12) |
 | `amount` | number |
+| `note` | string (opcional — anotação livre: pra onde foi o aporte) |
 | `createdBy`, `createdAt`, `updatedAt` | — |
 
 ## Documentos de configuração

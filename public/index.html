@@ -1726,7 +1726,9 @@ body::before {
 /* CONTRIB ITEMS */
 .contrib-item { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 12px 14px; background: var(--bg-elevated-2); border: 1px solid var(--border); border-radius: var(--radius); transition: all 0.2s var(--ease-out); }
 .contrib-item:hover { border-color: var(--border-strong); background: var(--bg-elevated-3); }
-.contrib-val { font-family: 'Geist Mono', monospace; font-size: 14px; font-weight: 700; color: var(--ink); }
+.contrib-val { font-family: 'Geist Mono', monospace; font-size: 14px; font-weight: 700; color: var(--ink); display: flex; flex-direction: column; gap: 2px; }
+.contrib-note { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500; color: var(--ink-3); letter-spacing: -0.005em; }
+.contrib-row-note { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; color: var(--ink-muted); margin-top: 2px; letter-spacing: -0.005em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; }
 .contrib-edit, .contrib-del { width: 30px; height: 30px; border-radius: 8px; background: transparent; border: 1px solid var(--border-2); color: var(--ink-3); cursor: pointer; display: grid; place-items: center; transition: all 0.2s var(--ease-out); }
 .contrib-edit:hover { color: var(--purple-light); border-color: var(--border-strong); }
 .contrib-del:hover { color: var(--loss); border-color: rgba(255,94,87,0.30); background: var(--loss-soft); }
@@ -2905,10 +2907,10 @@ body::before {
 </div></div>
 
 <div class="modal-bg" id="contribModal"><div class="modal">
-  <h3>Monthly contribution</h3>
+  <h3>Aporte mensal</h3>
   <p class="sub">Registre um aporte feito no mês</p>
   <div class="form-grid">
-    <div class="field"><label>Year</label><input type="number" id="contribYear" min="2020" max="2099" /></div>
+    <div class="field"><label>Ano</label><input type="number" id="contribYear" min="2020" max="2099" /></div>
     <div class="field"><label>Mês</label><select id="contribMonth">
       <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
       <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
@@ -2916,12 +2918,13 @@ body::before {
       <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
     </select></div>
     <div class="field full"><label>Valor (R$)</label><input type="text" inputmode="decimal" id="contribAmount" placeholder="R$ 0,00" autocomplete="off" /></div>
+    <div class="field full"><label>Descrição (opcional)</label><input type="text" id="contribNote" placeholder="Ex: ITSA4, Tesouro IPCA, aporte XP..." autocomplete="off" maxlength="80" /></div>
   </div>
   <div class="modal-foot">
-    <button class="btn-danger" id="contribDelete" style="display:none">Delete</button>
+    <button class="btn-danger" id="contribDelete" style="display:none">Excluir</button>
     <div class="spacer"></div>
-    <button class="btn-secondary" id="contribCancel">Cancel</button>
-    <button class="btn-primary" id="contribSave">Save</button>
+    <button class="btn-secondary" id="contribCancel">Cancelar</button>
+    <button class="btn-primary" id="contribSave">Salvar</button>
   </div>
 </div></div>
 
