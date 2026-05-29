@@ -2105,8 +2105,15 @@ function renderInvestments() {
     $('plCagrPill').textContent = '-';
   }
 
-  // All-time dividends
-  const allTime = state.yearly.reduce((s,y) => s + (+y.divs||0), 0);
+  // All-time dividends = soma dos anos passados (dividendsYearly, que
+  // exclui o ano corrente) + os proventos YTD do ano corrente (vêm do
+  // sync I10 em state.i10.dividends). Filtra o ano corrente do
+  // dividendsYearly pra não contar em dobro caso alguém tenha cadastrado
+  // o ano corrente manualmente.
+  const pastDivs = state.yearly
+    .filter(y => +y.year < currentYear)
+    .reduce((s, y) => s + (+y.divs || 0), 0);
+  const allTime = pastDivs + (+state.i10.dividends || 0);
   // Pair element already has a static <span class="cur">R$</span> sibling
   // in the HTML, so we render just the number here (matches i10Dividends).
   $('divAllTime').textContent = (allTime || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });

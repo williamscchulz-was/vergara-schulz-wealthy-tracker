@@ -55,6 +55,17 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Fix: "Total recebido all-time" excluía o ano corrente
+O card somava só `dividendsYearly` (anos passados), deixando os
+proventos YTD do ano corrente de fora — mostrava R$ 117.682 quando o
+I10 contava ~R$ 182.883. Agora `allTime = soma(anos < ano corrente) +
+state.i10.dividends` (YTD do ano corrente, vindo do sync). Filtra o ano
+corrente do `dividendsYearly` pra não duplicar.
+
+NOTA: pra bater 100% com o I10 ainda é preciso re-importar os valores
+reais por ano (botão "I10" no card Histórico anual) — os `divs`
+seedados originalmente não conferem com os registros reais do I10.
+
 ### Auditoria — lote 4 (limpeza final: confirm modais + código morto)
 - **`confirm()` nativo → modal custom** nos 4 lugares restantes (excluir
   conta de reserva/previdência, aporte ×2, ano de histórico). Todos
