@@ -779,9 +779,23 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2600);
 }
+// Parse a value into a Date WITHOUT the UTC-midnight timezone trap.
+// `new Date('2026-05-01')` is parsed as UTC midnight → in BRT (UTC-3)
+// that's Apr 30 21:00 local, so getMonth()/getDate() return the previous
+// day. Expense dates are stored as date-only 'YYYY-MM-DD'; parse those
+// as LOCAL dates. Anything else (Date objects, full timestamps) passes
+// through to the native parser.
+function parseLocalDate(d) {
+  if (d instanceof Date) return d;
+  if (typeof d === 'string') {
+    const m = d.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+  }
+  return new Date(d);
+}
 function formatDateBR(d) {
   if (!d) return '-';
-  const dt = d instanceof Date ? d : new Date(d);
+  const dt = parseLocalDate(d);
   return dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 }
 function formatDateTimeBR(d) {
@@ -790,7 +804,7 @@ function formatDateTimeBR(d) {
   return dt.toLocaleDateString('pt-BR', { day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' + dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
 }
 function monthKey(d) {
-  const dt = d instanceof Date ? d : new Date(d);
+  const dt = parseLocalDate(d);
   return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
 }
 function monthLabel(d) {
@@ -983,7 +997,7 @@ function filterExpensesByMonth(date) {
   const targetKey = monthKey(date);
   return state.expenses.filter(e => {
     if (!e.date) return false;
-    return monthKey(new Date(e.date)) === targetKey;
+    return monthKey(parseLocalDate(e.date)) === targetKey;
   });
 }
 
@@ -1180,7 +1194,7 @@ function renderRecentList(entries) {
     return;
   }
   const sorted = [...entries]
-    .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .sort((a,b) => parseLocalDate(b.date).getTime() - parseLocalDate(a.date).getTime())
     .slice(0, 6);
   $('recentMeta').textContent = t('exp.card.recent.sub').replace('{n}', sorted.length);
   wrap.innerHTML = sorted.map((e, idx) => {
@@ -1240,7 +1254,7 @@ function renderExpenseTable(entries) {
     return;
   }
 
-  const sorted = [...filtered].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const sorted = [...filtered].sort((a,b) => parseLocalDate(b.date).getTime() - parseLocalDate(a.date).getTime());
   tbody.innerHTML = sorted.map(e => {
     const meta = entryMeta(e);
     const isIn = isIncome(e);
@@ -1275,7 +1289,7 @@ function exportCurrentMonthCSV() {
   // CSV with BOM so Excel opens UTF-8 correctly. Separator = ';' (BR convention).
   const rows = [['Data', 'Tipo', 'De quem', 'Descrição', 'Categoria/Fonte', 'Valor (BRL)', 'Notas']];
   [...monthExp]
-    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .sort((a, b) => parseLocalDate(a.date) - parseLocalDate(b.date))
     .forEach(e => {
       const meta = entryMeta(e);
       const typeLabel = isIncome(e) ? t('exp.type.income') : t('exp.type.expense');
@@ -1322,7 +1336,7 @@ function renderDailyChart(monthExp, viewDate) {
   // Aggregate per-day spend
   const perDay = new Array(daysInMonth + 1).fill(0); // 1-indexed
   monthExp.forEach(e => {
-    const d = new Date(e.date);
+    const d = parseLocalDate(e.date);
     if (d.getFullYear() === year && d.getMonth() === month) {
       perDay[d.getDate()] += (+e.value || 0);
     }
@@ -1417,7 +1431,7 @@ function renderTrend12m(allExp, viewDate) {
   const byMonth = Object.fromEntries(months.map(m => [m.key, {}]));
   const categoriesSeen = new Set();
   allExp.forEach(e => {
-    const d = new Date(e.date);
+    const d = parseLocalDate(e.date);
     const key = `${d.getFullYear()}-${d.getMonth()}`;
     if (!byMonth[key]) return;
     const cat = e.category || 'outros';
@@ -1492,7 +1506,7 @@ function renderTopRecurring(allExp, viewDate) {
 
   const groups = {};
   allExp.forEach(e => {
-    const d = new Date(e.date);
+    const d = parseLocalDate(e.date);
     if (d.getFullYear() !== year) return;
     const raw = (e.description || '').trim();
     if (!raw) return;
