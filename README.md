@@ -12,21 +12,30 @@ via Cloudflare Worker.
 ## Estrutura
 
 ```
-├── public/              → app estático (o que o GitHub Pages serve)
-│   ├── index.html
-│   ├── manifest.json
-│   ├── js/              → app.js
-│   └── assets/icons/    → favicons + ícones PWA
-├── worker/              → Cloudflare Worker (CORS proxy pro I10)
+├── public/                 → app estático (publicado no GitHub Pages)
+│   ├── index.html          → shell + todo o CSS (tokens v7/v8)
+│   ├── js/app.js           → núcleo da aplicação
+│   ├── manifest.json       → PWA
+│   ├── assets/icons/       → favicons + ícones PWA
+│   └── .nojekyll
+├── worker/                 → Cloudflare Worker (CORS proxy pro I10)
 │   ├── src/worker.js
 │   ├── wrangler.toml
+│   ├── package.json
 │   └── README.md
-├── tools/               → scripts one-shot (seed, fix, brand preview)
+├── tools/                  → scripts one-shot, fora de produção
+│   ├── seed*.html · fix-historico.html · import-historico.html
+│   ├── restore-equity.html · brand.html
 │   └── README.md
-├── docs/                → arquitetura, schema, deploy, changelog
-├── .github/             → templates de PR/issue
-├── CLAUDE.md            → contexto pra sessões de Claude Code
-└── LICENSE
+├── docs/                   → documentação
+│   ├── ARCHITECTURE.md · CHANGELOG.md
+│   ├── DEPLOY.md · DEPLOY-WORKER.md
+│   └── FIRESTORE-SCHEMA.md · FIRESTORE-RULES.md
+├── .github/workflows/      → deploy do GitHub Pages (pages.yml)
+├── firebase.json · .firebaserc · firestore.rules → config Firestore
+├── CLAUDE.md               → contexto persistente pras sessões de IA
+├── README.md · LICENSE
+└── .editorconfig · .gitattributes · .gitignore
 ```
 
 ## Stack
@@ -43,9 +52,9 @@ via Cloudflare Worker.
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Diagrama + fluxos de dados |
 | [docs/FIRESTORE-SCHEMA.md](docs/FIRESTORE-SCHEMA.md) | Coleções e configs sob `household/main/*` |
 | [docs/FIRESTORE-RULES.md](docs/FIRESTORE-RULES.md) | Setup e deploy das security rules |
-| [docs/DEPLOY.md](docs/DEPLOY.md) | GitHub Pages (source: `main /public`) |
+| [docs/DEPLOY.md](docs/DEPLOY.md) | GitHub Pages via GitHub Actions |
 | [docs/DEPLOY-WORKER.md](docs/DEPLOY-WORKER.md) | Publicar o CF Worker |
-| [docs/CHANGELOG.md](docs/CHANGELOG.md) | Histórico v7 / v8 Turnos |
+| [docs/CHANGELOG.md](docs/CHANGELOG.md) | Histórico de mudanças |
 | [worker/README.md](worker/README.md) | Endpoints e segurança do proxy |
 | [tools/README.md](tools/README.md) | Scripts one-shot e o que cada um faz |
 
@@ -57,14 +66,16 @@ cd public && python -m http.server 8000
 # abre http://localhost:8000
 
 # Worker
-cd worker && wrangler dev
+cd worker && npm install && npm run dev
 # abre http://localhost:8787/i10/all/2814459?year=2026
 ```
 
 ## Deploy
 
-- **App**: push no `main` → GitHub Pages rebuilda (source `main /public`)
-- **Worker**: `cd worker && wrangler deploy`
+- **App**: push no `main` → workflow do GitHub Actions publica `public/`
+  no GitHub Pages automaticamente (ver `.github/workflows/pages.yml`)
+- **Worker**: `cd worker && npm run deploy` (ou colar `src/worker.js` no
+  dashboard do Cloudflare — ver `docs/DEPLOY-WORKER.md`)
 
 Ver [docs/DEPLOY.md](docs/DEPLOY.md) e [docs/DEPLOY-WORKER.md](docs/DEPLOY-WORKER.md).
 

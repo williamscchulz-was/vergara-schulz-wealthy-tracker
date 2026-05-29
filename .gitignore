@@ -10,10 +10,8 @@ desktop.ini
 *.swo
 *~
 
-# Claude Code local state
-.claude/worktrees/
-.claude/plans/
-.claude/tmp/
+# Claude Code local state (worktrees, preview launch config, plans, tmp)
+.claude/
 
 # Cloudflare Workers
 worker/node_modules/
