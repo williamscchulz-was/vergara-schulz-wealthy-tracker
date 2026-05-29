@@ -687,9 +687,16 @@ function parseBRLInput(raw) {
   if (s.includes(',') && s.includes('.')) s = s.replace(/\./g, '').replace(',', '.');
   // Only ',': treat it as decimal.
   else if (s.includes(',')) s = s.replace(',', '.');
-  // Only '.': if there's more than one dot, treat them as thousands;
-  // a single '.' is kept as the decimal separator (user typed "12.50").
-  else if ((s.match(/\./g) || []).length > 1) s = s.replace(/\./g, '');
+  // Only '.': ambiguous (decimal vs thousands). BR-correct heuristic:
+  // if the segment after the LAST dot has exactly 3 digits, every dot is
+  // a thousands separator → strip them all ('20.000'→20000, '1.234.567'→
+  // 1234567). Otherwise the last dot is a decimal point ('12.50'→12.5,
+  // '12.5'→12.5).
+  else if (s.includes('.')) {
+    const parts = s.split('.');
+    if (parts[parts.length - 1].length === 3) s = parts.join('');
+    else s = parts.slice(0, -1).join('') + '.' + parts[parts.length - 1];
+  }
   const n = parseFloat(s);
   return isFinite(n) ? n : 0;
 }
@@ -2859,7 +2866,7 @@ function openContribModal(id) {
     if (c) {
       document.getElementById('contribYear').value = c.year || new Date().getFullYear();
       document.getElementById('contribMonth').value = c.month || (new Date().getMonth() + 1);
-      document.getElementById('contribAmount').value = c.amount || '';
+      document.getElementById('contribAmount').value = fmtBRLInput(c.amount);
       document.getElementById('contribDelete').style.display = 'inline-flex';
     }
   } else if (_editingMonth) {
@@ -2887,10 +2894,10 @@ function closeContribModal() {
 async function saveContrib() {
   const year = parseInt(document.getElementById('contribYear').value, 10);
   const month = parseInt(document.getElementById('contribMonth').value, 10);
-  const amount = parseFloat(document.getElementById('contribAmount').value);
-  if (!(year >= 2020 && year <= 2099)) { showToast('Ano invalido'); return; }
-  if (!(month >= 1 && month <= 12)) { showToast('Mes invalido'); return; }
-  if (!(amount > 0)) { showToast('Valor invalido'); return; }
+  const amount = parseBRLInput(document.getElementById('contribAmount').value);
+  if (!(year >= 2020 && year <= 2099)) { showToast('Ano inválido'); return; }
+  if (!(month >= 1 && month <= 12)) { showToast('Mês inválido'); return; }
+  if (!(amount > 0)) { showToast('Valor inválido'); return; }
   try {
     if (_editingContribId) {
       const ref = doc(db, 'household', 'main', 'contributions', _editingContribId);
@@ -3574,6 +3581,16 @@ document.getElementById('btnAddContrib')?.addEventListener('click', () => { _edi
 document.getElementById('contribCancel')?.addEventListener('click', closeContribModal);
 document.getElementById('contribSave')?.addEventListener('click', saveContrib);
 document.getElementById('contribDelete')?.addEventListener('click', deleteContrib);
+// BRL mask on the contribution amount (same UX as the expense value field)
+(() => {
+  const el = document.getElementById('contribAmount');
+  if (!el) return;
+  el.addEventListener('blur', () => {
+    const n = parseBRLInput(el.value);
+    el.value = n > 0 ? fmtBRLInput(n) : '';
+  });
+  el.addEventListener('keydown', e => { if (e.key === 'Enter') { el.blur(); saveContrib(); } });
+})();
 document.getElementById('contribModal')?.addEventListener('click', e => { if (e.target.id === 'contribModal') closeContribModal(); });
 document.getElementById('contribListClose')?.addEventListener('click', closeContribListModal);
 document.getElementById('contribListAdd')?.addEventListener('click', () => { closeContribListModal(); openContribModal(); });

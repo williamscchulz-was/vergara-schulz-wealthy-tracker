@@ -55,6 +55,28 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Fix: aporte não salvava ("20.000" virava 20 ou NaN) + parse BRL
+O modal de aporte usava `type="number"` + `parseFloat` cru. Digitar
+"20.000" (vinte mil, ponto de milhar BR): em `type=number` algumas
+combinações de locale resultavam em valor vazio → NaN → "Valor inválido"
+→ não salvava. Onde salvava, `parseFloat('20.000')` = 20.
+
+Além disso, o próprio `parseBRLInput` tratava ponto único como decimal,
+então "20.000" → 20 mesmo no campo de despesa.
+
+Correções:
+- `parseBRLInput`: heurística BR-correta pro caso "só pontos" — se o
+  segmento após o último ponto tem exatamente 3 dígitos, todos os
+  pontos são separador de milhar ('20.000'→20000, '1.234.567'→1234567);
+  senão o último ponto é decimal ('12.50'→12.5). Beneficia despesas E
+  aportes.
+- Campo de aporte: `type=text inputmode=decimal` + máscara BRL no blur +
+  Enter pra salvar + prefill com `fmtBRLInput` na edição (mesma UX do
+  campo de valor de despesa).
+- `saveContrib` usa `parseBRLInput` em vez de `parseFloat`.
+
+Validado: 12 formatos de entrada parseiam corretamente.
+
 ### Fix: "Total recebido all-time" excluía o ano corrente
 O card somava só `dividendsYearly` (anos passados), deixando os
 proventos YTD do ano corrente de fora — mostrava R$ 117.682 quando o
