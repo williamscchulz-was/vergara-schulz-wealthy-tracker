@@ -55,6 +55,37 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Auditoria multi-agente — correções P0/P1 (lote 1)
+Auditoria completa (5 agentes: segurança, funcional, UX, design, robustez).
+Vários bugs foram corroborados por 2+ agentes independentes. Este lote
+corrige os críticos app-side (sem redeploy de worker):
+
+- **Card "Minha carteira" renderizava vazio** (corroborado por 2 agentes).
+  `renderI10Assets` dependia de `state.i10.categories`, que é sempre `[]`
+  (o worker `/i10/all` nunca retorna `diversification`). Reescrito pra
+  agrupar `state.i10.assets` pelo `.category` de cada ativo, via novo
+  helper `canonicalCategory()` que normaliza acentos/sinônimos das 3
+  vocabulários divergentes (I10_TYPE_TO_CAT, inferCategory, legacy) pra
+  um conjunto canônico. Agora todas as classes aparecem (Ações, Tesouro,
+  Renda Fixa, FIIs, ETFs, BDRs, Cripto), cada uma expansível com seus
+  tickers. Estado de expand persiste em `_expandedCats` entre re-renders.
+- **Rentabilidade mês a mês ignorava dividendos**. `computeMonthlyReturns`
+  lia `y.amount` mas o campo é `y.divs` → divs sempre 0 no total return.
+  One-liner.
+- **XSS armazenado**: novo helper `esc()` (escape HTML) aplicado em todos
+  os sinks de `innerHTML` com dados de usuário/API — descrição e notas de
+  despesa, nomes de conta (reservas/previdência), tickers e categorias do
+  I10. Fecha o vetor onde um texto malicioso salvo executava pros dois
+  usuários via onSnapshot.
+- Adicionado `BDRs` a CATEGORY_ORDER/ICONS/DISPLAY.
+
+Pendências da auditoria ainda NÃO corrigidas (próximos lotes): regras
+Firestore com placeholders (precisa confirmação do dono sobre o que está
+deployado), inglês vazando no dicionário PT, bug de timezone em datas
+(dia 1 cai no mês anterior em BRT), charts espremidos no mobile, owner
+chips ilegíveis no tema claro, reduced-motion incompleto, `confirm()`
+nativo em 4 lugares, toasts técnicos ("HTTP 502").
+
 ### Auto-sync mais agressivo + atualiza TUDO
 User reportou que abria o app e nada atualizava, e que só algumas
 coisas estavam no auto-sync. Dois ajustes:

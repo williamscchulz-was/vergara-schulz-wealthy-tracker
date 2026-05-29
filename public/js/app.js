@@ -666,6 +666,10 @@ function toggleLang() {
 
 // ---- Utils ----
 const $ = (id) => document.getElementById(id);
+// HTML-escape any string before injecting into innerHTML. Used on every
+// user- or API-controlled value (expense desc/notes, account names, I10
+// tickers/categories) to close stored-XSS sinks.
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 const fmtBRL = (n) => 'R$ ' + (n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtBRL0 = (n) => 'R$ ' + (n || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
 const fmtInt = (n) => (n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -866,7 +870,8 @@ function computeMonthlyReturns(monthlyEquity, contributions, yearlyDividends) {
   // approximation; if a month has 0 equity it gets 0).
   const divMonthlyMap = {};
   (yearlyDividends || []).forEach(y => {
-    const per = (+y.amount || 0) / 12;
+    // Field is `divs` (not `amount`) — see dividendsYearly schema.
+    const per = (+y.divs || 0) / 12;
     for (let mo = 1; mo <= 12; mo++) {
       const k = `${+y.year}-${String(mo).padStart(2, '0')}`;
       divMonthlyMap[k] = (divMonthlyMap[k] || 0) + per;
@@ -1187,7 +1192,7 @@ function renderRecentList(entries) {
     return `<div class="exp-recent-row${isIn ? ' is-income' : ''}" data-id="${e.id}" style="--cat-color:${meta.color};--row-delay:${0.05 + idx * 0.04}s">
       <div class="exp-recent-icon">${meta.icon}</div>
       <div class="exp-recent-main">
-        <div class="exp-recent-desc">${e.description || '—'}${ownerChip}</div>
+        <div class="exp-recent-desc">${esc(e.description) || '—'}${ownerChip}</div>
         <div class="exp-recent-meta">${formatDateBR(e.date)} · ${meta.label}</div>
       </div>
       <div class="exp-recent-amt">${amtText}</div>
@@ -1241,9 +1246,9 @@ function renderExpenseTable(entries) {
     const isIn = isIncome(e);
     const notes = (e.notes || '').trim();
     const ownerChip = ownerChipHtml(e);
-    const descMain = `<div class="exp-row-desc">${e.description || '—'}${ownerChip}</div>`;
+    const descMain = `<div class="exp-row-desc">${esc(e.description) || '—'}${ownerChip}</div>`;
     const descHtml = notes
-      ? `${descMain}<div class="exp-row-notes" title="${notes.replace(/"/g,'&quot;')}">${notes}</div>`
+      ? `${descMain}<div class="exp-row-notes" title="${esc(notes)}">${esc(notes)}</div>`
       : descMain;
     const amt = (+e.value || 0);
     const amtText = isIn ? `+ ${fmtBRL(amt)}` : fmtBRL(amt);
@@ -1927,7 +1932,7 @@ function renderCashRow(type, wrap) {
       ? '<span class="res-val">R$ ' + v.toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + '</span>'
       : '<span class="res-val empty">' + cfg.emptyLabel() + '</span>';
     itemsHtml += '<div class="res-item" data-rid="' + a.id + '">' +
-      '<span class="res-name">' + (a.name || '-') + '</span>' +
+      '<span class="res-name">' + esc(a.name || '-') + '</span>' +
       '<div class="res-actions">' + valHtml +
         '<button class="res-edit" data-rid="' + a.id + '" type="button" aria-label="Edit">' +
           '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>' +
@@ -2486,7 +2491,25 @@ function inferCategory(asset) {
   return 'Outros';
 }
 
-const CATEGORY_ORDER = ['Acoes','FIIs','Renda Fixa','Tesouro Direto','Fundos de Investimento','ETFs Brasil','ETFs Internacionais','Criptomoedas','Outros'];
+const CATEGORY_ORDER = ['Acoes','FIIs','Renda Fixa','Tesouro Direto','Fundos de Investimento','ETFs Brasil','ETFs Internacionais','BDRs','Criptomoedas','Outros'];
+
+// Normalize any category label (from I10_TYPE_TO_CAT, inferCategory, legacy
+// data, accented or not) to a canonical CATEGORY_ICONS/_DISPLAY/_ORDER key.
+function canonicalCategory(label) {
+  const s = (label || '').toString().trim().toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, ''); // strip accents
+  if (!s) return 'Outros';
+  if (/internacion/.test(s)) return 'ETFs Internacionais';
+  if (/etf/.test(s)) return 'ETFs Brasil';
+  if (/fii|imobiliar/.test(s)) return 'FIIs';
+  if (/tesouro/.test(s)) return 'Tesouro Direto';
+  if (/renda\s*fixa|cdb|lci|lca|debent|fixed/.test(s)) return 'Renda Fixa';
+  if (/cripto|crypto|bitcoin|btc/.test(s)) return 'Criptomoedas';
+  if (/bdr/.test(s)) return 'BDRs';
+  if (/fundo|fund/.test(s)) return 'Fundos de Investimento';
+  if (/aco|acao|acoes|stock|ticker|^acoes$/.test(s)) return 'Acoes';
+  return 'Outros';
+}
 
 const CATEGORY_ICONS = {
   'Acoes':                   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><polyline points="7 14 11 10 15 14 19 10"/></svg>',
@@ -2497,6 +2520,7 @@ const CATEGORY_ICONS = {
   'ETFs Brasil':             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>',
   'ETFs Internacionais':     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
   'Criptomoedas':            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 8h4.5a2.5 2.5 0 0 1 0 5H9V8zm0 5h5a2.5 2.5 0 0 1 0 5H9v-5z"/></svg>',
+  'BDRs':                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/><path d="M12 2a15.3 15.3 0 0 0-4 10 15.3 15.3 0 0 0 4 10"/></svg>',
   'Outros':                  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
 };
 
@@ -2509,6 +2533,7 @@ const CATEGORY_DISPLAY = {
   'ETFs Brasil': 'ETFs Brasil',
   'ETFs Internacionais': 'ETFs Intern.',
   'Criptomoedas': 'Criptomoedas',
+  'BDRs': 'BDRs',
   'Outros': 'Outros',
 };
 
@@ -2517,82 +2542,66 @@ let _expandedCats = new Set(['Acoes']); // Acoes expanded by default
 function renderI10Assets() {
   const wrap = $('i10AssetsList');
   if (!wrap) return;
-  const categories = state.i10.categories || [];
   const assets = state.i10.assets || [];
 
-  if (categories.length === 0 && assets.length === 0) {
+  if (assets.length === 0) {
     wrap.innerHTML = '<div style="padding:30px 10px;color:var(--ink-muted);text-align:center;font-size:13px"><b style="color:var(--ink-2);display:block;margin-bottom:6px">Nenhum ativo sincronizado</b>Clique em "Sincronizar" pra importar sua carteira do Investidor 10.</div>';
-    return;
+    // Still append USD/reserves/pension below.
   }
 
-  // Map type -> icon (uses CATEGORY_ICONS that already exists in the file)
-  const TYPE_TO_LABEL = {
-    'Ticker': 'Acoes',
-    'Fii': 'FIIs',
-    'Etf': 'ETFs',
-    'EtfInternational': 'ETFs Intern.',
-    'Crypto': 'Criptomoedas',
-    'Treasure': 'Tesouro Direto',
-    'Fund': 'Fundos',
-    'FixedIncome': 'Renda Fixa',
-    'Fixedincome': 'Renda Fixa',
-  };
-  const TYPE_TO_ICON_KEY = {
-    'Ticker': 'Acoes',
-    'Fii': 'FIIs',
-    'Etf': 'ETFs Brasil',
-    'EtfInternational': 'ETFs Internacionais',
-    'Crypto': 'Criptomoedas',
-    'Treasure': 'Tesouro Direto',
-    'Fund': 'Fundos de Investimento',
-    'FixedIncome': 'Renda Fixa',
-    'Fixedincome': 'Renda Fixa',
-  };
-  const TYPE_ORDER = ['Ticker','Fii','FixedIncome','Fixedincome','Treasure','Fund','Etf','EtfInternational','Crypto'];
-
-  // Sort categories by predefined order, then by value desc
-  const sorted = [...categories].sort((a, b) => {
-    const ai = TYPE_ORDER.indexOf(a.type);
-    const bi = TYPE_ORDER.indexOf(b.type);
-    if (ai !== bi) return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-    return (b.value || 0) - (a.value || 0);
+  // Group every asset by its canonical category (derived from the
+  // per-asset `.category` set in syncFromI10). This no longer depends on
+  // the absent `diversification` payload — it works straight off the
+  // assets list, so all classes (Ações, Tesouro, FIIs, ETFs, etc.) show.
+  const groups = {}; // canonKey -> { value, items: [] }
+  let assetsTotal = 0;
+  assets.forEach(a => {
+    const key = canonicalCategory(a.category);
+    if (!groups[key]) groups[key] = { value: 0, items: [] };
+    const eq = +a.equity || 0;
+    groups[key].value += eq;
+    groups[key].items.push(a);
+    assetsTotal += eq;
   });
 
-  const html = sorted.map(c => {
-    const label = TYPE_TO_LABEL[c.type] || c.name || c.type;
-    const iconKey = TYPE_TO_ICON_KEY[c.type] || 'Outros';
-    const icon = (typeof CATEGORY_ICONS !== 'undefined' && CATEGORY_ICONS[iconKey]) || (CATEGORY_ICONS && CATEGORY_ICONS['Outros']) || '';
-    const isAcoes = c.type === 'Ticker';
-    const itemCount = isAcoes ? assets.length : 0;
-    const countStr = isAcoes ? itemCount + ' ' + (itemCount === 1 ? t('cat.assets.singular') : t('cat.assets.plural')) : '';
-    const chevronHtml = isAcoes
-      ? '<svg class="cat-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'
-      : '<span style="width:18px;display:inline-block"></span>';
+  const sortedKeys = Object.keys(groups).sort((ka, kb) => {
+    const ia = CATEGORY_ORDER.indexOf(ka);
+    const ib = CATEGORY_ORDER.indexOf(kb);
+    if (ia !== ib) return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+    return groups[kb].value - groups[ka].value;
+  });
 
-    let tickersHtml = '';
-    if (isAcoes && assets.length > 0) {
-      const sortedTickers = [...assets].sort((a, b) => (+b.equity || 0) - (+a.equity || 0));
-      tickersHtml = sortedTickers.map(a => {
-        const appr = +a.appreciation || 0;
-        const cls = appr >= 0 ? 'pos' : 'neg';
-        const sign = appr >= 0 ? '+' : '';
-        return '<div class="ticker-row"><div class="ticker-name">' + (a.ticker || '-') + '</div><div class="ticker-val">' + fmtBRL0(+a.equity || 0) + '</div><div class="ticker-appr ' + cls + '">' + sign + appr.toFixed(1) + '%</div></div>';
-      }).join('');
-    }
+  const html = sortedKeys.map(key => {
+    const g = groups[key];
+    const label = CATEGORY_DISPLAY[key] || key;
+    const icon = CATEGORY_ICONS[key] || CATEGORY_ICONS['Outros'] || '';
+    const pct = assetsTotal > 0 ? (g.value / assetsTotal) * 100 : 0;
+    const n = g.items.length;
+    const countStr = n + ' ' + (n === 1 ? t('cat.assets.singular') : t('cat.assets.plural'));
+    const chevronHtml = '<svg class="cat-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
 
-    return '<div class="cat-row' + (isAcoes ? ' clickable' : '') + '" data-type="' + c.type + '">' +
+    const sortedTickers = [...g.items].sort((a, b) => (+b.equity || 0) - (+a.equity || 0));
+    const tickersHtml = sortedTickers.map(a => {
+      const appr = +a.appreciation || 0;
+      const cls = appr >= 0 ? 'pos' : 'neg';
+      const sign = appr >= 0 ? '+' : '';
+      return '<div class="ticker-row"><div class="ticker-name">' + esc(a.ticker || '-') + '</div><div class="ticker-val">' + fmtBRL0(+a.equity || 0) + '</div><div class="ticker-appr ' + cls + '">' + sign + appr.toFixed(1) + '%</div></div>';
+    }).join('');
+
+    const expanded = _expandedCats.has(key) ? ' expanded' : '';
+    return '<div class="cat-row clickable' + expanded + '" data-type="' + esc(key) + '">' +
       '<div class="cat-icon">' + icon + '</div>' +
       '<div class="cat-info">' +
-        '<div class="cat-name">' + label + '</div>' +
-        '<div class="cat-count">' + (countStr ? countStr + ' &middot; ' : '') + (c.percent || 0).toFixed(0) + '% ' + t('cat.label.suffix') + '</div>' +
+        '<div class="cat-name">' + esc(label) + '</div>' +
+        '<div class="cat-count">' + countStr + ' &middot; ' + pct.toFixed(0) + '% ' + t('cat.label.suffix') + '</div>' +
       '</div>' +
       '<div>' +
-        '<div class="cat-value">' + fmtBRL0(c.value || 0) + '</div>' +
+        '<div class="cat-value">' + fmtBRL0(g.value) + '</div>' +
       '</div>' +
       '<div class="cat-appr"></div>' +
       chevronHtml +
     '</div>' +
-    (isAcoes ? '<div class="cat-tickers">' + tickersHtml + '</div>' : '');
+    '<div class="cat-tickers">' + tickersHtml + '</div>';
   }).join('');
 
   wrap.innerHTML = html;
@@ -2639,7 +2648,11 @@ function renderI10Assets() {
     if (row.id === 'reserveRow') return;
     if (row.id === 'pensionRow') return;
     row.addEventListener('click', () => {
-      row.classList.toggle('expanded');
+      const open = row.classList.toggle('expanded');
+      // Persist expand state per category so a re-render (e.g. auto-sync)
+      // doesn't collapse what the user opened.
+      const key = row.dataset.type;
+      if (key) { if (open) _expandedCats.add(key); else _expandedCats.delete(key); }
     });
   });
 }
