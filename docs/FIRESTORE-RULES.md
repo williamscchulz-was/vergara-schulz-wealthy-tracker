@@ -71,9 +71,14 @@ sem risco de tocar em dados reais.
 
 ## Regra atual — resumo
 
-- `household/main/**` → só os 2 UIDs do casal leem/escrevem
-- Todo o resto é negado
+- `household/**` → só os 2 UIDs do casal (William + Flávia) leem/escrevem
+- Todo o resto é negado por default (não há outro `match`)
+
+**Status (verificado 2026-04):** as regras deployadas em produção batem
+com este arquivo — restringem corretamente aos 2 UIDs reais. O arquivo
+do repo agora reflete exatamente o que está no ar (antes tinha
+placeholders `REPLACE_WITH_*`).
 
 Se um dia adicionar um terceiro membro (ex: contador) ou separar
 escopos (ex: contador vê despesas mas não investimentos), é aqui que
-a lógica muda.
+a lógica muda — edite e rode `firebase deploy --only firestore:rules`.

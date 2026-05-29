@@ -55,6 +55,16 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Segurança: regras Firestore confirmadas OK + repo sincronizado
+A auditoria flagou as regras como CRÍTICO porque o `firestore.rules` do
+repo tinha `REPLACE_WITH_*_UID`. Verificado no console: as regras
+**deployadas estão corretas** — restringem a 2 UIDs reais (William +
+Flávia), todo o resto negado. Era falso alarme (arquivo do repo
+desatualizado, não a regra no ar). Sincronizado o `firestore.rules` do
+repo pra refletir exatamente o que está deployado, pra futuros
+`firebase deploy` não regredirem. UIDs do Firebase Auth não são
+credenciais — podem viver no repo (diferente de walletIds).
+
 ### Auditoria — lote 3 (design / mobile / tema claro)
 - **Charts espremidos no mobile** (UX #3): os 3 SVGs com texto
   (`expDailyChart`, `expTrendChart`, `mrChart`) usavam

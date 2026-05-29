@@ -5,38 +5,28 @@ rules_version = '2';
 // ------------------------------------------------------------
 //  Projeto: wealthy-tracker-68658
 //
-//  Modelo: household único (W + F). Só os dois UIDs do casal têm
-//  read/write em household/main/** e sub-estruturas derivadas.
-//  Qualquer outro caminho é negado por default.
+//  Este arquivo reflete EXATAMENTE o que está deployado em produção
+//  (verificado no console em 2026-04). Só os dois UIDs do casal têm
+//  read/write sob household/**. Qualquer outro usuário autenticado é
+//  bloqueado, e qualquer caminho fora de household é negado por default
+//  (não há outra regra `match`, então o default-deny do Firestore vale).
+//
+//  Os UIDs abaixo são identificadores do Firebase Auth — NÃO são
+//  credenciais (ninguém consegue se autenticar "como" um UID sem ser
+//  dono da conta Google). Por isso podem viver no repo. NÃO confundir
+//  com walletIds (esses sim, ver §9 do CLAUDE.md).
+//
+//  Pra deployar: firebase deploy --only firestore:rules
 // ============================================================
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // --------------------------------------------------------
-    // Whitelist de UIDs autorizados
-    // --------------------------------------------------------
-    // Pra descobrir os UIDs atuais: Firebase Console → Authentication
-    // → Users → copiar coluna "User UID" do W e da F e colar abaixo.
-    function isHouseholdMember() {
-      return request.auth != null && request.auth.uid in [
-        'REPLACE_WITH_WILLIAM_UID',
-        'REPLACE_WITH_FLAVIA_UID'
-      ];
-    }
-
-    // --------------------------------------------------------
-    // household/main/** — tudo do casal
-    // --------------------------------------------------------
-    match /household/{household}/{document=**} {
-      allow read, write: if isHouseholdMember() && household == 'main';
-    }
-
-    // --------------------------------------------------------
-    // Catch-all: nega o resto
-    // --------------------------------------------------------
-    match /{document=**} {
-      allow read, write: if false;
+    match /household/{document=**} {
+      allow read, write: if request.auth != null
+        && request.auth.uid in [
+          '17wwkKWjQfQEUVpHvWKclPrISCp1', // William
+          'hzOG3tI87FXY35HCFQCpanGxtoJ3'  // Flávia
+        ];
     }
   }
 }
