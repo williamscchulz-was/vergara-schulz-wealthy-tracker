@@ -55,6 +55,21 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Auditoria — lote 2 (timezone, i18n PT, error copy)
+- **Bug de timezone** (robustez M2): datas de despesa são `YYYY-MM-DD`;
+  `new Date()` parseava como UTC-meia-noite → em BRT (UTC-3) a despesa
+  do dia 1 caía no mês anterior. Novo helper `parseLocalDate()` usado em
+  `formatDateBR`, `monthKey`, `filterExpensesByMonth`, daily/trend/recurring
+  charts e sorts. Validado no sandbox UTC-3: `2026-05-01` antes virava
+  30/abril, agora fica 1/maio.
+- **Inglês vazando no dicionário PT** (UX #1): `hero.manual`,
+  `years.singular/plural`, `loading`, `goal.status.*`, todos os `toast.*`,
+  e as 5 frases `goal.phrase.*` estavam em inglês no bloco PT. Traduzidos.
+  Chip da Louise ("not yet synced"/"updated") agora via `t()`.
+- **Error copy** (UX #2/#5): toasts de falha de sync/import deixam de
+  vazar `err.message`/`HTTP 502` e mostram mensagem humana. Erro de login
+  mapeia códigos Firebase conhecidos pra PT; código cru fica só no console.
+
 ### Auditoria multi-agente — correções P0/P1 (lote 1)
 Auditoria completa (5 agentes: segurança, funcional, UX, design, robustez).
 Vários bugs foram corroborados por 2+ agentes independentes. Este lote

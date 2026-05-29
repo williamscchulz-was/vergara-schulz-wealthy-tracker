@@ -207,16 +207,16 @@ const I18N = {
     'slider.dy': 'DY esperado',
     'slider.reinvest': 'Reinvestimento',
     'slider.growthdiv': 'Crescimento do dividendo (empresa)',
-    'hero.manual': 'Manual update',
-    'hero.manual.full': 'Manual update · configure sync for automatic',
+    'hero.manual': 'Atualização manual',
+    'hero.manual.full': 'Atualização manual · configure o sync pra automático',
     'hero.return.label': 'com dividendos',
     'hero.applied': 'Aplicado',
     'ytd.received': 'proventos recebidos neste ano',
     'ytd.alltime.from': 'desde {year} · {n} {label} de histórico',
     'ytd.alltime.empty': 'sem histórico ainda',
-    'years.singular': 'year',
-    'years.plural': 'years',
-    'loading': 'loading...',
+    'years.singular': 'ano',
+    'years.plural': 'anos',
+    'loading': 'carregando...',
     'via.i10': 'VIA I10',
     'sub.dividends': 'histórico anual de proventos',
     'sub.networth': 'evolução do patrimônio',
@@ -227,19 +227,19 @@ const I18N = {
     'contrib.empty': 'Nenhum aporte cadastrado. Clique em "+ Aporte" para começar.',
     'contrib.aporte': 'aporte',
     'contrib.aportes': 'aportes',
-    'goal.status.green': 'on track',
-    'goal.status.yellow': 'tight',
-    'goal.status.red': 'off schedule',
+    'goal.status.green': 'no ritmo',
+    'goal.status.yellow': 'apertado',
+    'goal.status.red': 'fora do prazo',
     'goal.notreach': 'não atinge',
     'goal.before': 'antes',
     'goal.after': 'depois',
     'goal.onschedule': 'no prazo',
-    'toast.saved': 'Contribution saved',
-    'toast.deleted': 'Contribution deleted',
-    'toast.error.save': 'Save failed',
-    'toast.error.delete': 'Delete failed',
-    'toast.synced': 'Synced',
-    'toast.synced.assets': '{n} assets',
+    'toast.saved': 'Aporte salvo',
+    'toast.deleted': 'Aporte excluído',
+    'toast.error.save': 'Falha ao salvar',
+    'toast.error.delete': 'Falha ao excluir',
+    'toast.synced': 'Sincronizado',
+    'toast.synced.assets': '{n} ativos',
     'count.assets.singular': 'ativo',
     'count.assets.plural': 'ativos',
     'count.cat.singular': 'categoria',
@@ -251,11 +251,11 @@ const I18N = {
     'cat.assets.plural': 'ATIVOS',
     'chart.caption.prefix': 'desde início:',
     'chart.caption.cagr': 'CAGR',
-    'goal.phrase.suffix': ' Contribution of {amt}/mo grows {g}%/yr. Portfolio ends {year} worth <b>{pl}</b>.',
-    'goal.phrase.fail': 'With these variables you <b>do not reach</b> the goal. Raise contribution, DY or reinvestment.',
-    'goal.phrase.before': 'You reach the goal in <b>{year}</b>, <span style="color:var(--purple-light);font-weight:600">{n} {label} early</span>.',
-    'goal.phrase.exact': 'You hit the goal exactly in <b>{year}</b>.',
-    'goal.phrase.after': 'You only reach R$ 1M/yr in <b>{year}</b>, <span style="color:var(--loss);font-weight:600">{n} {label} late</span>. Raise contribution or expected DY.',
+    'goal.phrase.suffix': ' Aporte de {amt}/mês cresce {g}%/ano. A carteira termina {year} valendo <b>{pl}</b>.',
+    'goal.phrase.fail': 'Com essas variáveis você <b>não atinge</b> a meta. Aumente o aporte, o DY ou o reinvestimento.',
+    'goal.phrase.before': 'Você atinge a meta em <b>{year}</b>, <span style="color:var(--purple-light);font-weight:600">{n} {label} antes</span>.',
+    'goal.phrase.exact': 'Você atinge a meta exatamente em <b>{year}</b>.',
+    'goal.phrase.after': 'Você só atinge R$ 1M/ano em <b>{year}</b>, <span style="color:var(--loss);font-weight:600">{n} {label} depois</span>. Aumente o aporte ou o DY esperado.',
     // ---- Expenses tab (Fase B: i18n de verdade) ----
     'exp.section.title': 'Despesas',
     'exp.section.meta': 'Lançamentos e orçamento do mês',
@@ -2972,8 +2972,8 @@ function renderLouise() {
   const upd = $('louiseUpdated');
   if (upd) {
     upd.textContent = state.i10Louise.updatedAt
-      ? 'updated \u00b7 ' + formatDateTimeBR(state.i10Louise.updatedAt)
-      : 'not yet synced';
+      ? t('hero.updated.prefix') + ' \u00b7 ' + formatDateTimeBR(state.i10Louise.updatedAt)
+      : t('hero.updated.never');
   }
 }
 
@@ -3147,7 +3147,7 @@ async function syncFromI10() {
     }
   } catch (err) {
     console.error('I10 sync error:', err);
-    showToast('Falha ao sincronizar: ' + (err.message || 'erro desconhecido'));
+    showToast('Não deu pra sincronizar agora — tente de novo em instantes.');
   } finally {
     state.i10Syncing = false;
     if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
@@ -3280,7 +3280,7 @@ async function importHistoryFromI10(opts = {}) {
     else console.log(`[autosync] yearly refreshed: ${imported} anos`);
   } catch (err) {
     console.error('importHistoryFromI10 error:', err);
-    if (!silent) showToast('Falha ao importar: ' + (err.message || 'erro desconhecido'));
+    if (!silent) showToast('Não deu pra importar o histórico agora — tente de novo em instantes.');
   } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
   }
@@ -3778,8 +3778,15 @@ $('btnLogin').addEventListener('click', async () => {
   } catch (err) {
     console.error('[auth] signInWithPopup error:', err);
     const code = err.code || 'unknown';
-    const msg = err.message || String(err);
-    $('loginError').textContent = '[' + code + '] ' + msg;
+    // Humane copy per known code; raw code stays in console only.
+    const MAP = {
+      'auth/popup-blocked': 'O popup foi bloqueado. Libere popups pra este site e tente de novo.',
+      'auth/popup-closed-by-user': 'Login cancelado. Tente de novo quando quiser.',
+      'auth/cancelled-popup-request': 'Login cancelado. Tente de novo.',
+      'auth/network-request-failed': 'Sem conexão. Verifique a internet e tente de novo.',
+      'auth/unauthorized-domain': 'Este domínio não está autorizado pro login. Avise o William.',
+    };
+    $('loginError').textContent = MAP[code] || 'Não deu pra entrar agora — tente de novo em instantes.';
     $('loginError').classList.add('show');
     $('btnLoginText').textContent = t('login.button');
   }
