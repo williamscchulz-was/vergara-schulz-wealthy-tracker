@@ -613,12 +613,13 @@ body::before {
 .hero-card::after {
   content: "";
   position: absolute;
-  top: -50%; right: -20%;
-  width: 60%; height: 200%;
-  background: radial-gradient(ellipse, var(--purple-soft), transparent 70%);
+  inset: 0;
+  /* Cursor spotlight: the radial glow tracks the pointer (--spot-x/y set
+     by initMicroFX). Defaults to the top-right resting position. */
+  background: radial-gradient(420px circle at var(--spot-x, 82%) var(--spot-y, 10%), var(--purple-soft), transparent 55%);
   pointer-events: none;
   opacity: 0.6;
-  transition: opacity 0.4s var(--ease-out);
+  transition: opacity 0.4s var(--ease-out), background 0.18s var(--ease-out);
 }
 .hero-card:hover { border-color: var(--border-strong); }
 .hero-card:hover::after { opacity: 1; }
@@ -856,12 +857,11 @@ body::before {
 .exp-hero::after {
   content: "";
   position: absolute;
-  top: -50%; right: -20%;
-  width: 60%; height: 200%;
-  background: radial-gradient(ellipse, var(--purple-soft), transparent 70%);
+  inset: 0;
+  background: radial-gradient(420px circle at var(--spot-x, 82%) var(--spot-y, 10%), var(--purple-soft), transparent 55%);
   pointer-events: none;
   opacity: 0.55;
-  transition: opacity 0.4s var(--ease-out);
+  transition: opacity 0.4s var(--ease-out), background 0.18s var(--ease-out);
 }
 .exp-hero:hover { border-color: var(--border-strong); }
 .exp-hero:hover::after { opacity: 0.9; }
@@ -879,11 +879,11 @@ body::before {
 /* Saldo state on hero */
 .exp-hero.is-positive .amt #expHeroAmt { color: var(--gain); }
 .exp-hero.is-positive .amt .cur        { color: color-mix(in oklab, var(--gain) 60%, var(--ink-3)); }
-.exp-hero.is-positive::after           { background: radial-gradient(ellipse, var(--gain-soft), transparent 70%); }
+.exp-hero.is-positive::after           { background: radial-gradient(420px circle at var(--spot-x, 82%) var(--spot-y, 10%), var(--gain-soft), transparent 55%); }
 .exp-hero.is-positive .live-dot        { background: var(--gain); box-shadow: 0 0 12px var(--gain); }
 .exp-hero.is-negative .amt #expHeroAmt { color: var(--loss); }
 .exp-hero.is-negative .amt .cur        { color: color-mix(in oklab, var(--loss) 60%, var(--ink-3)); }
-.exp-hero.is-negative::after           { background: radial-gradient(ellipse, var(--loss-soft), transparent 70%); }
+.exp-hero.is-negative::after           { background: radial-gradient(420px circle at var(--spot-x, 82%) var(--spot-y, 10%), var(--loss-soft), transparent 55%); }
 .exp-hero.is-negative .live-dot        { background: var(--loss); box-shadow: 0 0 12px var(--loss); }
 
 /* Empty state — used across all Expense cards */
@@ -1789,6 +1789,12 @@ body::before {
     inset 0 1px 0 rgba(255,255,255,0.35),
     inset 0 -1px 0 rgba(0,0,0,0.15);
 }
+/* Tactile press (consistent with .btn / .btn-ghost). Magnetic buttons
+   set an inline transform which wins over this — magnetism is their
+   feedback — so this only applies to non-magnetic primaries (modals). */
+.btn-primary:active { transform: scale(0.96); }
+/* Magnetic CTAs: smooth return when JS clears the inline transform. */
+.magnetic { transition: transform 0.22s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s var(--ease-out) !important; will-change: transform; }
 .btn-secondary {
   background: var(--bg-elevated);
   color: var(--ink);

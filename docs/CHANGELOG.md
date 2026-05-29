@@ -55,6 +55,28 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Micro-interações de proximidade (design-engineering polish)
+Inspirado no padrão "dock proximity" (responder à distância do cursor,
+não só hover binário). Curado pra um dashboard financeiro — nada que
+escale/desloque números:
+
+- **Botões magnéticos** (`initMicroFX()`): os CTAs (Sync, +Nova despesa,
+  +Ganho, +Aporte, +Year, Import I10) "puxam" suavemente em direção ao
+  cursor dentro de um raio de 95px. Transform inline via pointermove
+  throttled em rAF; retorno suave via transição. Classe `.magnetic`.
+- **Spotlight no hero**: o brilho radial de `.hero-card` e `.exp-hero`
+  segue o cursor (`--spot-x/--spot-y`), em vez de glow estático. Repouso
+  volta pro canto superior direito. Os estados saldo+/− do exp-hero
+  também acompanham (verde/vermelho).
+- **Press feedback** consistente: `.btn-primary:active` ganhou
+  `scale(0.96)` (faltava; outros botões já tinham).
+- Tudo gated em `(pointer: fine)` + sem `prefers-reduced-motion` —
+  desliga no mobile/touch e pra quem pede menos movimento.
+
+Mecânica validada via preview (magnético: cursor a 28px → translate
+7px/4.8px; spotlight seta --spot-x). O efeito em si só roda em desktop
+com mouse (o headless do preview não tem pointer fine).
+
 ### Layout desktop: de coluna mobile pra dashboard 2 colunas
 O app parecia mobile no desktop — `.page` era `max-width: 980px`, então
 num monitor de 1680px sobravam ~686px (41%) vazios e tudo ficava numa

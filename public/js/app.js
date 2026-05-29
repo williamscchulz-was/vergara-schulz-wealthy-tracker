@@ -3878,6 +3878,68 @@ onAuthStateChanged(auth, async (user) => {
 // Apply i18n on initial load (after onAuthStateChanged is registered)
 applyI18n();
 
+// ============================================================
+//  MICRO-INTERACTIONS — proximity / "alive" polish (desktop only)
+//  Inspired by the dock-proximity pattern: respond to cursor distance,
+//  not just binary hover. Two effects, both gated on a fine pointer +
+//  no reduced-motion preference:
+//    1. Magnetic CTAs — key action buttons drift toward the cursor.
+//    2. Hero spotlight — the radial glow tracks the pointer.
+//  Nothing scales or shifts content that holds numbers (readability).
+// ============================================================
+function initMicroFX() {
+  const fine = window.matchMedia('(pointer: fine)').matches;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!fine || reduce) return;
+
+  // ---- 1. Magnetic buttons ----
+  const MAG_IDS = ['btnSyncI10', 'btnAddExpense', 'btnAddIncome', 'btnAddContrib', 'btnAddYear', 'btnImportHistory'];
+  const magnets = MAG_IDS.map(id => document.getElementById(id)).filter(Boolean);
+  magnets.forEach(el => el.classList.add('magnetic'));
+  const R = 95;          // activation radius (px)
+  const PULL_X = 0.28;   // horizontal pull factor
+  const PULL_Y = 0.40;   // vertical pull factor (a touch stronger)
+
+  let pending = false;
+  let lastX = 0, lastY = 0;
+  function applyMagnets() {
+    pending = false;
+    for (const el of magnets) {
+      if (!el.offsetParent) { el.style.transform = ''; continue; } // hidden
+      const r = el.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const dx = lastX - cx, dy = lastY - cy;
+      const dist = Math.hypot(dx, dy);
+      if (dist < R) {
+        el.style.transform = `translate(${(dx * PULL_X).toFixed(1)}px, ${(dy * PULL_Y).toFixed(1)}px)`;
+      } else if (el.style.transform) {
+        el.style.transform = '';
+      }
+    }
+  }
+  window.addEventListener('pointermove', (e) => {
+    lastX = e.clientX; lastY = e.clientY;
+    if (!pending) { pending = true; requestAnimationFrame(applyMagnets); }
+  }, { passive: true });
+
+  // ---- 2. Hero spotlight ----
+  document.querySelectorAll('.hero-card, .exp-hero').forEach(hero => {
+    hero.addEventListener('pointermove', (e) => {
+      const r = hero.getBoundingClientRect();
+      const x = ((e.clientX - r.left) / r.width) * 100;
+      const y = ((e.clientY - r.top) / r.height) * 100;
+      hero.style.setProperty('--spot-x', x.toFixed(1) + '%');
+      hero.style.setProperty('--spot-y', y.toFixed(1) + '%');
+    }, { passive: true });
+    hero.addEventListener('pointerleave', () => {
+      hero.style.removeProperty('--spot-x');
+      hero.style.removeProperty('--spot-y');
+    }, { passive: true });
+  });
+}
+initMicroFX();
+
 // Re-render bar charts on resize (debounced) so mobile/desktop viewBox swap kicks in on rotate.
 let _resizeTimer = null;
 let _wasMobile = typeof window !== 'undefined' && window.innerWidth < 600;
