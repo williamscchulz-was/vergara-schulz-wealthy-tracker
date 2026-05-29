@@ -55,6 +55,19 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Restore de equity histórico executado + tool removida de produção
+Os patrimônios de fim de ano 2020-2025 (zerados pelo incidente do import
+I10) foram restaurados via `restore-equity.html` com os valores do
+histórico do próprio usuário. O gráfico "net worth por ano" voltou
+completo (2020-2026). A página foi servida temporariamente de `public/`
+(porque `tools/` não vai pro GH Pages) e agora foi **removida de
+produção** — continua em `tools/restore-equity.html` pra uso pontual
+futuro (rodar local ou copiar pra public/ de novo se precisar).
+
+Os valores de net worth pré-2025 NÃO existem na API do I10 pra a wallet
+nova (2814459) — confirmado `equity: null` em todos os anos no
+`/i10/yearly`. Por isso o restore manual é a fonte canônica desses anos.
+
 ### Aporte ganha campo de descrição (+ modal traduzido)
 - Novo campo `note` (opcional, livre) no aporte — pra anotar pra onde
   foi (ex: "ITSA4", "Tesouro IPCA", "aporte XP"). Persiste em
