@@ -20,7 +20,7 @@ Contexto persistente do projeto. Mantenha este arquivo atualizado. Quando algo a
 
 Os dois usuários (W e F) compartilham o mesmo Firestore (`household/main/*`) e enxergam o mesmo estado em tempo real via `onSnapshot`. Cada alteração de um aparece instantaneamente pro outro.
 
-O app é **single-page**, **client-side puro**, servido estaticamente (GitHub Pages ou qualquer host estático). Não há build step — os arquivos são publicados como estão.
+O app é **single-page**, **client-side puro**, servido estaticamente. Não há build step — os arquivos são publicados como estão. **Hospedagem dupla** (mesmo `public/`, deploy automático via GitHub Actions): **Firebase Hosting** em `https://ledger-schulz.web.app` (URL principal) + **GitHub Pages** (mantido como backup). Ver `docs/DEPLOY-HOSTING.md`.
 
 ---
 
@@ -31,6 +31,7 @@ O app é **single-page**, **client-side puro**, servido estaticamente (GitHub Pa
 | Frontend | HTML + CSS + JavaScript ES modules (sem bundler, sem framework) |
 | Auth | Firebase Auth (Google provider) |
 | Database | Cloud Firestore (projeto `wealthy-tracker-68658`) |
+| Hosting | **Firebase Hosting** (`ledger-schulz.web.app`, URL principal) + GitHub Pages (backup). Deploy automático via GitHub Actions (`firebase-hosting.yml` + `pages.yml`). Config em `firebase.json`. Setup em `docs/DEPLOY-HOSTING.md` |
 | Fontes | Inter (UI) + Geist Mono (números) via Google Fonts |
 | PWA | `manifest.json` + ícones padrão (iOS + Android + maskable) |
 | Proxy/integração | **Cloudflare Worker** (`worker/src/worker.js`) publicado em `workers.cloudflare.com` — resolve CORS do Investidor 10 e faz cache de 5 min |
@@ -385,7 +386,8 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 - **Repo local**: `C:\Users\willi\Documents\projects\vergara-schulz-wealthy-tracker\`
 - **Main branch**: `main`
 - **Worker URL**: `https://ledger-i10-proxy.<sub>.workers.dev` (configurada no app pelo modal ⚙️, persistida em `config/i10sync.workerUrl`)
+- **App URL**: `https://ledger-schulz.web.app` (Firebase Hosting, principal) + GitHub Pages (backup)
 - **Firebase project ID**: `wealthy-tracker-68658`
 - **Entrypoint**: `public/index.html` → importa `public/js/app.js` (ES module, único arquivo JS do app)
 - **Deploy do worker**: `wrangler deploy` ou colar no dashboard do Cloudflare Workers
-- **Deploy do app**: push pro repo (GitHub Pages ou equivalente serve os estáticos)
+- **Deploy do app**: push pro `main` → GitHub Actions publica em Firebase Hosting (`firebase-hosting.yml`) e GitHub Pages (`pages.yml`). Setup do hosting em `docs/DEPLOY-HOSTING.md`

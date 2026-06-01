@@ -5,6 +5,22 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Firebase Hosting — URL `.web.app` (2026-06-01)
+O app agora também publica no Firebase Hosting, com URL bonita
+`https://ledger-schulz.web.app` (vira a principal). GitHub Pages segue
+no ar como backup.
+
+- `firebase.json` ganha bloco `hosting` (raiz `public/`, site
+  `ledger-schulz`, `Cache-Control: no-cache` em html/js/css pra update
+  instantâneo, cache de 1 dia em imagens).
+- Novo workflow `firebase-hosting.yml`: deploy automático do `public/`
+  no canal `live` a cada push (action `FirebaseExtended/action-hosting-deploy`,
+  secret `FIREBASE_SERVICE_ACCOUNT`).
+- Domínios `*.web.app` / `*.firebaseapp.com` já são autorizados no
+  Firebase Auth → login Google funciona na URL nova sem config.
+- Setup manual (uma vez): criar o site no console, pôr o secret no
+  GitHub. Passo a passo em `docs/DEPLOY-HOSTING.md`.
+
 ### Changed
 - Repositório reorganizado: `public/` (app), `worker/` (CF Worker),
   `tools/` (one-shots), `docs/` (documentação)

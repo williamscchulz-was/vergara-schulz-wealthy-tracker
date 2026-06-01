@@ -1,0 +1,33 @@
+name: Deploy to Firebase Hosting
+
+# Publica a pasta public/ no Firebase Hosting (canal live) a cada push.
+# Convive com pages.yml (GitHub Pages) — os dois servem o mesmo app; a
+# URL bonita .web.app vira a principal. Setup do secret + site em
+# docs/DEPLOY-HOSTING.md.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'public/**'
+      - 'firebase.json'
+      - '.github/workflows/firebase-hosting.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to Firebase Hosting (live)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          channelId: live
+          projectId: wealthy-tracker-68658
