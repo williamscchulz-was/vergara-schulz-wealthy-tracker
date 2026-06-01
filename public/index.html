@@ -3055,7 +3055,7 @@ body::before {
   <h3 id="expenseModalTitle" data-i18n="exp.modal.new.title">Nova despesa</h3>
   <p class="sub" id="expenseModalSub" data-i18n="exp.modal.new.sub">Registre uma despesa. A categoria pode ser editada depois.</p>
   <div class="form-grid">
-    <div class="field full"><label data-i18n="exp.f.desc">Descrição</label><input type="text" id="expDesc" data-i18n-ph="exp.f.desc.ph" placeholder="Ex: Mercado, Netflix, Uber..." autocomplete="off" /></div>
+    <div class="field full" id="expDescField"><label data-i18n="exp.f.desc">Descrição</label><input type="text" id="expDesc" data-i18n-ph="exp.f.desc.ph" placeholder="Ex: Mercado, Netflix, Uber..." autocomplete="off" /></div>
     <div class="field"><label data-i18n="exp.f.value">Valor (R$)</label><input type="text" inputmode="decimal" id="expValue" placeholder="R$ 0,00" autocomplete="off" /></div>
     <div class="field"><label data-i18n="exp.f.date">Data</label><input type="date" id="expDate" /></div>
     <!-- Category (only for expense); Source (only for income) — toggled by JS -->
@@ -3071,16 +3071,13 @@ body::before {
       <option value="compras">Compras</option>
       <option value="outros">Outros</option>
     </select></div>
-    <div class="field full" id="expSourceField" hidden><label data-i18n="exp.f.source">Fonte</label><select id="expSource">
-      <option value="salario" data-i18n="exp.sources.salario">Salário</option>
-      <option value="freelance" data-i18n="exp.sources.freelance">Freelance</option>
-      <option value="distribuicao" data-i18n="exp.sources.distribuicao">Distribuição</option>
-      <option value="dividendos" data-i18n="exp.sources.dividendos">Dividendos</option>
-      <option value="venda" data-i18n="exp.sources.venda">Venda</option>
-      <option value="presente" data-i18n="exp.sources.presente">Presente</option>
-      <option value="outros" data-i18n="exp.sources.outros">Outros</option>
+    <div class="field full" id="expSourceField" hidden><label data-i18n="exp.f.desc">Descrição</label><select id="expSource">
+      <option value="jcp_fiobras">JCP FIOBRAS</option>
+      <option value="div_fiobras">Dividendos FIOBRAS</option>
+      <option value="prolabore_fiobras">Pró-labore FIOBRAS</option>
+      <option value="jcpdiv_acoes">JCP/Div Ações</option>
     </select></div>
-    <div class="field full"><label data-i18n="exp.f.owner">De quem</label>
+    <div class="field full" id="expOwnerField"><label data-i18n="exp.f.owner">De quem</label>
       <div class="exp-owner-seg" role="radiogroup" aria-label="De quem">
         <button type="button" class="exp-owner-opt" data-owner="william" role="radio" aria-checked="false" data-i18n="exp.owner.william">William</button>
         <button type="button" class="exp-owner-opt" data-owner="flavia" role="radio" aria-checked="false" data-i18n="exp.owner.flavia">Flávia</button>
@@ -3094,7 +3091,7 @@ body::before {
         <button type="button" class="exp-nat-opt" data-nature="fixa" role="radio" aria-checked="false" data-i18n="exp.nature.fixa">Fixa</button>
       </div>
     </div>
-    <div class="field full"><label data-i18n="exp.f.notes">Notas (opcional)</label><textarea id="expNotes" data-i18n-ph="exp.f.notes.ph" placeholder="Detalhes adicionais..." rows="2"></textarea></div>
+    <div class="field full" id="expNotesField"><label data-i18n="exp.f.notes">Notas (opcional)</label><textarea id="expNotes" data-i18n-ph="exp.f.notes.ph" placeholder="Detalhes adicionais..." rows="2"></textarea></div>
   </div>
   <div class="modal-foot">
     <button class="btn-danger" id="expDelete" data-i18n="exp.btn.delete" style="display:none">Excluir</button>

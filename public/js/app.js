@@ -150,6 +150,14 @@ const INCOME_SOURCES = {
   presente:     { icon: ICONS.gift,        color: '#ff9500', labelKey: 'exp.sources.presente' },
   outros:       { icon: ICONS.package,     color: '#8e8e93', labelKey: 'exp.sources.outros' },
 };
+// Opções do dropdown de Ganho (descrição). label = o que grava na descrição;
+// source = categoria de renda usada no Resumo. Ganho é enxuto: descrição + valor + data.
+const INCOME_OPTS = [
+  { val: 'jcp_fiobras',       label: 'JCP FIOBRAS',        source: 'dividendos' },
+  { val: 'div_fiobras',       label: 'Dividendos FIOBRAS', source: 'dividendos' },
+  { val: 'prolabore_fiobras', label: 'Pró-labore FIOBRAS', source: 'salario' },
+  { val: 'jcpdiv_acoes',      label: 'JCP/Div Ações',      source: 'dividendos' },
+];
 const MONTH_NAMES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const MONTH_NAMES_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -2068,6 +2076,10 @@ function setModalType(type) {
   $('expCategoryField').hidden = _modalType === 'income';
   $('expSourceField').hidden = _modalType !== 'income';
   { const _nf = $('expNatureField'); if (_nf) _nf.hidden = _modalType === 'income'; }  // fixa/variável só faz sentido em despesa
+  // Ganho enxuto: esconde descrição-texto, de-quem e notas (fica só dropdown + valor + data)
+  { const _df = $('expDescField'); if (_df) _df.hidden = _modalType === 'income'; }
+  { const _of = $('expOwnerField'); if (_of) _of.hidden = _modalType === 'income'; }
+  { const _ntf = $('expNotesField'); if (_ntf) _ntf.hidden = _modalType === 'income'; }
   // Swap title/sub based on new type + edit/create context
   const editing = !!editingExpenseId;
   const titleKey = _modalType === 'income'
@@ -2092,7 +2104,7 @@ function openExpenseModal(id = null, opts = {}) {
     $('expDesc').value = e.description || '';
     $('expValue').value = fmtBRLInput(e.value);
     $('expDate').value = e.date || '';
-    if (type === 'income') $('expSource').value = e.category || 'outros';
+    if (type === 'income') $('expSource').value = (INCOME_OPTS.find(o => o.label === e.description) || INCOME_OPTS[0]).val;
     else $('expCategory').value = e.category || 'outros';
     $('expNotes').value = e.notes || '';
     $('expDelete').style.display = '';
@@ -2105,20 +2117,26 @@ function openExpenseModal(id = null, opts = {}) {
     $('expValue').value = '';
     $('expDate').value = today.toISOString().split('T')[0];
     $('expCategory').value = 'outros';
-    $('expSource').value = 'salario';
+    $('expSource').value = INCOME_OPTS[0].val;
     $('expNotes').value = '';
     $('expDelete').style.display = 'none';
   }
   $('expenseModal').classList.add('show');
-  setTimeout(() => $('expDesc').focus(), 50);
+  setTimeout(() => { const f = (_modalType === 'income' ? $('expSource') : $('expDesc')); if (f) f.focus(); }, 50);
 }
 function closeExpenseModal() { $('expenseModal').classList.remove('show'); editingExpenseId = null; }
 
 async function saveExpense() {
-  const description = $('expDesc').value.trim();
   const value = parseBRLInput($('expValue').value);
   const date = $('expDate').value;
-  const category = _modalType === 'income' ? $('expSource').value : $('expCategory').value;
+  let description, category;
+  if (_modalType === 'income') {
+    const opt = INCOME_OPTS.find(o => o.val === $('expSource').value) || INCOME_OPTS[0];
+    description = opt.label; category = opt.source;
+  } else {
+    description = $('expDesc').value.trim();
+    category = $('expCategory').value;
+  }
   const notes = $('expNotes').value.trim();
   const type = _modalType;
 
