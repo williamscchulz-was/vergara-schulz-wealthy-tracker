@@ -1297,7 +1297,7 @@ body::before {
 /* Owner segmented picker in modal */
 .exp-owner-seg {
   display: inline-grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 4px;
   padding: 4px;
   background: var(--bg-elevated-2);
@@ -1328,6 +1328,8 @@ body::before {
 .exp-owner-opt[data-owner="william"].active { color: #8dd0ff; background: color-mix(in oklab, #64d2ff 14%, transparent); border-color: color-mix(in oklab, #64d2ff 32%, transparent); }
 .exp-owner-opt[data-owner="flavia"].active  { color: #ffbce1; background: color-mix(in oklab, #ff6bd6 14%, transparent); border-color: color-mix(in oklab, #ff6bd6 32%, transparent); }
 .exp-owner-opt[data-owner="joint"].active   { color: var(--purple-light); background: var(--purple-soft); border: 1px solid color-mix(in oklab, var(--purple) 32%, transparent); }
+.exp-owner-opt[data-owner="louise"].active  { color: #7ee29a; background: color-mix(in oklab, #30d158 14%, transparent); border-color: color-mix(in oklab, #30d158 32%, transparent); }
+.exp-owner-opt[data-owner="familia"].active { color: var(--purple-light); background: var(--purple-soft); border: 1px solid color-mix(in oklab, var(--purple) 32%, transparent); }
 
 /* Owner chip in extract (recent list + table) */
 .exp-owner-chip {
@@ -1346,6 +1348,8 @@ body::before {
 .exp-owner-chip.exp-owner-william { color: #8dd0ff; background: color-mix(in oklab, #64d2ff 12%, transparent); border-color: color-mix(in oklab, #64d2ff 28%, transparent); }
 .exp-owner-chip.exp-owner-flavia  { color: #ffbce1; background: color-mix(in oklab, #ff6bd6 12%, transparent); border-color: color-mix(in oklab, #ff6bd6 28%, transparent); }
 .exp-owner-chip.exp-owner-joint   { color: var(--purple-light); background: var(--purple-soft); border-color: color-mix(in oklab, var(--purple) 28%, transparent); }
+.exp-owner-chip.exp-owner-louise  { color: #7ee29a; background: color-mix(in oklab, #30d158 12%, transparent); border-color: color-mix(in oklab, #30d158 28%, transparent); }
+.exp-owner-chip.exp-owner-familia { color: var(--purple-light); background: var(--purple-soft); border-color: color-mix(in oklab, var(--purple) 28%, transparent); }
 
 /* Income styling on existing row/pill/amount layouts */
 .exp-recent-row.is-income .exp-recent-amt,
@@ -2168,7 +2172,11 @@ body::before {
 :root[data-theme="light"] .exp-owner-chip.exp-owner-flavia,
 :root[data-theme="light"] .exp-owner-opt[data-owner="flavia"].active { color: #c01f86; background: rgba(255,107,214,.16); border-color: rgba(192,31,134,.30); }
 :root[data-theme="light"] .exp-owner-chip.exp-owner-joint,
-:root[data-theme="light"] .exp-owner-opt[data-owner="joint"].active { color: var(--purple-deep); }
+:root[data-theme="light"] .exp-owner-opt[data-owner="joint"].active,
+:root[data-theme="light"] .exp-owner-chip.exp-owner-familia,
+:root[data-theme="light"] .exp-owner-opt[data-owner="familia"].active { color: var(--purple-deep); }
+:root[data-theme="light"] .exp-owner-chip.exp-owner-louise,
+:root[data-theme="light"] .exp-owner-opt[data-owner="louise"].active { color: #1f8f43; background: rgba(48,209,88,.16); border-color: rgba(31,143,67,.30); }
 
 /* v8 Turno 8 — FX (USD) styles */
 :root { --usd: #E3A2EE; --usd-bg: rgba(172,95,219,.10); --usd-strong: rgba(172,95,219,.24); }
@@ -2845,7 +2853,8 @@ body::before {
       <div class="exp-owner-seg" role="radiogroup" aria-label="De quem">
         <button type="button" class="exp-owner-opt" data-owner="william" role="radio" aria-checked="false" data-i18n="exp.owner.william">William</button>
         <button type="button" class="exp-owner-opt" data-owner="flavia" role="radio" aria-checked="false" data-i18n="exp.owner.flavia">Flávia</button>
-        <button type="button" class="exp-owner-opt" data-owner="joint" role="radio" aria-checked="false" data-i18n="exp.owner.joint">Conjunto</button>
+        <button type="button" class="exp-owner-opt" data-owner="louise" role="radio" aria-checked="false" data-i18n="exp.owner.louise">Louise</button>
+        <button type="button" class="exp-owner-opt" data-owner="familia" role="radio" aria-checked="false" data-i18n="exp.owner.familia">Família</button>
       </div>
     </div>
     <div class="field full"><label data-i18n="exp.f.notes">Notas (opcional)</label><textarea id="expNotes" data-i18n-ph="exp.f.notes.ph" placeholder="Detalhes adicionais..." rows="2"></textarea></div>

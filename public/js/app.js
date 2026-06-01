@@ -373,10 +373,14 @@ const I18N = {
     'exp.f.owner': 'De quem',
     'exp.owner.william': 'William',
     'exp.owner.flavia': 'Flávia',
-    'exp.owner.joint': 'Conjunto',
+    'exp.owner.louise': 'Louise',
+    'exp.owner.familia': 'Família',
+    'exp.owner.joint': 'Família',
     'exp.owner.short.william': 'W',
     'exp.owner.short.flavia': 'F',
-    'exp.owner.short.joint': 'W+F',
+    'exp.owner.short.louise': 'L',
+    'exp.owner.short.familia': 'Fam',
+    'exp.owner.short.joint': 'Fam',
   },
   en: {
     'login.tagline': 'Personal finance tracker.<br/>Sign in with Google to continue.',
@@ -611,10 +615,14 @@ const I18N = {
     'exp.f.owner': 'Whose',
     'exp.owner.william': 'William',
     'exp.owner.flavia': 'Flávia',
-    'exp.owner.joint': 'Joint',
+    'exp.owner.louise': 'Louise',
+    'exp.owner.familia': 'Family',
+    'exp.owner.joint': 'Family',
     'exp.owner.short.william': 'W',
     'exp.owner.short.flavia': 'F',
-    'exp.owner.short.joint': 'W+F',
+    'exp.owner.short.louise': 'L',
+    'exp.owner.short.familia': 'Fam',
+    'exp.owner.short.joint': 'Fam',
   }
 };
 
@@ -1186,7 +1194,7 @@ function renderCategoryBreakdown(monthExp, total) {
 // Owner short chip renderer — returns '' when the owner tag adds no info
 // (undefined or a legacy entry without owner field).
 function ownerChipHtml(e) {
-  const owner = e.owner;
+  const owner = normOwner(e.owner);
   if (!owner) return '';
   const short = t(`exp.owner.short.${owner}`);
   const full = t(`exp.owner.${owner}`);
@@ -1573,7 +1581,11 @@ function updateHeroOverBudgetBadge(monthExp) {
 // ============================================================
 let editingExpenseId = null;
 let _modalType = 'expense'; // 'expense' | 'income'
-let _modalOwner = 'joint';  // 'william' | 'flavia' | 'joint'
+let _modalOwner = 'familia';  // 'william' | 'flavia' | 'louise' | 'familia'
+// New "de quem é o gasto" model. Legacy entries used 'joint' (W+F) →
+// shown/edited as 'familia' (the shared/household bucket).
+const OWNERS = ['william', 'flavia', 'louise', 'familia'];
+const normOwner = (o) => (o === 'joint' ? 'familia' : o);
 
 // Map Firebase Auth email → owner slot. William hardcoded; any other
 // authenticated user defaults to Flávia (the spouse). 'joint' is a
@@ -1585,7 +1597,8 @@ function ownerFromUser(user) {
 }
 
 function setModalOwner(owner) {
-  _modalOwner = (owner === 'william' || owner === 'flavia' || owner === 'joint') ? owner : 'joint';
+  owner = normOwner(owner);
+  _modalOwner = OWNERS.includes(owner) ? owner : 'familia';
   document.querySelectorAll('#expenseModal .exp-owner-opt').forEach(b => {
     const on = b.dataset.owner === _modalOwner;
     b.classList.toggle('active', on);
@@ -1624,7 +1637,7 @@ function openExpenseModal(id = null, opts = {}) {
     const e = state.expenses.find(x => x.id === id); if (!e) return;
     const type = e.type === 'income' ? 'income' : 'expense';
     setModalType(type);
-    setModalOwner(e.owner || 'joint');
+    setModalOwner(e.owner || 'familia');
     $('expDesc').value = e.description || '';
     $('expValue').value = fmtBRLInput(e.value);
     $('expDate').value = e.date || '';

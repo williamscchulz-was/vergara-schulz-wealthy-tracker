@@ -127,7 +127,7 @@ Todas as coleções e documentos ficam sob `household/main/...` (a casa é uma s
   - value:       number (BRL)                // ⚠ field name is `value`, not `amount`
   - type:        'income' | 'expense'        // ausência = legacy, tratado como 'expense'
   - category:    string                       // expense: key de CATEGORIES; income: key de INCOME_SOURCES
-  - owner:       'william' | 'flavia' | 'joint' (opcional)
+  - owner:       'william' | 'flavia' | 'louise' | 'familia' (legado 'joint' → exibido/editado como 'familia' via normOwner())
   - description: string
   - notes:       string (opcional)
   - createdBy:   string (displayName)
@@ -250,7 +250,7 @@ A API interna do I10 é **não oficial** — mapeada por engenharia reversa do l
 ### Modo Despesas
 
 - **Lançamento unificado** via `#expenseModal`: toggle no topo entre **Saída** (tipo `expense`) e **Ganho** (tipo `income`), swap do seletor entre `CATEGORIES` (10 opções) e `INCOME_SOURCES` (7 opções). Descrição + valor com máscara BRL + data + `notes` (opcional).
-- **Owner** (`william` | `flavia` | `joint`) via picker segmentado com cores distintas. Default inferido do user autenticado (William/KNOWN_PRIMARY_EMAIL → `william`; qualquer outro → `flavia`).
+- **Owner / "de quem é o gasto"** (`william` | `flavia` | `louise` | `familia`) via picker segmentado 2×2 com cores distintas (W=cyan, F=pink, Louise=verde, Família=roxo). Legado `joint` (W+F) é normalizado pra `familia` na exibição/edição (`normOwner()` em `app.js`; sem migração de dados). Lista canônica em `const OWNERS`. Default num lançamento novo = inferido do user autenticado (William/KNOWN_PRIMARY_EMAIL → `william`; qualquer outro → `flavia`). É **manual** — "de quem é o gasto" ≠ "quem pagou" (esse último vem do cartão na importação).
 - **Hero = Saldo do mês** (ganhos − saídas): verde quando positivo, vermelho quando negativo, prefixo `−` no R$ quando negativo. Sub inline: `↑ R$X entraram · ↓ R$Y saíram`.
 - 3 stats expense-only: contagem, delta vs mês anterior (comparando despesas), maior despesa
 - Breakdown por categoria com barras + % + **orçamento por categoria**:

@@ -5,6 +5,19 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### "De quem é o gasto" — William / Flávia / Louise / Família (2026-06-01)
+Pedido da Flávia: o lançamento precisa atribuir o gasto a mais gente que
+só W/F/Conjunto. Expandido pra **4 opções** (picker 2×2): William (cyan),
+Flávia (pink), **Louise** (verde), **Família** (roxo).
+- Legado `joint` (W+F) normalizado pra `familia` na exibição/edição
+  (`normOwner()`), sem migração de dados — entradas antigas viram Família.
+- i18n PT/EN, chip do extrato, CSS (claro/escuro) e `setModalOwner`
+  cobrindo os 4; `const OWNERS` é a fonte canônica.
+- É **manual** (a Flávia escolhe) — "de quem é o gasto" ≠ "quem pagou"
+  (esse vem do cartão na importação).
+- Fundação pro importador de fatura. Próximo na trilha de Despesas:
+  fixa×variável, parcelamento com provisão futura, dívidas/financiamentos.
+
 ### Desktop-first + hierarquia & glamour — Pass 1 (2026-06-01)
 Auditoria multi-agente (5 dimensões: layout, navegação, interação,
 densidade, hierarquia/glamour) → primeira leva de correções, **tudo CSS**:
