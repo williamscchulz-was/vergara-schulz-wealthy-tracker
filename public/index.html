@@ -1383,6 +1383,8 @@ body::before {
 .imp-row { display: grid; grid-template-columns: 22px 48px minmax(0,1fr) 140px 150px 110px; gap: 10px; align-items: center; padding: 9px 12px; border-bottom: 1px solid var(--border); font-size: 12.5px; }
 .imp-row:last-child { border-bottom: none; }
 .imp-row:hover { background: var(--bg-elevated-2); }
+.imp-row:has(input[type="checkbox"]:not(:checked)) { opacity: .5; }
+.imp-row:has(input[type="checkbox"]:not(:checked)):hover { opacity: .75; }
 .imp-row > input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--purple); cursor: pointer; }
 .imp-date { font-family: 'Geist Mono', monospace; color: var(--ink-3); font-size: 11px; }
 .imp-desc { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
