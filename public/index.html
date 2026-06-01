@@ -1404,7 +1404,10 @@ body::before {
 .imp-val { font-family: 'Geist Mono', monospace; text-align: right; color: var(--ink); }
 .imp-val.ref { color: var(--gain); }
 /* Overlay de progresso/sucesso da importação */
-.imp-overlay { position: fixed; inset: 0; z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: color-mix(in oklab, var(--bg) 88%, transparent); backdrop-filter: blur(8px); }
+.imp-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; background: color-mix(in oklab, var(--bg) 72%, transparent); backdrop-filter: blur(14px) saturate(1.15); animation: impFadeIn .32s var(--ease-out); }
+.imp-overlay.out { animation: impFadeOut .42s var(--ease-out) forwards; }
+@keyframes impFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes impFadeOut { to { opacity: 0; } }
 .imp-overlay[hidden] { display: none; }  /* o display:flex acima sobrescrevia o atributo hidden — sem isto, o overlay aparecia SEMPRE (até no login) */
 
 /* ===================== RESUMO (planejamento) ===================== */
@@ -1462,17 +1465,37 @@ body::before {
 .rz-vis-k { font-size: 12px; color: var(--ink-3); }
 .rz-vis-v { font-size: 13px; font-weight: 600; color: var(--ink); text-align: right; }
 @media (max-width: 900px) { .rz-kpis { grid-template-columns: repeat(2, 1fr); } .rz-grid { grid-template-columns: 1fr; } }
-.imp-ov-svg { width: 92px; height: 92px; }
-.imp-ov-track { fill: none; stroke: var(--border-2); stroke-width: 4; }
-.imp-ov-prog { fill: none; stroke: var(--purple); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 138.2; stroke-dashoffset: 138.2; transform: rotate(-90deg); transform-origin: 26px 26px; }
-.imp-ov-check { fill: none; stroke: var(--gain); stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 40; stroke-dashoffset: 40; }
-.imp-overlay.done .imp-ov-prog { stroke: var(--gain); stroke-dashoffset: 0 !important; transition: stroke-dashoffset .4s var(--ease-out); }
-.imp-overlay.done .imp-ov-svg { animation: imp-pop .5s cubic-bezier(.2,1.5,.4,1); }
-.imp-overlay.done .imp-ov-check { animation: imp-draw .45s .12s var(--ease-out) forwards; }
-@keyframes imp-pop { 0% { transform: scale(.8); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
-@keyframes imp-draw { to { stroke-dashoffset: 0; } }
-.imp-ov-text { font-size: 17px; font-weight: 650; color: var(--ink); letter-spacing: -.01em; }
-.imp-ov-sub { font-family: 'Geist Mono', monospace; font-size: 14px; color: var(--gain); font-weight: 600; }
+/* v9 — overlay de importação premium: card glass, anel gradiente, ripple, faíscas */
+.imp-ov-card { display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 42px 54px 36px; border-radius: 28px;
+  background: linear-gradient(165deg, color-mix(in oklab, var(--bg-elevated) 80%, transparent), color-mix(in oklab, var(--bg) 88%, transparent));
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 40px 100px -34px rgba(0,0,0,.75), 0 0 70px -24px rgba(172,95,219,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  animation: impCardIn .55s cubic-bezier(.18,1.3,.4,1) both; }
+@keyframes impCardIn { from { opacity: 0; transform: scale(.84) translateY(12px); } to { opacity: 1; transform: none; } }
+.imp-ov-ringwrap { position: relative; width: 124px; height: 124px; display: grid; place-items: center; }
+.imp-ov-svg { width: 124px; height: 124px; transform: rotate(-90deg); filter: drop-shadow(0 0 9px rgba(172,95,219,.5)); }
+.imp-ov-track { fill: none; stroke: rgba(255,255,255,.07); stroke-width: 7; }
+.imp-ov-prog { fill: none; stroke: url(#impGrad); stroke-width: 7; stroke-linecap: round; stroke-dasharray: 314.16; stroke-dashoffset: 314.16; }
+.imp-ov-check { fill: none; stroke: var(--gain); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 78; stroke-dashoffset: 78; opacity: 0; transform: rotate(90deg); transform-origin: 60px 60px; }
+.imp-overlay.done .imp-ov-svg { filter: drop-shadow(0 0 18px rgba(48,209,88,.5)); animation: impPop .6s cubic-bezier(.2,1.6,.35,1); }
+.imp-overlay.done .imp-ov-prog { stroke: var(--gain); stroke-dashoffset: 0 !important; transition: stroke-dashoffset .45s var(--ease-out), stroke .3s; }
+.imp-overlay.done .imp-ov-check { opacity: 1; animation: impDraw .5s .16s var(--ease-out) forwards; }
+@keyframes impPop { 0% { transform: rotate(-90deg) scale(.82); } 55% { transform: rotate(-90deg) scale(1.09); } 100% { transform: rotate(-90deg) scale(1); } }
+@keyframes impDraw { to { stroke-dashoffset: 0; } }
+.imp-ov-ripple { position: absolute; width: 124px; height: 124px; border-radius: 50%; border: 2px solid var(--gain); opacity: 0; pointer-events: none; }
+.imp-overlay.done .imp-ov-ripple { animation: impRipple .85s .06s var(--ease-out); }
+.imp-overlay.done .imp-ov-ripple.r2 { animation: impRipple .9s .2s var(--ease-out); }
+@keyframes impRipple { 0% { opacity: .55; transform: scale(.7); } 100% { opacity: 0; transform: scale(1.55); } }
+.imp-spark { position: absolute; top: 50%; left: 50%; width: 7px; height: 7px; border-radius: 50%; background: var(--gain); opacity: 0; pointer-events: none; }
+.imp-overlay.done .imp-spark { animation: impSpark .72s .05s var(--ease-out) forwards; }
+.imp-spark.s1 { --tx: 0px; --ty: -66px; } .imp-spark.s2 { --tx: 58px; --ty: -32px; background: var(--purple-light); }
+.imp-spark.s3 { --tx: 58px; --ty: 32px; } .imp-spark.s4 { --tx: 0px; --ty: 66px; background: var(--purple-light); }
+.imp-spark.s5 { --tx: -58px; --ty: 32px; } .imp-spark.s6 { --tx: -58px; --ty: -32px; background: var(--purple-light); }
+@keyframes impSpark { 0% { opacity: 0; transform: translate(-50%,-50%) scale(0); } 30% { opacity: 1; transform: translate(calc(-50% + var(--tx) * .65), calc(-50% + var(--ty) * .65)) scale(1.25); } 100% { opacity: 0; transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(.35); } }
+.imp-ov-text { font-size: 19px; font-weight: 650; color: var(--ink); letter-spacing: -.015em; }
+.imp-overlay.done .imp-ov-text { animation: impTextIn .42s var(--ease-out); }
+@keyframes impTextIn { from { opacity: .35; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.imp-ov-sub { font-family: 'Geist Mono', monospace; font-size: 14.5px; color: var(--gain); font-weight: 600; min-height: 19px; letter-spacing: -.01em; }
 
 /* Income styling on existing row/pill/amount layouts */
 .exp-recent-row.is-income .exp-recent-amt,
@@ -3171,13 +3194,22 @@ body::before {
 
 <!-- Overlay de progresso/sucesso da importação -->
 <div class="imp-overlay" id="importOverlay" hidden>
-  <svg class="imp-ov-svg" viewBox="0 0 52 52" aria-hidden="true">
-    <circle class="imp-ov-track" cx="26" cy="26" r="22"/>
-    <circle class="imp-ov-prog" id="importOvProg" cx="26" cy="26" r="22"/>
-    <path class="imp-ov-check" d="M16 27 L23 34 L37 18"/>
-  </svg>
-  <div class="imp-ov-text" id="importOvText">Importando…</div>
-  <div class="imp-ov-sub" id="importOvSub"></div>
+  <div class="imp-ov-card">
+    <div class="imp-ov-ringwrap">
+      <span class="imp-spark s1"></span><span class="imp-spark s2"></span><span class="imp-spark s3"></span>
+      <span class="imp-spark s4"></span><span class="imp-spark s5"></span><span class="imp-spark s6"></span>
+      <div class="imp-ov-ripple"></div>
+      <div class="imp-ov-ripple r2"></div>
+      <svg class="imp-ov-svg" viewBox="0 0 120 120" aria-hidden="true">
+        <defs><linearGradient id="impGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#AC5FDB"/><stop offset="1" stop-color="#E3A2EE"/></linearGradient></defs>
+        <circle class="imp-ov-track" cx="60" cy="60" r="50"/>
+        <circle class="imp-ov-prog" id="importOvProg" cx="60" cy="60" r="50"/>
+        <path class="imp-ov-check" d="M38 62 L53 77 L84 43"/>
+      </svg>
+    </div>
+    <div class="imp-ov-text" id="importOvText">Importando…</div>
+    <div class="imp-ov-sub" id="importOvSub"></div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>

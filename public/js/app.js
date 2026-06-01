@@ -319,6 +319,7 @@ const I18N = {
     'imp.importing': 'Importando…',
     'imp.ready': 'Pronto!',
     'imp.imported': 'lançamentos importados',
+    'imp.prov': 'provisão',
     'imp.clear': 'Limpar importados',
     'imp.clear.confirm': 'Apagar {n}? Clique de novo',
     'imp.clear.done': '{n} importados apagados',
@@ -608,6 +609,7 @@ const I18N = {
     'imp.importing': 'Importing…',
     'imp.ready': 'Done!',
     'imp.imported': 'entries imported',
+    'imp.prov': 'provision',
     'imp.clear': 'Clear imported',
     'imp.clear.confirm': 'Delete {n}? Click again',
     'imp.clear.done': '{n} imported deleted',
@@ -4131,17 +4133,17 @@ async function doImport() {
   if (Object.keys(learned).length) setDoc(docImportRules, { rules: learned, updatedAt: serverTimestamp() }, { merge: true }).catch(e => console.warn('[import] rules save', e));
 
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const ov = $('importOverlay'), prog = $('importOvProg'), C = 138.2;
+  const ov = $('importOverlay'), prog = $('importOvProg'), C = 314.16;
   $('importConfirm').disabled = true; $('importCancel').disabled = true;
   if (ov && !reduce) {
-    ov.classList.remove('done'); ov.hidden = false;
+    ov.classList.remove('done', 'out'); ov.hidden = false;
     if ($('importOvText')) $('importOvText').textContent = t('imp.importing');
     if ($('importOvSub')) $('importOvSub').textContent = '';
     if (prog) {
       prog.style.transition = 'none'; prog.style.strokeDashoffset = C;
       void prog.getBoundingClientRect();
-      prog.style.transition = 'stroke-dashoffset .7s var(--ease-out)';
-      requestAnimationFrame(() => { prog.style.strokeDashoffset = String(C * 0.12); });
+      prog.style.transition = 'stroke-dashoffset .85s cubic-bezier(.4,0,.2,1)';
+      requestAnimationFrame(() => { prog.style.strokeDashoffset = String(C * 0.14); });
     }
   }
   // Dispara TODAS as gravações sem esperar a rede — nunca trava. Cada uma
@@ -4150,18 +4152,20 @@ async function doImport() {
   batch.forEach(d => addDoc(colExpenses(), d).catch(err => console.error('[import] doc falhou', err)));
   try {
     if (ov && !reduce) {
-      await new Promise(r => setTimeout(r, 760));   // anel enchendo (cosmético)
-      ov.classList.add('done');
+      await new Promise(r => setTimeout(r, 840));   // anel enchendo (cosmético)
+      ov.classList.add('done');                      // dispara: pop + check + ripple + faíscas
       if ($('importOvText')) $('importOvText').textContent = t('imp.ready');
       const sub = $('importOvSub');
-      if (sub) { sub._cuVal = 0; countUpEl(sub, batch.length, n => '✓ ' + Math.round(n) + ' ' + t('imp.imported') + (provCount > 0 ? ' · +' + provCount + ' provisão' : '')); }
-      await new Promise(r => setTimeout(r, 1300));
+      if (sub) { sub._cuVal = 0; countUpEl(sub, batch.length, n => '✓ ' + Math.round(n) + ' ' + t('imp.imported') + (provCount > 0 ? ' · +' + provCount + ' ' + t('imp.prov') : '')); }
+      await new Promise(r => setTimeout(r, 1600));
+      ov.classList.add('out');                       // fade-out suave do overlay inteiro
+      await new Promise(r => setTimeout(r, 420));
     } else {
       showToast(t('imp.done').replace('{n}', batch.length));
     }
   } finally {
     $('importModal').classList.remove('show');
-    if (ov) { ov.hidden = true; ov.classList.remove('done'); }
+    if (ov) { ov.hidden = true; ov.classList.remove('done', 'out'); }
     $('importConfirm').disabled = false; $('importCancel').disabled = false;
   }
 }
@@ -4172,7 +4176,7 @@ $('importConfirm')?.addEventListener('click', doImport);
 $('btnClearImports')?.addEventListener('click', clearImportedExpenses);
 // Escape de emergência: clicar no overlay (ou Esc) fecha, caso algo trave.
 $('importOverlay')?.addEventListener('click', () => {
-  const o = $('importOverlay'); if (o) { o.hidden = true; o.classList.remove('done'); }
+  const o = $('importOverlay'); if (o) { o.hidden = true; o.classList.remove('done', 'out'); }
   const c = $('importConfirm'), x = $('importCancel'); if (c) c.disabled = false; if (x) x.disabled = false;
 });
 $('importList')?.addEventListener('change', (e) => { if (e.target.matches('input[type="checkbox"]')) impUpdateConfirm(); });
