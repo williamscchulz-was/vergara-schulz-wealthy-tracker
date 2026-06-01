@@ -659,6 +659,25 @@ function t(key) {
 window.t = t;
 window.getLang = getLang;
 
+// Count-up: anima um número de onde estava até o alvo (o "delight" que o
+// dono curtiu). Memo em el._cuVal pra só animar quando o valor muda;
+// respeita prefers-reduced-motion (seta direto).
+function countUpEl(el, target, fmt) {
+  if (!el) return;
+  target = +target || 0;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const from = typeof el._cuVal === 'number' ? el._cuVal : 0;
+  el._cuVal = target;
+  if (reduce || Math.abs(target - from) < 1) { el.textContent = fmt(target); return; }
+  const dur = 650, t0 = performance.now();
+  (function step(now) {
+    let p = Math.min(1, (now - t0) / dur);
+    p = 1 - Math.pow(1 - p, 3);
+    el.textContent = fmt(from + (target - from) * p);
+    if (p < 1) requestAnimationFrame(step);
+  })(t0);
+}
+
 function applyI18n() {
   const lang = getLang();
   document.documentElement.setAttribute('lang', lang === 'en' ? 'en' : 'pt-BR');
@@ -1081,7 +1100,7 @@ function renderExpenses() {
   const heroCurEl = document.querySelector('.exp-hero .amt .cur');
   const hero = document.querySelector('.exp-hero');
   // Amount: show absolute; class on hero signals sign (positive vs negative)
-  heroAmtEl.textContent = Math.abs(saldo).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  countUpEl(heroAmtEl, Math.abs(saldo), n => Math.round(n).toLocaleString('pt-BR', { maximumFractionDigits: 0 }));
   if (hero) {
     hero.classList.toggle('is-positive', saldo >= 0 && (incomeTotal > 0 || total > 0));
     hero.classList.toggle('is-negative', saldo < 0);
@@ -2073,7 +2092,7 @@ function renderInvestments() {
   const _reservesBRL = reservesTotal();
   const _pensionBRL = pensionTotal();
   const _heroTotal = (+state.i10.equity || 0) + _usdBRL + _reservesBRL + _pensionBRL;
-  $('i10Equity').textContent = _heroTotal.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  countUpEl($('i10Equity'), _heroTotal, n => Math.round(n).toLocaleString('pt-BR', { maximumFractionDigits: 0 }));
 
   // USD equivalent (only shown when we have a valid FX rate)
   const _usdEqEl = $('i10EquityUSD');
@@ -3815,6 +3834,23 @@ $('importConfirm')?.addEventListener('click', doImport);
 $('importList')?.addEventListener('change', (e) => { if (e.target.matches('input[type="checkbox"]')) impUpdateConfirm(); });
 
 $('btnAddExpense').addEventListener('click', () => openExpenseModal(null, { type: 'expense' }));
+
+// Atalhos de teclado (desktop): / busca · N nova despesa · 1/2 troca aba · ←/→ mês
+document.addEventListener('keydown', (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) return;
+  if (document.querySelector('.modal-bg.show')) return;     // modal manda no teclado
+  if (!state.user) return;
+  switch (e.key) {
+    case '/': { const s = $('expSearch'); if (s) { e.preventDefault(); s.focus(); } break; }
+    case 'n': case 'N': e.preventDefault(); openExpenseModal(null, { type: 'expense' }); break;
+    case '1': if (typeof switchMode === 'function') switchMode('investments'); break;
+    case '2': if (typeof switchMode === 'function') switchMode('expenses'); break;
+    case 'ArrowLeft':  if (state.mode === 'expenses') $('btnPrevMonth')?.click(); break;
+    case 'ArrowRight': if (state.mode === 'expenses') $('btnNextMonth')?.click(); break;
+  }
+});
 $('btnAddIncome')?.addEventListener('click', () => openExpenseModal(null, { type: 'income' }));
 // Modal type toggle (Saída / Ganho)
 document.querySelectorAll('#expenseModal .exp-type-opt').forEach(btn => {

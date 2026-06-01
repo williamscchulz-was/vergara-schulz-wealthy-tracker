@@ -323,7 +323,6 @@ button#btnAddExpense::after {
     inset 0 1px 0 var(--glass-highlight) !important;
   padding: 6px !important;
   z-index: 100;
-  animation: island-float 4s ease-in-out infinite;
 }
 .mode-switch button { padding: 10px 22px !important; font-size: 13px !important; font-weight: 600 !important; }
 .mode-switch button.active {
@@ -336,6 +335,22 @@ button#btnAddExpense::after {
 /* Push page content so last row isn't hidden behind the fixed island */
 .module.active {
   padding-bottom: calc(140px + env(safe-area-inset-bottom));
+}
+
+/* Desktop (≥720px): the mode switch is a STATIC top-nav under the header
+   — no floating island, no bobbing, no dead padding at the bottom. */
+@media (min-width: 720px) {
+  .mode-switch {
+    position: static !important;
+    transform: none !important;
+    left: auto !important;
+    bottom: auto !important;
+    margin: 0 0 20px !important;
+    width: fit-content;
+    box-shadow: 0 8px 24px -10px rgba(0,0,0,.5), inset 0 1px 0 var(--glass-highlight) !important;
+    z-index: 1;
+  }
+  .module.active { padding-bottom: 0 !important; }
 }
 
 /* Respect safe area at the top (header/statusbar collision fix — Part 2 §2) */

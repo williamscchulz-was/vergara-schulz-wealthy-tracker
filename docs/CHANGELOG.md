@@ -5,6 +5,21 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Glamour Pass 2/3 — count-up, nav estática/top-nav, atalhos (2026-06-01)
+- **Count-up nos números**: `countUpEl()` (rAF, ease-out, memo em
+  `el._cuVal`, respeita prefers-reduced-motion) anima o patrimônio do
+  hero (`#i10Equity`) e o saldo do mês (`#expHeroAmt`) de onde estavam
+  até o novo valor — o "delight" pedido, sem ficar re-animando à toa.
+- **Nav sem "ilha que balança"**: removida a animação `island-float`
+  (a tab bar não boia mais). No **desktop (≥720px)** ela vira um
+  **top-nav estático** abaixo do header (`position:static`, sem o
+  padding-bottom de 140px) — fim do padrão mobile no PC.
+- **Atalhos de teclado** (desktop, ignora quando digitando ou com modal
+  aberto): `/` foca a busca · `N` nova despesa · `1`/`2` troca
+  Investimentos/Despesas · `←`/`→` navega o mês.
+Faltam do Pass 2/3: sweep de luz no sync, cascata universal nas listas,
+Despesas em 2 colunas.
+
 ### Importador de fatura do cartão (PDF) — v1 (2026-06-01)
 A feature mais pedida saiu do mock pro app. Botão **"Importar fatura"** na
 aba Despesas → escolhe o PDF do extrato → revisa → grava em lote.
