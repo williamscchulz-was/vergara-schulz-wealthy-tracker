@@ -390,6 +390,9 @@ const I18N = {
     'exp.sources.presente': 'Presente',
     'exp.sources.outros': 'Outros',
     'exp.f.owner': 'De quem',
+    'exp.f.nature': 'Tipo de despesa',
+    'exp.nature.variavel': 'Variável',
+    'exp.nature.fixa': 'Fixa',
     'exp.owner.william': 'William',
     'exp.owner.flavia': 'Flávia',
     'exp.owner.louise': 'Louise',
@@ -651,6 +654,9 @@ const I18N = {
     'exp.sources.presente': 'Gift',
     'exp.sources.outros': 'Other',
     'exp.f.owner': 'Whose',
+    'exp.f.nature': 'Expense type',
+    'exp.nature.variavel': 'Variable',
+    'exp.nature.fixa': 'Fixed',
     'exp.owner.william': 'William',
     'exp.owner.flavia': 'Flávia',
     'exp.owner.louise': 'Louise',
@@ -1670,6 +1676,16 @@ function setModalOwner(owner) {
   });
 }
 
+let _modalNature = 'variavel';  // 'variavel' | 'fixa' (despesa fixa vs variável)
+function setModalNature(nat) {
+  _modalNature = nat === 'fixa' ? 'fixa' : 'variavel';
+  document.querySelectorAll('#expenseModal .exp-nat-opt').forEach(b => {
+    const on = b.dataset.nature === _modalNature;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-checked', String(on));
+  });
+}
+
 // Toggle the modal's internal state between expense and income. Swaps
 // title/subtitle copy and which of {category, source} fields is visible.
 function setModalType(type) {
@@ -1682,6 +1698,7 @@ function setModalType(type) {
   // Swap category vs source field
   $('expCategoryField').hidden = _modalType === 'income';
   $('expSourceField').hidden = _modalType !== 'income';
+  { const _nf = $('expNatureField'); if (_nf) _nf.hidden = _modalType === 'income'; }  // fixa/variável só faz sentido em despesa
   // Swap title/sub based on new type + edit/create context
   const editing = !!editingExpenseId;
   const titleKey = _modalType === 'income'
@@ -1702,6 +1719,7 @@ function openExpenseModal(id = null, opts = {}) {
     const type = e.type === 'income' ? 'income' : 'expense';
     setModalType(type);
     setModalOwner(e.owner || 'familia');
+    setModalNature(e.nature || 'variavel');
     $('expDesc').value = e.description || '';
     $('expValue').value = fmtBRLInput(e.value);
     $('expDate').value = e.date || '';
@@ -1713,6 +1731,7 @@ function openExpenseModal(id = null, opts = {}) {
     // Starting a new entry. `opts.type` overrides default (for '+ Ganho' btn).
     setModalType(opts.type === 'income' ? 'income' : 'expense');
     setModalOwner(ownerFromUser(state.user));
+    setModalNature('variavel');
     $('expDesc').value = '';
     $('expValue').value = '';
     $('expDate').value = today.toISOString().split('T')[0];
@@ -1741,6 +1760,7 @@ async function saveExpense() {
   const data = {
     type, description, value, date, category, notes,
     owner: _modalOwner,
+    nature: type === 'income' ? null : _modalNature,
     updatedAt: serverTimestamp(),
     updatedBy: state.user?.displayName || 'unknown',
   };
@@ -3833,7 +3853,7 @@ async function doImport() {
     if (seen.has(fp)) continue;  // já existe → não duplica
     seen.add(fp);
     const notes = [tx.holder ? ('cartão: ' + tx.holder.split(' ')[0]) : '', tx.inst ? ('parcela ' + tx.inst) : ''].filter(Boolean).join(' · ');
-    batch.push({ type: 'expense', description: tx.desc, value: tx.value, date, category, notes, owner, fp, source: 'import:cartao', createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import' });
+    batch.push({ type: 'expense', description: tx.desc, value: tx.value, date, category, notes, owner, nature: category === 'assinaturas' ? 'fixa' : 'variavel', fp, source: 'import:cartao', createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import' });
   }
   if (!batch.length) { showToast(t('imp.alldup')); return; }
 
@@ -3925,6 +3945,10 @@ document.querySelectorAll('#expenseModal .exp-type-opt').forEach(btn => {
 // Modal owner segmented picker
 document.querySelectorAll('#expenseModal .exp-owner-opt').forEach(btn => {
   btn.addEventListener('click', () => setModalOwner(btn.dataset.owner));
+});
+// Modal fixa/variável picker
+document.querySelectorAll('#expenseModal .exp-nat-opt').forEach(btn => {
+  btn.addEventListener('click', () => setModalNature(btn.dataset.nature));
 });
 $('expCancel').addEventListener('click', closeExpenseModal);
 $('expSave').addEventListener('click', saveExpense);

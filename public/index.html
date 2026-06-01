@@ -1354,6 +1354,11 @@ body::before {
 .exp-owner-opt[data-owner="joint"].active   { color: var(--purple-light); background: var(--purple-soft); border: 1px solid color-mix(in oklab, var(--purple) 32%, transparent); }
 .exp-owner-opt[data-owner="louise"].active  { color: #7ee29a; background: color-mix(in oklab, #30d158 14%, transparent); border-color: color-mix(in oklab, #30d158 32%, transparent); }
 .exp-owner-opt[data-owner="familia"].active { color: var(--purple-light); background: var(--purple-soft); border: 1px solid color-mix(in oklab, var(--purple) 32%, transparent); }
+/* Fixa × Variável picker (mesmo visual do owner) */
+.exp-nat-seg { display: inline-grid; grid-template-columns: repeat(2, 1fr); gap: 4px; padding: 4px; background: var(--bg-elevated-2); border: 1px solid var(--border); border-radius: var(--radius); width: 100%; }
+.exp-nat-opt { padding: 9px 10px; background: transparent; border: none; color: var(--ink-3); font-family: inherit; font-size: 12px; font-weight: 600; border-radius: calc(var(--radius) - 6px); cursor: pointer; transition: all 0.18s var(--ease-out); }
+.exp-nat-opt:hover { color: var(--ink-2); background: var(--bg-elevated-3); }
+.exp-nat-opt.active { color: var(--purple-light); background: var(--purple-soft); border: 1px solid color-mix(in oklab, var(--purple) 32%, transparent); }
 
 /* Owner chip in extract (recent list + table) */
 .exp-owner-chip {
@@ -2914,6 +2919,12 @@ body::before {
         <button type="button" class="exp-owner-opt" data-owner="flavia" role="radio" aria-checked="false" data-i18n="exp.owner.flavia">Flávia</button>
         <button type="button" class="exp-owner-opt" data-owner="louise" role="radio" aria-checked="false" data-i18n="exp.owner.louise">Louise</button>
         <button type="button" class="exp-owner-opt" data-owner="familia" role="radio" aria-checked="false" data-i18n="exp.owner.familia">Família</button>
+      </div>
+    </div>
+    <div class="field full" id="expNatureField"><label data-i18n="exp.f.nature">Tipo de despesa</label>
+      <div class="exp-nat-seg" role="radiogroup" aria-label="Fixa ou variável">
+        <button type="button" class="exp-nat-opt active" data-nature="variavel" role="radio" aria-checked="true" data-i18n="exp.nature.variavel">Variável</button>
+        <button type="button" class="exp-nat-opt" data-nature="fixa" role="radio" aria-checked="false" data-i18n="exp.nature.fixa">Fixa</button>
       </div>
     </div>
     <div class="field full"><label data-i18n="exp.f.notes">Notas (opcional)</label><textarea id="expNotes" data-i18n-ph="exp.f.notes.ph" placeholder="Detalhes adicionais..." rows="2"></textarea></div>
