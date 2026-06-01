@@ -3997,6 +3997,9 @@ async function doImport() {
         const off = k - X, prov = off > 0;
         const fp = `parc|${descKey}|${(Math.round(tx.value * 100) / 100).toFixed(2)}|${k}/${Y}`;
         if (seen.has(fp)) continue;
+        // transição: a parcela atual pode já ter sido importada no esquema antigo
+        // (data+valor+descrição) — nesse caso não reimporta, só registra o fp novo.
+        if (!prov && seen.has(impFp(impToISO(tx.date), tx.value, tx.desc))) { seen.add(fp); continue; }
         seen.add(fp);
         if (prov) provCount++;
         batch.push({ ...base, date: monthISO(off), fp, provisioned: prov, installment: { k, total: Y },
