@@ -16,7 +16,7 @@
 <title>Ledger</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
 /* ===========================================================
    LEDGER v7 - "Linear meets Apple"
@@ -896,7 +896,7 @@ body::before {
    =========================================================== */
 .section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
 .section-head h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); margin: 0; }
-.section-head .meta { font-size: 12px; color: var(--ink-muted); font-family: 'Geist Mono', monospace; }
+.section-head .meta { font-size: 12px; color: var(--ink-muted); }
 .exp-hero {
   position: relative;
   display: flex; align-items: center; justify-content: space-between;
@@ -2022,7 +2022,7 @@ body::before {
   border-radius: 0 !important;
   padding: 0 !important;
   color: var(--purple-light);
-  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-family: 'Geist Mono', monospace;
   font-size: 16px;
   font-weight: 600;
   text-align: left;
@@ -2068,7 +2068,7 @@ body::before {
   font-weight: 600;
 }
 .stats-c-primary .val {
-  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-family: 'Geist Mono', monospace;
   font-size: 34px;
   font-weight: 700;
   color: #fff;
@@ -2080,7 +2080,7 @@ body::before {
   color: var(--purple-light);
   opacity: .8;
   margin-top: 8px;
-  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-family: 'Geist Mono', monospace;
 }
 .stats-c-side {
   display: flex;
@@ -2107,7 +2107,7 @@ body::before {
   font-weight: 600;
 }
 .stats-c-cell .val {
-  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-family: 'Geist Mono', monospace;
   font-size: 15px;
   font-weight: 700;
   color: var(--ink);
@@ -2224,7 +2224,7 @@ body::before {
   align-items: center;
   padding: 13px 0 !important;
   border-bottom: 1px solid var(--border);
-  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-family: 'Geist Mono', monospace;
   font-feature-settings: "tnum";
 }
 .yearly-table thead tr {
@@ -2257,7 +2257,7 @@ body::before {
   background: transparent; border: none; color: var(--text-faint);
   font-size: 10px; font-weight: 600; padding: 4px 10px;
   border-radius: 999px; cursor: pointer;
-  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-family: 'Geist Mono', monospace;
   letter-spacing: .5px;
   transition: all .2s ease;
 }
@@ -2273,7 +2273,7 @@ body::before {
   border-radius: 999px;
   padding: 6px 12px;
   margin-top: 10px;
-  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-family: 'Geist Mono', monospace;
   font-size: 11px; color: var(--pink-light);
   letter-spacing: .2px;
   max-width: 100%; white-space: nowrap; overflow: hidden;
@@ -2333,7 +2333,7 @@ body::before {
 .cat-row.pension-row .cat-chevron { transition: transform 0.25s var(--ease-out); color: var(--ink-muted); }
 .cat-row.pension-row.expanded .cat-chevron { transform: rotate(180deg); color: var(--purple-light); }
 .fx-extra {
-  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-family: 'Geist Mono', monospace;
   font-size: 10px; color: var(--usd); margin-top: 4px;
   display: flex; gap: 8px; align-items: center;
 }
@@ -2776,7 +2776,7 @@ body::before {
           <div class="card-head">
             <div>
               <div class="eyebrow" data-i18n="card.portfolio">my portfolio</div>
-              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" id="i10AssetsCount" data-i18n="loading">loading...</div>
+              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px" id="i10AssetsCount" data-i18n="loading">loading...</div>
             </div>
             <div class="eyebrow-mono" data-i18n="via.i10">VIA I10</div>
           </div>
@@ -2790,7 +2790,7 @@ body::before {
           <div class="card-head">
             <div>
               <div class="eyebrow" data-i18n="card.dividends">dividends per year</div>
-              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" data-i18n="sub.dividends">historico anual de proventos</div>
+              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px" data-i18n="sub.dividends">historico anual de proventos</div>
             </div>
             <div class="range-toggle" data-range-toggle>
               <button type="button" data-range="1Y">1Y</button>
@@ -2812,7 +2812,7 @@ body::before {
           <div class="card-head">
             <div>
               <div class="eyebrow" data-i18n="card.networth">net worth per year</div>
-              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" data-i18n="sub.networth">net worth evolution</div>
+              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px" data-i18n="sub.networth">net worth evolution</div>
             </div>
             <div class="range-toggle" data-range-toggle>
               <button type="button" data-range="1Y">1Y</button>
@@ -2830,7 +2830,7 @@ body::before {
           <div class="card-head">
             <div>
               <div class="eyebrow" data-i18n="card.monthlyreturn">rentabilidade mês a mês</div>
-              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" data-i18n="sub.monthlyreturn">variação percentual sobre o PL, Dietz modificado + proventos</div>
+              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px" data-i18n="sub.monthlyreturn">variação percentual sobre o PL, Dietz modificado + proventos</div>
             </div>
             <div id="mrReturnBadge" class="mr-badge" hidden></div>
           </div>
@@ -2869,7 +2869,7 @@ body::before {
           <div class="card-head">
             <div>
               <div class="eyebrow" data-i18n="card.contributions">monthly contributions</div>
-              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" data-i18n="sub.contributions">cash contributions from work</div>
+              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px" data-i18n="sub.contributions">cash contributions from work</div>
             </div>
             <button class="btn-ghost primary" id="btnAddContrib">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -2878,11 +2878,11 @@ body::before {
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
             <div style="padding:14px 16px;background:rgba(255,255,255,0.025);border:1px solid var(--card-divider);border-radius:14px">
-              <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:12px;color:var(--ink-muted);margin-bottom:6px" data-i18n="contrib.total">total invested</div>
+              <div style="font-size:12px;color:var(--ink-muted);margin-bottom:6px" data-i18n="contrib.total">total invested</div>
               <div id="contribTotal" style="font-family:'Geist Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-0.02em">R$ 0</div>
             </div>
             <div style="padding:14px 16px;background:rgba(255,255,255,0.025);border:1px solid var(--card-divider);border-radius:14px">
-              <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:12px;color:var(--ink-muted);margin-bottom:6px" data-i18n="contrib.avg">monthly average</div>
+              <div style="font-size:12px;color:var(--ink-muted);margin-bottom:6px" data-i18n="contrib.avg">monthly average</div>
               <div id="contribAvg" style="font-family:'Geist Mono',monospace;font-size:20px;font-weight:700;color:var(--purple-light);letter-spacing:-0.02em">R$ 0</div>
             </div>
           </div>
@@ -2896,7 +2896,7 @@ body::before {
           <div class="card-head">
             <div>
               <div class="eyebrow" data-i18n="card.history">yearly history</div>
-              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px;font-family:'Geist Mono',monospace" data-i18n="sub.history">net worth + dividends per year</div>
+              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px" data-i18n="sub.history">net worth + dividends per year</div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn-ghost" id="btnImportHistory" title="Import net worth and dividends history from Investidor10">

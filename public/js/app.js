@@ -1749,8 +1749,8 @@ function renderTrend12m(allExp, viewDate) {
     const labelFill = isCurrent ? 'var(--purple-light)' : 'var(--ink-muted)';
     const labelWeight = isCurrent ? 700 : 500;
     // Total on top of bar (only if visible and not tiny)
-    const totalLabel = total > 0 ? `<text x="${(x + barW/2).toFixed(1)}" y="${(y - 5).toFixed(1)}" text-anchor="middle" fill="var(--ink-3)" font-size="9" font-family="'Geist Mono', monospace" opacity="0.7">${shortMoney(total)}</text>` : '';
-    return `${rects}${totalLabel}<text x="${(x + barW/2).toFixed(1)}" y="${labelY}" text-anchor="middle" fill="${labelFill}" font-weight="${labelWeight}" font-size="10" font-family="'Geist Mono', monospace">${monthChar}</text>`;
+    const totalLabel = total > 0 ? `<text x="${(x + barW/2).toFixed(1)}" y="${(y - 5).toFixed(1)}" text-anchor="middle" fill="var(--ink-3)" font-size="9" font-family="Geist Mono, monospace" opacity="0.7">${shortMoney(total)}</text>` : '';
+    return `${rects}${totalLabel}<text x="${(x + barW/2).toFixed(1)}" y="${labelY}" text-anchor="middle" fill="${labelFill}" font-weight="${labelWeight}" font-size="10" font-family="Geist Mono, monospace">${monthChar}</text>`;
   }).join('');
 
   svg.innerHTML = bars;
@@ -2495,7 +2495,7 @@ function buildBarChart(years, values, opts = {}) {
   const innerW = W - padL - padR;
   const innerH = H - padT - padB;
   if (!years.length) {
-    return '<div style="padding:40px 20px;text-align:center;color:var(--ink-muted);font-size:13px"><div style="font-family:Instrument Serif,serif;font-style:italic;font-size:15px;color:var(--ink-3);margin-bottom:6px">sem dados ainda</div>adicione anos no historico para ver o grafico</div>';
+    return '<div style="padding:40px 20px;text-align:center;color:var(--ink-muted);font-size:13px"><div style="font-size:15px;color:var(--ink-3);margin-bottom:6px">sem dados ainda</div>adicione anos no historico para ver o grafico</div>';
   }
   const maxData = Math.max(...values, 0);
   const yMax = (maxData > 0 ? maxData * 1.18 : 1);
@@ -2529,7 +2529,7 @@ function buildBarChart(years, values, opts = {}) {
     const y = padT + (innerH * i / 4);
     svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="2 4"/>';
     const val = yMax * (4 - i) / 4;
-    svg += '<text x="' + (padL - 10) + '" y="' + (y + 4) + '" text-anchor="end" fill="#7d6e96" font-family="Geist Mono,monospace" font-size="' + fsAxis + '" font-weight="600">' + shortMoney(val) + '</text>';
+    svg += '<text x="' + (padL - 10) + '" y="' + (y + 4) + '" text-anchor="end" fill="#7d6e96" font-family="Geist Mono, monospace" font-size="' + fsAxis + '" font-weight="600">' + shortMoney(val) + '</text>';
   }
 
   // Bars
@@ -2538,7 +2538,7 @@ function buildBarChart(years, values, opts = {}) {
     if (v <= 0) {
       // Empty year - draw label only
       const x = padL + barSlot * i + barSlot / 2;
-      svg += '<text x="' + x + '" y="' + (H - 14) + '" text-anchor="middle" fill="#4d4063" font-family="Geist Mono,monospace" font-size="' + fsYear + '" font-weight="600">' + y + '</text>';
+      svg += '<text x="' + x + '" y="' + (H - 14) + '" text-anchor="middle" fill="#4d4063" font-family="Geist Mono, monospace" font-size="' + fsYear + '" font-weight="600">' + y + '</text>';
       return;
     }
     const barH = (v / yMax) * innerH;
@@ -2553,9 +2553,9 @@ function buildBarChart(years, values, opts = {}) {
     svg += '<rect x="' + x + '" y="' + barY + '" width="' + barWidth + '" height="' + barH + '" rx="5" fill="' + fillUrl + '"' + (isCurrent ? ' filter="url(#glowB' + uniqueId + ')"' : '') + '><title>' + y + ': ' + fmtBRL0(v) + '</title></rect>';
     // Value label above bar
     const valColor = isCurrent ? '#f472b6' : '#b8a8d4';
-    svg += '<text x="' + (x + barWidth / 2) + '" y="' + (barY - (isMobile ? 10 : 6)) + '" text-anchor="middle" fill="' + valColor + '" font-family="Geist Mono,monospace" font-size="' + fsValue + '" font-weight="700">' + shortMoney(v) + '</text>';
+    svg += '<text x="' + (x + barWidth / 2) + '" y="' + (barY - (isMobile ? 10 : 6)) + '" text-anchor="middle" fill="' + valColor + '" font-family="Geist Mono, monospace" font-size="' + fsValue + '" font-weight="700">' + shortMoney(v) + '</text>';
     // Year label below
-    svg += '<text x="' + (x + barWidth / 2) + '" y="' + (H - 14) + '" text-anchor="middle" fill="' + yearColor + '" font-family="Geist Mono,monospace" font-size="' + fsYear + '" font-weight="' + yearWeight + '">' + yearLabel + '</text>';
+    svg += '<text x="' + (x + barWidth / 2) + '" y="' + (H - 14) + '" text-anchor="middle" fill="' + yearColor + '" font-family="Geist Mono, monospace" font-size="' + fsYear + '" font-weight="' + yearWeight + '">' + yearLabel + '</text>';
   });
 
   // ========================================================
@@ -2599,7 +2599,7 @@ function buildBarChart(years, values, opts = {}) {
         const pillW = txt.length * (isMobile ? 8 : 6) + (isMobile ? 14 : 10);
         const pillTop = midY - pillH / 2;
         svg += '<g><rect x="' + (midX - pillW/2) + '" y="' + pillTop + '" width="' + pillW + '" height="' + pillH + '" rx="' + (pillH/2) + '" fill="' + bg + '" stroke="' + strokeCol + '" stroke-width="1"/>';
-        svg += '<text x="' + midX + '" y="' + (pillTop + pillH * 0.72) + '" text-anchor="middle" fill="#1a181d" font-family="Geist Mono,monospace" font-size="' + fsPill + '" font-weight="700">' + txt + '</text></g>';
+        svg += '<text x="' + midX + '" y="' + (pillTop + pillH * 0.72) + '" text-anchor="middle" fill="#1a181d" font-family="Geist Mono, monospace" font-size="' + fsPill + '" font-weight="700">' + txt + '</text></g>';
       }
     } else if (yoyMode === 'line') {
       // Connected polyline over bar tops + dots
@@ -2621,7 +2621,7 @@ function buildBarChart(years, values, opts = {}) {
         for (const y of topYoys) {
           const sign = y.yoy >= 0 ? '+' : '';
           const col = y.yoy >= 0 ? '#34e17a' : '#ff5e57';
-          svg += '<text x="' + y.p.cx + '" y="' + (y.p.top - 10) + '" text-anchor="middle" fill="' + col + '" font-family="Geist Mono,monospace" font-size="' + fsValue + '" font-weight="700">' + sign + y.yoy.toFixed(0) + '%</text>';
+          svg += '<text x="' + y.p.cx + '" y="' + (y.p.top - 10) + '" text-anchor="middle" fill="' + col + '" font-family="Geist Mono, monospace" font-size="' + fsValue + '" font-weight="700">' + sign + y.yoy.toFixed(0) + '%</text>';
         }
       }
     }
@@ -2651,7 +2651,7 @@ function renderDividendsChart() {
 
   // Need at least 1 year
   if (years.length === 0) {
-    wrap.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--ink-muted);font-size:13px"><div style="font-family:Instrument Serif,serif;font-style:italic;font-size:15px;color:var(--ink-3);margin-bottom:6px">sem historico ainda</div>sincronize com I10 ou adicione anos manualmente</div>';
+    wrap.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--ink-muted);font-size:13px"><div style="font-size:15px;color:var(--ink-3);margin-bottom:6px">sem historico ainda</div>sincronize com I10 ou adicione anos manualmente</div>';
     return;
   }
 
@@ -2713,7 +2713,7 @@ function renderPLChart() {
     .sort((a, b) => a.year - b.year);
 
   if (sortedYearly.length === 0 && (!state.i10.equity || state.i10.equity <= 0)) {
-    wrap.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--ink-muted);font-size:13px"><div style="font-family:Instrument Serif,serif;font-style:italic;font-size:15px;color:var(--ink-3);margin-bottom:6px">sem historico de PL</div>sincronize com I10 para ver a evolucao</div>';
+    wrap.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--ink-muted);font-size:13px"><div style="font-size:15px;color:var(--ink-3);margin-bottom:6px">sem historico de PL</div>sincronize com I10 para ver a evolucao</div>';
     return;
   }
 
@@ -3045,8 +3045,8 @@ function renderMonthlyReturns() {
     const valLabelY = pct >= 0 ? (y - 4) : (y + h + 10);
     const valText = (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%';
     return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(1, h).toFixed(1)}" fill="${color}" opacity="0.85" rx="2"><title>${monthChar}/${String(r.year).slice(-2)}: ${valText}</title></rect>
-      <text x="${(x + barW/2).toFixed(1)}" y="${valLabelY.toFixed(1)}" text-anchor="middle" fill="${color}" font-size="9.5" font-family="'Geist Mono', monospace" font-weight="600" opacity="0.85">${valText}</text>
-      <text x="${(x + barW/2).toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" fill="var(--ink-muted)" font-size="10" font-family="'Geist Mono', monospace">${monthChar}</text>`;
+      <text x="${(x + barW/2).toFixed(1)}" y="${valLabelY.toFixed(1)}" text-anchor="middle" fill="${color}" font-size="9.5" font-family="Geist Mono, monospace" font-weight="600" opacity="0.85">${valText}</text>
+      <text x="${(x + barW/2).toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" fill="var(--ink-muted)" font-size="10" font-family="Geist Mono, monospace">${monthChar}</text>`;
   }).join('');
 
   // Zero baseline
