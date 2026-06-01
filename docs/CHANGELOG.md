@@ -55,6 +55,26 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Cron real: sync diário às 8h BRT (worker → Firestore)
+O auto-sync client-side só roda quando alguém abre o app. Pra atualizar
+de verdade todo dia 8h sem ninguém abrir, o worker ganhou um Cron
+Trigger que grava direto no Firestore.
+
+- `scheduled()` handler no worker + `crons = ["0 11 * * *"]` (11 UTC =
+  8h BRT) no `wrangler.toml`.
+- Autentica como admin via service account do Firebase: JWT RS256
+  assinado com Web Crypto → token OAuth (`oauth2.googleapis.com`) →
+  Firestore REST API (PATCH com `updateMask` pra merge). A chave fica
+  num secret encriptado do Cloudflare (`FIREBASE_SA`), nunca no repo.
+- Escreve `config/i10` (equity, dividends, assets c/ categoria, monthly
+  120m, profitTwr...), `config/i10-louise` e `config/fx` (rate via
+  updateMask, preserva `usd`/`note` do usuário). `updatedBy: 'cron 8h'`.
+- Como grava `config/i10.monthly`, o patrimônio por ano (derivado do
+  barchart) também fica fresco via cron.
+- **Setup manual necessário** (uma vez): criar service account no
+  Firebase, colar como secret `FIREBASE_SA` no CF, adicionar o Cron
+  Trigger no dashboard. Passo a passo em `docs/DEPLOY-WORKER.md`.
+
 ### Patrimônio por ano agora vem AO VIVO do I10 (barchart 120 meses)
 Confirmado que `/summary/barchart/2814459/120/all` devolve os 10 anos
 completos com `sum_equity` real (anonimamente). A solução definitiva:

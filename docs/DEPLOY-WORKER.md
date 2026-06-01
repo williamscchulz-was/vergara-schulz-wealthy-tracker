@@ -59,6 +59,50 @@ wrangler dev
 # abre http://localhost:8787/i10/all/2814459?year=2026
 ```
 
+## Cron — sync diário às 8h (grava no Firestore)
+
+O worker tem um `scheduled()` handler que roda **08:00 BRT** todo dia,
+busca o I10 (William + Louise) + cotação USD e grava em `config/i10`,
+`config/i10-louise`, `config/fx` — **sem ninguém abrir o app**. Pra isso
+ele autentica como admin do Firebase via uma **service account**.
+
+### Setup (uma vez)
+
+**1. Criar a service account no Firebase**
+1. https://console.firebase.google.com → projeto `wealthy-tracker-68658`
+2. ⚙️ (engrenagem) → **Configurações do projeto** → aba **Contas de serviço**
+3. Botão **Gerar nova chave privada** → baixa um arquivo `.json`
+4. Abre o `.json` num editor de texto e copia **todo o conteúdo**
+
+**2. Adicionar o secret no Cloudflare**
+1. dash.cloudflare.com → Workers & Pages → `ledger-i10-proxy`
+2. **Settings** → **Variables and Secrets** → **Add**
+3. Tipo: **Secret** (encrypted). Nome: `FIREBASE_SA`
+4. Valor: cola o JSON inteiro da service account
+5. Save
+
+**3. Adicionar o Cron Trigger**
+1. Mesma página → **Settings** → **Triggers** → **Cron Triggers** → **Add Cron**
+2. Cron: `0 11 * * *`  (11:00 UTC = 08:00 BRT)
+3. Save
+
+**4. Redeploy do código** (se ainda não fez com a versão que tem o
+`scheduled`): cola o `worker/src/worker.js` atual no editor e Save and
+deploy.
+
+### Testar
+- No dashboard do worker, aba **Triggers** → ao lado do cron tem
+  **"Trigger"** (ou rode `wrangler tail` e dispare). Veja nos logs
+  `cron sync OK`.
+- Depois, no app, o "atualizado" dos cards deve mostrar o horário do
+  cron com `updatedBy: cron 8h`.
+
+### Segurança
+- A `FIREBASE_SA` é um secret **encriptado** no Cloudflare — não vai pro
+  repo, não aparece no código. É a única credencial sensível do sistema.
+- Ela dá acesso de admin ao Firestore. Se vazar, **revogar** no Firebase
+  Console (Contas de serviço → gerenciar chaves → deletar).
+
 ## Free tier
 
 - 100k requests/dia

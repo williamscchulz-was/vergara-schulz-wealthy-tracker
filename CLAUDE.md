@@ -51,8 +51,9 @@ O app é **single-page**, **client-side puro**, servido estaticamente (GitHub Pa
   - `/i10/all/:walletId?year=YYYY` — **endpoint consolidado usado pelo app** (dispara metrics + earnings + actives + barchart em paralelo com `Promise.all`)
   - `/i10/yearly/:walletId?start=YYYY` — proventos ano a ano (reconstruído chamando `/earnings/total-period` em loop). Default `start=2018`. Usado pelo botão "I10" do card "histórico anual" pra rebackfill `dividendsYearly`.
   - `/fx/rate` — cotação USD→BRL via AwesomeAPI (`economia.awesomeapi.com.br`, free, sem auth), cache de 15min. Retorna `{ rateUSD, rateSource, rateUpdatedAt }`
-- Nenhuma autenticação / cookie / token — só o ID público da carteira
+- Nenhuma autenticação / cookie / token nos endpoints proxy — só o ID público da carteira
 - Free tier (100k req/dia) sobra muito
+- **Cron Trigger** (`scheduled()` handler + `crons = ["0 11 * * *"]` no `wrangler.toml`): roda 08:00 BRT diário, busca I10 (W + Louise) + USD e grava direto em `config/i10` / `config/i10-louise` / `config/fx` — sem ninguém abrir o app. Autentica como admin via service account do Firebase (secret `FIREBASE_SA`, JSON inteiro, encriptado no CF — **não vai no repo**). Faz JWT RS256 → token OAuth → Firestore REST API (PATCH com `updateMask` = merge). `updatedBy: 'cron 8h'`. Setup completo em `docs/DEPLOY-WORKER.md`. É a **única credencial sensível** do sistema; se vazar, revogar no Firebase Console.
 
 ---
 

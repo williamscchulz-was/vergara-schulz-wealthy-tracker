@@ -266,8 +266,154 @@ async function handle(request) {
   }
 }
 
+// ============================================================
+//  CRON — sync diário às 8h BRT, grava direto no Firestore.
+//  Roda sem ninguém abrir o app. Autentica com uma service account
+//  do Firebase (secret FIREBASE_SA, JSON inteiro) → token OAuth →
+//  Firestore REST API. Escreve config/i10, config/i10-louise, config/fx.
+// ============================================================
+const PROJECT_ID = 'wealthy-tracker-68658';
+const WALLET_W = '2814459';      // William (principal) — atualizar se migrar de novo
+const WALLET_LOUISE = '2699282'; // Louise (filha)
+const I10_TYPE_TO_CAT = {
+  Ticker: 'Ações', TesouroDireto: 'Tesouro Direto', RendaFixa: 'Renda Fixa',
+  Fii: 'FIIs', Etf: 'ETFs', Bdr: 'BDRs', FundoInvestimento: 'Fundos', Criptomoeda: 'Criptomoedas',
+};
+
+function b64url(buf) {
+  const bytes = new Uint8Array(buf);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+async function importPrivateKey(pem) {
+  const body = pem.replace(/-----BEGIN PRIVATE KEY-----/, '').replace(/-----END PRIVATE KEY-----/, '').replace(/\s+/g, '');
+  const der = Uint8Array.from(atob(body), c => c.charCodeAt(0));
+  return crypto.subtle.importKey('pkcs8', der.buffer, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
+}
+async function getAccessToken(sa) {
+  const now = Math.floor(Date.now() / 1000);
+  const enc = (o) => b64url(new TextEncoder().encode(JSON.stringify(o)));
+  const unsigned = `${enc({ alg: 'RS256', typ: 'JWT' })}.${enc({
+    iss: sa.client_email,
+    scope: 'https://www.googleapis.com/auth/datastore',
+    aud: 'https://oauth2.googleapis.com/token',
+    exp: now + 3600, iat: now,
+  })}`;
+  const key = await importPrivateKey(sa.private_key);
+  const sig = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(unsigned));
+  const jwt = `${unsigned}.${b64url(sig)}`;
+  const res = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
+  });
+  if (!res.ok) throw new Error('token ' + res.status + ' ' + (await res.text()));
+  return (await res.json()).access_token;
+}
+const tsNow = () => ({ __fsTimestamp: new Date().toISOString() });
+function toFsValue(v) {
+  if (v === null || v === undefined) return { nullValue: null };
+  if (typeof v === 'object' && v.__fsTimestamp) return { timestampValue: v.__fsTimestamp };
+  if (typeof v === 'boolean') return { booleanValue: v };
+  if (typeof v === 'number') return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
+  if (typeof v === 'string') return { stringValue: v };
+  if (Array.isArray(v)) return { arrayValue: { values: v.map(toFsValue) } };
+  if (typeof v === 'object') {
+    const fields = {};
+    for (const k of Object.keys(v)) fields[k] = toFsValue(v[k]);
+    return { mapValue: { fields } };
+  }
+  return { stringValue: String(v) };
+}
+async function firestoreWrite(token, docPath, obj) {
+  const fields = {};
+  for (const k of Object.keys(obj)) fields[k] = toFsValue(obj[k]);
+  // updateMask → merge (preserves fields we don't touch, e.g. fx.usd/note)
+  const mask = Object.keys(obj).map(k => `updateMask.fieldPaths=${encodeURIComponent(k)}`).join('&');
+  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${docPath}?${mask}`;
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields }),
+  });
+  if (!res.ok) throw new Error('fs ' + docPath + ' ' + res.status + ' ' + (await res.text()));
+}
+function parseBarchartMonthly(raw) {
+  const rows = Array.isArray(raw) ? raw : (Array.isArray(raw?.data) ? raw.data : []);
+  const out = [];
+  for (const r of rows) {
+    const m = String(r.month || r.date || '').match(/^(\d{1,2})\/(\d{2,4})$/);
+    if (!m) continue;
+    const mo = +m[1]; let yr = +m[2]; if (yr < 100) yr += 2000;
+    const eq = +r.sum_equity || +r.equity || 0;
+    if (!yr || !mo || !(eq > 0)) continue;
+    out.push({ year: yr, month: mo, equity: eq });
+  }
+  out.sort((a, b) => (a.year - b.year) || (a.month - b.month));
+  return out;
+}
+async function cronSyncMain(token) {
+  const year = new Date().getUTCFullYear();
+  const [metrics, earnings, activesRaw, barchart] = await Promise.all([
+    fetchI10(`/summary/metrics/${WALLET_W}?type=without-earnings&raw=1`),
+    fetchI10(`/earnings/total-period/${WALLET_W}?start_date=${year}-01-01&end_date=${year}-12-31`),
+    fetchAllActives(WALLET_W),
+    fetchI10(`/summary/barchart/${WALLET_W}/120/all`).catch(() => null),
+  ]);
+  const rawAssets = Array.isArray(activesRaw?.data) ? activesRaw.data : [];
+  const assets = rawAssets.map(a => ({
+    ticker: a.ticker || a.ticker_name || '',
+    quantity: +a.quantity || 0, avgPrice: +a.avg_price || 0,
+    currentPrice: parseFloat(a.current_price) || 0,
+    equity: +a.equity_total || parseFloat(a.equity_brl) || 0,
+    appreciation: +a.appreciation || 0, percentWallet: +a.percent_wallet || 0,
+    earnings: +a.earnings_received || 0, image: a.image || '', url: a.url || '',
+    category: I10_TYPE_TO_CAT[a.__assetClass] || 'Outros',
+  }));
+  await firestoreWrite(token, 'household/main/config/i10', {
+    equity: +metrics.equity || 0, applied: +metrics.applied || 0,
+    variation: +metrics.variation || 0, profitTwr: +metrics.profit_twr || 0,
+    dividends: +earnings?.sum || 0, year, assets, monthly: parseBarchartMonthly(barchart),
+    updatedAt: tsNow(), updatedBy: 'cron 8h', source: 'investidor10-sync',
+  });
+}
+async function cronSyncLouise(token) {
+  const year = new Date().getUTCFullYear();
+  const [metrics, earnings] = await Promise.all([
+    fetchI10(`/summary/metrics/${WALLET_LOUISE}?type=without-earnings&raw=1`),
+    fetchI10(`/earnings/total-period/${WALLET_LOUISE}?start_date=${year}-01-01&end_date=${year}-12-31`),
+  ]);
+  await firestoreWrite(token, 'household/main/config/i10-louise', {
+    equity: +metrics.equity || 0, applied: +metrics.applied || 0,
+    variation: +metrics.variation || 0, dividends: +earnings?.sum || 0, year,
+    updatedAt: tsNow(), updatedBy: 'cron 8h', source: 'investidor10-sync',
+  });
+}
+async function cronSyncFx(token) {
+  const fx = await fetchUSDBRL();
+  await firestoreWrite(token, 'household/main/config/fx', {
+    rateUSD: fx.rateUSD, rateSource: fx.rateSource, rateUpdatedAt: fx.rateUpdatedAt, updatedAt: tsNow(),
+  });
+}
+async function scheduled(event, env) {
+  if (!env || !env.FIREBASE_SA) { console.log('cron: secret FIREBASE_SA ausente'); return; }
+  let sa;
+  try { sa = JSON.parse(env.FIREBASE_SA); } catch (e) { console.log('cron: FIREBASE_SA JSON inválido'); return; }
+  try {
+    const token = await getAccessToken(sa);
+    await cronSyncMain(token);
+    await cronSyncLouise(token).catch(e => console.log('cron louise:', e.message));
+    await cronSyncFx(token).catch(e => console.log('cron fx:', e.message));
+    console.log('cron sync OK');
+  } catch (e) {
+    console.log('cron erro:', e.message);
+  }
+}
+
 export default {
   async fetch(request) {
     return handle(request);
   },
+  scheduled,
 };

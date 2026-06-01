@@ -4,8 +4,14 @@ compatibility_date = "2024-11-01"
 
 # Deploy: `wrangler deploy` from ./worker
 # Dev:    `wrangler dev`    from ./worker
-#
-# The worker has no bindings, no secrets, no KV. It's a stateless CORS
-# proxy in front of a public Investidor 10 endpoint. See ./README.md
-# for deployment instructions and ../docs/DEPLOY-WORKER.md for the
-# end-to-end setup.
+
+# Cron: sync diário 08:00 BRT (UTC-3) = 11:00 UTC. O handler scheduled()
+# busca o I10 e grava em config/i10, config/i10-louise, config/fx usando
+# a service account do Firebase (secret FIREBASE_SA).
+[triggers]
+crons = ["0 11 * * *"]
+
+# Secret necessário (NÃO vai no repo — setar no dashboard ou via
+# `wrangler secret put FIREBASE_SA`):
+#   FIREBASE_SA = <JSON inteiro da service account do Firebase>
+# Ver ../docs/DEPLOY-WORKER.md (seção Cron) pro passo a passo.
