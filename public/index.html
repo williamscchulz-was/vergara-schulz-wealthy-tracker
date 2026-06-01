@@ -534,7 +534,8 @@ body::before {
   .exp-table td { padding: 10px 14px; }
 
   /* Expenses: stop the hero/table from sprawling the full 1500px. */
-  #moduleExpenses.active { max-width: 1240px; margin-inline: auto; }
+  /* Despesas ocupa a largura toda, igual ao Resumo (sem corredor estreito) */
+  #moduleExpenses.active { max-width: none; }
 }
 
 /* ===========================================================
@@ -1382,6 +1383,9 @@ body::before {
 
 /* ---- Importador de fatura (review) ---- */
 .modal.modal-wide { max-width: min(960px, 94vw); }
+.btn-clear-imp { color: var(--ink-3); font-size: 11px; padding: 9px 12px; }
+.btn-clear-imp:hover { color: var(--loss); background: color-mix(in oklab, var(--loss) 10%, transparent); }
+.btn-clear-imp.danger-armed { color: #fff; background: var(--loss); border-color: var(--loss); }
 .imp-meta { font-size: 12px; color: var(--ink-3); margin: 6px 0 10px; }
 .imp-meta b { color: var(--ink); font-family: 'Geist Mono', monospace; }
 .imp-list { max-height: 58vh; overflow-y: auto; overflow-x: hidden; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 14px; }
@@ -2494,6 +2498,7 @@ body::before {
           <div class="meta" data-i18n="exp.section.meta">Lançamentos e orçamento do mês</div>
         </div>
         <div class="exp-add-group">
+          <button class="btn-ghost btn-clear-imp" id="btnClearImports" data-i18n="imp.clear" title="Apagar todos os lançamentos importados (cartão + conta)">Limpar importados</button>
           <button class="btn-ghost" id="btnImportStatement" data-i18n="imp.btn" data-i18n-title="imp.title" title="Importar fatura do cartão (PDF)">Importar fatura</button>
           <button class="btn-ghost btn-add-income" id="btnAddIncome" data-i18n="exp.new.income" title="Novo ganho">+ Ganho</button>
           <button class="btn-primary" id="btnAddExpense" data-i18n="exp.new">+ Nova despesa</button>

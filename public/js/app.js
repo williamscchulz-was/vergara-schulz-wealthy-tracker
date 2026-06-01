@@ -319,6 +319,10 @@ const I18N = {
     'imp.importing': 'Importando…',
     'imp.ready': 'Pronto!',
     'imp.imported': 'lançamentos importados',
+    'imp.clear': 'Limpar importados',
+    'imp.clear.confirm': 'Apagar {n}? Clique de novo',
+    'imp.clear.done': '{n} importados apagados',
+    'imp.clear.none': 'Nada importado pra limpar',
     'tab.resumo': 'Resumo',
     'rz.monthly': 'Mensal',
     'rz.annual': 'Anual',
@@ -604,6 +608,10 @@ const I18N = {
     'imp.importing': 'Importing…',
     'imp.ready': 'Done!',
     'imp.imported': 'entries imported',
+    'imp.clear': 'Clear imported',
+    'imp.clear.confirm': 'Delete {n}? Click again',
+    'imp.clear.done': '{n} imported deleted',
+    'imp.clear.none': 'Nothing imported to clear',
     'tab.resumo': 'Summary',
     'rz.monthly': 'Monthly',
     'rz.annual': 'Annual',
@@ -3996,6 +4004,29 @@ function parseCheckingCSV(text) {
   return out;
 }
 
+// Apaga todos os lançamentos importados (source: import:*). Arma no 1º clique,
+// confirma no 2º (sem modal). Pra reimportar do zero quando o esquema muda.
+let _clearArmed = false;
+async function clearImportedExpenses() {
+  const btn = $('btnClearImports'); if (!btn) return;
+  const imported = (state.expenses || []).filter(e => String(e.source || '').startsWith('import:'));
+  if (!imported.length) { showToast(t('imp.clear.none')); return; }
+  if (!_clearArmed) {
+    _clearArmed = true;
+    if (!btn.dataset.orig) btn.dataset.orig = btn.textContent;
+    btn.textContent = t('imp.clear.confirm').replace('{n}', imported.length);
+    btn.classList.add('danger-armed');
+    setTimeout(() => { if (_clearArmed) { _clearArmed = false; btn.textContent = btn.dataset.orig; btn.classList.remove('danger-armed'); } }, 4000);
+    return;
+  }
+  _clearArmed = false; btn.classList.remove('danger-armed'); btn.textContent = btn.dataset.orig; btn.disabled = true;
+  try {
+    await Promise.allSettled(imported.map(e => deleteDoc(docExpense(e.id))));
+    showToast(t('imp.clear.done').replace('{n}', imported.length));
+  } catch (e) { console.error('[clear] failed', e); showToast(t('toast.error.save')); }
+  finally { btn.disabled = false; }
+}
+
 let _importTxns = [];
 async function handleImportFile(file) {
   if (!file) return;
@@ -4138,6 +4169,7 @@ $('btnImportStatement')?.addEventListener('click', () => { const f = $('impFile'
 $('impFile')?.addEventListener('change', (e) => { const file = e.target.files && e.target.files[0]; e.target.value = ''; handleImportFile(file); });
 $('importCancel')?.addEventListener('click', () => $('importModal').classList.remove('show'));
 $('importConfirm')?.addEventListener('click', doImport);
+$('btnClearImports')?.addEventListener('click', clearImportedExpenses);
 // Escape de emergência: clicar no overlay (ou Esc) fecha, caso algo trave.
 $('importOverlay')?.addEventListener('click', () => {
   const o = $('importOverlay'); if (o) { o.hidden = true; o.classList.remove('done'); }
