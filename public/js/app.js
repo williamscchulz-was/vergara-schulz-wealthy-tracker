@@ -358,6 +358,10 @@ const I18N = {
     'imp.ready': 'Pronto!',
     'imp.imported': 'lançamentos importados',
     'imp.prov': 'provisão',
+    'imp.type.title': 'O que você quer importar?',
+    'imp.type.sub': 'Escolha a origem do arquivo.',
+    'imp.type.card': 'Cartão de crédito',
+    'imp.type.cc': 'Conta corrente',
     'imp.clear': 'Limpar importados',
     'imp.clear.confirm': 'Apagar {n}? Clique de novo',
     'imp.clear.done': '{n} importados apagados',
@@ -715,6 +719,10 @@ const I18N = {
     'imp.ready': 'Done!',
     'imp.imported': 'entries imported',
     'imp.prov': 'provision',
+    'imp.type.title': 'What do you want to import?',
+    'imp.type.sub': 'Choose the file source.',
+    'imp.type.card': 'Credit card',
+    'imp.type.cc': 'Checking account',
     'imp.clear': 'Clear imported',
     'imp.clear.confirm': 'Delete {n}? Click again',
     'imp.clear.done': '{n} imported deleted',
@@ -4285,11 +4293,12 @@ async function clearImportedExpenses() {
 }
 
 let _importTxns = [];
+let _importKind = null;   // 'card' (PDF) | 'cc' (CSV) — escolhido no seletor de origem
 async function handleImportFile(file) {
   if (!file) return;
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const ov = $('importOverlay');
-  const isCsv = /\.csv$/i.test(file.name || '') || file.type === 'text/csv';
+  const isCsv = _importKind ? (_importKind === 'cc') : (/\.csv$/i.test(file.name || '') || file.type === 'text/csv');
   // Estado "lendo": overlay premium com o anel girando enquanto o arquivo é parseado.
   if (ov && !reduce) {
     ov.classList.remove('done', 'out'); ov.classList.add('reading'); ov.hidden = false;
@@ -4439,7 +4448,16 @@ async function doImport() {
     $('importConfirm').disabled = false; $('importCancel').disabled = false;
   }
 }
-$('btnImportStatement')?.addEventListener('click', () => { const f = $('impFile'); if (f) f.click(); });
+// Importar: abre o seletor de origem; a escolha define o accept + o parser.
+$('btnImportStatement')?.addEventListener('click', () => $('importTypeModal')?.classList.add('show'));
+$('importTypeCancel')?.addEventListener('click', () => $('importTypeModal')?.classList.remove('show'));
+$('importTypeModal')?.addEventListener('click', e => { if (e.target.id === 'importTypeModal') $('importTypeModal').classList.remove('show'); });
+document.querySelectorAll('#importTypeModal .imp-type-opt').forEach(b => b.addEventListener('click', () => {
+  _importKind = b.dataset.kind;
+  $('importTypeModal').classList.remove('show');
+  const f = $('impFile');
+  if (f) { f.setAttribute('accept', _importKind === 'cc' ? 'text/csv,.csv' : 'application/pdf,.pdf'); f.value = ''; f.click(); }
+}));
 $('impFile')?.addEventListener('change', (e) => { const file = e.target.files && e.target.files[0]; e.target.value = ''; handleImportFile(file); });
 $('importCancel')?.addEventListener('click', () => $('importModal').classList.remove('show'));
 $('importConfirm')?.addEventListener('click', doImport);

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex" />
+<title>Import — mockups de animação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #161319; --bg2: #1e1a24; --elev: #262130; --line: rgba(255,255,255,.09);
+    --line2: rgba(255,255,255,.16); --ink: #f4f1f8; --ink2: #c8c2d4; --ink3: #8e879c;
+    --purple: #AC5FDB; --purple2: #E3A2EE; --gain: #30d158; --paper: #f7f5fb;
+    --ease: cubic-bezier(.4,0,.2,1); --spring: cubic-bezier(.2,1.4,.35,1);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: radial-gradient(1200px 700px at 70% -10%, rgba(172,95,219,.16), transparent 60%), var(--bg);
+    color: var(--ink); font-family: Inter, sans-serif; min-height: 100vh; padding: 40px 24px 80px;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 800; letter-spacing: -.02em; margin: 0 0 4px; }
+  .lead { color: var(--ink3); font-size: 14px; margin: 0 0 32px; max-width: 720px; line-height: 1.5; }
+  .lead b { color: var(--purple2); font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 22px; }
+  .card {
+    background: linear-gradient(165deg, color-mix(in oklab, var(--elev) 88%, transparent), color-mix(in oklab, var(--bg2) 92%, transparent));
+    border: 1px solid var(--line); border-radius: 22px; padding: 20px; box-shadow: 0 30px 70px -40px rgba(0,0,0,.8);
+    display: flex; flex-direction: column;
+  }
+  .card-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+  .card-h h2 { font-size: 16px; font-weight: 700; margin: 0; letter-spacing: -.01em; }
+  .tagn { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--purple2); background: rgba(172,95,219,.16); padding: 2px 8px; border-radius: 7px; }
+  .card-d { color: var(--ink3); font-size: 12.5px; line-height: 1.45; margin: 0 0 14px; min-height: 36px; }
+  .stage {
+    position: relative; height: 280px; border-radius: 16px; overflow: hidden;
+    background: radial-gradient(120% 120% at 50% 0%, rgba(255,255,255,.035), transparent 70%), #14121a;
+    border: 1px solid var(--line); display: grid; place-items: center;
+  }
+  .replay {
+    margin-top: 14px; align-self: flex-start; display: inline-flex; align-items: center; gap: 7px;
+    background: transparent; border: 1px solid var(--line2); color: var(--ink2); font: 600 12px Inter, sans-serif;
+    padding: 8px 14px; border-radius: 10px; cursor: pointer; transition: .15s;
+  }
+  .replay:hover { border-color: var(--purple); color: var(--ink); transform: translateY(-1px); }
+  .replay svg { width: 13px; height: 13px; }
+  .pick { margin-left: 8px; color: var(--ink3); font-size: 11px; }
+
+  /* ============ shared bits ============ */
+  .chip { font: 600 9.5px Inter, sans-serif; padding: 2px 7px; border-radius: 6px; white-space: nowrap;
+    background: color-mix(in oklab, var(--c) 22%, transparent); color: color-mix(in oklab, var(--c) 75%, white); }
+  .mono { font-family: 'Geist Mono', monospace; }
+
+  /* ============ CONCEPT 1 — SCANNER ============ */
+  .doc { width: 230px; background: var(--paper); border-radius: 12px; padding: 14px 14px 16px;
+    box-shadow: 0 24px 50px -22px rgba(0,0,0,.7); position: relative; overflow: hidden;
+    transform: translateY(0) scale(1); transition: transform .5s var(--spring); }
+  #s1.done .doc { transform: translateY(-14px) scale(.97); }
+  .doc-top { display: flex; align-items: center; gap: 7px; margin-bottom: 12px; }
+  .doc-logo { width: 18px; height: 18px; border-radius: 5px; background: linear-gradient(135deg, var(--purple), var(--purple2)); }
+  .doc-title { height: 7px; width: 92px; border-radius: 4px; background: #d9d4e2; }
+  .doc-sub { height: 5px; width: 56px; border-radius: 4px; background: #e7e3ee; margin-left: auto; }
+  .drow { position: relative; height: 26px; display: flex; align-items: center; }
+  .drow + .drow { border-top: 1px solid #ece8f2; }
+  .sk { display: flex; align-items: center; gap: 8px; width: 100%; transition: opacity .3s; }
+  .sk i { height: 7px; border-radius: 4px; background: #e4dfec; }
+  .sk .s1 { width: 30px; } .sk .s2 { flex: 1; } .sk .s3 { width: 38px; }
+  .real { position: absolute; inset: 0; display: flex; align-items: center; gap: 8px; opacity: 0;
+    transform: translateX(8px); transition: opacity .35s var(--ease), transform .35s var(--ease); }
+  .drow.on .sk { opacity: 0; }
+  .drow.on .real { opacity: 1; transform: none; }
+  .real .rd { font-family: 'Geist Mono', monospace; font-size: 9.5px; color: #8b8496; }
+  .real .rm { font: 600 10.5px Inter, sans-serif; color: #221d2b; flex: 1; overflow: hidden; white-space: nowrap; }
+  .real .rv { font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; color: #221d2b; }
+  .scanline { position: absolute; left: -4%; width: 108%; height: 26px; pointer-events: none; opacity: 0;
+    background: linear-gradient(180deg, transparent, rgba(172,95,219,.16) 45%, rgba(172,95,219,.32) 50%, rgba(172,95,219,.16) 55%, transparent);
+    box-shadow: 0 0 22px 4px rgba(172,95,219,.5); border-top: 1px solid rgba(227,162,238,.9); border-bottom: 1px solid rgba(227,162,238,.9); }
+  #s1.scanning .scanline { animation: beam 2.5s var(--ease) forwards; }
+  @keyframes beam { 0% { opacity: 0; top: 28px; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { opacity: 0; top: 168px; } }
+  .summary { position: absolute; bottom: 16px; left: 0; right: 0; text-align: center; font-size: 13px; color: var(--ink);
+    opacity: 0; transform: translateY(8px); transition: .45s var(--spring); }
+  .summary.show { opacity: 1; transform: none; }
+  .summary .ck { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--gain);
+    color: #07210f; font-size: 12px; font-weight: 800; vertical-align: middle; margin-right: 6px; }
+  .summary b { font-family: 'Geist Mono', monospace; color: var(--gain); }
+
+  /* ============ CONCEPT 2 — EXTRAÇÃO AO VIVO ============ */
+  #s2 { padding: 0 18px; }
+  .ext { display: flex; align-items: center; gap: 16px; width: 100%; }
+  .minidoc { width: 78px; height: 100px; background: var(--paper); border-radius: 9px; padding: 9px 8px; flex-shrink: 0;
+    box-shadow: 0 16px 34px -18px rgba(0,0,0,.7); position: relative; }
+  .minidoc .mb { height: 8px; width: 70%; border-radius: 3px; background: linear-gradient(90deg, var(--purple), var(--purple2)); margin-bottom: 8px; }
+  .minidoc .ml { height: 5px; border-radius: 3px; background: #e4dfec; margin-bottom: 6px; }
+  .minidoc .ml:nth-child(3) { width: 90%; } .minidoc .ml:nth-child(4) { width: 75%; } .minidoc .ml:nth-child(5) { width: 85%; }
+  .minidoc.pulse { animation: mdpulse 1.6s var(--ease) infinite; }
+  @keyframes mdpulse { 0%,100% { box-shadow: 0 16px 34px -18px rgba(0,0,0,.7); } 50% { box-shadow: 0 16px 34px -18px rgba(0,0,0,.7), 0 0 26px -2px rgba(172,95,219,.55); } }
+  .feed { flex: 1; min-width: 0; }
+  .feed-top { font-size: 11px; color: var(--ink3); margin-bottom: 8px; }
+  .feed-top b { font-family: 'Geist Mono', monospace; font-size: 17px; color: var(--ink); font-weight: 700; }
+  .feed-list { display: flex; flex-direction: column; gap: 5px; }
+  .frow { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,.04); border: 1px solid var(--line);
+    border-radius: 9px; padding: 6px 9px; opacity: 0; transform: translateX(-14px); }
+  .frow.in { animation: frowin .42s var(--spring) forwards; }
+  @keyframes frowin { to { opacity: 1; transform: none; } }
+  .frow .fm { font: 600 11px Inter, sans-serif; flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .frow .fv { font-family: 'Geist Mono', monospace; font-size: 10.5px; color: var(--ink2); }
+  .feed-done { margin-top: 10px; font-size: 12px; color: var(--gain); opacity: 0; transition: .4s; font-weight: 600; }
+  .feed-done.show { opacity: 1; }
+
+  /* ============ CONCEPT 3 — PIPELINE ============ */
+  #s3 { flex-direction: column; }
+  .pipe { display: flex; align-items: center; justify-content: center; gap: 0; width: 100%; padding: 0 26px; }
+  .pnode { display: flex; flex-direction: column; align-items: center; gap: 9px; flex-shrink: 0; width: 64px; }
+  .pic { width: 52px; height: 52px; border-radius: 15px; display: grid; place-items: center; background: var(--elev);
+    border: 1px solid var(--line2); color: var(--ink3); transition: .4s var(--spring); position: relative; }
+  .pic svg { width: 23px; height: 23px; }
+  .pnode span { font-size: 10.5px; color: var(--ink3); font-weight: 600; transition: color .3s; }
+  .pnode.act .pic { border-color: var(--purple); color: var(--purple2); transform: translateY(-3px) scale(1.06);
+    box-shadow: 0 0 26px -4px rgba(172,95,219,.6); background: color-mix(in oklab, var(--purple) 16%, var(--elev)); }
+  .pnode.act span { color: var(--ink); }
+  .pnode.fin .pic { border-color: var(--gain); color: var(--gain); box-shadow: 0 0 26px -4px rgba(48,209,88,.6);
+    background: color-mix(in oklab, var(--gain) 15%, var(--elev)); }
+  .pline { flex: 1; height: 3px; background: var(--line); border-radius: 3px; position: relative; overflow: hidden; max-width: 96px; }
+  .pline i { position: absolute; inset: 0; width: 0; background: linear-gradient(90deg, var(--purple), var(--purple2)); transition: width .55s var(--ease); }
+  .pline.fill i { width: 100%; }
+  .psum { margin-top: 26px; font-size: 13px; font-weight: 600; color: var(--ink); opacity: 0; transform: translateY(8px); transition: .45s var(--spring); }
+  .psum.show { opacity: 1; transform: none; }
+  .psum .ck { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--gain);
+    color: #07210f; font-size: 12px; font-weight: 800; vertical-align: middle; margin-right: 6px; }
+  .psum b { font-family: 'Geist Mono', monospace; color: var(--gain); }
+  .foot { margin-top: 40px; color: var(--ink3); font-size: 13px; text-align: center; line-height: 1.6; }
+  .foot b { color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Animações de import — escolha uma</h1>
+  <p class="lead">Três direções, todas mostrando o <b>trabalho acontecendo</b> (documento → leitura → extração → categorização), no visual do app. Rodam em loop — clica <b>Replay</b> pra rever. Me diz o número (ou mistura ideias) que eu finalizo e ligo no fluxo real.</p>
+
+  <div class="grid">
+    <!-- CONCEPT 1 -->
+    <div class="card">
+      <div class="card-h"><h2>Scanner de documento</h2><span class="tagn">01</span></div>
+      <p class="card-d">A fatura aparece e um feixe de luz varre de cima a baixo. Cada linha "revela" o dado real (data · loja · valor · categoria) conforme é lida — como um scanner de verdade.</p>
+      <div class="stage" id="s1">
+        <div class="doc" id="doc1">
+          <div class="doc-top"><div class="doc-logo"></div><div class="doc-title"></div><div class="doc-sub"></div></div>
+          <div id="doc1rows"></div>
+          <div class="scanline"></div>
+        </div>
+        <div class="summary" id="sum1"><span class="ck">✓</span> 5 lançamentos · <b>R$ 2.654</b></div>
+      </div>
+      <button class="replay" data-c="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg> Replay</button>
+    </div>
+
+    <!-- CONCEPT 2 -->
+    <div class="card">
+      <div class="card-h"><h2>Extração ao vivo</h2><span class="tagn">02</span></div>
+      <p class="card-d">O documento pulsa enquanto cada lançamento "salta" dele pra uma lista, um a um, já com a categoria. O contador sobe ao vivo. Você vê o dado sendo extraído.</p>
+      <div class="stage" id="s2">
+        <div class="ext">
+          <div class="minidoc" id="md2"><div class="mb"></div><div class="ml"></div><div class="ml"></div><div class="ml"></div></div>
+          <div class="feed">
+            <div class="feed-top"><b id="c2">0</b> lançamentos</div>
+            <div class="feed-list" id="feed2"></div>
+            <div class="feed-done" id="done2">✓ importado · R$ 2.654</div>
+          </div>
+        </div>
+      </div>
+      <button class="replay" data-c="2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg> Replay</button>
+    </div>
+
+    <!-- CONCEPT 3 -->
+    <div class="card">
+      <div class="card-h"><h2>Pipeline de etapas</h2><span class="tagn">03</span></div>
+      <p class="card-d">Três estágios — Lendo → Categorizando → Pronto — com um pulso de luz percorrendo a linha. Cada etapa acende na sequência. Limpo, claro, "processo profissional".</p>
+      <div class="stage" id="s3">
+        <div class="pipe">
+          <div class="pnode" data-n="0"><div class="pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h6"/></svg></div><span>Lendo</span></div>
+          <div class="pline" data-l="0"><i></i></div>
+          <div class="pnode" data-n="1"><div class="pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7l11 11-7 7L3 10z"/><circle cx="7.5" cy="7.5" r="1.6" fill="currentColor"/></svg></div><span>Categorizando</span></div>
+          <div class="pline" data-l="1"><i></i></div>
+          <div class="pnode" data-n="2"><div class="pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span>Pronto</span></div>
+        </div>
+        <div class="psum" id="psum3"><span class="ck">✓</span> 5 lançamentos importados</div>
+      </div>
+      <button class="replay" data-c="3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg> Replay</button>
+    </div>
+  </div>
+
+  <p class="foot">Qual te pegou? Manda o <b>número</b> (ou "1 com o final do 3", etc.) que eu capricho na escolhida e troco no app de verdade.</p>
+</div>
+
+<script>
+  const DATA = [
+    { d: '13/04', m: 'BLUSA',          v: '2.500', c: 'Compras',     col: '#ffd60a' },
+    { d: '27/04', m: 'ESTACIONAMENTO', v: '14',    c: 'Transporte',  col: '#ff9500' },
+    { d: '02/05', m: 'UBER *TRIP',     v: '32',    c: 'Transporte',  col: '#ff9500' },
+    { d: '05/05', m: 'DROGARIA SP',    v: '87',    c: 'Saúde',       col: '#ff375f' },
+    { d: '08/05', m: 'SPOTIFY',        v: '21',    c: 'Assinaturas', col: '#bf5af2' },
+  ];
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  const timers = [];
+  function clearTimers() { while (timers.length) clearTimeout(timers.pop()); }
+  function later(fn, ms) { const id = setTimeout(fn, ms); timers.push(id); return id; }
+
+  // ---- build static rows ----
+  const doc1rows = document.getElementById('doc1rows');
+  doc1rows.innerHTML = DATA.map(r => `
+    <div class="drow">
+      <div class="sk"><i class="s1"></i><i class="s2"></i><i class="s3"></i></div>
+      <div class="real"><span class="rd">${r.d}</span><span class="rm">${r.m}</span><span class="chip" style="--c:${r.col}">${r.c}</span><span class="rv">${r.v}</span></div>
+    </div>`).join('');
+
+  // ============ CONCEPT 1 ============
+  function playScanner() {
+    const s1 = document.getElementById('s1');
+    const rows = [...doc1rows.querySelectorAll('.drow')];
+    s1.classList.remove('scanning', 'done');
+    rows.forEach(r => r.classList.remove('on'));
+    document.getElementById('sum1').classList.remove('show');
+    void s1.offsetWidth;
+    later(() => s1.classList.add('scanning'), 30);
+    rows.forEach((r, i) => later(() => r.classList.add('on'), 360 + i * 430));
+    later(() => { document.getElementById('sum1').classList.add('show'); s1.classList.add('done'); }, 360 + rows.length * 430 + 250);
+  }
+
+  // ============ CONCEPT 2 ============
+  function playExtract() {
+    const feed = document.getElementById('feed2'), cnt = document.getElementById('c2'), done = document.getElementById('done2');
+    const md = document.getElementById('md2');
+    feed.innerHTML = ''; cnt.textContent = '0'; done.classList.remove('show'); md.classList.add('pulse');
+    DATA.forEach((r, i) => later(() => {
+      const el = document.createElement('div');
+      el.className = 'frow';
+      el.innerHTML = `<span class="fm">${r.m}</span><span class="chip" style="--c:${r.col}">${r.c}</span><span class="fv">R$ ${r.v}</span>`;
+      feed.appendChild(el);
+      void el.offsetWidth; el.classList.add('in');
+      cnt.textContent = String(i + 1);
+    }, 420 + i * 480));
+    later(() => { md.classList.remove('pulse'); done.classList.add('show'); }, 420 + DATA.length * 480 + 200);
+  }
+
+  // ============ CONCEPT 3 ============
+  function playPipe() {
+    const s3 = document.getElementById('s3');
+    const nodes = [...s3.querySelectorAll('.pnode')];
+    const lines = [...s3.querySelectorAll('.pline')];
+    nodes.forEach(n => n.classList.remove('act', 'fin'));
+    lines.forEach(l => l.classList.remove('fill'));
+    document.getElementById('psum3').classList.remove('show');
+    void s3.offsetWidth;
+    later(() => nodes[0].classList.add('act'), 200);
+    later(() => lines[0].classList.add('fill'), 850);
+    later(() => { nodes[0].classList.remove('act'); nodes[1].classList.add('act'); }, 1450);
+    later(() => lines[1].classList.add('fill'), 2050);
+    later(() => { nodes[1].classList.remove('act'); nodes[2].classList.add('act', 'fin'); }, 2650);
+    later(() => document.getElementById('psum3').classList.add('show'), 3050);
+  }
+
+  // ---- master loop: run all three together, replay every 6s ----
+  function cycle() {
+    clearTimers();
+    playScanner(); playExtract(); playPipe();
+    loopId = setTimeout(cycle, 6200);
+  }
+  let loopId = null;
+
+  document.querySelectorAll('.replay').forEach(btn => btn.addEventListener('click', () => {
+    const c = btn.dataset.c;
+    if (c === '1') playScanner(); else if (c === '2') playExtract(); else playPipe();
+  }));
+
+  cycle();
+</script>
+</body>
+</html>

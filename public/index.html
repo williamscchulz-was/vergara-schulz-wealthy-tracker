@@ -1403,6 +1403,14 @@ body::before {
 .cat-edit-del { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 9px; border: 1px solid transparent; background: transparent; color: var(--ink-3); cursor: pointer; transition: color .15s, background .15s; }
 .cat-edit-del:hover { color: var(--loss); background: color-mix(in oklab, var(--loss) 12%, transparent); }
 .cat-add-btn { width: 100%; justify-content: center; gap: 8px; border-style: dashed; margin-bottom: 4px; }
+/* Seletor de origem do import */
+.imp-type-modal { max-width: min(440px, 94vw); }
+.imp-type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0 4px; }
+.imp-type-opt { display: flex; flex-direction: column; align-items: center; gap: 9px; padding: 24px 14px; border-radius: 16px; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--ink-2); cursor: pointer; transition: .18s var(--ease-out); }
+.imp-type-opt:hover { border-color: var(--purple); color: var(--ink); transform: translateY(-2px); box-shadow: 0 14px 30px -18px rgba(172,95,219,.6); }
+.imp-type-opt svg { width: 30px; height: 30px; color: var(--purple-light); }
+.imp-type-nm { font-size: 13.5px; font-weight: 650; }
+.imp-type-ext { font-family: 'Geist Mono', monospace; font-size: 10px; color: var(--ink-3); background: var(--bg-elevated-2); padding: 2px 8px; border-radius: 6px; }
 .imp-meta { font-size: 12px; color: var(--ink-3); margin: 6px 0 10px; }
 .imp-meta b { color: var(--ink); font-family: 'Geist Mono', monospace; }
 .imp-list { max-height: 58vh; overflow-y: auto; overflow-x: hidden; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 14px; }
@@ -2331,6 +2339,11 @@ body::before {
 .louise-chip-val { color: var(--pink-light); font-weight: 600; }
 .louise-chip-var { font-weight: 700; }
 .louise-chip-var.gain { color: var(--gain); }
+/* Louise chip — legível no light mode (pink-light some no fundo claro) */
+:root[data-theme="light"] .louise-chip { color: #be185d; background: rgba(244,114,182,.16); border-color: rgba(244,114,182,.42); }
+:root[data-theme="light"] .louise-chip-name, :root[data-theme="light"] .louise-chip-val { color: #be185d; }
+:root[data-theme="light"] .louise-chip-heart { color: #db2777; }
+:root[data-theme="light"] .louise-chip-sep { color: #be185d; }
 .louise-chip-var.loss { color: var(--loss); }
 :root[data-theme="light"] .louise-chip { background: rgba(244,114,182,.08); border-color: rgba(244,114,182,.25); }
 /* Owner chips: light-theme overrides (the dark-theme text tints are too
@@ -3002,6 +3015,25 @@ body::before {
     <button class="btn-secondary" id="catCancel" data-i18n="exp.btn.cancel">Cancelar</button>
     <button class="btn-primary" id="catSave" data-i18n="exp.btn.save">Salvar</button>
   </div>
+</div></div>
+
+<!-- Escolher origem do import: cartão (PDF) ou conta corrente (CSV) -->
+<div class="modal-bg" id="importTypeModal"><div class="modal liquid imp-type-modal">
+  <h3 data-i18n="imp.type.title">O que você quer importar?</h3>
+  <p class="sub" data-i18n="imp.type.sub">Escolha a origem do arquivo.</p>
+  <div class="imp-type-grid">
+    <button class="imp-type-opt" data-kind="card" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+      <div class="imp-type-nm" data-i18n="imp.type.card">Cartão de crédito</div>
+      <div class="imp-type-ext">PDF</div>
+    </button>
+    <button class="imp-type-opt" data-kind="cc" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7"/><path d="M4 10v10h16V10"/><path d="M9 21v-6h6v6"/></svg>
+      <div class="imp-type-nm" data-i18n="imp.type.cc">Conta corrente</div>
+      <div class="imp-type-ext">CSV</div>
+    </button>
+  </div>
+  <div class="modal-foot"><div class="spacer"></div><button class="btn-secondary" id="importTypeCancel" data-i18n="exp.btn.cancel">Cancelar</button></div>
 </div></div>
 
 <!-- Generic confirm modal (used for Expense delete, and future destructive actions) -->
