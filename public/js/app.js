@@ -452,6 +452,22 @@ const I18N = {
     'yearly.toast.updated': 'Ano atualizado',
     'yearly.toast.added': 'Ano adicionado',
     'yearly.toast.deleted': 'Ano excluído',
+    'inv.cat.Acoes': 'Ações',
+    'inv.cat.FIIs': 'FIIs',
+    'inv.cat.Renda Fixa': 'Renda Fixa',
+    'inv.cat.Tesouro Direto': 'Tesouro Direto',
+    'inv.cat.Fundos de Investimento': 'Fundos de Invest.',
+    'inv.cat.ETFs Brasil': 'ETFs Brasil',
+    'inv.cat.ETFs Internacionais': 'ETFs Intern.',
+    'inv.cat.Criptomoedas': 'Criptomoedas',
+    'inv.cat.BDRs': 'BDRs',
+    'inv.cat.Outros': 'Outros',
+    'cash.delete.title': 'Excluir conta?',
+    'cash.delete.pension': 'Excluir previdência?',
+    'contrib.delete.title': 'Excluir aporte?',
+    'yearly.delete.title': 'Excluir este ano?',
+    'imp.refund': 'estorno',
+    'imp.cardword': 'cartão',
     // ---- Analytics cards (Fase C) ----
     'exp.daily.title': 'Ritmo diário',
     'exp.daily.sub': 'Gasto acumulado do mês',
@@ -784,6 +800,22 @@ const I18N = {
     'yearly.toast.updated': 'Year updated',
     'yearly.toast.added': 'Year added',
     'yearly.toast.deleted': 'Year deleted',
+    'inv.cat.Acoes': 'Stocks',
+    'inv.cat.FIIs': 'REITs',
+    'inv.cat.Renda Fixa': 'Fixed Income',
+    'inv.cat.Tesouro Direto': 'Treasury',
+    'inv.cat.Fundos de Investimento': 'Funds',
+    'inv.cat.ETFs Brasil': 'ETFs Brazil',
+    'inv.cat.ETFs Internacionais': 'ETFs Intl.',
+    'inv.cat.Criptomoedas': 'Crypto',
+    'inv.cat.BDRs': 'BDRs',
+    'inv.cat.Outros': 'Other',
+    'cash.delete.title': 'Delete account?',
+    'cash.delete.pension': 'Delete pension?',
+    'contrib.delete.title': 'Delete contribution?',
+    'yearly.delete.title': 'Delete this year?',
+    'imp.refund': 'refund',
+    'imp.cardword': 'card',
     // ---- Analytics cards ----
     'exp.daily.title': 'Daily pace',
     'exp.daily.sub': 'Cumulative spend this month',
@@ -2314,9 +2346,9 @@ async function deleteCash(type) {
   const id = cfg.state().editingId;
   if (!id) return;
   openConfirmModal({
-    title: type === 'pension' ? 'Excluir previdência?' : 'Excluir conta?',
-    sub: 'Esta ação não pode ser desfeita.',
-    confirmLabel: 'Sim, excluir',
+    title: type === 'pension' ? t('cash.delete.pension') : t('cash.delete.title'),
+    sub: t('exp.delete.sub'),
+    confirmLabel: t('exp.delete.confirm'),
     danger: true,
     onConfirm: async () => {
       cfg.state().accounts = cfg.state().accounts.filter(a => a.id !== id);
@@ -3037,7 +3069,7 @@ function renderI10Assets() {
 
   const html = sortedKeys.map(key => {
     const g = groups[key];
-    const label = CATEGORY_DISPLAY[key] || key;
+    const _ic = t('inv.cat.' + key); const label = (_ic !== 'inv.cat.' + key) ? _ic : (CATEGORY_DISPLAY[key] || key);
     const icon = CATEGORY_ICONS[key] || CATEGORY_ICONS['Outros'] || '';
     const pct = assetsTotal > 0 ? (g.value / assetsTotal) * 100 : 0;
     const n = g.items.length;
@@ -3388,8 +3420,8 @@ async function deleteContrib() {
   if (!_editingContribId) return;
   const id = _editingContribId;
   openConfirmModal({
-    title: 'Excluir aporte?', sub: 'Esta ação não pode ser desfeita.',
-    confirmLabel: 'Sim, excluir', danger: true,
+    title: t('contrib.delete.title'), sub: t('exp.delete.sub'),
+    confirmLabel: t('exp.delete.confirm'), danger: true,
     onConfirm: async () => {
       try {
         await deleteDoc(doc(db, 'household', 'main', 'contributions', id));
@@ -3405,8 +3437,8 @@ async function deleteContrib() {
 
 async function deleteContribById(id) {
   openConfirmModal({
-    title: 'Excluir aporte?', sub: 'Esta ação não pode ser desfeita.',
-    confirmLabel: 'Sim, excluir', danger: true,
+    title: t('contrib.delete.title'), sub: t('exp.delete.sub'),
+    confirmLabel: t('exp.delete.confirm'), danger: true,
     onConfirm: async () => {
       try {
         await deleteDoc(doc(db, 'household', 'main', 'contributions', id));
@@ -3874,8 +3906,8 @@ async function deleteYearly() {
   if (!editingYearlyId) return;
   const id = editingYearlyId;
   openConfirmModal({
-    title: 'Excluir este ano?', sub: 'Esta ação não pode ser desfeita.',
-    confirmLabel: 'Sim, excluir', danger: true,
+    title: t('yearly.delete.title'), sub: t('exp.delete.sub'),
+    confirmLabel: t('exp.delete.confirm'), danger: true,
     onConfirm: async () => {
       try {
         await deleteDoc(docYearly(id));
@@ -4282,8 +4314,8 @@ function renderImportReview() {
     // pessoas compram por eles) → todo lançamento é gasto de vocês. Só o
     // estorno (crédito/devolução) vem desmarcado por padrão.
     const checked = !tx.refund ? 'checked' : '';
-    const badges = (tx.inst ? `<span class="imp-badge">${esc(tx.inst)}</span> ` : '') + (tx.refund ? `<span class="imp-badge ref">estorno</span> ` : '');
-    const card = tx.holder ? `<span class="imp-card">· cartão ${esc(tx.holder.split(' ')[0])}</span>` : '';
+    const badges = (tx.inst ? `<span class="imp-badge">${esc(tx.inst)}</span> ` : '') + (tx.refund ? `<span class="imp-badge ref">${esc(t('imp.refund'))}</span> ` : '');
+    const card = tx.holder ? `<span class="imp-card">· ${esc(t('imp.cardword'))} ${esc(tx.holder.split(' ')[0])}</span>` : '';
     return `<label class="imp-row">
       <input type="checkbox" data-idx="${i}" ${checked}>
       <span class="imp-date">${esc(tx.date)}</span>
