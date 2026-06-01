@@ -52,6 +52,7 @@ const docReserves = doc(db, "household", "main", "config", "reserves");
 const docPension  = doc(db, "household", "main", "config", "pension");
 const docBudgets  = doc(db, "household", "main", "config", "budgets");
 const docUserPrefs = doc(db, "household", "main", "config", "userPrefs");
+const docImportRules = doc(db, "household", "main", "config", "importRules");  // memória do importador (estabelecimento → categoria/de-quem)
 
 // Known primary account → defaults to Investments on first login.
 // Any other UID defaults to Expenses (household spouse use case).
@@ -325,6 +326,7 @@ const I18N = {
     'rz.expenses': 'Despesas',
     'rz.savings': 'Economias',
     'rz.balance': 'Saldo',
+    'rz.debts': 'Dívidas',
     'rz.byCat': 'Despesas por categoria',
     'rz.byPerson': 'Resumo por pessoa',
     'rz.variable': 'Variáveis',
@@ -609,6 +611,7 @@ const I18N = {
     'rz.expenses': 'Expenses',
     'rz.savings': 'Savings',
     'rz.balance': 'Balance',
+    'rz.debts': 'Debts',
     'rz.byCat': 'Expenses by category',
     'rz.byPerson': 'By person',
     'rz.variable': 'Variable',
@@ -1102,6 +1105,9 @@ function renderResumo() {
   const sum = arr => arr.reduce((s, e) => s + (+e.value || 0), 0);
   const ganhos = sum(inc), despesas = sum(exp);
   const economias = (typeof reservesTotal === 'function' ? reservesTotal() : 0);
+  const _tYM = new Date().toISOString().slice(0, 7);
+  let dividas = 0;  // comprometido à frente: parcelas provisionadas em meses futuros
+  for (const e of (state.expenses || [])) { if (e.provisioned && String(e.date || '').slice(0, 7) > _tYM) dividas += (+e.value || 0); }
   const saldo = ganhos - despesas;
 
   let fixas = 0, variaveis = 0;
@@ -1174,6 +1180,7 @@ function renderResumo() {
     <div class="rz-kpis">
       <div class="rz-kpi"><div class="rz-kpi-l">${esc(t('rz.income'))}</div><div class="rz-kpi-v">${m(ganhos)}</div></div>
       <div class="rz-kpi"><div class="rz-kpi-l">${esc(t('rz.expenses'))}</div><div class="rz-kpi-v">${m(despesas)}</div></div>
+      <div class="rz-kpi"><div class="rz-kpi-l">${esc(t('rz.debts'))}</div><div class="rz-kpi-v ${dividas > 0 ? 'rz-neg' : 'rz-muted'}">${m(dividas)}</div></div>
       <div class="rz-kpi"><div class="rz-kpi-l">${esc(t('rz.savings'))}</div><div class="rz-kpi-v rz-muted">${m(economias)}</div></div>
       <div class="rz-kpi rz-saldo"><div class="rz-kpi-l">${esc(t('rz.balance'))}</div><div class="rz-kpi-v ${saldo < 0 ? 'rz-neg' : 'rz-pos'}">${m(saldo)}</div></div>
     </div>
@@ -3904,6 +3911,7 @@ const IMP_CAT_RULES = [
   ['compras', ['amazon','shopee','mercadolivre','mercado livre','magazine','magalu','riachuelo','renner','c&a','shein','aliexpress','marketplace','americanas','centauro','bluvitta','espor','neumarkt','mlb','fazstore','blusa','loja']],
   ['moradia', ['aluguel','condominio','imobil','energia','copel','celesc','sanepar','internet','claro','vivo','tim ','enel','empreend','conta de gas','conta de telefone']],
 ];
+function impRuleKey(desc) { return String(desc || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 16); }
 function impCategorize(desc) {
   const d = ' ' + (desc || '').toLowerCase() + ' ';
   for (const [c, ks] of IMP_CAT_RULES) if (ks.some(k => d.includes(k))) return c;
@@ -4014,8 +4022,9 @@ function renderImportReview() {
   const ownerOpts = OWNERS.map(o => `<option value="${o}">${esc(t('exp.owner.' + o))}</option>`).join('');
   const catOpts = Object.keys(CATEGORIES).map(k => `<option value="${k}">${esc(CATEGORIES[k].label)}</option>`).join('');
   const rows = _importTxns.map((tx, i) => {
-    const owner = impPersonGuess(tx);
-    const cat = impCategorize(tx.desc);
+    const rule = (state.importRules || {})[impRuleKey(tx.desc)];
+    const owner = (rule && rule.owner) || impPersonGuess(tx);
+    const cat = (rule && rule.category) || impCategorize(tx.desc);
     // Todos os portadores são cartões ADICIONAIS da conta do casal (outras
     // pessoas compram por eles) → todo lançamento é gasto de vocês. Só o
     // estorno (crédito/devolução) vem desmarcado por padrão.
@@ -4048,13 +4057,14 @@ async function doImport() {
   const monthISO = (off) => { const t0 = baseY * 12 + (baseM - 1) + off; return `${Math.floor(t0 / 12)}-${String((t0 % 12) + 1).padStart(2, '0')}-15`; };
 
   const checks = [...document.querySelectorAll('#importList .imp-row input[type="checkbox"]:checked')];
-  const batch = []; let provCount = 0;
+  const batch = []; let provCount = 0; const learned = {};
   for (const cb of checks) {
     const tx = _importTxns[+cb.dataset.idx];
     if (!tx) continue;
     const row = cb.closest('.imp-row');
     const owner = row.querySelector('.imp-owner').value;
     const category = row.querySelector('.imp-cat').value;
+    learned[impRuleKey(tx.desc)] = { category, owner };  // memória: aprende a escolha pra próxima fatura
     const nat = category === 'assinaturas' ? 'fixa' : 'variavel';
     const cardNote = tx.holder ? ('cartão: ' + tx.holder.split(' ')[0]) : '';
     const base = { type: 'expense', description: tx.desc, value: tx.value, category, owner, nature: nat, source: 'import:' + (tx._src === 'cc' ? 'conta' : 'cartao'), createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import' };
@@ -4086,6 +4096,8 @@ async function doImport() {
     }
   }
   if (!batch.length) { showToast(t('imp.alldup')); return; }
+  // memória que aprende: guarda as escolhas (estabelecimento → categoria/de-quem) pro próximo import
+  if (Object.keys(learned).length) setDoc(docImportRules, { rules: learned, updatedAt: serverTimestamp() }, { merge: true }).catch(e => console.warn('[import] rules save', e));
 
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const ov = $('importOverlay'), prog = $('importOvProg'), C = 138.2;
@@ -4382,6 +4394,9 @@ function subscribeAll() {
   });
   unsub.userPrefs = onSnapshot(docUserPrefs, (snap) => {
     state.userPrefs = snap.exists() ? (snap.data() || {}) : {};
+  });
+  unsub.importRules = onSnapshot(docImportRules, (snap) => {
+    state.importRules = (snap.exists() && snap.data() && snap.data().rules) || {};
   });
   unsub.budgets = onSnapshot(docBudgets, (snap) => {
     const data = snap.exists() ? (snap.data() || {}) : {};
