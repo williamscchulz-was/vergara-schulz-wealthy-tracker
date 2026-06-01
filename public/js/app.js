@@ -3792,8 +3792,10 @@ function renderImportReview() {
   const rows = _importTxns.map((tx, i) => {
     const owner = impPersonGuess(tx);
     const cat = impCategorize(tx.desc);
-    const couple = /WILLIAM|FLAVIA|VERGARA/i.test(tx.holder || '');
-    const checked = (couple && !tx.refund) ? 'checked' : '';
+    // Todos os portadores são cartões ADICIONAIS da conta do casal (outras
+    // pessoas compram por eles) → todo lançamento é gasto de vocês. Só o
+    // estorno (crédito/devolução) vem desmarcado por padrão.
+    const checked = !tx.refund ? 'checked' : '';
     const badges = (tx.inst ? `<span class="imp-badge">${esc(tx.inst)}</span> ` : '') + (tx.refund ? `<span class="imp-badge ref">estorno</span> ` : '');
     const card = tx.holder ? `<span class="imp-card">· cartão ${esc(tx.holder.split(' ')[0])}</span>` : '';
     return `<label class="imp-row">
