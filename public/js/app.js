@@ -2388,13 +2388,17 @@ function renderDividendsChart() {
 // resilientes: nenhum sync/import consegue apagá-los (o Firestore só é
 // usado se tiver um valor > 0, então edições manuais ainda têm prioridade).
 // Pra ajustar um ano: editar pelo botão "+ Year" no app (vence este mapa).
+// Valores REAIS de fim de ano (dezembro) extraídos do barchart do I10
+// (/summary/barchart/2814459/120/all, sum_equity do mês 12 de cada ano).
+// Fallback caso o Firestore esteja vazio — mas o ideal é o "I10" import
+// gravar esses mesmos números (o worker já puxa o barchart de 120 meses).
 const HISTORICAL_EQUITY = {
-  2020: 21200,
-  2021: 64200,
-  2022: 70900,
-  2023: 298400,
-  2024: 685800,
-  2025: 1340000,
+  2020: 21175,
+  2021: 64175,
+  2022: 66339,
+  2023: 293344,
+  2024: 612610,
+  2025: 1260018,
 };
 // Resolve year-end equity: Firestore value if present & >0, else the
 // hardcoded historical fallback, else 0.
