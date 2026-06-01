@@ -1238,7 +1238,7 @@ function renderResumo() {
   // ---- Anual: gráfico de 12 meses (receitas × despesas) + visões do ano ----
   let chartHtml = '', visoesHtml = '';
   if (annual) {
-    const MS = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+    const MS = (getLang() === 'en' ? MONTH_NAMES_SHORT_EN : MONTH_NAMES_SHORT).map(m => m.toUpperCase());
     const mo = Array.from({ length: 12 }, () => ({ rec: 0, desp: 0 }));
     for (const e of items) {
       const i = +String(e.date || '').slice(5, 7) - 1;
@@ -3202,7 +3202,7 @@ function renderContributions() {
   if (avgEl) avgEl.textContent = fmtBRL0(avg);
 
   wrap.innerHTML = sortedGroups.map(g => {
-    const monthLbl = MONTH_NAMES_SHORT[(g.month || 1) - 1] || '?';
+    const monthLbl = (getLang() === 'en' ? MONTH_NAMES_SHORT_EN : MONTH_NAMES_SHORT)[(g.month || 1) - 1] || '?';
     const countBadge = g.items.length > 1
       ? `<span style="display:inline-block;padding:2px 7px;background:var(--purple-soft);color:var(--purple-light);border-radius:999px;font-size:9px;font-weight:700;margin-left:6px;font-family:'Geist Mono',monospace">${g.items.length}</span>`
       : '';
@@ -3233,7 +3233,7 @@ function openContribListModal(year, month) {
   const modal = document.getElementById('contribListModal');
   if (!modal) return;
 
-  const monthLbl = MONTH_NAMES_SHORT[(month || 1) - 1] || '?';
+  const monthLbl = (getLang() === 'en' ? MONTH_NAMES_SHORT_EN : MONTH_NAMES_SHORT)[(month || 1) - 1] || '?';
   document.getElementById('contribListTitle').textContent = `${monthLbl}/${year}`;
 
   const items = (state.contributions || []).filter(c => c.year === year && c.month === month)
