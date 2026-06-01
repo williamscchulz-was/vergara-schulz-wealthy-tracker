@@ -5,6 +5,28 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### UI estática + destaque do "+ Ganho" + idioma (2026-06-01)
+Pedidos do dono: "esse mundo que fica se mexendo não é legal, deixa
+estático"; o "+ Ganho" precisa chamar mais atenção; e "o idioma está
+bugado".
+- **Estático**: `initMicroFX()` desligado (early return) — acabaram os
+  CTAs magnéticos (que faziam "+ Ganho"/"+ Nova despesa" se sobrepor no
+  hover) e o glow que seguia o cursor. Animação de drift do fundo
+  (`body::after`) removida — fundo parado.
+- **"+ Ganho"**: estava cinza por um bug de cascata (`.btn-ghost` na
+  linha 1847 sobrescrevia o verde de `.btn-add-income`). Corrigido com
+  seletor composto `.btn-ghost.btn-add-income` + verde reforçado (gain
+  16%/45%, weight 700, glow sutil) — agora chama atenção como ação
+  positiva.
+- **Idioma**: auditoria multi-agente concluiu que o dicionário está
+  saudável (236 chaves PT/EN simétricas) — o "bug" é texto chumbado que
+  não passa por `t()`. `applyI18n()` agora também traduz `data-i18n-title`
+  (tooltips) e `data-i18n-aria`. Os botões Cancel/Save/Delete/Close de 6
+  modais (I10, config, reserva, previdência, ano, aporte, FX) estavam em
+  inglês chumbado no modo PT → mapeados pras chaves `exp.btn.*` (nova:
+  `exp.btn.close`). Pendente do sweep: rótulos de categoria (`CATEGORIES`)
+  e toasts hardcoded em JS.
+
 ### "De quem é o gasto" — William / Flávia / Louise / Família (2026-06-01)
 Pedido da Flávia: o lançamento precisa atribuir o gasto a mais gente que
 só W/F/Conjunto. Expandido pra **4 opções** (picker 2×2): William (cyan),

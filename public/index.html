@@ -224,7 +224,7 @@ body::after {
     radial-gradient(circle at 70% 40%, rgba(227,162,238,.10), transparent 50%);
   pointer-events: none;
   z-index: 0;
-  animation: glow-drift-top 12s ease-in-out infinite;
+  /* static — drift animation removed (owner prefers a still background) */
 }
 :root[data-theme="light"] body::after {
   background:
@@ -1276,22 +1276,23 @@ body::before {
 
 /* Header group: + Ganho (secondary) next to + Nova despesa (primary) */
 .exp-add-group { display: inline-flex; gap: 8px; align-items: center; }
-.btn-add-income {
-  display: inline-flex; align-items: center;
-  padding: 9px 14px;
-  background: var(--gain-soft);
-  border: 1px solid color-mix(in oklab, var(--gain) 26%, transparent);
+.btn-ghost.btn-add-income {
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 9px 15px;
+  background: color-mix(in oklab, var(--gain) 16%, transparent);
+  border: 1px solid color-mix(in oklab, var(--gain) 45%, transparent);
   color: var(--gain);
   border-radius: var(--radius-pill);
   font-family: inherit;
-  font-size: 12px; font-weight: 600; letter-spacing: 0.01em;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.01em;
   cursor: pointer;
-  transition: all 0.18s var(--ease-out);
+  box-shadow: 0 2px 10px color-mix(in oklab, var(--gain) 14%, transparent);
+  transition: background 0.18s var(--ease-out), border-color 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out);
 }
-.btn-add-income:hover {
-  background: color-mix(in oklab, var(--gain) 18%, transparent);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px color-mix(in oklab, var(--gain) 20%, transparent);
+.btn-ghost.btn-add-income:hover {
+  background: color-mix(in oklab, var(--gain) 24%, transparent);
+  border-color: color-mix(in oklab, var(--gain) 62%, transparent);
+  box-shadow: 0 4px 16px color-mix(in oklab, var(--gain) 26%, transparent);
 }
 
 /* Owner segmented picker in modal */
@@ -2876,8 +2877,8 @@ body::before {
   </div>
   <div class="modal-foot">
     <div class="spacer"></div>
-    <button class="btn-secondary" id="i10Cancel">Cancel</button>
-    <button class="btn-primary" id="i10Save">Save</button>
+    <button class="btn-secondary" id="i10Cancel" data-i18n="exp.btn.cancel">Cancelar</button>
+    <button class="btn-primary" id="i10Save" data-i18n="exp.btn.save">Salvar</button>
   </div>
 </div></div>
 
@@ -2903,8 +2904,8 @@ body::before {
   </div>
   <div class="modal-foot">
     <div class="spacer"></div>
-    <button class="btn-secondary" id="i10CfgCancel">Cancel</button>
-    <button class="btn-primary" id="i10CfgSave">Save</button>
+    <button class="btn-secondary" id="i10CfgCancel" data-i18n="exp.btn.cancel">Cancelar</button>
+    <button class="btn-primary" id="i10CfgSave" data-i18n="exp.btn.save">Salvar</button>
   </div>
 </div></div>
 
@@ -2922,10 +2923,10 @@ body::before {
     </div>
   </div>
   <div class="modal-foot">
-    <button class="btn-secondary" id="reserveDeleteBtn" style="background:transparent;border:1px solid rgba(255,94,87,0.3);color:#ff5e57">Excluir</button>
+    <button class="btn-secondary" id="reserveDeleteBtn" data-i18n="exp.btn.delete" style="background:transparent;border:1px solid rgba(255,94,87,0.3);color:#ff5e57">Excluir</button>
     <div class="spacer"></div>
-    <button class="btn-secondary" id="reserveModalCancel">Cancel</button>
-    <button class="btn-primary" id="reserveModalSave">Save</button>
+    <button class="btn-secondary" id="reserveModalCancel" data-i18n="exp.btn.cancel">Cancelar</button>
+    <button class="btn-primary" id="reserveModalSave" data-i18n="exp.btn.save">Salvar</button>
   </div>
 </div></div>
 
@@ -2943,10 +2944,10 @@ body::before {
     </div>
   </div>
   <div class="modal-foot">
-    <button class="btn-secondary" id="pensionDeleteBtn" style="background:transparent;border:1px solid rgba(255,94,87,0.3);color:#ff5e57">Excluir</button>
+    <button class="btn-secondary" id="pensionDeleteBtn" data-i18n="exp.btn.delete" style="background:transparent;border:1px solid rgba(255,94,87,0.3);color:#ff5e57">Excluir</button>
     <div class="spacer"></div>
-    <button class="btn-secondary" id="pensionModalCancel">Cancel</button>
-    <button class="btn-primary" id="pensionModalSave">Save</button>
+    <button class="btn-secondary" id="pensionModalCancel" data-i18n="exp.btn.cancel">Cancelar</button>
+    <button class="btn-primary" id="pensionModalSave" data-i18n="exp.btn.save">Salvar</button>
   </div>
 </div></div>
 
@@ -2959,10 +2960,10 @@ body::before {
     <div class="field full"><label>Proventos do ano (R$)</label><input type="number" id="yearlyDivs" placeholder="50000" min="0" step="0.01" /><div class="hint">Total de dividendos recebidos neste ano</div></div>
   </div>
   <div class="modal-foot">
-    <button class="btn-danger" id="yearlyDelete" style="display:none">Delete</button>
+    <button class="btn-danger" id="yearlyDelete" data-i18n="exp.btn.delete" style="display:none">Excluir</button>
     <div class="spacer"></div>
-    <button class="btn-secondary" id="yearlyCancel">Cancel</button>
-    <button class="btn-primary" id="yearlySave">Save</button>
+    <button class="btn-secondary" id="yearlyCancel" data-i18n="exp.btn.cancel">Cancelar</button>
+    <button class="btn-primary" id="yearlySave" data-i18n="exp.btn.save">Salvar</button>
   </div>
 </div></div>
 
@@ -2971,7 +2972,7 @@ body::before {
   <p class="sub" id="contribListTotal">-</p>
   <div id="contribListItems" style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;max-height:50vh;overflow-y:auto"></div>
   <div class="modal-foot">
-    <button class="btn-secondary" id="contribListClose">Fechar</button>
+    <button class="btn-secondary" id="contribListClose" data-i18n="exp.btn.close">Fechar</button>
     <div class="spacer"></div>
     <button class="btn-primary" id="contribListAdd">+ New contribution</button>
   </div>
@@ -2992,10 +2993,10 @@ body::before {
     <div class="field full"><label>Descrição (opcional)</label><input type="text" id="contribNote" placeholder="Ex: ITSA4, Tesouro IPCA, aporte XP..." autocomplete="off" maxlength="80" /></div>
   </div>
   <div class="modal-foot">
-    <button class="btn-danger" id="contribDelete" style="display:none">Excluir</button>
+    <button class="btn-danger" id="contribDelete" data-i18n="exp.btn.delete" style="display:none">Excluir</button>
     <div class="spacer"></div>
-    <button class="btn-secondary" id="contribCancel">Cancelar</button>
-    <button class="btn-primary" id="contribSave">Salvar</button>
+    <button class="btn-secondary" id="contribCancel" data-i18n="exp.btn.cancel">Cancelar</button>
+    <button class="btn-primary" id="contribSave" data-i18n="exp.btn.save">Salvar</button>
   </div>
 </div></div>
 
@@ -3015,8 +3016,8 @@ body::before {
       </div>
     </div>
     <div class="modal-foot">
-      <button class="btn-ghost" id="fxModalCancel">Cancelar</button>
-      <button class="btn-primary" id="fxModalSave">Salvar</button>
+      <button class="btn-ghost" id="fxModalCancel" data-i18n="exp.btn.cancel">Cancelar</button>
+      <button class="btn-primary" id="fxModalSave" data-i18n="exp.btn.save">Salvar</button>
     </div>
   </div>
 </div>

@@ -303,6 +303,7 @@ const I18N = {
     'exp.btn.delete': 'Excluir',
     'exp.btn.cancel': 'Cancelar',
     'exp.btn.save': 'Salvar',
+    'exp.btn.close': 'Fechar',
     'exp.btn.saving': 'Salvando...',
     'exp.toast.saved': 'Despesa atualizada',
     'exp.toast.added': 'Despesa registrada',
@@ -545,6 +546,7 @@ const I18N = {
     'exp.btn.delete': 'Delete',
     'exp.btn.cancel': 'Cancel',
     'exp.btn.save': 'Save',
+    'exp.btn.close': 'Close',
     'exp.btn.saving': 'Saving...',
     'exp.toast.saved': 'Expense updated',
     'exp.toast.added': 'Expense recorded',
@@ -647,6 +649,13 @@ function applyI18n() {
   // Placeholders (input/textarea)
   document.querySelectorAll('[data-i18n-ph]').forEach(el => {
     el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph')));
+  });
+  // Tooltips (title) + aria-labels
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    el.setAttribute('title', t(el.getAttribute('data-i18n-title')));
+  });
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+    el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria')));
   });
   // Update lang label in topbar
   const label = document.getElementById('langLabel');
@@ -3950,6 +3959,12 @@ applyI18n();
 //  Nothing scales or shifts content that holds numbers (readability).
 // ============================================================
 function initMicroFX() {
+  // Owner preference (jun/2026): keep the UI STATIC. The magnetic CTAs
+  // made "+ Ganho" / "+ Nova despesa" drift into each other on hover, and
+  // the cursor-tracking hero glow felt restless ("esse mundo que fica se
+  // mexendo não é legal"). Disabled — nothing follows the pointer now.
+  return;
+  // eslint-disable-next-line no-unreachable
   const fine = window.matchMedia('(pointer: fine)').matches;
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (!fine || reduce) return;
