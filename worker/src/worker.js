@@ -244,7 +244,11 @@ async function handle(request) {
         fetchI10(`/summary/metrics/${walletId}?type=without-earnings&raw=1`),
         fetchI10(`/earnings/total-period/${walletId}?start_date=${start}&end_date=${end}`),
         fetchAllActives(walletId),
-        fetchI10(`/summary/barchart/${walletId}/12/all`).catch(() => null),
+        // 120 months (10y) so the app derives year-end equity per year
+        // straight from the barchart — no Firestore equity write, nothing
+        // to wipe. Falls back to 12 if the long range ever fails.
+        fetchI10(`/summary/barchart/${walletId}/120/all`)
+          .catch(() => fetchI10(`/summary/barchart/${walletId}/12/all`).catch(() => null)),
       ]);
       return json({
         metrics,

@@ -2400,11 +2400,27 @@ const HISTORICAL_EQUITY = {
   2024: 612610,
   2025: 1260018,
 };
-// Resolve year-end equity: Firestore value if present & >0, else the
-// hardcoded historical fallback, else 0.
+// Year-end equity DERIVED live from the I10 barchart (state.i10.monthly):
+// the latest month seen for a given year (Dec, or the most recent). When
+// /i10/all returns the long (120-month) barchart, this covers every year
+// straight from I10 — no Firestore write, nothing to wipe.
+function derivedYearEndEquity(year) {
+  const m = state.i10.monthly || [];
+  let best = null;
+  for (const row of m) {
+    if (+row.year === +year && (!best || +row.month > +best.month)) best = row;
+  }
+  return best ? (+best.equity || 0) : 0;
+}
+// Resolve year-end equity with precedence:
+//   1. manual Firestore value (user edited via "+ Year") — always wins
+//   2. live value derived from the I10 barchart
+//   3. hardcoded historical fallback (offline / I10 unreachable)
 function yearEquity(y) {
   const fs = +y.equity;
   if (Number.isFinite(fs) && fs > 0) return fs;
+  const d = derivedYearEndEquity(+y.year);
+  if (d > 0) return d;
   return HISTORICAL_EQUITY[+y.year] || 0;
 }
 
@@ -2711,7 +2727,11 @@ function renderMonthlyReturns() {
   const badge = document.getElementById('mrReturnBadge');
   if (!svg || !tbody) return;
 
-  const rows = computeMonthlyReturns(state.i10.monthly || [], state.contributions || [], state.yearly || []);
+  // The barchart may now carry the full 10-year history (120 months);
+  // this card only wants the recent run, so slice to the last 13 months
+  // (→ 12 monthly returns). The full series still feeds yearEquity().
+  const recentMonthly = (state.i10.monthly || []).slice(-13);
+  const rows = computeMonthlyReturns(recentMonthly, state.contributions || [], state.yearly || []);
   if (rows.length === 0) {
     wrap.style.display = 'none';
     if (empty) {

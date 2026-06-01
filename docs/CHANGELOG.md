@@ -55,6 +55,27 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Patrimônio por ano agora vem AO VIVO do I10 (barchart 120 meses)
+Confirmado que `/summary/barchart/2814459/120/all` devolve os 10 anos
+completos com `sum_equity` real (anonimamente). A solução definitiva:
+derivar o patrimônio de fim de ano direto do barchart a cada Sync —
+sem gravar no Firestore, então impossível de apagar.
+
+- **Worker**: `/i10/all` passa a buscar `/barchart/.../120/all` (era 12),
+  com fallback pra 12 se o range longo falhar. **Requer redeploy.**
+- **App**: `parseI10Barchart` popula `state.i10.monthly` com ~70 meses.
+  `derivedYearEndEquity(year)` pega o último mês de cada ano. `yearEquity`
+  resolve com precedência: Firestore manual > derivado do barchart >
+  `HISTORICAL_EQUITY` (fallback). Card de rentabilidade fatia os últimos
+  13 meses pra não inflar.
+- `HISTORICAL_EQUITY` corrigido pros valores reais de Dezembro (eram
+  arredondados/errados: 2024 e 2025 estavam ~73-80k off).
+
+Diagnóstico: o worker deployado ainda era a versão antiga do `/i10/yearly`
+(equity hardcoded null) — o teste `/i10/yearly` voltava null em todo ano
+mesmo com o barchart funcionando. O novo caminho (derivar do `/i10/all`)
+elimina a dependência do botão "I10" e do Firestore pra esse dado.
+
 ### Net worth por ano blindado contra wipe (fallback embutido)
 O patrimônio histórico (2020-2025) sumiu de novo — `renderPLChart` filtra
 `equity > 0` e os anos antigos ficaram null/0 no Firestore. Em vez de
