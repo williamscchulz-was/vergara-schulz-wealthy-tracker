@@ -71,7 +71,11 @@ no ar como backup.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
-### Cron real: sync diário às 8h BRT (worker → Firestore)
+### Cron diário às 8h BRT (worker → Firestore) — PARKED (não ativado)
+> **Status:** código no repo, gatilho **desligado** (`crons` comentado no
+> `wrangler.toml`). O auto-sync ao abrir o app já mantém tudo fresco;
+> ligar o cron é opcional (ver `DEPLOY-WORKER.md`). Decisão do dono.
+
 O auto-sync client-side só roda quando alguém abre o app. Pra atualizar
 de verdade todo dia 8h sem ninguém abrir, o worker ganhou um Cron
 Trigger que grava direto no Firestore.

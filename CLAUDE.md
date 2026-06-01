@@ -54,7 +54,7 @@ O app é **single-page**, **client-side puro**, servido estaticamente. Não há 
   - `/fx/rate` — cotação USD→BRL via AwesomeAPI (`economia.awesomeapi.com.br`, free, sem auth), cache de 15min. Retorna `{ rateUSD, rateSource, rateUpdatedAt }`
 - Nenhuma autenticação / cookie / token nos endpoints proxy — só o ID público da carteira
 - Free tier (100k req/dia) sobra muito
-- **Cron Trigger** (`scheduled()` handler + `crons = ["0 11 * * *"]` no `wrangler.toml`): roda 08:00 BRT diário, busca I10 (W + Louise) + USD e grava direto em `config/i10` / `config/i10-louise` / `config/fx` — sem ninguém abrir o app. Autentica como admin via service account do Firebase (secret `FIREBASE_SA`, JSON inteiro, encriptado no CF — **não vai no repo**). Faz JWT RS256 → token OAuth → Firestore REST API (PATCH com `updateMask` = merge). `updatedBy: 'cron 8h'`. Setup completo em `docs/DEPLOY-WORKER.md`. É a **única credencial sensível** do sistema; se vazar, revogar no Firebase Console.
+- **Cron Trigger** (`scheduled()` handler) — **PARKED / NÃO ativado**. O código existe, mas o gatilho está desligado (`crons` comentado no `wrangler.toml`); o app atualiza ao abrir (auto-sync), o que já atende — decisão do dono (jun/2026: "deixa quieto o cron, tá funcionando legal quando abre atualiza"). Se ligado, rodaria 08:00 BRT diário buscando I10 (W + Louise) + USD e gravando em `config/i10` / `config/i10-louise` / `config/fx` sem ninguém abrir o app — autentica via service account do Firebase (secret `FIREBASE_SA`), JWT RS256 → token OAuth → Firestore REST API (PATCH `updateMask`), `updatedBy: 'cron 8h'`. Pra ligar: `docs/DEPLOY-WORKER.md`.
 
 ---
 

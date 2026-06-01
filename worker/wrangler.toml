@@ -5,13 +5,13 @@ compatibility_date = "2024-11-01"
 # Deploy: `wrangler deploy` from ./worker
 # Dev:    `wrangler dev`    from ./worker
 
-# Cron: sync diário 08:00 BRT (UTC-3) = 11:00 UTC. O handler scheduled()
-# busca o I10 e grava em config/i10, config/i10-louise, config/fx usando
-# a service account do Firebase (secret FIREBASE_SA).
-[triggers]
-crons = ["0 11 * * *"]
-
-# Secret necessário (NÃO vai no repo — setar no dashboard ou via
-# `wrangler secret put FIREBASE_SA`):
+# Cron (PARKED — NÃO ativado). O handler scheduled() existe no código,
+# mas o gatilho está DESLIGADO: o app atualiza ao abrir (auto-sync), o
+# que já atende. Pra ligar a sync diária 08:00 BRT (11:00 UTC) sem
+# ninguém abrir o app, descomente o bloco abaixo, crie o secret
+# FIREBASE_SA e rode `wrangler deploy`. Passo a passo em
+# ../docs/DEPLOY-WORKER.md.
+#
+# [triggers]
+# crons = ["0 11 * * *"]
 #   FIREBASE_SA = <JSON inteiro da service account do Firebase>
-# Ver ../docs/DEPLOY-WORKER.md (seção Cron) pro passo a passo.
