@@ -366,6 +366,9 @@ const I18N = {
     'imp.ready': 'Pronto!',
     'imp.imported': 'lançamentos importados',
     'imp.prov': 'provisão',
+    'imp.stage.read': 'Lendo',
+    'imp.stage.cat': 'Categorizando',
+    'imp.stage.done': 'Pronto',
     'imp.type.title': 'O que você quer importar?',
     'imp.type.sub': 'Escolha a origem do arquivo.',
     'imp.type.card': 'Cartão de crédito',
@@ -733,6 +736,9 @@ const I18N = {
     'imp.ready': 'Done!',
     'imp.imported': 'entries imported',
     'imp.prov': 'provision',
+    'imp.stage.read': 'Reading',
+    'imp.stage.cat': 'Categorizing',
+    'imp.stage.done': 'Done',
     'imp.type.title': 'What do you want to import?',
     'imp.type.sub': 'Choose the file source.',
     'imp.type.card': 'Credit card',
@@ -4360,7 +4366,11 @@ async function handleImportFile(file) {
   const isCsv = _importKind ? (_importKind === 'cc') : (/\.csv$/i.test(file.name || '') || file.type === 'text/csv');
   // Estado "lendo": overlay premium com o anel girando enquanto o arquivo é parseado.
   if (ov && !reduce) {
-    ov.classList.remove('done', 'out'); ov.classList.add('reading'); ov.hidden = false;
+    ov.classList.remove('done', 'out', 'scanning');
+    ov.querySelectorAll('.imp-pnode').forEach(n => n.classList.remove('act', 'fin'));
+    ov.querySelectorAll('.imp-pconn').forEach(c => c.classList.remove('fill'));
+    { const r = $('impRows'); if (r) r.innerHTML = ''; }
+    ov.classList.add('reading'); ov.hidden = false;
     if ($('importOvText')) $('importOvText').textContent = t('imp.reading');
     if ($('importOvSub')) $('importOvSub').textContent = file.name || '';
   } else { showToast(t('imp.reading')); }
@@ -4471,41 +4481,61 @@ async function doImport() {
   if (Object.keys(learned).length) setDoc(docImportRules, { rules: learned, updatedAt: serverTimestamp() }, { merge: true }).catch(e => console.warn('[import] rules save', e));
 
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const ov = $('importOverlay'), prog = $('importOvProg'), C = 314.16;
+  const ov = $('importOverlay');
   $('importConfirm').disabled = true; $('importCancel').disabled = true;
-  if (ov && !reduce) {
-    ov.classList.remove('done', 'out', 'reading'); ov.hidden = false;
-    if ($('importOvText')) $('importOvText').textContent = t('imp.importing');
-    if ($('importOvSub')) $('importOvSub').textContent = '';
-    if (prog) {
-      prog.style.transition = 'none'; prog.style.strokeDashoffset = C;
-      void prog.getBoundingClientRect();
-      prog.style.transition = 'stroke-dashoffset .85s cubic-bezier(.4,0,.2,1)';
-      requestAnimationFrame(() => { prog.style.strokeDashoffset = String(C * 0.14); });
-    }
-  }
-  // Dispara TODAS as gravações sem esperar a rede — nunca trava. Cada uma
-  // com catch próprio; o Firestore confirma em background e o onSnapshot
-  // atualiza a lista de Despesas conforme cada lançamento cai.
+  // Linhas reais (até 5) do lote — a animação "mostra o trabalho" com os dados de verdade.
+  const previewRows = batch.slice(0, 5).map(d => {
+    const c = CATEGORIES[d.category] || CATEGORIES.outros;
+    return { date: formatDateBR(d.date), desc: d.description || '—', cat: c.label, col: c.color, val: fmtBRL0(+d.value || 0) };
+  });
+  if (ov && !reduce) runImportAnimation(ov, previewRows, batch.length, provCount);
+  // Dispara TODAS as gravações sem esperar a rede — nunca trava. O Firestore
+  // confirma em background e o onSnapshot atualiza a lista conforme cada cai.
   batch.forEach(d => addDoc(colExpenses(), d).catch(err => console.error('[import] doc falhou', err)));
   try {
-    if (ov && !reduce) {
-      await new Promise(r => setTimeout(r, 840));   // anel enchendo (cosmético)
-      ov.classList.add('done');                      // dispara: pop + check + ripple + faíscas
-      if ($('importOvText')) $('importOvText').textContent = t('imp.ready');
-      const sub = $('importOvSub');
-      if (sub) { sub._cuVal = 0; countUpEl(sub, batch.length, n => '✓ ' + Math.round(n) + ' ' + t('imp.imported') + (provCount > 0 ? ' · +' + provCount + ' ' + t('imp.prov') : '')); }
-      await new Promise(r => setTimeout(r, 1600));
-      ov.classList.add('out');                       // fade-out suave do overlay inteiro
-      await new Promise(r => setTimeout(r, 420));
-    } else {
-      showToast(t('imp.done').replace('{n}', batch.length));
-    }
+    if (ov && !reduce) await new Promise(r => setTimeout(r, 4250));   // duração total da animação
+    else showToast(t('imp.done').replace('{n}', batch.length));
   } finally {
     $('importModal').classList.remove('show');
-    if (ov) { ov.hidden = true; ov.classList.remove('done', 'out'); }
+    if (ov) { ov.hidden = true; ov.classList.remove('done', 'out', 'reading', 'scanning'); }
     $('importConfirm').disabled = false; $('importCancel').disabled = false;
   }
+}
+// Anima o import: pipeline (Lendo → Categorizando → Pronto) + scan do documento
+// + extração ao vivo das linhas reais + check/faíscas no fim. Timeline fixa ~4.2s.
+function runImportAnimation(ov, rows, count, prov) {
+  const nodes = [...ov.querySelectorAll('.imp-pnode')];
+  const conns = [...ov.querySelectorAll('.imp-pconn')];
+  const rowsEl = $('impRows'), txt = $('importOvText'), sub = $('importOvSub');
+  ov.classList.remove('done', 'out', 'reading'); ov.classList.add('scanning');
+  nodes.forEach(n => n.classList.remove('act', 'fin'));
+  conns.forEach(c => c.classList.remove('fill'));
+  if (rowsEl) rowsEl.innerHTML = rows.map(r =>
+    `<div class="imp-rrow"><span class="rd">${esc(r.date)}</span><span class="rm">${esc(r.desc)}</span><span class="rc" style="--rc:${r.col}">${esc(r.cat)}</span><span class="rv">${esc(r.val)}</span></div>`).join('');
+  const rrows = rowsEl ? [...rowsEl.querySelectorAll('.imp-rrow')] : [];
+  ov.hidden = false;
+  // Etapa 1 — Lendo (scan varrendo o documento)
+  nodes[0] && nodes[0].classList.add('act');
+  if (txt) txt.textContent = t('imp.stage.read') + '…';
+  if (sub) sub.textContent = '';
+  // Etapa 2 — Categorizando (linhas entram uma a uma + contador subindo)
+  setTimeout(() => {
+    ov.classList.remove('scanning');
+    conns[0] && conns[0].classList.add('fill');
+    nodes[0] && nodes[0].classList.remove('act'); nodes[1] && nodes[1].classList.add('act');
+    if (txt) txt.textContent = t('imp.stage.cat') + '…';
+  }, 850);
+  rrows.forEach((r, i) => setTimeout(() => r.classList.add('in'), 1050 + i * 220));
+  if (sub) setTimeout(() => { sub._cuVal = 0; countUpEl(sub, count, n => Math.round(n) + ' ' + t('imp.imported')); }, 1100);
+  // Etapa 3 — Pronto (check verde + faíscas + resumo)
+  setTimeout(() => {
+    conns[1] && conns[1].classList.add('fill');
+    nodes[1] && nodes[1].classList.remove('act'); nodes[2] && nodes[2].classList.add('act', 'fin');
+    ov.classList.add('done');
+    if (txt) txt.textContent = t('imp.ready');
+    if (sub) { sub._cuVal = count; countUpEl(sub, count, n => '✓ ' + Math.round(n) + ' ' + t('imp.imported') + (prov > 0 ? ' · +' + prov + ' ' + t('imp.prov') : '')); }
+  }, 2500);
+  setTimeout(() => ov.classList.add('out'), 3830);   // fade-out
 }
 // Importar: abre o seletor de origem; a escolha define o accept + o parser.
 $('btnImportStatement')?.addEventListener('click', () => $('importTypeModal')?.classList.add('show'));

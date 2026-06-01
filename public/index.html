@@ -1495,37 +1495,55 @@ body::before {
 .rz-vis-k { font-size: 12px; color: var(--ink-3); }
 .rz-vis-v { font-size: 13px; font-weight: 600; color: var(--ink); text-align: right; }
 @media (max-width: 900px) { .rz-kpis { grid-template-columns: repeat(2, 1fr); } .rz-grid { grid-template-columns: 1fr; } }
-/* v9 — overlay de importação premium: card glass, anel gradiente, ripple, faíscas */
-.imp-ov-card { display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 42px 54px 36px; border-radius: 28px;
-  background: linear-gradient(165deg, color-mix(in oklab, var(--bg-elevated) 80%, transparent), color-mix(in oklab, var(--bg) 88%, transparent));
+/* v10 — overlay de import: pipeline (3 etapas) + scan do documento + extração ao vivo */
+.imp-ov-card { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 32px 34px 28px; border-radius: 26px; width: min(420px, 92vw);
+  background: linear-gradient(165deg, color-mix(in oklab, var(--bg-elevated) 82%, transparent), color-mix(in oklab, var(--bg) 90%, transparent));
   border: 1px solid var(--border-strong);
-  box-shadow: 0 40px 100px -34px rgba(0,0,0,.75), 0 0 70px -24px rgba(172,95,219,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  box-shadow: 0 40px 100px -34px rgba(0,0,0,.75), 0 0 70px -24px rgba(172,95,219,.4), inset 0 1px 0 rgba(255,255,255,.06);
   animation: impCardIn .55s cubic-bezier(.18,1.3,.4,1) both; }
-@keyframes impCardIn { from { opacity: 0; transform: scale(.84) translateY(12px); } to { opacity: 1; transform: none; } }
-.imp-ov-ringwrap { position: relative; width: 124px; height: 124px; display: grid; place-items: center; }
-.imp-ov-svg { width: 124px; height: 124px; transform: rotate(-90deg); filter: drop-shadow(0 0 9px rgba(172,95,219,.5)); }
-.imp-ov-track { fill: none; stroke: rgba(255,255,255,.07); stroke-width: 7; }
-.imp-ov-prog { fill: none; stroke: url(#impGrad); stroke-width: 7; stroke-linecap: round; stroke-dasharray: 314.16; stroke-dashoffset: 314.16; }
-.imp-ov-check { fill: none; stroke: var(--gain); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 78; stroke-dashoffset: 78; opacity: 0; transform: rotate(90deg); transform-origin: 60px 60px; }
-.imp-overlay.done .imp-ov-svg { filter: drop-shadow(0 0 18px rgba(48,209,88,.5)); animation: impPop .6s cubic-bezier(.2,1.6,.35,1); }
-.imp-overlay.done .imp-ov-prog { stroke: var(--gain); stroke-dashoffset: 0 !important; transition: stroke-dashoffset .45s var(--ease-out), stroke .3s; }
-.imp-overlay.done .imp-ov-check { opacity: 1; animation: impDraw .5s .16s var(--ease-out) forwards; }
-@keyframes impPop { 0% { transform: rotate(-90deg) scale(.82); } 55% { transform: rotate(-90deg) scale(1.09); } 100% { transform: rotate(-90deg) scale(1); } }
-@keyframes impDraw { to { stroke-dashoffset: 0; } }
-.imp-ov-ripple { position: absolute; width: 124px; height: 124px; border-radius: 50%; border: 2px solid var(--gain); opacity: 0; pointer-events: none; }
-.imp-overlay.done .imp-ov-ripple { animation: impRipple .85s .06s var(--ease-out); }
-.imp-overlay.done .imp-ov-ripple.r2 { animation: impRipple .9s .2s var(--ease-out); }
-@keyframes impRipple { 0% { opacity: .55; transform: scale(.7); } 100% { opacity: 0; transform: scale(1.55); } }
-.imp-spark { position: absolute; top: 50%; left: 50%; width: 7px; height: 7px; border-radius: 50%; background: var(--gain); opacity: 0; pointer-events: none; }
-.imp-overlay.done .imp-spark { animation: impSpark .72s .05s var(--ease-out) forwards; }
-.imp-spark.s1 { --tx: 0px; --ty: -66px; } .imp-spark.s2 { --tx: 58px; --ty: -32px; background: var(--purple-light); }
-.imp-spark.s3 { --tx: 58px; --ty: 32px; } .imp-spark.s4 { --tx: 0px; --ty: 66px; background: var(--purple-light); }
-.imp-spark.s5 { --tx: -58px; --ty: 32px; } .imp-spark.s6 { --tx: -58px; --ty: -32px; background: var(--purple-light); }
-@keyframes impSpark { 0% { opacity: 0; transform: translate(-50%,-50%) scale(0); } 30% { opacity: 1; transform: translate(calc(-50% + var(--tx) * .65), calc(-50% + var(--ty) * .65)) scale(1.25); } 100% { opacity: 0; transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(.35); } }
-.imp-ov-text { font-size: 19px; font-weight: 650; color: var(--ink); letter-spacing: -.015em; }
-.imp-overlay.done .imp-ov-text { animation: impTextIn .42s var(--ease-out); }
-@keyframes impTextIn { from { opacity: .35; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-.imp-ov-sub { font-family: 'Geist Mono', monospace; font-size: 14.5px; color: var(--gain); font-weight: 600; min-height: 19px; letter-spacing: -.01em; }
+@keyframes impCardIn { from { opacity: 0; transform: scale(.86) translateY(12px); } to { opacity: 1; transform: none; } }
+/* pipeline header (3 etapas) */
+.imp-pipe { display: flex; align-items: flex-start; justify-content: center; width: 100%; }
+.imp-pnode { display: flex; flex-direction: column; align-items: center; gap: 7px; width: 80px; flex-shrink: 0; }
+.imp-pic { width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--ink-3); transition: .42s cubic-bezier(.2,1.4,.35,1); }
+.imp-pic svg { width: 19px; height: 19px; }
+.imp-plabel { font-size: 10px; font-weight: 600; color: var(--ink-3); transition: color .3s; white-space: nowrap; }
+.imp-pnode.act .imp-pic { border-color: var(--purple); color: var(--purple-light); transform: translateY(-2px) scale(1.06); box-shadow: 0 0 20px -4px rgba(172,95,219,.65); background: color-mix(in oklab, var(--purple) 15%, var(--bg-elevated)); }
+.imp-pnode.act .imp-plabel { color: var(--ink); }
+.imp-pnode.fin .imp-pic { border-color: var(--gain); color: var(--gain); box-shadow: 0 0 22px -3px rgba(48,209,88,.6); background: color-mix(in oklab, var(--gain) 15%, var(--bg-elevated)); animation: impPop .55s cubic-bezier(.2,1.6,.35,1); }
+.imp-pnode.fin .imp-plabel { color: var(--gain); }
+@keyframes impPop { 0% { transform: scale(.8); } 55% { transform: scale(1.12); } 100% { transform: scale(1); } }
+.imp-pconn { flex: 1; height: 3px; background: var(--border); border-radius: 3px; margin-top: 20px; max-width: 50px; position: relative; overflow: hidden; }
+.imp-pconn i { position: absolute; inset: 0; width: 0; background: linear-gradient(90deg, var(--purple), var(--purple-light)); transition: width .5s var(--ease-out); }
+.imp-pconn.fill i { width: 100%; }
+/* stage: extração ao vivo + scan */
+.imp-stage { position: relative; width: 100%; min-height: 148px; border-radius: 16px; background: rgba(0,0,0,.2); border: 1px solid var(--border); overflow: hidden; padding: 8px; display: grid; place-items: center; transition: border-color .4s, box-shadow .4s; }
+.imp-overlay.done .imp-stage { border-color: color-mix(in oklab, var(--gain) 35%, var(--border)); box-shadow: inset 0 0 30px -8px rgba(48,209,88,.32); }
+.imp-rows { width: 100%; display: flex; flex-direction: column; gap: 5px; }
+.imp-rrow { display: grid; grid-template-columns: 38px 1fr auto auto; gap: 8px; align-items: center; padding: 6px 9px; border-radius: 9px; background: rgba(255,255,255,.04); border: 1px solid var(--border); opacity: 0; transform: translateX(-12px); }
+.imp-rrow.in { animation: impRowIn .44s cubic-bezier(.2,1.4,.35,1) forwards; }
+@keyframes impRowIn { to { opacity: 1; transform: none; } }
+.imp-rrow .rd { font-family: 'Geist Mono', monospace; font-size: 9.5px; color: var(--ink-3); }
+.imp-rrow .rm { font: 600 11px Inter, sans-serif; color: var(--ink); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.imp-rrow .rc { font: 600 9px Inter, sans-serif; padding: 2px 6px; border-radius: 5px; white-space: nowrap; background: color-mix(in oklab, var(--rc) 22%, transparent); color: color-mix(in oklab, var(--rc) 80%, white); }
+.imp-rrow .rv { font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; color: var(--ink-2); }
+.imp-scan { position: absolute; left: 0; right: 0; height: 40px; top: -42px; pointer-events: none; opacity: 0; z-index: 2;
+  background: linear-gradient(180deg, transparent, rgba(172,95,219,.1) 45%, rgba(172,95,219,.22) 50%, rgba(172,95,219,.1) 55%, transparent);
+  border-top: 1px solid rgba(227,162,238,.5); border-bottom: 1px solid rgba(227,162,238,.5); box-shadow: 0 0 18px 2px rgba(172,95,219,.3); }
+.imp-overlay.reading .imp-scan, .imp-overlay.scanning .imp-scan { animation: impScan 1.25s var(--ease-out) infinite; }
+@keyframes impScan { 0% { opacity: 0; top: -42px; } 14% { opacity: 1; } 86% { opacity: 1; } 100% { opacity: 0; top: 150px; } }
+.imp-overlay.reading .imp-pnode[data-n="0"] .imp-pic { border-color: var(--purple); color: var(--purple-light); box-shadow: 0 0 20px -4px rgba(172,95,219,.6); background: color-mix(in oklab, var(--purple) 15%, var(--bg-elevated)); }
+.imp-overlay.reading .imp-pnode[data-n="0"] .imp-plabel { color: var(--ink); }
+.imp-spark { position: absolute; top: 50%; left: 50%; width: 7px; height: 7px; border-radius: 50%; background: var(--gain); opacity: 0; pointer-events: none; z-index: 4; }
+.imp-overlay.done .imp-spark { animation: impSpark .8s .12s var(--ease-out) forwards; }
+.imp-spark.s1 { --tx: 0px; --ty: -58px; } .imp-spark.s2 { --tx: 80px; --ty: -26px; background: var(--purple-light); }
+.imp-spark.s3 { --tx: 80px; --ty: 26px; } .imp-spark.s4 { --tx: 0px; --ty: 58px; background: var(--purple-light); }
+.imp-spark.s5 { --tx: -80px; --ty: 26px; } .imp-spark.s6 { --tx: -80px; --ty: -26px; background: var(--purple-light); }
+@keyframes impSpark { 0% { opacity: 0; transform: translate(-50%,-50%) scale(0); } 30% { opacity: 1; transform: translate(calc(-50% + var(--tx) * .6), calc(-50% + var(--ty) * .6)) scale(1.2); } 100% { opacity: 0; transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(.35); } }
+.imp-ov-text { font-size: 18px; font-weight: 650; color: var(--ink); letter-spacing: -.015em; }
+.imp-overlay.done .imp-ov-text { color: var(--gain); }
+.imp-ov-sub { font-family: 'Geist Mono', monospace; font-size: 13.5px; color: var(--ink-3); font-weight: 600; min-height: 18px; letter-spacing: -.01em; }
+.imp-overlay.done .imp-ov-sub { color: var(--gain); }
 
 /* Income styling on existing row/pill/amount layouts */
 .exp-recent-row.is-income .exp-recent-amt,
@@ -3287,17 +3305,18 @@ body::before {
 <!-- Overlay de progresso/sucesso da importação -->
 <div class="imp-overlay" id="importOverlay" hidden>
   <div class="imp-ov-card">
-    <div class="imp-ov-ringwrap">
+    <div class="imp-pipe">
+      <div class="imp-pnode" data-n="0"><div class="imp-pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h6"/></svg></div><span class="imp-plabel" data-i18n="imp.stage.read">Lendo</span></div>
+      <div class="imp-pconn"><i></i></div>
+      <div class="imp-pnode" data-n="1"><div class="imp-pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7l11 11-7 7L3 10z"/><circle cx="7.5" cy="7.5" r="1.6" fill="currentColor"/></svg></div><span class="imp-plabel" data-i18n="imp.stage.cat">Categorizando</span></div>
+      <div class="imp-pconn"><i></i></div>
+      <div class="imp-pnode" data-n="2"><div class="imp-pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="imp-plabel" data-i18n="imp.stage.done">Pronto</span></div>
+    </div>
+    <div class="imp-stage">
+      <div class="imp-rows" id="impRows"></div>
+      <div class="imp-scan"></div>
       <span class="imp-spark s1"></span><span class="imp-spark s2"></span><span class="imp-spark s3"></span>
       <span class="imp-spark s4"></span><span class="imp-spark s5"></span><span class="imp-spark s6"></span>
-      <div class="imp-ov-ripple"></div>
-      <div class="imp-ov-ripple r2"></div>
-      <svg class="imp-ov-svg" viewBox="0 0 120 120" aria-hidden="true">
-        <defs><linearGradient id="impGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#AC5FDB"/><stop offset="1" stop-color="#E3A2EE"/></linearGradient></defs>
-        <circle class="imp-ov-track" cx="60" cy="60" r="50"/>
-        <circle class="imp-ov-prog" id="importOvProg" cx="60" cy="60" r="50"/>
-        <path class="imp-ov-check" d="M38 62 L53 77 L84 43"/>
-      </svg>
     </div>
     <div class="imp-ov-text" id="importOvText">Importando…</div>
     <div class="imp-ov-sub" id="importOvSub"></div>
