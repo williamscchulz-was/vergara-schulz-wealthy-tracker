@@ -51,6 +51,7 @@ const docI10Cfg   = doc(db, "household", "main", "config", "i10sync");
 const docReserves = doc(db, "household", "main", "config", "reserves");
 const docPension  = doc(db, "household", "main", "config", "pension");
 const docBudgets  = doc(db, "household", "main", "config", "budgets");
+const docCategories = doc(db, "household", "main", "config", "categories");
 const docUserPrefs = doc(db, "household", "main", "config", "userPrefs");
 const docImportRules = doc(db, "household", "main", "config", "importRules");  // memória do importador (estabelecimento → categoria/de-quem)
 
@@ -102,6 +103,39 @@ const CATEGORIES = {
   compras:     { label: 'Compras',           icon: ICONS.shoppingBag, color: '#ffd60a' },
   outros:      { label: 'Outros',            icon: ICONS.package,     color: '#8e8e93' },
 };
+// --- Categorias customizáveis (config/categories) -------------------------
+// CATEGORIES é lido em ~12 lugares. Em vez de trocar todos os call-sites,
+// guardamos um snapshot dos defaults e MUTAMOS CATEGORIES in-place quando o
+// usuário edita/cria categorias — todo render pega o merge de graça.
+const DEFAULT_CATEGORIES = {};
+Object.entries(CATEGORIES).forEach(([k, v]) => { DEFAULT_CATEGORIES[k] = { ...v }; });
+const DEFAULT_CAT_KEYS = Object.keys(CATEGORIES);
+const CAT_PALETTE = ['#0071e3', '#30d158', '#ff9500', '#ff375f', '#af52de', '#64d2ff', '#bf5af2', '#ff453a', '#ffd60a', '#8e8e93', '#AC5FDB', '#E3A2EE'];
+const CAT_ICON_KEYS = ['tag', 'home', 'utensils', 'car', 'heartPulse', 'gamepad', 'book', 'repeat', 'creditCard', 'shoppingBag', 'package', 'briefcase', 'wrench', 'pieChart', 'trendingUp', 'gift'];
+function applyCategoryConfig(cfg) {
+  cfg = cfg || {};
+  // 1. reset ao default (tira custom antigas, restaura label/cor padrão)
+  Object.keys(CATEGORIES).forEach(k => { if (!DEFAULT_CAT_KEYS.includes(k)) delete CATEGORIES[k]; });
+  DEFAULT_CAT_KEYS.forEach(k => { CATEGORIES[k] = { ...DEFAULT_CATEGORIES[k] }; });
+  // 2. overrides (renome/recolor das padrão)
+  const ov = cfg.overrides || {};
+  Object.entries(ov).forEach(([k, v]) => { if (CATEGORIES[k] && v) { if (v.label) CATEGORIES[k].label = v.label; if (v.color) CATEGORIES[k].color = v.color; } });
+  // 3. categorias novas (custom) — nunca sobrescreve 'outros' (fallback)
+  const cu = cfg.custom || {};
+  Object.entries(cu).forEach(([k, v]) => {
+    if (!v || DEFAULT_CAT_KEYS.includes(k)) return;
+    const ik = ICONS[v.icon] ? v.icon : 'tag';
+    CATEGORIES[k] = { label: v.label || k, color: v.color || '#8e8e93', icon: ICONS[ik], iconKey: ik, custom: true };
+  });
+}
+// Repovoa o <select> de categoria do modal de despesa a partir do CATEGORIES vivo.
+function populateCategorySelect() {
+  const sel = $('expCategory');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = Object.entries(CATEGORIES).map(([k, c]) => `<option value="${k}">${esc(c.label)}</option>`).join('');
+  if (cur && CATEGORIES[cur]) sel.value = cur;
+}
 // Income sources (labels resolved via i18n at render time)
 const INCOME_SOURCES = {
   salario:      { icon: ICONS.briefcase,   color: '#30d158', labelKey: 'exp.sources.salario' },
@@ -372,6 +406,15 @@ const I18N = {
     'exp.budget.noLimit': 'sem limite',
     'exp.budget.total': 'Gasto / orçamento',
     'exp.budget.total.empty': 'Sem orçamento definido',
+    'cat.title': 'Categorias',
+    'cat.sub': 'Edite o nome e a cor, ou crie novas. As categorias padrão não podem ser apagadas.',
+    'cat.btn': 'Categorias',
+    'cat.add': 'Nova categoria',
+    'cat.new': 'Nova',
+    'cat.toast.saved': 'Categorias atualizadas',
+    'cat.icon.hint': 'Clique pra trocar o ícone',
+    'cat.color.hint': 'Trocar a cor',
+    'cat.del.hint': 'Apagar categoria',
     // ---- Analytics cards (Fase C) ----
     'exp.daily.title': 'Ritmo diário',
     'exp.daily.sub': 'Gasto acumulado do mês',
@@ -662,6 +705,15 @@ const I18N = {
     'exp.budget.noLimit': 'no limit',
     'exp.budget.total': 'Spent / budget',
     'exp.budget.total.empty': 'No budget set',
+    'cat.title': 'Categories',
+    'cat.sub': 'Edit the name and color, or create new ones. Default categories cannot be deleted.',
+    'cat.btn': 'Categories',
+    'cat.add': 'New category',
+    'cat.new': 'New',
+    'cat.toast.saved': 'Categories updated',
+    'cat.icon.hint': 'Click to change the icon',
+    'cat.color.hint': 'Change color',
+    'cat.del.hint': 'Delete category',
     // ---- Analytics cards ----
     'exp.daily.title': 'Daily pace',
     'exp.daily.sub': 'Cumulative spend this month',
@@ -3830,6 +3882,77 @@ async function saveBudgets() {
   finally { btn.disabled = false; btn.textContent = originalLabel; }
 }
 
+// --- Gerenciar categorias (config/categories) -----------------------------
+function catRowHtml(key, label, color, iconSvg, iconKey, isDefault) {
+  return `<div class="cat-edit-row" data-key="${esc(key)}" data-icon="${esc(iconKey)}" data-default="${isDefault ? '1' : '0'}">
+    <button type="button" class="cat-edit-ic" style="color:${color}" ${isDefault ? 'tabindex="-1"' : 'title="' + esc(t('cat.icon.hint')) + '"'}>${iconSvg}</button>
+    <input class="cat-edit-nm" type="text" value="${esc(label)}" maxlength="22" autocomplete="off" spellcheck="false" />
+    <input class="cat-edit-co" type="color" value="${color}" title="${esc(t('cat.color.hint'))}" />
+    <button type="button" class="cat-edit-del" ${isDefault ? 'hidden' : ''} title="${esc(t('cat.del.hint'))}" aria-label="delete"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  </div>`;
+}
+function wireCatRow(row) {
+  const co = row.querySelector('.cat-edit-co'), ic = row.querySelector('.cat-edit-ic'), del = row.querySelector('.cat-edit-del');
+  co?.addEventListener('input', () => { if (ic) ic.style.color = co.value; });
+  if (row.dataset.default !== '1') {
+    ic?.addEventListener('click', () => {
+      const idx = CAT_ICON_KEYS.indexOf(row.dataset.icon || 'tag');
+      const next = CAT_ICON_KEYS[(idx + 1) % CAT_ICON_KEYS.length];
+      row.dataset.icon = next; ic.innerHTML = ICONS[next] || ICONS.tag;
+    });
+    del?.addEventListener('click', () => { row.style.transition = 'opacity .18s, transform .18s'; row.style.opacity = '0'; row.style.transform = 'translateX(10px)'; setTimeout(() => row.remove(), 170); });
+  }
+}
+function openCatModal() {
+  const list = $('catEditList');
+  if (!list) return;
+  const custom = (state.catConfig && state.catConfig.custom) || {};
+  let html = DEFAULT_CAT_KEYS.map(k => catRowHtml(k, CATEGORIES[k].label, CATEGORIES[k].color, CATEGORIES[k].icon, 'tag', true)).join('');
+  html += Object.keys(custom).filter(k => !DEFAULT_CAT_KEYS.includes(k)).map(k => {
+    const c = CATEGORIES[k] || {}; const ik = c.iconKey || custom[k].icon || 'tag';
+    return catRowHtml(k, c.label || custom[k].label, c.color || custom[k].color, ICONS[ik] || ICONS.tag, ik, false);
+  }).join('');
+  list.innerHTML = html;
+  list.querySelectorAll('.cat-edit-row').forEach(wireCatRow);
+  $('catModal').classList.add('show');
+}
+function closeCatModal() { $('catModal')?.classList.remove('show'); }
+function catAddRow() {
+  const list = $('catEditList');
+  if (!list) return;
+  const key = 'c' + Date.now().toString(36);
+  const color = CAT_PALETTE[list.querySelectorAll('.cat-edit-row').length % CAT_PALETTE.length];
+  const tmp = document.createElement('div');
+  tmp.innerHTML = catRowHtml(key, t('cat.new'), color, ICONS.tag, 'tag', false);
+  const row = tmp.firstElementChild;
+  list.appendChild(row); wireCatRow(row);
+  const nm = row.querySelector('.cat-edit-nm'); nm?.focus(); nm?.select();
+  row.scrollIntoView({ block: 'nearest' });
+}
+async function saveCategories() {
+  const btn = $('catSave'), orig = t('exp.btn.save');
+  const custom = {}, overrides = {};
+  document.querySelectorAll('#catEditList .cat-edit-row').forEach(row => {
+    const key = row.dataset.key, isDefault = row.dataset.default === '1';
+    const label = (row.querySelector('.cat-edit-nm').value || '').trim() || key;
+    const color = row.querySelector('.cat-edit-co').value || '#8e8e93';
+    const iconKey = row.dataset.icon || 'tag';
+    if (isDefault) {
+      const d = DEFAULT_CATEGORIES[key];
+      if (label !== d.label || color.toLowerCase() !== String(d.color).toLowerCase()) overrides[key] = { label, color };
+    } else {
+      custom[key] = { label, color, icon: iconKey };
+    }
+  });
+  try {
+    btn.disabled = true; btn.textContent = t('exp.btn.saving');
+    await setDoc(docCategories, { custom, overrides, updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'unknown' }, { merge: false });
+    showToast(t('cat.toast.saved'));
+    closeCatModal();
+  } catch (err) { console.error('[cat] save', err); showToast(t('toast.error.save')); }
+  finally { btn.disabled = false; btn.textContent = orig; }
+}
+
 // Generic confirm modal — replaces native confirm() across the app
 let _confirmState = null;
 function openConfirmModal({ title, sub, confirmLabel, cancelLabel, danger, onConfirm } = {}) {
@@ -3872,6 +3995,13 @@ $('btnEditBudgets')?.addEventListener('click', openBudgetModal);
 $('budgetCancel')?.addEventListener('click', closeBudgetModal);
 $('budgetSave')?.addEventListener('click', saveBudgets);
 $('budgetModal')?.addEventListener('click', e => { if (e.target.id === 'budgetModal') closeBudgetModal(); });
+
+// Category manager modal
+$('btnEditCats')?.addEventListener('click', openCatModal);
+$('catCancel')?.addEventListener('click', closeCatModal);
+$('catSave')?.addEventListener('click', saveCategories);
+$('catAddBtn')?.addEventListener('click', catAddRow);
+$('catModal')?.addEventListener('click', e => { if (e.target.id === 'catModal') closeCatModal(); });
 
 // Expense modal
 // ============================================================
@@ -4433,6 +4563,13 @@ function subscribeAll() {
   });
   unsub.importRules = onSnapshot(docImportRules, (snap) => {
     state.importRules = (snap.exists() && snap.data() && snap.data().rules) || {};
+  });
+  unsub.categories = onSnapshot(docCategories, (snap) => {
+    state.catConfig = snap.exists() ? (snap.data() || {}) : {};
+    applyCategoryConfig(state.catConfig);
+    populateCategorySelect();
+    if (state.mode === 'expenses') renderExpenses();
+    else if (state.mode === 'resumo' && typeof renderResumo === 'function') renderResumo();
   });
   unsub.budgets = onSnapshot(docBudgets, (snap) => {
     const data = snap.exists() ? (snap.data() || {}) : {};
