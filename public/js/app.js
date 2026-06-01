@@ -429,6 +429,29 @@ const I18N = {
     'cat.label.cartao': 'Cartão de crédito',
     'cat.label.compras': 'Compras',
     'cat.label.outros': 'Outros',
+    'fx.toast.saved': 'USD atualizado: US$ {v}',
+    'cash.toast.name': 'Nome obrigatório',
+    'contrib.toast.year': 'Ano inválido',
+    'contrib.toast.month': 'Mês inválido',
+    'contrib.toast.value': 'Valor inválido',
+    'i10.toast.cfgfirst': 'Configure o Worker e Wallet ID primeiro',
+    'i10.toast.syncfail': 'Não deu pra sincronizar agora — tente de novo em instantes.',
+    'i10.toast.noyears': 'Nenhum ano retornado pelo I10',
+    'i10.toast.importfail': 'Não deu pra importar o histórico agora — tente de novo em instantes.',
+    'i10.toast.equity': 'Patrimônio inválido',
+    'i10.toast.divs': 'Dividendos inválidos',
+    'i10.toast.saved': 'Valores atualizados',
+    'hero.syncing': 'Sincronizando...',
+    'hist.importing': 'Importando...',
+    'cfg.toast.worker': 'Worker URL inválida',
+    'cfg.toast.wallet': 'Wallet ID deve ser numérico',
+    'cfg.toast.saved': 'Configuração salva',
+    'yearly.toast.year': 'Ano obrigatório',
+    'yearly.toast.equity': 'Patrimônio obrigatório',
+    'yearly.toast.divs': 'Proventos obrigatórios',
+    'yearly.toast.updated': 'Ano atualizado',
+    'yearly.toast.added': 'Ano adicionado',
+    'yearly.toast.deleted': 'Ano excluído',
     // ---- Analytics cards (Fase C) ----
     'exp.daily.title': 'Ritmo diário',
     'exp.daily.sub': 'Gasto acumulado do mês',
@@ -738,6 +761,29 @@ const I18N = {
     'cat.label.cartao': 'Credit card',
     'cat.label.compras': 'Shopping',
     'cat.label.outros': 'Other',
+    'fx.toast.saved': 'USD updated: US$ {v}',
+    'cash.toast.name': 'Name required',
+    'contrib.toast.year': 'Invalid year',
+    'contrib.toast.month': 'Invalid month',
+    'contrib.toast.value': 'Invalid amount',
+    'i10.toast.cfgfirst': 'Set up the Worker and Wallet ID first',
+    'i10.toast.syncfail': 'Could not sync right now — try again in a moment.',
+    'i10.toast.noyears': 'No years returned by I10',
+    'i10.toast.importfail': 'Could not import history right now — try again in a moment.',
+    'i10.toast.equity': 'Invalid net worth',
+    'i10.toast.divs': 'Invalid dividends',
+    'i10.toast.saved': 'Values updated',
+    'hero.syncing': 'Syncing...',
+    'hist.importing': 'Importing...',
+    'cfg.toast.worker': 'Invalid Worker URL',
+    'cfg.toast.wallet': 'Wallet ID must be numeric',
+    'cfg.toast.saved': 'Settings saved',
+    'yearly.toast.year': 'Year required',
+    'yearly.toast.equity': 'Net worth required',
+    'yearly.toast.divs': 'Dividends required',
+    'yearly.toast.updated': 'Year updated',
+    'yearly.toast.added': 'Year added',
+    'yearly.toast.deleted': 'Year deleted',
     // ---- Analytics cards ----
     'exp.daily.title': 'Daily pace',
     'exp.daily.sub': 'Cumulative spend this month',
@@ -2102,7 +2148,7 @@ async function saveFX() {
   }, { merge: true });
   const m = document.getElementById('fxModal');
   if (m) m.style.display = 'none';
-  showToast('USD atualizado: US$ ' + usd.toLocaleString('pt-BR'));
+  showToast(t('fx.toast.saved').replace('{v}', usd.toLocaleString('pt-BR')));
 }
 
 // v8 Turno 8 — refresh USD-BRL rate from worker (called on main Sync)
@@ -2250,7 +2296,7 @@ async function saveCash(type) {
   let raw = String($(cfg.valueInputId).value || '').trim();
   raw = raw.split('.').join('').split(',').join('.');
   const value = parseFloat(raw) || 0;
-  if (!name) { showToast('Nome obrigatório'); return; }
+  if (!name) { showToast(t('cash.toast.name')); return; }
   const id = cfg.state().editingId;
   const accs = cfg.state().accounts;
   if (id) {
@@ -3314,9 +3360,9 @@ async function saveContrib() {
   const month = parseInt(document.getElementById('contribMonth').value, 10);
   const amount = parseBRLInput(document.getElementById('contribAmount').value);
   const note = (document.getElementById('contribNote')?.value || '').trim();
-  if (!(year >= 2020 && year <= 2099)) { showToast('Ano inválido'); return; }
-  if (!(month >= 1 && month <= 12)) { showToast('Mês inválido'); return; }
-  if (!(amount > 0)) { showToast('Valor inválido'); return; }
+  if (!(year >= 2020 && year <= 2099)) { showToast(t('contrib.toast.year')); return; }
+  if (!(month >= 1 && month <= 12)) { showToast(t('contrib.toast.month')); return; }
+  if (!(amount > 0)) { showToast(t('contrib.toast.value')); return; }
   try {
     if (_editingContribId) {
       const ref = doc(db, 'household', 'main', 'contributions', _editingContribId);
@@ -3432,7 +3478,7 @@ async function syncLouise() {
 async function syncFromI10() {
   const { workerUrl, walletId } = state.i10Cfg;
   if (!workerUrl || !walletId) {
-    showToast('Configure o Worker e Wallet ID primeiro');
+    showToast(t('i10.toast.cfgfirst'));
     openI10ConfigModal();
     return;
   }
@@ -3440,7 +3486,7 @@ async function syncFromI10() {
   state.i10Syncing = true;
   const btn = $('btnSyncI10');
   const originalHTML = btn ? btn.innerHTML : '';
-  if (btn) { btn.disabled = true; btn.innerHTML = 'Sincronizando...'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = t('hero.syncing'); }
 
   try {
     const year = new Date().getFullYear();
@@ -3565,7 +3611,7 @@ async function syncFromI10() {
     }
   } catch (err) {
     console.error('I10 sync error:', err);
-    showToast('Não deu pra sincronizar agora — tente de novo em instantes.');
+    showToast(t('i10.toast.syncfail'));
   } finally {
     state.i10Syncing = false;
     if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
@@ -3671,14 +3717,14 @@ async function importHistoryFromI10(opts = {}) {
   const { workerUrl, walletId } = state.i10Cfg;
   if (!workerUrl || !walletId) {
     if (!silent) {
-      showToast('Configure o Worker e Wallet ID primeiro');
+      showToast(t('i10.toast.cfgfirst'));
       openI10ConfigModal();
     }
     return;
   }
   const btn = silent ? null : $('btnImportHistory');
   const originalHTML = btn ? btn.innerHTML : '';
-  if (btn) { btn.disabled = true; btn.innerHTML = 'Importando...'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = t('hist.importing'); }
   try {
     const base = workerUrl.replace(/\/+$/, '');
     const res = await fetch(`${base}/i10/yearly/${encodeURIComponent(walletId)}`, {
@@ -3690,7 +3736,7 @@ async function importHistoryFromI10(opts = {}) {
     if (payload.error) throw new Error(payload.error);
     const years = Array.isArray(payload.years) ? payload.years : [];
     if (years.length === 0) {
-      if (!silent) showToast('Nenhum ano retornado pelo I10');
+      if (!silent) showToast(t('i10.toast.noyears'));
       return;
     }
     const imported = await importYearlyData(years);
@@ -3698,7 +3744,7 @@ async function importHistoryFromI10(opts = {}) {
     else console.log(`[autosync] yearly refreshed: ${imported} anos`);
   } catch (err) {
     console.error('importHistoryFromI10 error:', err);
-    if (!silent) showToast('Não deu pra importar o histórico agora — tente de novo em instantes.');
+    if (!silent) showToast(t('i10.toast.importfail'));
   } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
   }
@@ -3720,11 +3766,11 @@ async function saveI10Config() {
   const workerUrl = ($('i10CfgWorker').value || '').trim();
   const walletId = ($('i10CfgWallet').value || '').trim();
   const publicHash = (($('i10CfgHash') && $('i10CfgHash').value) || '').trim();
-  if (!workerUrl || !/^https?:\/\//.test(workerUrl)) { showToast('Worker URL inválida'); return; }
-  if (!walletId || !/^\d+$/.test(walletId)) { showToast('Wallet ID deve ser numérico'); return; }
+  if (!workerUrl || !/^https?:\/\//.test(workerUrl)) { showToast(t('cfg.toast.worker')); return; }
+  if (!walletId || !/^\d+$/.test(walletId)) { showToast(t('cfg.toast.wallet')); return; }
   const btn = $('i10CfgSave');
   try {
-    btn.disabled = true; btn.textContent = 'Salvando...';
+    btn.disabled = true; btn.textContent = t('exp.btn.saving');
     await setDoc(docI10Cfg, {
       workerUrl,
       walletId,
@@ -3732,12 +3778,12 @@ async function saveI10Config() {
       updatedAt: serverTimestamp(),
       updatedBy: state.user?.displayName || 'unknown',
     }, { merge: true });
-    showToast('Configuração salva');
+    showToast(t('cfg.toast.saved'));
     closeI10ConfigModal();
     // Auto-sync right after saving, so user sees data immediately
     setTimeout(() => syncFromI10(), 300);
   } catch (err) { console.error(err); showToast(t('toast.error.save')); }
-  finally { btn.disabled = false; btn.textContent = 'Salvar'; }
+  finally { btn.disabled = false; btn.textContent = t('exp.btn.save'); }
 }
 
 // ============================================================
@@ -3756,12 +3802,12 @@ function closeI10Modal() { $('i10Modal').classList.remove('show'); }
 async function saveI10() {
   const equity = parseFloat($('i10EquityInput').value);
   const dividends = parseFloat($('i10DivsInput').value);
-  if (isNaN(equity) || equity < 0) { showToast('Patrimônio inválido'); return; }
-  if (isNaN(dividends) || dividends < 0) { showToast('Dividendos inválidos'); return; }
+  if (isNaN(equity) || equity < 0) { showToast(t('i10.toast.equity')); return; }
+  if (isNaN(dividends) || dividends < 0) { showToast(t('i10.toast.divs')); return; }
 
   const btn = $('i10Save');
   try {
-    btn.disabled = true; btn.textContent = 'Salvando...';
+    btn.disabled = true; btn.textContent = t('exp.btn.saving');
     await setDoc(docI10, {
       equity,
       dividends,
@@ -3770,10 +3816,10 @@ async function saveI10() {
       updatedBy: state.user?.displayName || 'unknown',
       source: 'manual',
     }, { merge: true });
-    showToast('Valores atualizados');
+    showToast(t('i10.toast.saved'));
     closeI10Modal();
   } catch (err) { console.error(err); showToast(t('toast.error.save')); }
-  finally { btn.disabled = false; btn.textContent = 'Salvar'; }
+  finally { btn.disabled = false; btn.textContent = t('exp.btn.save'); }
 }
 
 // ============================================================
@@ -3805,23 +3851,23 @@ async function saveYearly() {
   const year = parseInt($('yearlyYear').value);
   const equity = parseFloat($('yearlyEquity').value);
   const divs = parseFloat($('yearlyDivs').value);
-  if (!year) { showToast('Ano obrigatório'); return; }
-  if (isNaN(equity)) { showToast('Patrimônio obrigatório'); return; }
-  if (isNaN(divs)) { showToast('Proventos obrigatórios'); return; }
+  if (!year) { showToast(t('yearly.toast.year')); return; }
+  if (isNaN(equity)) { showToast(t('yearly.toast.equity')); return; }
+  if (isNaN(divs)) { showToast(t('yearly.toast.divs')); return; }
   const data = { year, equity, divs, updatedAt: serverTimestamp() };
   const btn = $('yearlySave');
   try {
-    btn.disabled = true; btn.textContent = 'Salvando...';
+    btn.disabled = true; btn.textContent = t('exp.btn.saving');
     if (editingYearlyId) {
       await setDoc(docYearly(editingYearlyId), data, { merge: true });
-      showToast('Ano atualizado');
+      showToast(t('yearly.toast.updated'));
     } else {
       await addDoc(colYearly(), { ...data, createdAt: serverTimestamp() });
-      showToast('Ano adicionado');
+      showToast(t('yearly.toast.added'));
     }
     closeYearlyModal();
   } catch (err) { console.error(err); showToast(t('toast.error.save')); }
-  finally { btn.disabled = false; btn.textContent = 'Salvar'; }
+  finally { btn.disabled = false; btn.textContent = t('exp.btn.save'); }
 }
 
 async function deleteYearly() {
@@ -3833,7 +3879,7 @@ async function deleteYearly() {
     onConfirm: async () => {
       try {
         await deleteDoc(docYearly(id));
-        showToast('Ano excluído');
+        showToast(t('yearly.toast.deleted'));
         closeYearlyModal();
       } catch (err) { console.error(err); showToast(t('toast.error.delete')); }
     },
