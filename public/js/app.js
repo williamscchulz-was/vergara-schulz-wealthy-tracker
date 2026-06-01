@@ -3751,8 +3751,8 @@ function parseStatement(lines) {
     const im = desc.match(/\b(\d{1,2}\/\d{1,2})\b\s*$/) || desc.match(/\b(\d{1,2}\/\d{1,2})\b/);
     if (im) { inst = im[1]; desc = desc.replace(im[0], '').replace(/\s+/g, ' ').trim(); }
     const value = parseFloat(m[3].replace(/\./g, '').replace(',', '.'));
-    if (!isFinite(value) || value === 0) continue;
-    out.push({ date: m[1], desc, inst, value, holder, refund: value < 0 });
+    if (!isFinite(value) || value <= 0) continue;  // ignora estornos/créditos — não são despesa
+    out.push({ date: m[1], desc, inst, value, holder, refund: false });
   }
   return out;
 }
