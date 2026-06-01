@@ -3853,21 +3853,35 @@ async function doImport() {
   }
   const t0 = performance.now();
   try {
-    await Promise.all(batch.map(d => addDoc(colExpenses(), d)));   // tudo de uma vez (rápido)
+    // Grava em paralelo mas NUNCA trava a UI: corre contra um timeout de 8s.
+    // allSettled não rejeita; o que não terminar a tempo o Firestore sincroniza
+    // depois (e a anti-duplicata evita repetir num novo import).
+    const settled = await Promise.race([
+      Promise.allSettled(batch.map(d => addDoc(colExpenses(), d))),
+      new Promise(res => setTimeout(() => res('timeout'), 8000)),
+    ]);
+    let okCount = batch.length;
+    if (Array.isArray(settled)) {
+      okCount = settled.filter(r => r.status === 'fulfilled').length;
+      const failed = settled.length - okCount;
+      if (failed) console.warn('[import] ' + failed + ' writes falharam/pendentes');
+    } else {
+      console.warn('[import] gravação lenta (>8s) — seguindo; Firestore sincroniza em background');
+    }
     if (ov && !reduce) {
       const el = performance.now() - t0;
       if (el < 700) await new Promise(r => setTimeout(r, 700 - el));
       ov.classList.add('done');
       if ($('importOvText')) $('importOvText').textContent = t('imp.ready');
       const sub = $('importOvSub');
-      if (sub) { sub._cuVal = 0; countUpEl(sub, batch.length, n => '✓ ' + Math.round(n) + ' ' + t('imp.imported')); }
+      if (sub) { sub._cuVal = 0; countUpEl(sub, okCount, n => '✓ ' + Math.round(n) + ' ' + t('imp.imported')); }
       await new Promise(r => setTimeout(r, 1300));
     } else {
-      showToast(t('imp.done').replace('{n}', batch.length));
+      showToast(t('imp.done').replace('{n}', okCount));
     }
     $('importModal').classList.remove('show');
   } catch (e) {
-    console.error('[import] write failed', e);
+    console.error('[import] failed', e);
     showToast(t('toast.error.save'));
   } finally {
     if (ov) { ov.hidden = true; ov.classList.remove('done'); }
@@ -3878,6 +3892,11 @@ $('btnImportStatement')?.addEventListener('click', () => { const f = $('impFile'
 $('impFile')?.addEventListener('change', (e) => { const file = e.target.files && e.target.files[0]; e.target.value = ''; handleImportFile(file); });
 $('importCancel')?.addEventListener('click', () => $('importModal').classList.remove('show'));
 $('importConfirm')?.addEventListener('click', doImport);
+// Escape de emergência: clicar no overlay (ou Esc) fecha, caso algo trave.
+$('importOverlay')?.addEventListener('click', () => {
+  const o = $('importOverlay'); if (o) { o.hidden = true; o.classList.remove('done'); }
+  const c = $('importConfirm'), x = $('importCancel'); if (c) c.disabled = false; if (x) x.disabled = false;
+});
 $('importList')?.addEventListener('change', (e) => { if (e.target.matches('input[type="checkbox"]')) impUpdateConfirm(); });
 
 $('btnAddExpense').addEventListener('click', () => openExpenseModal(null, { type: 'expense' }));
