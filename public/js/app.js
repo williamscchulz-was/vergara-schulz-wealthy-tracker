@@ -3967,21 +3967,47 @@ function renderImportReview() {
   impUpdateConfirm();
 }
 async function doImport() {
-  const seen = new Set((state.expenses || []).map(e => impFp(e.date, e.value, e.description)));
+  // Dedup usa o fp guardado quando existe (parcelas têm fp por parcela), senão
+  // o derivado de data+valor+descrição.
+  const seen = new Set((state.expenses || []).map(e => e.fp || impFp(e.date, e.value, e.description)));
+  // Competência base = mês mais recente da fatura → de onde as parcelas seguem.
+  let baseYM = null;
+  for (const tx of _importTxns) { const ym = impToISO(tx.date).slice(0, 7); if (!baseYM || ym > baseYM) baseYM = ym; }
+  const baseY = baseYM ? +baseYM.slice(0, 4) : new Date().getFullYear();
+  const baseM = baseYM ? +baseYM.slice(5, 7) : new Date().getMonth() + 1;
+  const monthISO = (off) => { const t0 = baseY * 12 + (baseM - 1) + off; return `${Math.floor(t0 / 12)}-${String((t0 % 12) + 1).padStart(2, '0')}-15`; };
+
   const checks = [...document.querySelectorAll('#importList .imp-row input[type="checkbox"]:checked')];
-  const batch = [];
+  const batch = []; let provCount = 0;
   for (const cb of checks) {
     const tx = _importTxns[+cb.dataset.idx];
     if (!tx) continue;
     const row = cb.closest('.imp-row');
     const owner = row.querySelector('.imp-owner').value;
     const category = row.querySelector('.imp-cat').value;
-    const date = impToISO(tx.date);
-    const fp = impFp(date, tx.value, tx.desc);
-    if (seen.has(fp)) continue;  // já existe → não duplica
-    seen.add(fp);
-    const notes = [tx.holder ? ('cartão: ' + tx.holder.split(' ')[0]) : '', tx.inst ? ('parcela ' + tx.inst) : ''].filter(Boolean).join(' · ');
-    batch.push({ type: 'expense', description: tx.desc, value: tx.value, date, category, notes, owner, nature: category === 'assinaturas' ? 'fixa' : 'variavel', fp, source: 'import:cartao', createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import' });
+    const nat = category === 'assinaturas' ? 'fixa' : 'variavel';
+    const cardNote = tx.holder ? ('cartão: ' + tx.holder.split(' ')[0]) : '';
+    const base = { type: 'expense', description: tx.desc, value: tx.value, category, owner, nature: nat, source: 'import:cartao', createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import' };
+    const im = (tx.inst || '').match(/^(\d{1,2})\/(\d{1,2})$/);
+    if (im) {
+      // PARCELADO: provisiona da parcela atual (X) até a última (Y), uma por mês à frente.
+      const X = +im[1], Y = +im[2];
+      const descKey = (tx.desc || '').slice(0, 16).toLowerCase().replace(/\s+/g, '');
+      for (let k = X; k <= Y; k++) {
+        const off = k - X, prov = off > 0;
+        const fp = `parc|${descKey}|${(Math.round(tx.value * 100) / 100).toFixed(2)}|${k}/${Y}`;
+        if (seen.has(fp)) continue;
+        seen.add(fp);
+        if (prov) provCount++;
+        batch.push({ ...base, date: monthISO(off), fp, provisioned: prov, installment: { k, total: Y },
+          notes: [cardNote, `parcela ${k}/${Y}` + (prov ? ' · provisão' : '')].filter(Boolean).join(' · ') });
+      }
+    } else {
+      const date = impToISO(tx.date), fp = impFp(date, tx.value, tx.desc);
+      if (seen.has(fp)) continue;
+      seen.add(fp);
+      batch.push({ ...base, date, fp, notes: cardNote });
+    }
   }
   if (!batch.length) { showToast(t('imp.alldup')); return; }
 
@@ -4009,7 +4035,7 @@ async function doImport() {
       ov.classList.add('done');
       if ($('importOvText')) $('importOvText').textContent = t('imp.ready');
       const sub = $('importOvSub');
-      if (sub) { sub._cuVal = 0; countUpEl(sub, batch.length, n => '✓ ' + Math.round(n) + ' ' + t('imp.imported')); }
+      if (sub) { sub._cuVal = 0; countUpEl(sub, batch.length, n => '✓ ' + Math.round(n) + ' ' + t('imp.imported') + (provCount > 0 ? ' · +' + provCount + ' provisão' : '')); }
       await new Promise(r => setTimeout(r, 1300));
     } else {
       showToast(t('imp.done').replace('{n}', batch.length));
