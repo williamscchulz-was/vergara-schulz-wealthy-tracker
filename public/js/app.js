@@ -370,6 +370,12 @@ const I18N = {
     'imp.type.sub': 'Escolha a origem do arquivo.',
     'imp.type.card': 'Cartão de crédito',
     'imp.type.cc': 'Conta corrente',
+    'exp.filter.cat.all': 'Categoria',
+    'exp.filter.owner.all': 'Pessoa',
+    'exp.filter.type.all': 'Tipo',
+    'exp.filter.type.out': 'Saídas',
+    'exp.filter.type.in': 'Ganhos',
+    'exp.filter.none': 'Nada com esses filtros',
     'imp.clear': 'Limpar importados',
     'imp.clear.confirm': 'Apagar {n}? Clique de novo',
     'imp.clear.done': '{n} importados apagados',
@@ -731,6 +737,12 @@ const I18N = {
     'imp.type.sub': 'Choose the file source.',
     'imp.type.card': 'Credit card',
     'imp.type.cc': 'Checking account',
+    'exp.filter.cat.all': 'Category',
+    'exp.filter.owner.all': 'Person',
+    'exp.filter.type.all': 'Type',
+    'exp.filter.type.out': 'Expenses',
+    'exp.filter.type.in': 'Income',
+    'exp.filter.none': 'Nothing matches these filters',
     'imp.clear': 'Clear imported',
     'imp.clear.confirm': 'Delete {n}? Click again',
     'imp.clear.done': '{n} imported deleted',
@@ -964,7 +976,7 @@ function applyI18n() {
   if (label) label.textContent = lang === 'pt' ? 'EN' : 'PT';
   // Categorias padrão traduzem junto com o idioma (override do usuário vence)
   if (typeof applyCategoryConfig === 'function') {
-    try { applyCategoryConfig(state && state.catConfig); populateCategorySelect(); } catch (e) {}
+    try { applyCategoryConfig(state && state.catConfig); populateCategorySelect(); populateExpFilterCat(); } catch (e) {}
   }
   // Re-render dynamic views ONLY if app is loaded and user is logged in
   try {
@@ -1683,6 +1695,15 @@ function renderRecentList(entries) {
 // on the same dataset without re-querying state.
 let _lastMonthExp = [];
 let _expSearchQuery = '';
+let _expFilters = { cat: '', owner: '', nature: '' };
+// Repovoa o dropdown de Categoria do filtro a partir do CATEGORIES vivo.
+function populateExpFilterCat() {
+  const sel = $('expFilterCat'); if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">${esc(t('exp.filter.cat.all'))}</option>` + Object.entries(CATEGORIES).map(([k, c]) => `<option value="${k}">${esc(c.label)}</option>`).join('');
+  if (cur && CATEGORIES[cur]) sel.value = cur;
+  sel.classList.toggle('on', !!sel.value);
+}
 
 function renderExpenseTable(entries) {
   _lastMonthExp = entries;
@@ -1710,13 +1731,22 @@ function renderExpenseTable(entries) {
       })
     : entries;
 
-  if (filtered.length === 0) {
-    const msg = t('exp.search.none').replace('{q}', _expSearchQuery.trim());
+  // Filtros (categoria / pessoa / tipo) — combinam com a busca de texto
+  const fc = _expFilters.cat, fo = _expFilters.owner, ft = _expFilters.nature;
+  let result = filtered;
+  if (fc) result = result.filter(e => (e.category || 'outros') === fc);
+  if (fo) result = result.filter(e => (e.owner === 'joint' ? 'familia' : (e.owner || 'familia')) === fo);
+  if (ft === 'ganho') result = result.filter(e => isIncome(e));
+  else if (ft === 'saida') result = result.filter(e => !isIncome(e));
+  else if (ft === 'fixa' || ft === 'variavel') result = result.filter(e => !isIncome(e) && (e.nature || 'variavel') === ft);
+
+  if (result.length === 0) {
+    const msg = q ? t('exp.search.none').replace('{q}', _expSearchQuery.trim()) : t('exp.filter.none');
     tbody.innerHTML = `<tr><td colspan="4"><div class="exp-empty"><h4>${msg}</h4><p>${t('exp.empty.table.sub')}</p></div></td></tr>`;
     return;
   }
 
-  const sorted = [...filtered].sort((a,b) => parseLocalDate(b.date).getTime() - parseLocalDate(a.date).getTime());
+  const sorted = [...result].sort((a,b) => parseLocalDate(b.date).getTime() - parseLocalDate(a.date).getTime());
   tbody.innerHTML = sorted.map(e => {
     const meta = entryMeta(e);
     const isIn = isIncome(e);
@@ -4137,6 +4167,17 @@ $('expSearch')?.addEventListener('input', e => {
   _expSearchQuery = e.target.value || '';
   renderExpenseTable(_lastMonthExp);
 });
+// Filtros da listagem (categoria / pessoa / tipo)
+['expFilterCat', 'expFilterOwner', 'expFilterType'].forEach(id => {
+  $(id)?.addEventListener('change', e => {
+    const v = e.target.value;
+    if (id === 'expFilterCat') _expFilters.cat = v;
+    else if (id === 'expFilterOwner') _expFilters.owner = v;
+    else _expFilters.nature = v;
+    e.target.classList.toggle('on', !!v);
+    renderExpenseTable(_lastMonthExp);
+  });
+});
 
 // CSV export
 $('btnExportCsv')?.addEventListener('click', exportCurrentMonthCSV);
@@ -4744,6 +4785,7 @@ function subscribeAll() {
     state.catConfig = snap.exists() ? (snap.data() || {}) : {};
     applyCategoryConfig(state.catConfig);
     populateCategorySelect();
+    populateExpFilterCat();
     if (state.mode === 'expenses') renderExpenses();
     else if (state.mode === 'resumo' && typeof renderResumo === 'function') renderResumo();
   });

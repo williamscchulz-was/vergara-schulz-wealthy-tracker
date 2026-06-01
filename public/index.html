@@ -1646,6 +1646,10 @@ body::before {
 
 /* Table toolbar (search + CSV export) */
 .exp-table-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.exp-filter { background: var(--bg-elevated); color: var(--ink-2); border: 1px solid var(--border); border-radius: 9px; padding: 7px 10px; font: 500 12px Inter, sans-serif; cursor: pointer; max-width: 132px; }
+.exp-filter:hover { border-color: var(--border-strong); }
+.exp-filter:focus { outline: none; border-color: var(--purple); }
+.exp-filter.on { border-color: var(--purple); color: var(--ink); background: color-mix(in oklab, var(--purple) 10%, var(--bg-elevated)); }
 .exp-search {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 7px 12px;
@@ -2669,6 +2673,21 @@ body::before {
               <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
               <input type="search" id="expSearch" data-i18n-ph="exp.search.ph" placeholder="Buscar descrição, categoria..." autocomplete="off" />
             </label>
+            <select id="expFilterCat" class="exp-filter" aria-label="Categoria"><option value="" data-i18n="exp.filter.cat.all">Categoria</option></select>
+            <select id="expFilterOwner" class="exp-filter" aria-label="Pessoa">
+              <option value="" data-i18n="exp.filter.owner.all">Pessoa</option>
+              <option value="william">William</option>
+              <option value="flavia">Flávia</option>
+              <option value="louise">Louise</option>
+              <option value="familia" data-i18n="exp.owner.familia">Família</option>
+            </select>
+            <select id="expFilterType" class="exp-filter" aria-label="Tipo">
+              <option value="" data-i18n="exp.filter.type.all">Tipo</option>
+              <option value="saida" data-i18n="exp.filter.type.out">Saídas</option>
+              <option value="ganho" data-i18n="exp.filter.type.in">Ganhos</option>
+              <option value="fixa" data-i18n="exp.nature.fixa">Fixa</option>
+              <option value="variavel" data-i18n="exp.nature.variavel">Variável</option>
+            </select>
             <button class="btn-ghost btn-csv" id="btnExportCsv" title="Exportar CSV">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               <span data-i18n="exp.csv">CSV</span>
