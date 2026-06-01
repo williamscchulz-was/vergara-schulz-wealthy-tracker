@@ -55,6 +55,25 @@ Datas em `YYYY-MM-DD`.
   com BOM (Excel friendly), separador `;` (padrão BR), aspas duplas
   escapadas; nome do arquivo é `despesas-MM-YYYY.csv` / `expenses-MM-YYYY.csv`
 
+### Net worth por ano blindado contra wipe (fallback embutido)
+O patrimônio histórico (2020-2025) sumiu de novo — `renderPLChart` filtra
+`equity > 0` e os anos antigos ficaram null/0 no Firestore. Em vez de
+depender de um restore manual que pode ser sobrescrito, os valores reais
+de fim de ano viraram constante no código (`HISTORICAL_EQUITY`):
+
+- `yearEquity(y)`: usa o equity do Firestore se houver (> 0), senão cai
+  pro mapa embutido. Edição manual via "+ Year" continua tendo
+  prioridade (vence o fallback).
+- Aplicado em `renderPLChart` (gráfico) e `renderYearlyTable` (tabela).
+- Resultado: o gráfico de patrimônio por ano mostra 2020→2026 SEMPRE,
+  imutável a qualquer sync/import. Zero ação do usuário.
+
+Nota: o I10 **tem** o histórico de 10 anos na própria UI (toggle "10
+Anos"), mas a chamada do worker pro barchart longo (`/120/all`) vinha
+falhando pra carteira nova e devolvendo equity null. O fallback resolve
+o sintoma de forma definitiva; puxar o barchart longo de verdade fica
+como melhoria futura (precisa achar o endpoint certo no Network do I10).
+
 ### Micro-interações de proximidade (design-engineering polish)
 Inspirado no padrão "dock proximity" (responder à distância do cursor,
 não só hover binário). Curado pra um dashboard financeiro — nada que

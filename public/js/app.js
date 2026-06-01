@@ -2381,12 +2381,36 @@ function renderDividendsChart() {
   wrap.innerHTML = buildBarChart(_filtered.years, _filtered.values, { yoyMode: 'pills', firstYoYIdx: 1 });
 }
 
+// Patrimônio (net worth) de fim de ano — fonte canônica dos anos antigos.
+// A API do I10 NÃO expõe equity histórico pra carteira nova (2814459):
+// /i10/yearly devolve equity:null em todo ano (confirmado). Esses são os
+// valores reais do histórico do William, embutidos aqui pra serem
+// resilientes: nenhum sync/import consegue apagá-los (o Firestore só é
+// usado se tiver um valor > 0, então edições manuais ainda têm prioridade).
+// Pra ajustar um ano: editar pelo botão "+ Year" no app (vence este mapa).
+const HISTORICAL_EQUITY = {
+  2020: 21200,
+  2021: 64200,
+  2022: 70900,
+  2023: 298400,
+  2024: 685800,
+  2025: 1340000,
+};
+// Resolve year-end equity: Firestore value if present & >0, else the
+// hardcoded historical fallback, else 0.
+function yearEquity(y) {
+  const fs = +y.equity;
+  if (Number.isFinite(fs) && fs > 0) return fs;
+  return HISTORICAL_EQUITY[+y.year] || 0;
+}
+
 function renderPLChart() {
   const wrap = $('plChartWrap');
   if (!wrap) return;
   const currentYear = new Date().getFullYear();
   const sortedYearly = [...state.yearly]
-    .filter(y => Number.isFinite(+y.year) && Number.isFinite(+y.equity) && +y.equity > 0)
+    .map(y => ({ ...y, _eq: yearEquity(y) }))
+    .filter(y => Number.isFinite(+y.year) && y._eq > 0)
     .sort((a, b) => a.year - b.year);
 
   if (sortedYearly.length === 0 && (!state.i10.equity || state.i10.equity <= 0)) {
@@ -2395,7 +2419,7 @@ function renderPLChart() {
   }
 
   const years = sortedYearly.map(y => y.year);
-  const values = sortedYearly.map(y => +y.equity || 0);
+  const values = sortedYearly.map(y => y._eq);
 
   // Add or override current year with i10 value (always fresher)
   const hasCurrent = years.includes(currentYear);
@@ -2427,7 +2451,8 @@ function renderYearlyTable() {
     return String(Math.round(n || 0));
   };
   tbody.innerHTML = sorted.map((y, i) => {
-    const dy = (+y.equity > 0) ? ((+y.divs / +y.equity) * 100).toFixed(1) + '%' : '—';
+    const eq = yearEquity(y); // Firestore value if present, else historical fallback
+    const dy = (eq > 0) ? ((+y.divs / eq) * 100).toFixed(1) + '%' : '—';
     let yoy = '—';
     if (i > 0) {
       const prev = +sorted[i-1].divs || 0;
@@ -2439,7 +2464,7 @@ function renderYearlyTable() {
       }
     }
     const yoyClass = yoy.startsWith('+') ? 'pos' : (yoy.startsWith('-') ? 'neg' : '');
-    return `<tr data-id="${y.id}"><td>${y.year}</td><td>${compact(+y.equity||0)}</td><td>${compact(+y.divs||0)}</td><td>${dy}</td><td class="${yoyClass}">${yoy}</td></tr>`;
+    return `<tr data-id="${y.id}"><td>${y.year}</td><td>${compact(eq)}</td><td>${compact(+y.divs||0)}</td><td>${dy}</td><td class="${yoyClass}">${yoy}</td></tr>`;
   }).join('');
   tbody.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => openYearlyModal(tr.dataset.id)));
 }
