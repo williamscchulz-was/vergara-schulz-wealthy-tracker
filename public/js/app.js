@@ -3871,39 +3871,23 @@ async function doImport() {
       requestAnimationFrame(() => { prog.style.strokeDashoffset = String(C * 0.12); });
     }
   }
-  const t0 = performance.now();
+  // Dispara TODAS as gravações sem esperar a rede — nunca trava. Cada uma
+  // com catch próprio; o Firestore confirma em background e o onSnapshot
+  // atualiza a lista de Despesas conforme cada lançamento cai.
+  batch.forEach(d => addDoc(colExpenses(), d).catch(err => console.error('[import] doc falhou', err)));
   try {
-    // Grava em paralelo mas NUNCA trava a UI: corre contra um timeout de 8s.
-    // allSettled não rejeita; o que não terminar a tempo o Firestore sincroniza
-    // depois (e a anti-duplicata evita repetir num novo import).
-    const settled = await Promise.race([
-      Promise.allSettled(batch.map(d => addDoc(colExpenses(), d))),
-      new Promise(res => setTimeout(() => res('timeout'), 8000)),
-    ]);
-    let okCount = batch.length;
-    if (Array.isArray(settled)) {
-      okCount = settled.filter(r => r.status === 'fulfilled').length;
-      const failed = settled.length - okCount;
-      if (failed) console.warn('[import] ' + failed + ' writes falharam/pendentes');
-    } else {
-      console.warn('[import] gravação lenta (>8s) — seguindo; Firestore sincroniza em background');
-    }
     if (ov && !reduce) {
-      const el = performance.now() - t0;
-      if (el < 700) await new Promise(r => setTimeout(r, 700 - el));
+      await new Promise(r => setTimeout(r, 760));   // anel enchendo (cosmético)
       ov.classList.add('done');
       if ($('importOvText')) $('importOvText').textContent = t('imp.ready');
       const sub = $('importOvSub');
-      if (sub) { sub._cuVal = 0; countUpEl(sub, okCount, n => '✓ ' + Math.round(n) + ' ' + t('imp.imported')); }
+      if (sub) { sub._cuVal = 0; countUpEl(sub, batch.length, n => '✓ ' + Math.round(n) + ' ' + t('imp.imported')); }
       await new Promise(r => setTimeout(r, 1300));
     } else {
-      showToast(t('imp.done').replace('{n}', okCount));
+      showToast(t('imp.done').replace('{n}', batch.length));
     }
-    $('importModal').classList.remove('show');
-  } catch (e) {
-    console.error('[import] failed', e);
-    showToast(t('toast.error.save'));
   } finally {
+    $('importModal').classList.remove('show');
     if (ov) { ov.hidden = true; ov.classList.remove('done'); }
     $('importConfirm').disabled = false; $('importCancel').disabled = false;
   }

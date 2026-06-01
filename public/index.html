@@ -1401,6 +1401,7 @@ body::before {
 .imp-val.ref { color: var(--gain); }
 /* Overlay de progresso/sucesso da importação */
 .imp-overlay { position: fixed; inset: 0; z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: color-mix(in oklab, var(--bg) 88%, transparent); backdrop-filter: blur(8px); }
+.imp-overlay[hidden] { display: none; }  /* o display:flex acima sobrescrevia o atributo hidden — sem isto, o overlay aparecia SEMPRE (até no login) */
 .imp-ov-svg { width: 92px; height: 92px; }
 .imp-ov-track { fill: none; stroke: var(--border-2); stroke-width: 4; }
 .imp-ov-prog { fill: none; stroke: var(--purple); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 138.2; stroke-dashoffset: 138.2; transform: rotate(-90deg); transform-origin: 26px 26px; }
