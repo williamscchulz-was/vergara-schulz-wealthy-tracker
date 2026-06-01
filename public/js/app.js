@@ -304,6 +304,17 @@ const I18N = {
     'exp.btn.cancel': 'Cancelar',
     'exp.btn.save': 'Salvar',
     'exp.btn.close': 'Fechar',
+    'imp.btn': 'Importar fatura',
+    'imp.title': 'Importar fatura do cartão (PDF)',
+    'imp.modal.title': 'Revisar fatura',
+    'imp.modal.sub': 'Confira de quem é o gasto e a categoria. Desmarque o que não quer importar.',
+    'imp.count': 'lançamentos encontrados',
+    'imp.reading': 'Lendo o PDF…',
+    'imp.none': 'Não encontrei lançamentos nesse PDF. É o extrato do cartão?',
+    'imp.fail.read': 'Não consegui ler esse PDF — tente outro arquivo.',
+    'imp.confirm': 'Importar {n}',
+    'imp.done': 'Importado: {n} lançamento(s)',
+    'imp.alldup': 'Tudo isso já tinha sido importado.',
     'exp.btn.saving': 'Salvando...',
     'exp.toast.saved': 'Despesa atualizada',
     'exp.toast.added': 'Despesa registrada',
@@ -547,6 +558,17 @@ const I18N = {
     'exp.btn.cancel': 'Cancel',
     'exp.btn.save': 'Save',
     'exp.btn.close': 'Close',
+    'imp.btn': 'Import statement',
+    'imp.title': 'Import card statement (PDF)',
+    'imp.modal.title': 'Review statement',
+    'imp.modal.sub': "Check whose expense it is and the category. Uncheck anything you don't want to import.",
+    'imp.count': 'entries found',
+    'imp.reading': 'Reading the PDF…',
+    'imp.none': 'No entries found in this PDF. Is it the card statement?',
+    'imp.fail.read': "Couldn't read this PDF — try another file.",
+    'imp.confirm': 'Import {n}',
+    'imp.done': 'Imported: {n} entry(ies)',
+    'imp.alldup': 'All of these were already imported.',
     'exp.btn.saving': 'Saving...',
     'exp.toast.saved': 'Expense updated',
     'exp.toast.added': 'Expense recorded',
@@ -3613,6 +3635,185 @@ $('budgetSave')?.addEventListener('click', saveBudgets);
 $('budgetModal')?.addEventListener('click', e => { if (e.target.id === 'budgetModal') closeBudgetModal(); });
 
 // Expense modal
+// ============================================================
+//  IMPORTADOR DE FATURA DO CARTÃO (PDF) — v1
+//  Lê o PDF (Bradesco) NO NAVEGADOR via PDF.js (CDN, lazy), parseia os
+//  lançamentos, dá palpite de "de quem" + categoria, e grava em lote nas
+//  despesas com anti-duplicata. O PDF nunca sai do navegador.
+// ============================================================
+let _pdfjsLib = null;
+async function loadPdfJs() {
+  if (_pdfjsLib) return _pdfjsLib;
+  const lib = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs');
+  try { lib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs'; } catch (e) {}
+  _pdfjsLib = lib;
+  return lib;
+}
+async function extractPdfLines(file) {
+  const pdfjs = await loadPdfJs();
+  const data = new Uint8Array(await file.arrayBuffer());
+  const doc = await pdfjs.getDocument({ data }).promise;
+  const lines = [];
+  for (let p = 1; p <= doc.numPages; p++) {
+    const page = await doc.getPage(p);
+    const tc = await page.getTextContent();
+    const rows = new Map();
+    for (const it of tc.items) {
+      const s = (it.str || '').trim();
+      if (!s) continue;
+      const y = Math.round(it.transform[5]);
+      if (!rows.has(y)) rows.set(y, []);
+      rows.get(y).push({ x: it.transform[4], s });
+    }
+    [...rows.keys()].sort((a, b) => b - a).forEach(y => {
+      const line = rows.get(y).sort((a, b) => a.x - b.x).map(o => o.s).join(' ').replace(/\s+/g, ' ').trim();
+      if (line) lines.push(line);
+    });
+  }
+  return lines;
+}
+const IMP_CAT_RULES = [
+  ['alimentacao', ['restaurante','coffee','cafe','padaria','panific','supermerc','mercado','koch','unidos','cooper','ifood','burger','pizza','lanche','hortifruti','acougue','sinuelo','garcia']],
+  ['transporte', ['uber','99app','posto','combust','veloe','pedagio','estacion','parking','rek park','latam','gol ','azul','auto re','isleb']],
+  ['saude', ['vacina','farmacia','panvel','drogaria','droga','maxiderma','clinica','odonto','hospital','laborat','exame','psico','esthetic','dunnia','htm*','dra ']],
+  ['assinaturas', ['netflix','google youtu','youtube','kindle unltd','spotify','amazon prime','livelo','disney','hbo','prime video','dl*google']],
+  ['educacao', ['escola','colegio','faculdade','curso','udemy','alura','milium','livraria','ensino','academia','agrico']],
+  ['lazer', ['cinema','ingresso','steam','playstation','xbox','teatro','parque','hotel','booking','airbnb','barbearia','beauty','mazi','salao','estetica','rasato']],
+  ['compras', ['amazon','shopee','mercadolivre','mercado livre','magazine','magalu','riachuelo','renner','c&a','shein','aliexpress','marketplace','americanas','centauro','bluvitta','espor','neumarkt','mlb','fazstore','blusa','loja']],
+  ['moradia', ['aluguel','condominio','imobil','energia','copel','celesc','sanepar','internet','claro','vivo','tim ','enel','empreend','conta de gas','conta de telefone']],
+];
+function impCategorize(desc) {
+  const d = ' ' + (desc || '').toLowerCase() + ' ';
+  for (const [c, ks] of IMP_CAT_RULES) if (ks.some(k => d.includes(k))) return c;
+  return 'outros';
+}
+const IMP_KIDS = ['escola','colegio','agrico','milium','clubkids','baby','kids','crianc','pediatr','brinq','luddi'];
+const IMP_HOUSE = ['supermerc','unidos','koch','cooper','mercado garcia',' garcia','posto','combust','veloe','pedagio','auto re','empreend','condom','energia','copel','sanepar','conta de gas','conta de telefone'];
+const IMP_FEM = ['maxiderma','esthetic','mazi','beauty','dunnia','htm*','salao','manicure','depil','estetica','mulhe','panvel'];
+const IMP_MAL = ['rasato','barbearia'];
+function impHolderOwner(holder) {
+  const h = (holder || '').toUpperCase();
+  if (h.includes('WILLIAM')) return 'william';
+  if (h.includes('FLAVIA') || h.includes('VERGARA')) return 'flavia';
+  return 'familia';
+}
+function impPersonGuess(tx) {
+  const d = ' ' + (tx.desc || '').toLowerCase() + ' ';
+  if (IMP_KIDS.some(k => d.includes(k))) return 'louise';
+  if (IMP_HOUSE.some(k => d.includes(k))) return 'familia';
+  if (IMP_FEM.some(k => d.includes(k))) return 'flavia';
+  if (IMP_MAL.some(k => d.includes(k))) return 'william';
+  return impHolderOwner(tx.holder);
+}
+function parseStatement(lines) {
+  const out = [];
+  let holder = '';
+  const HOLDER = /^([A-ZÀ-Ý][A-ZÀ-Ý '.]+?)\s*-\s*VISA/;
+  const ROW = /^(\d{2}\/\d{2})\s+(.+?)\s+(-?\d{1,3}(?:\.\d{3})*,\d{2})$/;
+  const SKIP = /(SALDO ANTERIOR|PAGTO|TOTAL|ENCARGOS|^JUROS|ANUIDADE|^IOF|MULTA|LIMITE)/i;
+  for (const L of lines) {
+    const h = L.match(HOLDER);
+    if (h) { holder = h[1].replace(/\s+/g, ' ').trim(); continue; }
+    const m = L.match(ROW);
+    if (!m) continue;
+    let desc = m[2].replace(/\s+/g, ' ').trim();
+    if (!desc || SKIP.test(desc)) continue;
+    let inst = null;
+    const im = desc.match(/\b(\d{1,2}\/\d{1,2})\b\s*$/) || desc.match(/\b(\d{1,2}\/\d{1,2})\b/);
+    if (im) { inst = im[1]; desc = desc.replace(im[0], '').replace(/\s+/g, ' ').trim(); }
+    const value = parseFloat(m[3].replace(/\./g, '').replace(',', '.'));
+    if (!isFinite(value) || value === 0) continue;
+    out.push({ date: m[1], desc, inst, value, holder, refund: value < 0 });
+  }
+  return out;
+}
+function impToISO(ddmm) {
+  const parts = (ddmm || '').split('/');
+  const d = +parts[0], mo = +parts[1];
+  if (!d || !mo) return new Date().toISOString().split('T')[0];
+  const now = new Date();
+  let y = now.getFullYear();
+  if (mo > now.getMonth() + 2) y -= 1;  // mês muito à frente → ano passado
+  return `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+}
+function impFp(date, value, desc) {
+  return date + '|' + (Math.round((+value) * 100) / 100).toFixed(2) + '|' + (desc || '').slice(0, 16).toLowerCase().replace(/\s+/g, '');
+}
+const impMoney = (n) => 'R$ ' + Math.abs(+n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+let _importTxns = [];
+async function handleImportFile(file) {
+  if (!file) return;
+  showToast(t('imp.reading'));
+  let lines;
+  try { lines = await extractPdfLines(file); }
+  catch (e) { console.error('[import] pdf read failed', e); showToast(t('imp.fail.read')); return; }
+  const txns = parseStatement(lines);
+  if (!txns.length) { showToast(t('imp.none')); return; }
+  _importTxns = txns;
+  renderImportReview();
+}
+function impUpdateConfirm() {
+  const n = document.querySelectorAll('#importList .imp-row input[type="checkbox"]:checked').length;
+  const btn = $('importConfirm');
+  if (btn) { btn.textContent = t('imp.confirm').replace('{n}', n); btn.disabled = n === 0; }
+}
+function renderImportReview() {
+  const ownerOpts = OWNERS.map(o => `<option value="${o}">${esc(t('exp.owner.' + o))}</option>`).join('');
+  const catOpts = Object.keys(CATEGORIES).map(k => `<option value="${k}">${esc(CATEGORIES[k].label)}</option>`).join('');
+  const rows = _importTxns.map((tx, i) => {
+    const owner = impPersonGuess(tx);
+    const cat = impCategorize(tx.desc);
+    const couple = /WILLIAM|FLAVIA|VERGARA/i.test(tx.holder || '');
+    const checked = (couple && !tx.refund) ? 'checked' : '';
+    const badges = (tx.inst ? `<span class="imp-badge">${esc(tx.inst)}</span> ` : '') + (tx.refund ? `<span class="imp-badge ref">estorno</span> ` : '');
+    const card = tx.holder ? `<span class="imp-card">${esc(tx.holder.split(' ')[0])}</span>` : '';
+    return `<label class="imp-row">
+      <input type="checkbox" data-idx="${i}" ${checked}>
+      <span class="imp-date">${esc(tx.date)}</span>
+      <span class="imp-desc">${esc(tx.desc)} ${badges}${card}</span>
+      <select class="imp-owner" data-idx="${i}">${ownerOpts.replace(`value="${owner}"`, `value="${owner}" selected`)}</select>
+      <select class="imp-cat" data-idx="${i}">${catOpts.replace(`value="${cat}"`, `value="${cat}" selected`)}</select>
+      <span class="imp-val${tx.refund ? ' ref' : ''}">${tx.refund ? '+ ' : ''}${impMoney(tx.value)}</span>
+    </label>`;
+  }).join('');
+  $('importList').innerHTML = rows;
+  $('importCount').textContent = _importTxns.length;
+  $('importModal').classList.add('show');
+  impUpdateConfirm();
+}
+async function doImport() {
+  const seen = new Set((state.expenses || []).map(e => impFp(e.date, e.value, e.description)));
+  const checks = [...document.querySelectorAll('#importList .imp-row input[type="checkbox"]:checked')];
+  const batch = [];
+  for (const cb of checks) {
+    const tx = _importTxns[+cb.dataset.idx];
+    if (!tx) continue;
+    const row = cb.closest('.imp-row');
+    const owner = row.querySelector('.imp-owner').value;
+    const category = row.querySelector('.imp-cat').value;
+    const date = impToISO(tx.date);
+    const fp = impFp(date, tx.value, tx.desc);
+    if (seen.has(fp)) continue;  // já existe → não duplica
+    seen.add(fp);
+    const notes = [tx.holder ? ('cartão: ' + tx.holder.split(' ')[0]) : '', tx.inst ? ('parcela ' + tx.inst) : ''].filter(Boolean).join(' · ');
+    batch.push({ type: 'expense', description: tx.desc, value: tx.value, date, category, notes, owner, fp, source: 'import:cartao', createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import' });
+  }
+  if (!batch.length) { showToast(t('imp.alldup')); return; }
+  const btn = $('importConfirm'); const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    for (const d of batch) await addDoc(colExpenses(), d);
+    showToast(t('imp.done').replace('{n}', batch.length));
+    $('importModal').classList.remove('show');
+  } catch (e) { console.error('[import] write failed', e); showToast(t('toast.error.save')); }
+  finally { btn.disabled = false; btn.textContent = orig; }
+}
+$('btnImportStatement')?.addEventListener('click', () => { const f = $('impFile'); if (f) f.click(); });
+$('impFile')?.addEventListener('change', (e) => { const file = e.target.files && e.target.files[0]; e.target.value = ''; handleImportFile(file); });
+$('importCancel')?.addEventListener('click', () => $('importModal').classList.remove('show'));
+$('importConfirm')?.addEventListener('click', doImport);
+$('importList')?.addEventListener('change', (e) => { if (e.target.matches('input[type="checkbox"]')) impUpdateConfirm(); });
+
 $('btnAddExpense').addEventListener('click', () => openExpenseModal(null, { type: 'expense' }));
 $('btnAddIncome')?.addEventListener('click', () => openExpenseModal(null, { type: 'income' }));
 // Modal type toggle (Saída / Ganho)

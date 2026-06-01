@@ -1352,6 +1352,24 @@ body::before {
 .exp-owner-chip.exp-owner-louise  { color: #7ee29a; background: color-mix(in oklab, #30d158 12%, transparent); border-color: color-mix(in oklab, #30d158 28%, transparent); }
 .exp-owner-chip.exp-owner-familia { color: var(--purple-light); background: var(--purple-soft); border-color: color-mix(in oklab, var(--purple) 28%, transparent); }
 
+/* ---- Importador de fatura (review) ---- */
+.modal-wide { max-width: 780px; }
+.imp-meta { font-size: 12px; color: var(--ink-3); margin: 6px 0 10px; }
+.imp-meta b { color: var(--ink); font-family: 'Geist Mono', monospace; }
+.imp-list { max-height: 54vh; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 14px; }
+.imp-row { display: grid; grid-template-columns: 20px 44px minmax(0,1fr) 118px 118px 92px; gap: 8px; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 12px; }
+.imp-row:last-child { border-bottom: none; }
+.imp-row:hover { background: var(--bg-elevated-2); }
+.imp-row > input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--purple); cursor: pointer; }
+.imp-date { font-family: 'Geist Mono', monospace; color: var(--ink-3); font-size: 11px; }
+.imp-desc { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
+.imp-card { font-size: 10px; color: var(--ink-muted); margin-left: 4px; }
+.imp-badge { font-family: 'Geist Mono', monospace; font-size: 9px; padding: 1px 5px; border-radius: 5px; background: rgba(100,210,255,.14); color: #9bdcff; }
+.imp-badge.ref { background: var(--gain-soft); color: var(--gain); }
+.imp-row select { background: var(--bg-elevated-2); color: var(--ink); border: 1px solid var(--border); border-radius: 7px; padding: 5px 6px; font-size: 11px; font-family: inherit; max-width: 100%; cursor: pointer; }
+.imp-val { font-family: 'Geist Mono', monospace; text-align: right; color: var(--ink); }
+.imp-val.ref { color: var(--gain); }
+
 /* Income styling on existing row/pill/amount layouts */
 .exp-recent-row.is-income .exp-recent-amt,
 .exp-table tr.is-income .exp-row-amt { color: var(--gain); }
@@ -2372,9 +2390,11 @@ body::before {
           <div class="meta" data-i18n="exp.section.meta">Lançamentos e orçamento do mês</div>
         </div>
         <div class="exp-add-group">
+          <button class="btn-ghost" id="btnImportStatement" data-i18n="imp.btn" data-i18n-title="imp.title" title="Importar fatura do cartão (PDF)">Importar fatura</button>
           <button class="btn-ghost btn-add-income" id="btnAddIncome" data-i18n="exp.new.income" title="Novo ganho">+ Ganho</button>
           <button class="btn-primary" id="btnAddExpense" data-i18n="exp.new">+ Nova despesa</button>
         </div>
+        <input type="file" id="impFile" accept="application/pdf,.pdf" hidden>
       </div>
 
       <!-- Live household net worth pill (clickable → Investments tab) -->
@@ -3018,6 +3038,20 @@ body::before {
     <div class="modal-foot">
       <button class="btn-ghost" id="fxModalCancel" data-i18n="exp.btn.cancel">Cancelar</button>
       <button class="btn-primary" id="fxModalSave" data-i18n="exp.btn.save">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Importador de fatura do cartão (PDF) -->
+<div class="modal-bg" id="importModal">
+  <div class="modal modal-wide">
+    <h3 data-i18n="imp.modal.title">Revisar fatura</h3>
+    <p class="sub" data-i18n="imp.modal.sub">Confira de quem é o gasto e a categoria. Desmarque o que não quer importar.</p>
+    <div class="imp-meta"><b id="importCount">0</b> <span data-i18n="imp.count">lançamentos encontrados</span></div>
+    <div class="imp-list" id="importList"></div>
+    <div class="modal-foot">
+      <button class="btn-secondary" id="importCancel" data-i18n="exp.btn.cancel">Cancelar</button>
+      <button class="btn-primary" id="importConfirm">Importar</button>
     </div>
   </div>
 </div>

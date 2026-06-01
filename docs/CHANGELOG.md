@@ -5,6 +5,25 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Importador de fatura do cartão (PDF) — v1 (2026-06-01)
+A feature mais pedida saiu do mock pro app. Botão **"Importar fatura"** na
+aba Despesas → escolhe o PDF do extrato → revisa → grava em lote.
+- **Lê o PDF no navegador** via PDF.js (CDN, import dinâmico/lazy — não
+  pesa no load inicial; o PDF nunca sobe pro servidor).
+- **Parser Bradesco**: agrupa os text-items por linha (Y), regex
+  `DD/MM + descrição + R$`, detecta parcela `X/Y`, estorno (negativo),
+  pula SALDO/PAGTO/TOTAL/IOF/encargos.
+- **Palpite automático**: "de quem" em camadas (kids→Louise,
+  casa→Família, estética→Flávia, barbearia→William, senão o portador) +
+  categoria por palavra-chave. Tudo editável por `<select>` na revisão.
+- **Anti-duplicata**: fingerprint `data|valor|descrição`; reimportou o
+  mesmo lançamento → pula. Grava com `source: 'import:cartao'`, `fp`,
+  nota com cartão+parcela.
+- i18n PT/EN (`imp.*`). **v1**: ainda sem a animação de leitura, memória
+  que aprende e provisão de parcelas — próximos incrementos.
+- ⚠️ A extração via PDF.js depende do layout do PDF; testar com o extrato
+  real (o dono faz o 1º teste logado).
+
 ### UI estática + destaque do "+ Ganho" + idioma (2026-06-01)
 Pedidos do dono: "esse mundo que fica se mexendo não é legal, deixa
 estático"; o "+ Ganho" precisa chamar mais atenção; e "o idioma está
