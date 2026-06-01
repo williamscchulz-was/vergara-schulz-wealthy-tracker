@@ -80,6 +80,19 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   --glass-highlight:  rgba(255,255,255,0.08);
   --glass-blur:       blur(20px) saturate(1.5);
   --glass-blur-strong: blur(28px) saturate(1.6);
+
+  /* Aliases — referenced across the app/markup but were never defined,
+     so dividers/borders silently rendered transparent and faint text lost
+     its color (root cause of the "everything floats / weak hierarchy"
+     feel). Map to the real scale; the var() refs auto-adapt to the light
+     theme overrides. */
+  --text:         var(--ink);
+  --text-dim:     var(--ink-3);
+  --text-faint:   var(--ink-muted);
+  --border-soft:  var(--border);
+  --card-border:  var(--border-2);
+  --card-divider: var(--border);
+  --warn-soft:    rgba(255,179,64,0.12);
 }
 
 /* v8 LIQUID BORDER — animated conic gradient ring (Part 1 §-2) */
@@ -463,10 +476,11 @@ body::before {
 .page {
   position: relative;
   z-index: 1;
-  max-width: 1320px;
+  max-width: 1500px;
   margin: 0 auto;
-  padding: 24px 28px 80px;
+  padding: 24px 32px 96px;
 }
+@media (min-width: 1760px) { .page { max-width: 1680px; } }
 
 /* ===========================================================
    DESKTOP DASHBOARD — 2-column layout for wide screens.
@@ -479,17 +493,33 @@ body::before {
 @media (min-width: 1100px) {
   #moduleInvestments.active {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 18px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
     align-items: start;
   }
   /* kill per-card stacking margin inside the grid (gap handles spacing) */
   #moduleInvestments.active > .card,
   #moduleInvestments.active > .hero-card { margin-bottom: 0; }
-  /* full-width spanners: the net-worth hero and anything tagged dash-span
-     (the yearly history table — too wide for a half column) */
+  /* full-width spanners: the net-worth hero, anything tagged dash-span,
+     and any card holding a wide table or chart (cramped in a half column).
+     :has() is zero-JS and supported in all current browsers. */
   #moduleInvestments.active > .hero-card,
-  #moduleInvestments.active > .dash-span { grid-column: 1 / -1; }
+  #moduleInvestments.active > .dash-span,
+  #moduleInvestments.active > .card:has(.yearly-table),
+  #moduleInvestments.active > .card:has(.mr-table),
+  #moduleInvestments.active > .card:has(svg.chart) { grid-column: 1 / -1; }
+
+  /* DESKTOP DENSITY — the app was tuned for phones; tighten on wide
+     screens so it reads as a dashboard, not a blown-up phone. */
+  .card { padding: 20px 22px; margin-bottom: 14px; }
+  .hero-card { padding: 26px 26px 22px; }
+  .card-head { margin-bottom: 14px; }
+  .cat-row { padding: 11px 4px; }
+  .cat-row:hover { padding: 11px 12px; }
+  .exp-table td { padding: 10px 14px; }
+
+  /* Expenses: stop the hero/table from sprawling the full 1500px. */
+  #moduleExpenses.active { max-width: 1240px; margin-inline: auto; }
 }
 
 /* ===========================================================
@@ -585,7 +615,7 @@ body::before {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--ink-3);
+  color: var(--ink-muted);
 }
 .eyebrow-mono {
   font-family: 'Geist Mono', monospace;
@@ -600,8 +630,10 @@ body::before {
    HERO PATRIMONIO
    =========================================================== */
 .hero-card {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
+  background:
+    linear-gradient(135deg, rgba(172,95,219,0.12), transparent 44%),
+    var(--bg-elevated);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
   padding: 32px 30px 28px;
   margin-bottom: 16px;
@@ -627,7 +659,7 @@ body::before {
 .hero-eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; position: relative; z-index: 1; }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gain); box-shadow: 0 0 12px var(--gain); animation: pulse 2s ease-in-out infinite; }
 @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.85); } }
-.hero-eyebrow .label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); }
+.hero-eyebrow .label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); }
 
 .hero-amount {
   display: flex; align-items: baseline; gap: 8px;
@@ -638,7 +670,7 @@ body::before {
   position: relative; z-index: 1;
 }
 .hero-amount .cur { font-size: 20px; font-weight: 600; color: var(--ink-3); }
-.hero-amount .num { font-size: clamp(40px, 9vw, 56px); color: var(--ink); font-variant-numeric: tabular-nums; font-family: 'Inter', sans-serif; }
+.hero-amount .num { font-size: clamp(40px, 5.2vw, 60px); color: var(--ink); font-variant-numeric: tabular-nums; font-family: 'Geist Mono', monospace; }
 
 .hero-meta-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 22px; position: relative; z-index: 1; }
 .hero-usd {
@@ -747,9 +779,9 @@ body::before {
 .cat-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--purple-soft); border: 1px solid var(--border-strong); display: grid; place-items: center; color: var(--purple-light); transition: all 0.3s var(--ease-back); }
 .cat-row:hover .cat-icon { background: rgba(172,95,219,0.18); transform: scale(1.05) rotate(-3deg); }
 .cat-icon svg { width: 18px; height: 18px; }
-.cat-name { font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+.cat-name { font-size: 13px; font-weight: 600; color: var(--ink-2); letter-spacing: -0.01em; }
 .cat-count { font-size: 10px; color: var(--ink-muted); margin-top: 2px; font-family: 'Geist Mono', monospace; letter-spacing: 0.04em; }
-.cat-value { font-family: 'Geist Mono', monospace; font-size: 14px; font-weight: 700; color: var(--ink); text-align: right; }
+.cat-value { font-family: 'Geist Mono', monospace; font-size: 15px; font-weight: 700; color: var(--ink); text-align: right; }
 .cat-pct { font-size: 10px; color: var(--ink-muted); margin-top: 2px; text-align: right; font-family: 'Geist Mono', monospace; }
 .cat-appr { font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 600; min-width: 60px; text-align: right; }
 .cat-appr.pos { color: var(--gain); }
@@ -868,10 +900,10 @@ body::before {
 .exp-hero > .left, .exp-hero > .month-nav { position: relative; z-index: 1; }
 .exp-hero-eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
 .exp-hero-eyebrow .live-dot { background: var(--purple-light); box-shadow: 0 0 12px var(--purple-glow); }
-.exp-hero .label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); }
+.exp-hero .label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); }
 .exp-hero .amt { display: flex; align-items: baseline; gap: 8px; font-weight: 700; color: var(--ink); letter-spacing: -0.03em; line-height: 1; margin-bottom: 8px; }
 .exp-hero .amt .cur { font-size: 20px; color: var(--ink-3); font-weight: 600; }
-.exp-hero .amt #expHeroAmt { font-size: clamp(36px, 8vw, 52px); font-variant-numeric: tabular-nums; }
+.exp-hero .amt #expHeroAmt { font-size: clamp(36px, 4.8vw, 56px); font-variant-numeric: tabular-nums; font-family: 'Geist Mono', monospace; }
 .exp-hero .amt-sub { font-size: 11px; color: var(--ink-muted); font-family: 'Geist Mono', monospace; letter-spacing: 0.02em; }
 .exp-hero .amt-sub .pos { color: var(--gain); font-weight: 600; }
 .exp-hero .amt-sub .neg { color: var(--loss); font-weight: 600; }

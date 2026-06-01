@@ -5,6 +5,32 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Desktop-first + hierarquia & glamour — Pass 1 (2026-06-01)
+Auditoria multi-agente (5 dimensões: layout, navegação, interação,
+densidade, hierarquia/glamour) → primeira leva de correções, **tudo CSS**:
+- **Tokens fantasma definidos**: `--text`, `--text-dim`, `--text-faint`,
+  `--border-soft`, `--card-border`, `--card-divider`, `--warn-soft` eram
+  referenciados no CSS/markup mas **nunca declarados** → bordas/divisórias
+  renderizavam transparentes e texto faint perdia a cor (raiz da
+  "hierarquia fraca / tudo flutua"). Agora apontam pra escala real via
+  `var()` (adapta ao tema claro automaticamente).
+- **Hierarquia**: número do hero agora é Geist Mono (era Inter — o único
+  número grande não-mono); `.cat-name` recua (13px/`--ink-2`) e
+  `.cat-value` domina (15px/700/`--ink`) → a linha ganha âncora; eyebrows
+  e labels uppercase → `--ink-muted` pra recuar.
+- **Glamour**: `.hero-card` ganha gradiente roxo sutil + borda de acento
+  (`--border-strong`) pra finalmente dominar; clamp do número re-escala
+  melhor no desktop (`5.2vw`/`4.8vw`, cap 60/56).
+- **Desktop**: `.page` 1320 → **1500px** (1680 em ≥1760px); grid de
+  Investimentos com `minmax(0,1fr)` + auto-span via `:has()` pra
+  tabelas/charts largos; bloco de **densidade desktop** (padding e linhas
+  mais justos ≥1100px); Despesas com largura contida (1240px).
+
+Próximo (Pass 2): count-up nos números, sweep de luz no sync, cascata
+universal nas listas, top-nav no desktop (tab bar é padrão mobile), fix
+do modal FX (usa classes inexistentes), `:focus-visible` + atalhos de
+teclado.
+
 ### Firebase Hosting — URL `.web.app` (2026-06-01)
 O app agora também publica no Firebase Hosting, com URL bonita
 `https://ledger-schulz.web.app` (vira a principal). GitHub Pages segue
