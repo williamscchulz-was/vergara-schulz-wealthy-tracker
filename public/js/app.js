@@ -3795,7 +3795,7 @@ function renderImportReview() {
     const couple = /WILLIAM|FLAVIA|VERGARA/i.test(tx.holder || '');
     const checked = (couple && !tx.refund) ? 'checked' : '';
     const badges = (tx.inst ? `<span class="imp-badge">${esc(tx.inst)}</span> ` : '') + (tx.refund ? `<span class="imp-badge ref">estorno</span> ` : '');
-    const card = tx.holder ? `<span class="imp-card">${esc(tx.holder.split(' ')[0])}</span>` : '';
+    const card = tx.holder ? `<span class="imp-card">· cartão ${esc(tx.holder.split(' ')[0])}</span>` : '';
     return `<label class="imp-row">
       <input type="checkbox" data-idx="${i}" ${checked}>
       <span class="imp-date">${esc(tx.date)}</span>
