@@ -116,7 +116,11 @@ function applyCategoryConfig(cfg) {
   cfg = cfg || {};
   // 1. reset ao default (tira custom antigas, restaura label/cor padrão)
   Object.keys(CATEGORIES).forEach(k => { if (!DEFAULT_CAT_KEYS.includes(k)) delete CATEGORIES[k]; });
-  DEFAULT_CAT_KEYS.forEach(k => { CATEGORIES[k] = { ...DEFAULT_CATEGORIES[k] }; });
+  DEFAULT_CAT_KEYS.forEach(k => {
+    CATEGORIES[k] = { ...DEFAULT_CATEGORIES[k] };
+    const tl = t('cat.label.' + k);                       // traduz o label padrão pelo idioma atual
+    if (tl && tl !== 'cat.label.' + k) CATEGORIES[k].label = tl;
+  });
   // 2. overrides (renome/recolor das padrão)
   const ov = cfg.overrides || {};
   Object.entries(ov).forEach(([k, v]) => { if (CATEGORIES[k] && v) { if (v.label) CATEGORIES[k].label = v.label; if (v.color) CATEGORIES[k].color = v.color; } });
@@ -415,6 +419,16 @@ const I18N = {
     'cat.icon.hint': 'Clique pra trocar o ícone',
     'cat.color.hint': 'Trocar a cor',
     'cat.del.hint': 'Apagar categoria',
+    'cat.label.moradia': 'Moradia',
+    'cat.label.alimentacao': 'Alimentação',
+    'cat.label.transporte': 'Transporte',
+    'cat.label.saude': 'Saúde',
+    'cat.label.lazer': 'Lazer',
+    'cat.label.educacao': 'Educação',
+    'cat.label.assinaturas': 'Assinaturas',
+    'cat.label.cartao': 'Cartão de crédito',
+    'cat.label.compras': 'Compras',
+    'cat.label.outros': 'Outros',
     // ---- Analytics cards (Fase C) ----
     'exp.daily.title': 'Ritmo diário',
     'exp.daily.sub': 'Gasto acumulado do mês',
@@ -714,6 +728,16 @@ const I18N = {
     'cat.icon.hint': 'Click to change the icon',
     'cat.color.hint': 'Change color',
     'cat.del.hint': 'Delete category',
+    'cat.label.moradia': 'Housing',
+    'cat.label.alimentacao': 'Food',
+    'cat.label.transporte': 'Transport',
+    'cat.label.saude': 'Health',
+    'cat.label.lazer': 'Leisure',
+    'cat.label.educacao': 'Education',
+    'cat.label.assinaturas': 'Subscriptions',
+    'cat.label.cartao': 'Credit card',
+    'cat.label.compras': 'Shopping',
+    'cat.label.outros': 'Other',
     // ---- Analytics cards ----
     'exp.daily.title': 'Daily pace',
     'exp.daily.sub': 'Cumulative spend this month',
@@ -826,11 +850,16 @@ function applyI18n() {
   // Update lang label in topbar
   const label = document.getElementById('langLabel');
   if (label) label.textContent = lang === 'pt' ? 'EN' : 'PT';
+  // Categorias padrão traduzem junto com o idioma (override do usuário vence)
+  if (typeof applyCategoryConfig === 'function') {
+    try { applyCategoryConfig(state && state.catConfig); populateCategorySelect(); } catch (e) {}
+  }
   // Re-render dynamic views ONLY if app is loaded and user is logged in
   try {
     if (typeof state !== 'undefined' && state && state.user) {
       if (state.mode === 'investments' && typeof renderInvestments === 'function') renderInvestments();
       if (state.mode === 'expenses' && typeof renderExpenses === 'function') renderExpenses();
+      if (state.mode === 'resumo' && typeof renderResumo === 'function') renderResumo();
     }
   } catch (err) {
     console.warn('[i18n] re-render skipped:', err);
