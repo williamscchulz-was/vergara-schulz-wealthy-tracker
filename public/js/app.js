@@ -332,6 +332,12 @@ const I18N = {
     'rz.out': 'Saídas',
     'rz.in': 'Ganhos',
     'rz.empty': 'Sem despesas neste período.',
+    'rz.recVsExp': 'Receitas × Despesas',
+    'rz.visions': 'Visões de',
+    'rz.topCat': 'Maior categoria',
+    'rz.topSpender': 'Quem mais gastou',
+    'rz.yearExp': 'Despesas do ano',
+    'rz.avgMonth': 'média mensal',
     'fx.modal.title': 'Dólar (USD)',
     'fx.modal.sub': 'Quanto você tem em dólar — convertido pela cotação atual.',
     'fx.f.usd': 'Quantidade em USD',
@@ -610,6 +616,12 @@ const I18N = {
     'rz.out': 'Out',
     'rz.in': 'In',
     'rz.empty': 'No expenses in this period.',
+    'rz.recVsExp': 'Income × Expenses',
+    'rz.visions': 'Insights for',
+    'rz.topCat': 'Top category',
+    'rz.topSpender': 'Top spender',
+    'rz.yearExp': 'Yearly expenses',
+    'rz.avgMonth': 'monthly avg',
     'fx.modal.title': 'US Dollar (USD)',
     'fx.modal.sub': 'How much you hold in dollars — converted at the current rate.',
     'fx.f.usd': 'Amount in USD',
@@ -1126,6 +1138,31 @@ function renderResumo() {
     return `<div class="rz-person"><div class="rz-av" style="background:${col}">${ini}</div><div class="rz-person-nm">${esc(nm)}</div><div class="rz-blk"><div class="rz-k">${esc(t('rz.out'))}</div><div class="rz-out">${m(p.out)}</div></div><div class="rz-blk"><div class="rz-k">${esc(t('rz.in'))}</div><div class="rz-in">${m(p.inc)}</div></div></div>`;
   }).join('');
 
+  // ---- Anual: gráfico de 12 meses (receitas × despesas) + visões do ano ----
+  let chartHtml = '', visoesHtml = '';
+  if (annual) {
+    const MS = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+    const mo = Array.from({ length: 12 }, () => ({ rec: 0, desp: 0 }));
+    for (const e of items) {
+      const i = +String(e.date || '').slice(5, 7) - 1;
+      if (i < 0 || i > 11) continue;
+      if (e.type === 'income') mo[i].rec += (+e.value || 0); else mo[i].desp += (+e.value || 0);
+    }
+    const maxV = Math.max(1, ...mo.map(x => Math.max(x.rec, x.desp)));
+    const bars = mo.map((x, i) => `<div class="rz-mcol"><div class="rz-mbars"><i class="rz-rec" style="height:${(x.rec / maxV * 100).toFixed(1)}%" title="${m(x.rec)}"></i><i class="rz-desp" style="height:${(x.desp / maxV * 100).toFixed(1)}%" title="${m(x.desp)}"></i></div><span class="rz-mlabel">${MS[i]}</span></div>`).join('');
+    chartHtml = `<div class="rz-card"><div class="rz-card-h">${esc(t('rz.recVsExp'))}<span class="rz-legend"><span class="lg"><i class="rz-rec"></i>${esc(t('rz.income'))}</span><span class="lg"><i class="rz-desp"></i>${esc(t('rz.expenses'))}</span></span></div><div class="rz-chart">${bars}</div></div>`;
+    const monthsData = mo.filter(x => x.desp > 0).length || 1;
+    const topCat = catArr[0];
+    const topCatLabel = topCat ? ((CATEGORIES[topCat[0]] && CATEGORIES[topCat[0]].label) || topCat[0]) : '—';
+    const topCatPct = topCat && despesas > 0 ? Math.round(topCat[1] / despesas * 100) : 0;
+    let topP = null;
+    for (const o of OWNERS) { const p = byPerson[o]; if (p && (!topP || p.out > topP.out)) topP = { o, out: p.out }; }
+    visoesHtml = `<div class="rz-card"><div class="rz-card-h">${esc(t('rz.visions'))} ${year}</div>
+      <div class="rz-vis"><span class="rz-vis-k">${esc(t('rz.topCat'))}</span><span class="rz-vis-v">${esc(topCatLabel)} · ${m(topCat ? topCat[1] : 0)} (${topCatPct}%)</span></div>
+      <div class="rz-vis"><span class="rz-vis-k">${esc(t('rz.topSpender'))}</span><span class="rz-vis-v">${esc(topP ? RZ_PERSON[topP.o][0] : '—')} · ${m(topP ? topP.out : 0)}</span></div>
+      <div class="rz-vis"><span class="rz-vis-k">${esc(t('rz.yearExp'))}</span><span class="rz-vis-v">${m(despesas)} · ${esc(t('rz.avgMonth'))} ${m(despesas / monthsData)}</span></div></div>`;
+  }
+
   body.innerHTML = `
     <div class="rz-head">
       <div class="rz-seg">
@@ -1140,6 +1177,7 @@ function renderResumo() {
       <div class="rz-kpi"><div class="rz-kpi-l">${esc(t('rz.savings'))}</div><div class="rz-kpi-v rz-muted">${m(economias)}</div></div>
       <div class="rz-kpi rz-saldo"><div class="rz-kpi-l">${esc(t('rz.balance'))}</div><div class="rz-kpi-v ${saldo < 0 ? 'rz-neg' : 'rz-pos'}">${m(saldo)}</div></div>
     </div>
+    ${chartHtml}
     <div class="rz-grid">
       <div class="rz-card">
         <div class="rz-card-h">${esc(t('rz.byCat'))}</div>
@@ -1153,7 +1191,8 @@ function renderResumo() {
         <div class="rz-card-h">${esc(t('rz.byPerson'))}</div>
         <div class="rz-people">${personRows}</div>
       </div>
-    </div>`;
+    </div>
+    ${visoesHtml}`;
   body.querySelectorAll('[data-rzview]').forEach(b => b.addEventListener('click', () => setResumoView(b.dataset.rzview)));
   body.querySelectorAll('[data-rznav]').forEach(b => b.addEventListener('click', () => resumoNav(+b.dataset.rznav)));
 }
