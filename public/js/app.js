@@ -315,6 +315,10 @@ const I18N = {
     'imp.confirm': 'Importar {n}',
     'imp.done': 'Importado: {n} lançamento(s)',
     'imp.alldup': 'Tudo isso já tinha sido importado.',
+    'fx.modal.title': 'Dólar (USD)',
+    'fx.modal.sub': 'Quanto você tem em dólar — convertido pela cotação atual.',
+    'fx.f.usd': 'Quantidade em USD',
+    'fx.rate.label': 'Cotação atual:',
     'exp.btn.saving': 'Salvando...',
     'exp.toast.saved': 'Despesa atualizada',
     'exp.toast.added': 'Despesa registrada',
@@ -569,6 +573,10 @@ const I18N = {
     'imp.confirm': 'Import {n}',
     'imp.done': 'Imported: {n} entry(ies)',
     'imp.alldup': 'All of these were already imported.',
+    'fx.modal.title': 'US Dollar (USD)',
+    'fx.modal.sub': 'How much you hold in dollars — converted at the current rate.',
+    'fx.f.usd': 'Amount in USD',
+    'fx.rate.label': 'Current rate:',
     'exp.btn.saving': 'Saving...',
     'exp.toast.saved': 'Expense updated',
     'exp.toast.added': 'Expense recorded',
@@ -1779,12 +1787,12 @@ function openFXModal() {
   document.getElementById('fxModalRate').textContent = rate > 0 ? 'R$ ' + rate.toFixed(2).replace('.', ',') : '—';
   const upd = state.fx.rateUpdatedAt;
   document.getElementById('fxModalRateDate').textContent = upd ? formatDateTimeBR(upd) : '';
-  modal.style.display = 'grid';
+  modal.classList.add('show');
 }
 
 function closeFXModal() {
   const modal = document.getElementById('fxModal');
-  if (modal) modal.style.display = 'none';
+  if (modal) modal.classList.remove('show');
 }
 
 async function saveFX() {
@@ -3253,6 +3261,8 @@ async function syncFromI10() {
     }, { merge: true });
 
     showToast(`Sincronizado: ${assets.length} ativos`);
+    const _hc = document.querySelector('.hero-card');
+    if (_hc) { _hc.classList.remove('sweeping'); void _hc.offsetWidth; _hc.classList.add('sweeping'); setTimeout(() => _hc.classList.remove('sweeping'), 1000); }
     // v8 Turno 7: piggyback Louise sync on every successful main sync (both branches)
     syncLouise().catch(e => console.warn('Louise piggyback error:', e));
     fetchFXRate().catch(e => console.warn('FX rate refresh error:', e));

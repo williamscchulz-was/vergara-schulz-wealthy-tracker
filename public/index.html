@@ -670,6 +670,14 @@ body::before {
 }
 .hero-card:hover { border-color: var(--border-strong); }
 .hero-card:hover::after { opacity: 1; }
+/* Sweep de luz quando o sync completa (one-shot via classe .sweeping) */
+.hero-card.sweeping::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: 2; pointer-events: none;
+  background: linear-gradient(100deg, transparent 38%, rgba(227,162,238,.30) 50%, transparent 62%);
+  background-size: 240% 100%; background-repeat: no-repeat;
+  animation: hero-sweep .9s var(--ease-out);
+}
+@keyframes hero-sweep { from { background-position: 175% 0; } to { background-position: -75% 0; } }
 
 .hero-eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; position: relative; z-index: 1; }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gain); box-shadow: 0 0 12px var(--gain); animation: pulse 2s ease-in-out infinite; }
@@ -3035,23 +3043,19 @@ body::before {
   </div>
 </div></div>
 
-<!-- v8 Turno 8 — FX (USD) edit modal -->
-<div class="modal-bg" id="fxModal" style="display:none">
+<!-- FX (USD) edit modal — padrão .modal-bg.show (consertado) -->
+<div class="modal-bg" id="fxModal">
   <div class="modal">
-    <div class="modal-head">
-      <div class="modal-title">USD</div>
-      <button class="modal-close" id="fxModalClose">&times;</button>
-    </div>
-    <div class="modal-body">
-      <label class="modal-label">Quantidade em USD</label>
+    <button id="fxModalClose" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--ink-3);font-size:20px;line-height:1;cursor:pointer">&times;</button>
+    <h3 data-i18n="fx.modal.title">Dólar (USD)</h3>
+    <p class="sub" data-i18n="fx.modal.sub">Quanto você tem em dólar — convertido pela cotação atual.</p>
+    <div class="field full">
+      <label data-i18n="fx.f.usd">Quantidade em USD</label>
       <input type="text" id="fxModalInput" inputmode="decimal" placeholder="Ex: 10.000,00" autocomplete="off">
-      <div class="fx-modal-rate">
-        Cotação atual (BCB): <b id="fxModalRate">—</b>
-        <span id="fxModalRateDate" class="fx-modal-rate-date"></span>
-      </div>
+      <div class="hint"><span data-i18n="fx.rate.label">Cotação atual:</span> <b id="fxModalRate">—</b> <span id="fxModalRateDate"></span></div>
     </div>
     <div class="modal-foot">
-      <button class="btn-ghost" id="fxModalCancel" data-i18n="exp.btn.cancel">Cancelar</button>
+      <button class="btn-secondary" id="fxModalCancel" data-i18n="exp.btn.cancel">Cancelar</button>
       <button class="btn-primary" id="fxModalSave" data-i18n="exp.btn.save">Salvar</button>
     </div>
   </div>

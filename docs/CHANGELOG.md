@@ -5,6 +5,16 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Modal FX consertado + sweep de luz no sync (2026-06-01)
+- O modal de USD (FX) estava quebrado: usava classes que não existem
+  (`.modal-head/.modal-title/.modal-close/.modal-body/.modal-label`) e
+  `display:grid` inline em vez do `.show`. Reescrito pro padrão que
+  funciona (`.modal-bg.show` + `h3`/`.sub`/`.field`/`.modal-foot`),
+  abre/fecha certo, com i18n (`fx.*`).
+- **Sweep de luz** one-shot no hero quando o sync I10 completa (classe
+  `.sweeping` + `@keyframes hero-sweep`) — junto com o count-up, dá o
+  "uau" no momento do sync.
+
 ### Glamour Pass 2/3 — count-up, nav estática/top-nav, atalhos (2026-06-01)
 - **Count-up nos números**: `countUpEl()` (rAF, ease-out, memo em
   `el._cuVal`, respeita prefers-reduced-motion) anima o patrimônio do
