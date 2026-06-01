@@ -1376,11 +1376,11 @@ body::before {
 .exp-owner-chip.exp-owner-familia { color: var(--purple-light); background: var(--purple-soft); border-color: color-mix(in oklab, var(--purple) 28%, transparent); }
 
 /* ---- Importador de fatura (review) ---- */
-.modal-wide { max-width: 780px; }
+.modal.modal-wide { max-width: min(960px, 94vw); }
 .imp-meta { font-size: 12px; color: var(--ink-3); margin: 6px 0 10px; }
 .imp-meta b { color: var(--ink); font-family: 'Geist Mono', monospace; }
-.imp-list { max-height: 54vh; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 14px; }
-.imp-row { display: grid; grid-template-columns: 20px 44px minmax(0,1fr) 118px 118px 92px; gap: 8px; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 12px; }
+.imp-list { max-height: 58vh; overflow-y: auto; overflow-x: hidden; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 14px; }
+.imp-row { display: grid; grid-template-columns: 22px 48px minmax(0,1fr) 140px 150px 110px; gap: 10px; align-items: center; padding: 9px 12px; border-bottom: 1px solid var(--border); font-size: 12.5px; }
 .imp-row:last-child { border-bottom: none; }
 .imp-row:hover { background: var(--bg-elevated-2); }
 .imp-row > input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--purple); cursor: pointer; }
