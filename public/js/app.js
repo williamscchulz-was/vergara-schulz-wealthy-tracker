@@ -318,6 +318,20 @@ const I18N = {
     'imp.importing': 'Importando…',
     'imp.ready': 'Pronto!',
     'imp.imported': 'lançamentos importados',
+    'tab.resumo': 'Resumo',
+    'rz.monthly': 'Mensal',
+    'rz.annual': 'Anual',
+    'rz.income': 'Ganhos',
+    'rz.expenses': 'Despesas',
+    'rz.savings': 'Economias',
+    'rz.balance': 'Saldo',
+    'rz.byCat': 'Despesas por categoria',
+    'rz.byPerson': 'Resumo por pessoa',
+    'rz.variable': 'Variáveis',
+    'rz.fixed': 'Fixas',
+    'rz.out': 'Saídas',
+    'rz.in': 'Ganhos',
+    'rz.empty': 'Sem despesas neste período.',
     'fx.modal.title': 'Dólar (USD)',
     'fx.modal.sub': 'Quanto você tem em dólar — convertido pela cotação atual.',
     'fx.f.usd': 'Quantidade em USD',
@@ -582,6 +596,20 @@ const I18N = {
     'imp.importing': 'Importing…',
     'imp.ready': 'Done!',
     'imp.imported': 'entries imported',
+    'tab.resumo': 'Summary',
+    'rz.monthly': 'Monthly',
+    'rz.annual': 'Annual',
+    'rz.income': 'Income',
+    'rz.expenses': 'Expenses',
+    'rz.savings': 'Savings',
+    'rz.balance': 'Balance',
+    'rz.byCat': 'Expenses by category',
+    'rz.byPerson': 'By person',
+    'rz.variable': 'Variable',
+    'rz.fixed': 'Fixed',
+    'rz.out': 'Out',
+    'rz.in': 'In',
+    'rz.empty': 'No expenses in this period.',
     'fx.modal.title': 'US Dollar (USD)',
     'fx.modal.sub': 'How much you hold in dollars — converted at the current rate.',
     'fx.f.usd': 'Amount in USD',
@@ -1034,6 +1062,103 @@ function renderExpensesNetWorthPill() {
 }
 
 // ============================================================
+//                 RESUMO (planejamento) — aba dashboard
+// ============================================================
+let _resumoView = 'mensal';  // 'mensal' | 'anual'
+const RZ_PERSON = { william: ['William', '#64d2ff', 'W'], flavia: ['Flávia', '#E3A2EE', 'F'], louise: ['Louise', '#30d158', 'L'], familia: ['Família', '#AC5FDB', 'Fam'] };
+function setResumoView(v) { _resumoView = v === 'anual' ? 'anual' : 'mensal'; renderResumo(); }
+function resumoNav(dir) {
+  const d = state.currentViewMonth || new Date();
+  state.currentViewMonth = _resumoView === 'anual'
+    ? new Date(d.getFullYear() + dir, d.getMonth(), 1)
+    : new Date(d.getFullYear(), d.getMonth() + dir, 1);
+  renderResumo();
+}
+function renderResumo() {
+  const body = $('resumoBody'); if (!body) return;
+  const m = (typeof fmtBRL0 === 'function') ? fmtBRL0 : (n => 'R$ ' + Math.round(+n || 0).toLocaleString('pt-BR'));
+  const vd = state.currentViewMonth || new Date();
+  const annual = _resumoView === 'anual';
+  const year = vd.getFullYear();
+  const prefix = annual ? (year + '-') : (year + '-' + String(vd.getMonth() + 1).padStart(2, '0'));
+  const MN = getLang() === 'en' ? MONTH_NAMES_EN : MONTH_NAMES_PT;
+  const periodLabel = annual ? String(year) : (MN[vd.getMonth()] + ' ' + year);
+
+  const items = (state.expenses || []).filter(e => (e.date || '').startsWith(prefix));
+  const exp = items.filter(e => e.type !== 'income');
+  const inc = items.filter(e => e.type === 'income');
+  const sum = arr => arr.reduce((s, e) => s + (+e.value || 0), 0);
+  const ganhos = sum(inc), despesas = sum(exp);
+  const economias = (typeof reservesTotal === 'function' ? reservesTotal() : 0);
+  const saldo = ganhos - despesas;
+
+  let fixas = 0, variaveis = 0;
+  for (const e of exp) { if (e.nature === 'fixa') fixas += (+e.value || 0); else variaveis += (+e.value || 0); }
+  const byCat = {};
+  for (const e of exp) { const c = e.category || 'outros'; byCat[c] = (byCat[c] || 0) + (+e.value || 0); }
+  const catArr = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+  const byPerson = {};
+  for (const o of OWNERS) byPerson[o] = { out: 0, inc: 0 };
+  for (const e of exp) { const o = normOwner(e.owner) || 'familia'; if (!byPerson[o]) byPerson[o] = { out: 0, inc: 0 }; byPerson[o].out += (+e.value || 0); }
+  for (const e of inc) { const o = normOwner(e.owner) || 'familia'; if (!byPerson[o]) byPerson[o] = { out: 0, inc: 0 }; byPerson[o].inc += (+e.value || 0); }
+
+  const R = 66, CIRC = 2 * Math.PI * R, total = despesas || 1;
+  let acc = 0;
+  const segs = catArr.map(([c, v]) => {
+    const len = (v / total) * CIRC;
+    const col = (CATEGORIES[c] && CATEGORIES[c].color) || '#8e8e93';
+    const s = `<circle cx="86" cy="86" r="${R}" fill="none" stroke="${col}" stroke-width="20" stroke-dasharray="${len.toFixed(2)} ${(CIRC - len).toFixed(2)}" stroke-dashoffset="${(-acc).toFixed(2)}" transform="rotate(-90 86 86)"/>`;
+    acc += len; return s;
+  }).join('');
+  const fxPct = despesas > 0 ? Math.round(fixas / despesas * 100) : 0;
+  const vrPct = despesas > 0 ? (100 - fxPct) : 0;
+
+  const catRows = catArr.map(([c, v]) => {
+    const col = (CATEGORIES[c] && CATEGORIES[c].color) || '#8e8e93';
+    const label = (CATEGORIES[c] && CATEGORIES[c].label) || c;
+    const pct = despesas > 0 ? Math.round(v / despesas * 100) : 0;
+    return `<div class="rz-cat"><span class="rz-cat-dot" style="background:${col}"></span><div class="rz-cat-main"><div class="rz-cat-nm">${esc(label)}</div><div class="rz-bar"><i style="width:${pct}%;background:${col}"></i></div></div><span class="rz-cat-v">${m(v)}</span><span class="rz-cat-pct">${pct}%</span></div>`;
+  }).join('') || `<div class="rz-empty">${esc(t('rz.empty'))}</div>`;
+
+  const personRows = OWNERS.map(o => {
+    const p = byPerson[o] || { out: 0, inc: 0 };
+    const [nm, col, ini] = RZ_PERSON[o];
+    return `<div class="rz-person"><div class="rz-av" style="background:${col}">${ini}</div><div class="rz-person-nm">${esc(nm)}</div><div class="rz-blk"><div class="rz-k">${esc(t('rz.out'))}</div><div class="rz-out">${m(p.out)}</div></div><div class="rz-blk"><div class="rz-k">${esc(t('rz.in'))}</div><div class="rz-in">${m(p.inc)}</div></div></div>`;
+  }).join('');
+
+  body.innerHTML = `
+    <div class="rz-head">
+      <div class="rz-seg">
+        <button class="${annual ? '' : 'on'}" data-rzview="mensal">${esc(t('rz.monthly'))}</button>
+        <button class="${annual ? 'on' : ''}" data-rzview="anual">${esc(t('rz.annual'))}</button>
+      </div>
+      <div class="rz-nav"><button data-rznav="-1" aria-label="anterior">‹</button><span class="rz-period">${esc(periodLabel)}</span><button data-rznav="1" aria-label="próximo">›</button></div>
+    </div>
+    <div class="rz-kpis">
+      <div class="rz-kpi"><div class="rz-kpi-l">${esc(t('rz.income'))}</div><div class="rz-kpi-v">${m(ganhos)}</div></div>
+      <div class="rz-kpi"><div class="rz-kpi-l">${esc(t('rz.expenses'))}</div><div class="rz-kpi-v">${m(despesas)}</div></div>
+      <div class="rz-kpi"><div class="rz-kpi-l">${esc(t('rz.savings'))}</div><div class="rz-kpi-v rz-muted">${m(economias)}</div></div>
+      <div class="rz-kpi rz-saldo"><div class="rz-kpi-l">${esc(t('rz.balance'))}</div><div class="rz-kpi-v ${saldo < 0 ? 'rz-neg' : 'rz-pos'}">${m(saldo)}</div></div>
+    </div>
+    <div class="rz-grid">
+      <div class="rz-card">
+        <div class="rz-card-h">${esc(t('rz.byCat'))}</div>
+        <div class="rz-donut-wrap"><div class="rz-donut">
+          <svg width="172" height="172" viewBox="0 0 172 172"><circle cx="86" cy="86" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="20"/>${segs}</svg>
+          <div class="rz-donut-c"><span class="rz-dc-a">${esc(t('rz.variable'))} · ${vrPct}%</span><span class="rz-dc-b">${m(variaveis)}</span><span class="rz-dc-a" style="margin-top:6px">${esc(t('rz.fixed'))} · ${fxPct}%</span><span class="rz-dc-b" style="color:var(--ink-2)">${m(fixas)}</span></div>
+        </div></div>
+        <div class="rz-cats">${catRows}</div>
+      </div>
+      <div class="rz-card">
+        <div class="rz-card-h">${esc(t('rz.byPerson'))}</div>
+        <div class="rz-people">${personRows}</div>
+      </div>
+    </div>`;
+  body.querySelectorAll('[data-rzview]').forEach(b => b.addEventListener('click', () => setResumoView(b.dataset.rzview)));
+  body.querySelectorAll('[data-rznav]').forEach(b => b.addEventListener('click', () => resumoNav(+b.dataset.rznav)));
+}
+
+// ============================================================
 //                 MODE SWITCH (Expenses/Invest)
 // ============================================================
 function switchMode(mode, opts = {}) {
@@ -1043,6 +1168,9 @@ function switchMode(mode, opts = {}) {
   if (mode === 'expenses') {
     $('moduleExpenses').classList.add('active');
     renderExpenses();
+  } else if (mode === 'resumo') {
+    $('moduleResumo').classList.add('active');
+    renderResumo();
   } else {
     $('moduleInvestments').classList.add('active');
     renderInvestments();
