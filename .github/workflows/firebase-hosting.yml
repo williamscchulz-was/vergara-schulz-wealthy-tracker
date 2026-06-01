@@ -1,9 +1,12 @@
 name: Deploy to Firebase Hosting
 
-# Publica a pasta public/ no Firebase Hosting (canal live) a cada push.
-# Convive com pages.yml (GitHub Pages) — os dois servem o mesmo app; a
-# URL bonita .web.app vira a principal. Setup do secret + site em
-# docs/DEPLOY-HOSTING.md.
+# Publica public/ no Firebase Hosting (canal live) a cada push.
+# Convive com pages.yml (GitHub Pages) — os dois servem o mesmo app.
+#
+# O deploy aqui só roda SE existir o secret FIREBASE_SERVICE_ACCOUNT.
+# Enquanto não existir, o job passa verde sem fazer nada (o site é
+# publicado pela CLI `firebase deploy` e pelo GitHub Pages). Setup do
+# secret em docs/DEPLOY-HOSTING.md.
 
 on:
   push:
@@ -20,11 +23,22 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      HAS_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
     steps:
+      - name: Sem secret — pular (deploy via CLI / GitHub Pages)
+        if: env.HAS_SA != 'true'
+        run: |
+          echo "FIREBASE_SERVICE_ACCOUNT ausente — Action inerte."
+          echo "Site publicado por 'firebase deploy' (CLI) e GitHub Pages."
+          echo "Pra ligar o auto-deploy no .web.app, adicione o secret (docs/DEPLOY-HOSTING.md)."
+
       - name: Checkout
+        if: env.HAS_SA == 'true'
         uses: actions/checkout@v4
 
       - name: Deploy to Firebase Hosting (live)
+        if: env.HAS_SA == 'true'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}

@@ -7,18 +7,32 @@ conteúdo da pasta `public/`):
 - **Firebase Hosting** — URL bonita `https://ledger-schulz.web.app`
   (workflow `firebase-hosting.yml`). **Esta vira a principal.**
 
-A cada push que mexe em `public/`, os dois publicam sozinhos. Não precisa
-rodar nada no terminal.
-
 > Os domínios `*.web.app` e `*.firebaseapp.com` já entram automaticamente
 > na lista de **domínios autorizados** do Firebase Auth — o login com
 > Google funciona na URL nova sem configurar nada.
 
 ---
 
-## Setup (uma vez)
+## Status atual (jun/2026)
 
-### 1. Criar o site no Firebase
+✅ **Já no ar.** O site `ledger-schulz` foi criado e publicado via Firebase
+CLI (a CLI está logada como `williamscchulz@gmail.com` na máquina do
+dono). Deploy manual quando quiser:
+
+```bash
+firebase deploy --only hosting --project wealthy-tracker-68658
+```
+
+O GitHub Action (`firebase-hosting.yml`) fica **inerte até existir o
+secret** `FIREBASE_SERVICE_ACCOUNT` — passa verde sem deployar. Enquanto
+isso, o app é publicado pela CLI e pelo GitHub Pages. O setup abaixo é
+**opcional**, só pra ligar o auto-deploy no `.web.app` a cada push.
+
+---
+
+## Setup do auto-deploy (opcional)
+
+### 1. Criar o site no Firebase  *(já feito — pular)*
 1. https://console.firebase.google.com → projeto `wealthy-tracker-68658`
 2. Menu lateral **Hosting** (em "Criação" / "Build")
 3. Se for a primeira vez, **Começar** / **Get started** (pode pular os
