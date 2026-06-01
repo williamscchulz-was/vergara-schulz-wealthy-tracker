@@ -4076,7 +4076,10 @@ async function doImport() {
           notes: [cardNote, `parcela ${k}/${Y}` + (prov ? ' · provisão' : '')].filter(Boolean).join(' · ') });
       }
     } else {
-      const date = impToISO(tx.date), fp = impFp(date, tx.value, tx.desc);
+      // Cartão à vista → competência da fatura (a fatura inteira cai num mês só).
+      // Conta corrente → data real do débito.
+      const date = tx._src === 'cc' ? impToISO(tx.date) : monthISO(0);
+      const fp = impFp(date, tx.value, tx.desc);
       if (seen.has(fp)) continue;
       seen.add(fp);
       batch.push({ ...base, date, fp, notes: cardNote });
