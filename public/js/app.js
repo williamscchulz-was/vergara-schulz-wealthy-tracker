@@ -315,6 +315,9 @@ const I18N = {
     'imp.confirm': 'Importar {n}',
     'imp.done': 'Importado: {n} lançamento(s)',
     'imp.alldup': 'Tudo isso já tinha sido importado.',
+    'imp.importing': 'Importando…',
+    'imp.ready': 'Pronto!',
+    'imp.imported': 'lançamentos importados',
     'fx.modal.title': 'Dólar (USD)',
     'fx.modal.sub': 'Quanto você tem em dólar — convertido pela cotação atual.',
     'fx.f.usd': 'Quantidade em USD',
@@ -573,6 +576,9 @@ const I18N = {
     'imp.confirm': 'Import {n}',
     'imp.done': 'Imported: {n} entry(ies)',
     'imp.alldup': 'All of these were already imported.',
+    'imp.importing': 'Importing…',
+    'imp.ready': 'Done!',
+    'imp.imported': 'entries imported',
     'fx.modal.title': 'US Dollar (USD)',
     'fx.modal.sub': 'How much you hold in dollars — converted at the current rate.',
     'fx.f.usd': 'Amount in USD',
@@ -3830,14 +3836,43 @@ async function doImport() {
     batch.push({ type: 'expense', description: tx.desc, value: tx.value, date, category, notes, owner, fp, source: 'import:cartao', createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import' });
   }
   if (!batch.length) { showToast(t('imp.alldup')); return; }
-  const btn = $('importConfirm'); const orig = btn.textContent;
-  btn.disabled = true; btn.textContent = '…';
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ov = $('importOverlay'), prog = $('importOvProg'), C = 138.2;
+  $('importConfirm').disabled = true; $('importCancel').disabled = true;
+  if (ov && !reduce) {
+    ov.classList.remove('done'); ov.hidden = false;
+    if ($('importOvText')) $('importOvText').textContent = t('imp.importing');
+    if ($('importOvSub')) $('importOvSub').textContent = '';
+    if (prog) {
+      prog.style.transition = 'none'; prog.style.strokeDashoffset = C;
+      void prog.getBoundingClientRect();
+      prog.style.transition = 'stroke-dashoffset .7s var(--ease-out)';
+      requestAnimationFrame(() => { prog.style.strokeDashoffset = String(C * 0.12); });
+    }
+  }
+  const t0 = performance.now();
   try {
-    for (const d of batch) await addDoc(colExpenses(), d);
-    showToast(t('imp.done').replace('{n}', batch.length));
+    await Promise.all(batch.map(d => addDoc(colExpenses(), d)));   // tudo de uma vez (rápido)
+    if (ov && !reduce) {
+      const el = performance.now() - t0;
+      if (el < 700) await new Promise(r => setTimeout(r, 700 - el));
+      ov.classList.add('done');
+      if ($('importOvText')) $('importOvText').textContent = t('imp.ready');
+      const sub = $('importOvSub');
+      if (sub) { sub._cuVal = 0; countUpEl(sub, batch.length, n => '✓ ' + Math.round(n) + ' ' + t('imp.imported')); }
+      await new Promise(r => setTimeout(r, 1300));
+    } else {
+      showToast(t('imp.done').replace('{n}', batch.length));
+    }
     $('importModal').classList.remove('show');
-  } catch (e) { console.error('[import] write failed', e); showToast(t('toast.error.save')); }
-  finally { btn.disabled = false; btn.textContent = orig; }
+  } catch (e) {
+    console.error('[import] write failed', e);
+    showToast(t('toast.error.save'));
+  } finally {
+    if (ov) { ov.hidden = true; ov.classList.remove('done'); }
+    $('importConfirm').disabled = false; $('importCancel').disabled = false;
+  }
 }
 $('btnImportStatement')?.addEventListener('click', () => { const f = $('impFile'); if (f) f.click(); });
 $('impFile')?.addEventListener('change', (e) => { const file = e.target.files && e.target.files[0]; e.target.value = ''; handleImportFile(file); });

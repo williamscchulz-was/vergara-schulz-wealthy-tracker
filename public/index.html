@@ -1394,6 +1394,19 @@ body::before {
 .imp-row select { background: var(--bg-elevated-2); color: var(--ink); border: 1px solid var(--border); border-radius: 7px; padding: 5px 6px; font-size: 11px; font-family: inherit; max-width: 100%; cursor: pointer; }
 .imp-val { font-family: 'Geist Mono', monospace; text-align: right; color: var(--ink); }
 .imp-val.ref { color: var(--gain); }
+/* Overlay de progresso/sucesso da importação */
+.imp-overlay { position: fixed; inset: 0; z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: color-mix(in oklab, var(--bg) 88%, transparent); backdrop-filter: blur(8px); }
+.imp-ov-svg { width: 92px; height: 92px; }
+.imp-ov-track { fill: none; stroke: var(--border-2); stroke-width: 4; }
+.imp-ov-prog { fill: none; stroke: var(--purple); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 138.2; stroke-dashoffset: 138.2; transform: rotate(-90deg); transform-origin: 26px 26px; }
+.imp-ov-check { fill: none; stroke: var(--gain); stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 40; stroke-dashoffset: 40; }
+.imp-overlay.done .imp-ov-prog { stroke: var(--gain); stroke-dashoffset: 0 !important; transition: stroke-dashoffset .4s var(--ease-out); }
+.imp-overlay.done .imp-ov-svg { animation: imp-pop .5s cubic-bezier(.2,1.5,.4,1); }
+.imp-overlay.done .imp-ov-check { animation: imp-draw .45s .12s var(--ease-out) forwards; }
+@keyframes imp-pop { 0% { transform: scale(.8); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+@keyframes imp-draw { to { stroke-dashoffset: 0; } }
+.imp-ov-text { font-size: 17px; font-weight: 650; color: var(--ink); letter-spacing: -.01em; }
+.imp-ov-sub { font-family: 'Geist Mono', monospace; font-size: 14px; color: var(--gain); font-weight: 600; }
 
 /* Income styling on existing row/pill/amount layouts */
 .exp-recent-row.is-income .exp-recent-amt,
@@ -3075,6 +3088,17 @@ body::before {
       <button class="btn-primary" id="importConfirm">Importar</button>
     </div>
   </div>
+</div>
+
+<!-- Overlay de progresso/sucesso da importação -->
+<div class="imp-overlay" id="importOverlay" hidden>
+  <svg class="imp-ov-svg" viewBox="0 0 52 52" aria-hidden="true">
+    <circle class="imp-ov-track" cx="26" cy="26" r="22"/>
+    <circle class="imp-ov-prog" id="importOvProg" cx="26" cy="26" r="22"/>
+    <path class="imp-ov-check" d="M16 27 L23 34 L37 18"/>
+  </svg>
+  <div class="imp-ov-text" id="importOvText">Importando…</div>
+  <div class="imp-ov-sub" id="importOvSub"></div>
 </div>
 
 <div class="toast" id="toast"></div>
