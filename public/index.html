@@ -2480,7 +2480,7 @@ body::before {
       <span id="btnLoginText" data-i18n="login.button">Sign in with Google</span>
     </button>
     <div class="login-error" id="loginError"></div>
-    <div class="login-foot">Your data is stored privately in Firebase Firestore.<br/>Only authorized accounts can access this app.</div>
+    <div class="login-foot" data-i18n="login.foot">Your data is stored privately in Firebase Firestore.<br/>Only authorized accounts can access this app.</div>
   </div>
 </div>
 
@@ -2497,21 +2497,21 @@ body::before {
         </div>
         <div class="brand-text">
           <div class="name">Ledger</div>
-          <div class="tag">personal finance</div>
+          <div class="tag" data-i18n="brand.tag">personal finance</div>
         </div>
       </div>
       <div style="display:flex;align-items:center">
-        <button class="theme-toggle" id="btnLangToggle" title="Language" style="font-family:'Geist Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.05em">
+        <button class="theme-toggle" id="btnLangToggle" title="Language" data-i18n-title="topbar.lang" style="font-family:'Geist Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.05em">
           <span id="langLabel">EN</span>
         </button>
-        <button class="theme-toggle" id="btnThemeToggle" title="Alternar tema">
+        <button class="theme-toggle" id="btnThemeToggle" title="Alternar tema" data-i18n-title="topbar.theme">
           <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
           <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         </button>
         <div class="user-pill">
         <img id="userPhoto" class="avatar" alt="" style="object-fit:cover" />
         <span id="userName">User</span>
-        <button id="btnLogout" style="background:none;border:none;color:var(--ink-muted);cursor:pointer;padding:0 0 0 8px;margin-left:4px;border-left:1px solid var(--card-border);display:flex;align-items:center" title="Sair">
+        <button id="btnLogout" style="background:none;border:none;color:var(--ink-muted);cursor:pointer;padding:0 0 0 8px;margin-left:4px;border-left:1px solid var(--card-border);display:flex;align-items:center" title="Sair" data-i18n-title="topbar.logout">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </button>
       </div>
@@ -2924,7 +2924,7 @@ body::before {
             </div>
             <button class="btn-ghost primary" id="btnAddContrib">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Contribution
+              <span data-i18n="contrib.add">Contribution</span>
             </button>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
@@ -2956,7 +2956,7 @@ body::before {
               </button>
               <button class="btn-ghost primary" id="btnAddYear">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                Year
+                <span data-i18n="hist.addyear">Year</span>
               </button>
             </div>
           </div>
@@ -3159,7 +3159,7 @@ body::before {
   <h3 id="yearlyModalTitle">Adicionar ano</h3>
   <p class="sub">Snapshot anual para gráficos de crescimento.</p>
   <div class="form-grid">
-    <div class="field"><label>Year</label><input type="number" id="yearlyYear" placeholder="2026" min="2000" max="2100" /></div>
+    <div class="field"><label data-i18n="yearly.f.year">Year</label><input type="number" id="yearlyYear" placeholder="2026" min="2000" max="2100" /></div>
     <div class="field"><label>Patrimônio (R$)</label><input type="number" id="yearlyEquity" placeholder="1000000" min="0" step="0.01" /></div>
     <div class="field full"><label>Proventos do ano (R$)</label><input type="number" id="yearlyDivs" placeholder="50000" min="0" step="0.01" /><div class="hint">Total de dividendos recebidos neste ano</div></div>
   </div>
@@ -3178,7 +3178,7 @@ body::before {
   <div class="modal-foot">
     <button class="btn-secondary" id="contribListClose" data-i18n="exp.btn.close">Fechar</button>
     <div class="spacer"></div>
-    <button class="btn-primary" id="contribListAdd">+ New contribution</button>
+    <button class="btn-primary" id="contribListAdd" data-i18n="contrib.list.add">+ New contribution</button>
   </div>
 </div></div>
 
