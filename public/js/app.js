@@ -304,8 +304,8 @@ const I18N = {
     'exp.btn.cancel': 'Cancelar',
     'exp.btn.save': 'Salvar',
     'exp.btn.close': 'Fechar',
-    'imp.btn': 'Importar fatura',
-    'imp.title': 'Importar fatura do cartão (PDF)',
+    'imp.btn': 'Importar',
+    'imp.title': 'Importar fatura do cartão (PDF) ou extrato da conta (CSV)',
     'imp.modal.title': 'Revisar fatura',
     'imp.modal.sub': 'Confira de quem é o gasto e a categoria. Desmarque o que não quer importar.',
     'imp.count': 'lançamentos encontrados',
@@ -588,8 +588,8 @@ const I18N = {
     'exp.btn.cancel': 'Cancel',
     'exp.btn.save': 'Save',
     'exp.btn.close': 'Close',
-    'imp.btn': 'Import statement',
-    'imp.title': 'Import card statement (PDF)',
+    'imp.btn': 'Import',
+    'imp.title': 'Import card statement (PDF) or account statement (CSV)',
     'imp.modal.title': 'Review statement',
     'imp.modal.sub': "Check whose expense it is and the category. Uncheck anything you don't want to import.",
     'imp.count': 'entries found',
@@ -3962,14 +3962,45 @@ function impFp(date, value, desc) {
   return date + '|' + (Math.round((+value) * 100) / 100).toFixed(2) + '|' + (desc || '').slice(0, 16).toLowerCase().replace(/\s+/g, '');
 }
 const impMoney = (n) => 'R$ ' + Math.abs(+n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// ---- Conta corrente (CSV do Bradesco) ----
+function parseBRMoney(raw) {
+  const s = String(raw || '').trim();
+  if (!s) return 0;
+  return parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0;
+}
+// Linhas que NÃO são despesa de consumo: transferências entre contas próprias,
+// investimentos (CDB/fundos), saques, pagamento da fatura do cartão (pra não
+// duplicar com o import do cartão), impostos e taxas.
+const CC_SKIP = /(TRANSF CC PARA CC|APLICAC|RESGATE|RESG\/|SAQUE DINHEIRO|GASTOS CARTAO|^IOF|IRRF|TX REM|TAXA BTC|PAG JUROS|PAG DIVIDENDOS|COD\. LANC|REEMBOLSO)/i;
+function parseCheckingCSV(text) {
+  const out = [];
+  for (const line of String(text || '').split(/\r?\n/)) {
+    const cols = line.split(';');
+    if (cols.length < 5) continue;
+    const date = (cols[0] || '').trim();
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(date)) continue;   // só linhas de lançamento
+    const hist = (cols[1] || '').trim();
+    const debito = parseBRMoney(cols[4]);                // coluna Débito (saída)
+    if (!(debito > 0)) continue;                         // só despesas (saídas)
+    if (CC_SKIP.test(hist)) continue;                    // ruído: transf/invest/imposto/cartão
+    out.push({ date: date.slice(0, 5), desc: hist, value: debito, holder: '', inst: null, _src: 'cc' });
+  }
+  return out;
+}
+
 let _importTxns = [];
 async function handleImportFile(file) {
   if (!file) return;
   showToast(t('imp.reading'));
-  let lines;
-  try { lines = await extractPdfLines(file); }
-  catch (e) { console.error('[import] pdf read failed', e); showToast(t('imp.fail.read')); return; }
-  const txns = parseStatement(lines);
+  const isCsv = /\.csv$/i.test(file.name || '') || file.type === 'text/csv';
+  let txns;
+  try {
+    if (isCsv) {
+      txns = parseCheckingCSV(await file.text());
+    } else {
+      txns = parseStatement(await extractPdfLines(file));
+    }
+  } catch (e) { console.error('[import] read failed', e); showToast(t('imp.fail.read')); return; }
   if (!txns.length) { showToast(t('imp.none')); return; }
   _importTxns = txns;
   renderImportReview();
@@ -4026,7 +4057,7 @@ async function doImport() {
     const category = row.querySelector('.imp-cat').value;
     const nat = category === 'assinaturas' ? 'fixa' : 'variavel';
     const cardNote = tx.holder ? ('cartão: ' + tx.holder.split(' ')[0]) : '';
-    const base = { type: 'expense', description: tx.desc, value: tx.value, category, owner, nature: nat, source: 'import:cartao', createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import' };
+    const base = { type: 'expense', description: tx.desc, value: tx.value, category, owner, nature: nat, source: 'import:' + (tx._src === 'cc' ? 'conta' : 'cartao'), createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import' };
     const im = (tx.inst || '').match(/^(\d{1,2})\/(\d{1,2})$/);
     if (im) {
       // PARCELADO: provisiona da parcela atual (X) até a última (Y), uma por mês à frente.
