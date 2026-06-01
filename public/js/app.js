@@ -4162,16 +4162,31 @@ async function clearImportedExpenses() {
 let _importTxns = [];
 async function handleImportFile(file) {
   if (!file) return;
-  showToast(t('imp.reading'));
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ov = $('importOverlay');
   const isCsv = /\.csv$/i.test(file.name || '') || file.type === 'text/csv';
+  // Estado "lendo": overlay premium com o anel girando enquanto o arquivo é parseado.
+  if (ov && !reduce) {
+    ov.classList.remove('done', 'out'); ov.classList.add('reading'); ov.hidden = false;
+    if ($('importOvText')) $('importOvText').textContent = t('imp.reading');
+    if ($('importOvSub')) $('importOvSub').textContent = file.name || '';
+  } else { showToast(t('imp.reading')); }
+  const startedAt = Date.now();
   let txns;
   try {
-    if (isCsv) {
-      txns = parseCheckingCSV(await file.text());
-    } else {
-      txns = parseStatement(await extractPdfLines(file));
-    }
-  } catch (e) { console.error('[import] read failed', e); showToast(t('imp.fail.read')); return; }
+    if (isCsv) txns = parseCheckingCSV(await file.text());
+    else txns = parseStatement(await extractPdfLines(file));
+  } catch (e) {
+    console.error('[import] read failed', e);
+    if (ov) { ov.hidden = true; ov.classList.remove('reading'); }
+    showToast(t('imp.fail.read')); return;
+  }
+  // Segura o overlay no mínimo ~760ms pra leitura não "piscar" em CSV instantâneo.
+  if (ov && !reduce) {
+    const el = Date.now() - startedAt;
+    if (el < 760) await new Promise(r => setTimeout(r, 760 - el));
+    ov.hidden = true; ov.classList.remove('reading');
+  }
   if (!txns.length) { showToast(t('imp.none')); return; }
   _importTxns = txns;
   renderImportReview();
@@ -4266,7 +4281,7 @@ async function doImport() {
   const ov = $('importOverlay'), prog = $('importOvProg'), C = 314.16;
   $('importConfirm').disabled = true; $('importCancel').disabled = true;
   if (ov && !reduce) {
-    ov.classList.remove('done', 'out'); ov.hidden = false;
+    ov.classList.remove('done', 'out', 'reading'); ov.hidden = false;
     if ($('importOvText')) $('importOvText').textContent = t('imp.importing');
     if ($('importOvSub')) $('importOvSub').textContent = '';
     if (prog) {

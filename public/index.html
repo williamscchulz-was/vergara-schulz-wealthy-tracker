@@ -1425,6 +1425,11 @@ body::before {
 .imp-overlay.out { animation: impFadeOut .42s var(--ease-out) forwards; }
 @keyframes impFadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes impFadeOut { to { opacity: 0; } }
+/* estado "lendo o arquivo": anel girando + nome do arquivo no sub */
+.imp-overlay.reading .imp-ov-svg { animation: impSpin .95s linear infinite; }
+.imp-overlay.reading .imp-ov-prog { stroke-dashoffset: 220; transition: none; }
+.imp-overlay.reading .imp-ov-sub { color: var(--ink-3); font-weight: 500; }
+@keyframes impSpin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
 .imp-overlay[hidden] { display: none; }  /* o display:flex acima sobrescrevia o atributo hidden — sem isto, o overlay aparecia SEMPRE (até no login) */
 
 /* ===================== RESUMO (planejamento) ===================== */
