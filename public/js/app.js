@@ -4467,7 +4467,48 @@ function impNature(category, desc) {
   if (IMP_FIXED_HINT.some(h => toks.some(t => t.startsWith(h)))) return 'fixa';
   return 'variavel';
 }
+// Faturas Bradesco extraídas pelo SITE têm outro layout: titular "Final XXXX | NOME",
+// data quebrada em dia/mês ("25"/"DEZ") em linhas separadas, vários cartões, parcela "( 02/04 )",
+// e o ano só no vencimento. Detecta o formato e usa o parser certo.
+const SITE_MONTHS = { JAN: 1, FEV: 2, MAR: 3, ABR: 4, MAI: 5, JUN: 6, JUL: 7, AGO: 8, SET: 9, OUT: 10, NOV: 11, DEZ: 12 };
+const SITE_HOLDER = /Final\s+\d{3,}\s*\|\s*([A-ZÀ-Ý][A-ZÀ-Ý .'-]+?)\s*(?:Valor da fatura|$)/i;
+const SITE_STOP = /resumo das despesas|total da fatura\s*\(.*final/i;
+const SITE_SKIP = /(SALDO|PAGAMENTO|PAGTO|\bTOTAL\b|ENCARGOS|\bJUROS\b|ANUIDADE|\bIOF\b|MULTA|LIMITE|SEGURO|TARIFA|MENSALIDAD|CASHBACK|AJUSTE|DOLAR|D[OÓ]LAR|CONVERS|COTACAO|REPASSE|PROTEC|ASSIST|ROTATIV|VALOR DA FATURA|GASTOS REFERENTES|MOEDA DE ORIGEM|DATA LAN|MELHOR DATA|FORMA DE PAG|VALIDADE|DESPESAS|RESUMO)/i;
 function parseStatement(lines) {
+  const isSite = lines.some(L => /gastos referentes ao cart/i.test(L) || /final\s+\d{3,}\s*\|/i.test(L));
+  return isSite ? parseStatementSite(lines) : parseStatementFlat(lines);
+}
+function parseStatementSite(lines) {
+  const out = [];
+  let faY = new Date().getFullYear(), faM = new Date().getMonth() + 1;   // competência = vencimento da fatura
+  for (const L of lines) { const v = L.match(/vencimento\D*(\d{2})\/(\d{2})\/(\d{4})/i); if (v) { faM = +v[2]; faY = +v[3]; break; } }
+  const money = (s) => s.match(/-?\d{1,3}(?:\.\d{3})*,\d{2}/g) || [];
+  let holder = '', curDay = null, curMonth = null, pending = [];
+  const flush = (mo) => { for (const tx of pending) tx._mo = mo; pending = []; };
+  for (const L0 of lines) {
+    const L = L0.replace(/\s+/g, ' ').trim();
+    if (!L) continue;
+    if (SITE_STOP.test(L)) break;                                  // chegou no resumo → fim dos lançamentos
+    const h = L.match(SITE_HOLDER); if (h) { holder = h[1].trim().toUpperCase(); continue; }
+    if (/^\d{1,2}$/.test(L)) { const d = +L; if (d >= 1 && d <= 31) { curDay = d; continue; } }   // marcador de dia
+    const mm = L.toUpperCase().replace('.', ''); if (SITE_MONTHS[mm]) { curMonth = SITE_MONTHS[mm]; flush(curMonth); continue; }  // marcador de mês
+    if (SITE_SKIP.test(L)) continue;
+    const ms = money(L); if (!ms.length) continue;
+    let value = parseFloat(ms[ms.length - 1].replace(/\./g, '').replace(',', '.')); if (!isFinite(value)) continue;  // último valor = BRL
+    const refund = value < 0; value = Math.abs(value); if (value === 0) continue;
+    let desc = L; ms.forEach(v => { desc = desc.replace(v, ' '); });
+    desc = desc.replace(/\b(USD|US\$|EUR|GBP|D[OÓ]LAR(?:ES)?)\b/gi, ' ').replace(/[()]/g, ' ').replace(/\s+/g, ' ').trim();
+    let inst = null;
+    const pm = desc.match(/\b(\d{1,2})\s*\/\s*(\d{1,2})\s*$/);
+    if (pm) { const k = +pm[1], tot = +pm[2]; if (k >= 1 && tot >= 2 && k <= tot && tot <= 72) { inst = k + '/' + tot; desc = desc.replace(pm[0], ' ').trim(); } }
+    desc = desc.replace(/^PARC=\d+\s*/i, '').replace(/\s+/g, ' ').trim(); if (!desc) desc = '—';
+    const tx = { _day: curDay, _mo: curMonth, desc, value, holder, inst, refund, _compY: faY, _compM: faM };
+    pending.push(tx); out.push(tx);
+  }
+  for (const tx of out) { const d = tx._day || 1, mo = tx._mo || faM; const y = mo > faM ? faY - 1 : faY; tx.date = `${String(d).padStart(2, '0')}/${String(mo).padStart(2, '0')}/${y}`; delete tx._day; delete tx._mo; }
+  return out;
+}
+function parseStatementFlat(lines) {
   const out = [];
   let holder = '';
   // Titular: "NOME - VISA/MASTERCARD/ELO/AMEX/...". Aceita acento, hífen (Vergara-Schulz), maiúsc/minúsc.
@@ -4656,7 +4697,7 @@ async function handleImportFiles(fileList) {
       const isCsv = _importKind ? (_importKind === 'cc') : (/\.csv$/i.test(file.name || '') || file.type === 'text/csv');
       const txns = isCsv ? parseCheckingCSV(await file.text()) : parseStatement(await extractPdfLines(file));
       // Competência por ARQUIVO (cartão): cada fatura cai no seu mês, não no mês mais recente do lote.
-      if (!isCsv) {
+      if (!isCsv && txns.length && !txns[0]._compY) {   // parser do site já marca a competência; só completa se faltar
         let ym = null;
         for (const tx of txns) { const mo = impToISO(tx.date).slice(0, 7); if (!ym || mo > ym) ym = mo; }
         if (ym) txns.forEach(tx => { tx._compY = +ym.slice(0, 4); tx._compM = +ym.slice(5, 7); });
