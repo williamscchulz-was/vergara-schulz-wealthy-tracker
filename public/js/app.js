@@ -542,6 +542,7 @@ const I18N = {
     'imp.income': 'ganho',
     'imp.lowconf': 'palpite incerto — confira a categoria',
     'imp.uncertain': '{n} a conferir',
+    'imp.tab.all': 'Todos',
     'login.foot': 'Seus dados ficam privados no Firebase Firestore.<br/>Só contas autorizadas acessam este app.',
     'brand.tag': 'finanças pessoais',
     'topbar.lang': 'Idioma',
@@ -960,6 +961,7 @@ const I18N = {
     'imp.income': 'income',
     'imp.lowconf': 'uncertain guess — check the category',
     'imp.uncertain': '{n} to check',
+    'imp.tab.all': 'All',
     'login.foot': 'Your data is stored privately in Firebase Firestore.<br/>Only authorized accounts can access this app.',
     'brand.tag': 'personal finance',
     'topbar.lang': 'Language',
@@ -4761,7 +4763,8 @@ function renderImportReview() {
       + (rec ? `<span class="imp-badge rec">${esc(t('imp.recurring'))}</span> ` : '')
       + (low ? `<span class="imp-badge low" title="${esc(t('imp.lowconf'))}">?</span> ` : '');
     const card = tx.holder ? `<span class="imp-card">· ${esc(t('imp.cardword'))} ${esc(tx.holder.split(' ')[0])}</span>` : '';
-    const html = `<label class="imp-row${low ? ' imp-low' : ''}">
+    const comp = (tx._compY && tx._compM) ? `${tx._compY}-${String(tx._compM).padStart(2, '0')}` : '';
+    const html = `<label class="imp-row${low ? ' imp-low' : ''}" data-comp="${comp}">
       <input type="checkbox" data-idx="${i}" ${checked}>
       <span class="imp-date">${esc(tx.date)}</span>
       <span class="imp-desc">${esc(tx.desc)} ${badges}${card}</span>
@@ -4769,16 +4772,49 @@ function renderImportReview() {
       <select class="imp-cat" data-idx="${i}">${catOpts.replace(`value="${cat}"`, `value="${cat}" selected`)}</select>
       <span class="imp-val${(tx.refund || isInc) ? ' ref' : ''}">${(tx.refund || isInc) ? '+ ' : ''}${impMoney(tx.value)}</span>
     </label>`;
-    return { low, order: i, html };
+    return { low, order: i, comp, html };
   });
-  // "A conferir" (incertos) sobem pro topo; o resto mantém a ordem original.
-  const rows = built.sort((a, b) => ((a.low ? 0 : 1) - (b.low ? 0 : 1)) || (a.order - b.order)).map(o => o.html).join('');
+  // Agrupa por competência (o mês de cada fatura) e, dentro de cada mês, joga os
+  // "a conferir" pro topo. O DOM fica ordenado por mês → as abas só mostram/escondem.
+  const comps = [...new Set(built.map(b => b.comp).filter(Boolean))].sort();
+  const compRank = c => { const k = comps.indexOf(c); return k < 0 ? comps.length : k; };
+  const rows = built.sort((a, b) => (compRank(a.comp) - compRank(b.comp)) || ((a.low ? 0 : 1) - (b.low ? 0 : 1)) || (a.order - b.order)).map(o => o.html).join('');
   $('importList').innerHTML = rows;
+  renderImportTabs(built, comps);
   $('importCount').textContent = _importTxns.length;
   const note = $('importLowNote');
   if (note) { if (lowN > 0) { note.textContent = ' · ' + t('imp.uncertain').replace('{n}', lowN); note.hidden = false; } else note.hidden = true; }
   $('importModal').classList.add('show');
   impUpdateConfirm();
+}
+// Abas por competência: quando o import junta várias faturas (vários meses),
+// separa a revisão em abas (Jan/26, Fev/26, …) pra ficar mais fácil de conferir.
+// As linhas continuam todas no DOM (estado preservado) — a aba só mostra/esconde.
+function renderImportTabs(built, comps) {
+  const wrap = $('importTabs');
+  if (!wrap) return;
+  if (!comps || comps.length < 2) { wrap.hidden = true; wrap.innerHTML = ''; return; }  // 1 mês só → sem abas
+  wrap.hidden = false;
+  const mn = getLang() === 'en' ? MONTH_NAMES_SHORT_EN : MONTH_NAMES_SHORT;
+  const tab = (comp, label, n, low) =>
+    `<button class="imp-tab" data-comp="${comp}">${esc(label)}<span class="imp-tab-n">${n}</span>`
+    + (low ? `<span class="imp-tab-warn" title="${esc(t('imp.lowconf'))}">${low}</span>` : '')
+    + `</button>`;
+  let html = tab('all', t('imp.tab.all'), built.length, built.filter(b => b.low).length);
+  for (const c of comps) {
+    const grp = built.filter(b => b.comp === c);
+    const [y, m] = c.split('-');
+    html += tab(c, `${mn[+m - 1]}/${y.slice(2)}`, grp.length, grp.filter(b => b.low).length);
+  }
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('.imp-tab').forEach(b => b.addEventListener('click', () => impSetActiveMonth(b.dataset.comp)));
+  impSetActiveMonth(comps[0]);   // começa no mês mais antigo → revisão cronológica
+}
+function impSetActiveMonth(comp) {
+  $('importTabs')?.querySelectorAll('.imp-tab').forEach(b => b.classList.toggle('act', b.dataset.comp === comp));
+  document.querySelectorAll('#importList .imp-row').forEach(r =>
+    r.classList.toggle('is-hidden', comp !== 'all' && r.dataset.comp !== comp));
+  const list = $('importList'); if (list) list.scrollTop = 0;
 }
 async function doImport() {
   // Dedup MULTISET por fingerprint-base: conta quantas ocorrências de cada base já
