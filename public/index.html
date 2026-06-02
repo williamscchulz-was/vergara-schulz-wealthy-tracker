@@ -283,6 +283,8 @@ button#btnAddExpense::after {
   z-index: 10 !important;
   transform: none !important;
 }
+/* '+ Nova despesa' sem o anel líquido — pedido do dono */
+button#btnAddExpense::after { display: none !important; content: none !important; }
 /* Sync button also gets the breathing glow */
 #btnSyncI10 {
   animation: sync-glow 3s ease-in-out infinite;

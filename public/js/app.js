@@ -85,6 +85,7 @@ const ICONS = {
   trendingUp:   _svg('<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>'),
   tag:          _svg('<path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7.5" cy="7.5" r="1" fill="currentColor"/>'),
   gift:         _svg('<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C9 3 10.5 4.5 12 8"/><path d="M16.5 8a2.5 2.5 0 0 0 0-5C15 3 13.5 4.5 12 8"/>'),
+  cart:         _svg('<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>'),
   // Status / utility icons used outside the category lists
   check:        _svg('<polyline points="20 6 9 17 4 12"/>'),
   alertTri:     _svg('<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'),
@@ -94,6 +95,7 @@ const ICONS = {
 const CATEGORIES = {
   moradia:     { label: 'Moradia',           icon: ICONS.home,        color: '#0071e3' },
   alimentacao: { label: 'Alimentação',       icon: ICONS.utensils,    color: '#30d158' },
+  mercado:     { label: 'Mercado',           icon: ICONS.cart,        color: '#00c7be' },
   transporte:  { label: 'Transporte',        icon: ICONS.car,         color: '#ff9500' },
   saude:       { label: 'Saúde',             icon: ICONS.heartPulse,  color: '#ff375f' },
   lazer:       { label: 'Lazer',             icon: ICONS.gamepad,     color: '#af52de' },
@@ -111,7 +113,7 @@ const DEFAULT_CATEGORIES = {};
 Object.entries(CATEGORIES).forEach(([k, v]) => { DEFAULT_CATEGORIES[k] = { ...v }; });
 const DEFAULT_CAT_KEYS = Object.keys(CATEGORIES);
 const CAT_PALETTE = ['#0071e3', '#30d158', '#ff9500', '#ff375f', '#af52de', '#64d2ff', '#bf5af2', '#ff453a', '#ffd60a', '#8e8e93', '#AC5FDB', '#E3A2EE'];
-const CAT_ICON_KEYS = ['tag', 'home', 'utensils', 'car', 'heartPulse', 'gamepad', 'book', 'repeat', 'creditCard', 'shoppingBag', 'package', 'briefcase', 'wrench', 'pieChart', 'trendingUp', 'gift'];
+const CAT_ICON_KEYS = ['tag', 'home', 'utensils', 'cart', 'car', 'heartPulse', 'gamepad', 'book', 'repeat', 'creditCard', 'shoppingBag', 'package', 'briefcase', 'wrench', 'pieChart', 'trendingUp', 'gift'];
 function applyCategoryConfig(cfg) {
   cfg = cfg || {};
   // 1. reset ao default (tira custom antigas, restaura label/cor padrão)
@@ -476,6 +478,7 @@ const I18N = {
     'cat.del.hint': 'Apagar categoria',
     'cat.label.moradia': 'Moradia',
     'cat.label.alimentacao': 'Alimentação',
+    'cat.label.mercado': 'Mercado',
     'cat.label.transporte': 'Transporte',
     'cat.label.saude': 'Saúde',
     'cat.label.lazer': 'Lazer',
@@ -880,6 +883,7 @@ const I18N = {
     'cat.del.hint': 'Delete category',
     'cat.label.moradia': 'Housing',
     'cat.label.alimentacao': 'Food',
+    'cat.label.mercado': 'Groceries',
     'cat.label.transporte': 'Transport',
     'cat.label.saude': 'Health',
     'cat.label.lazer': 'Leisure',
@@ -4316,7 +4320,8 @@ async function extractPdfLines(file) {
   return lines;
 }
 const IMP_CAT_RULES = [
-  ['alimentacao', ['restaurante','coffee','cafe','padaria','panific','supermerc','mercado','koch','unidos','cooper','ifood','burger','pizza','lanche','hortifruti','acougue','sinuelo','garcia']],
+  ['mercado', ['supermerc','atacad','carrefour','assai','assaí','hortifruti','horti fruti','acougue','açougue','koch','unidos','cooper','condor','muffato','angeloni','festval','sinuelo','mercado garcia','big supermerc']],
+  ['alimentacao', ['restaurante','restaur','coffee',' cafe','padaria','panific','ifood','burger','hamburg','pizza','lanche','rotiss','marmita','sushi','sorvet']],
   ['transporte', ['uber','99app','posto','combust','veloe','pedagio','estacion','parking','rek park','latam','gol ','azul','auto re','isleb']],
   ['saude', ['vacina','farmacia','panvel','drogaria','droga','maxiderma','clinica','odonto','hospital','laborat','exame','psico','esthetic','dunnia','htm*','dra ']],
   ['assinaturas', ['netflix','google youtu','youtube','kindle unltd','spotify','amazon prime','livelo','disney','hbo','prime video','dl*google']],
@@ -4329,7 +4334,20 @@ function impRuleKey(desc) { return String(desc || '').toLowerCase().replace(/[^a
 function impCategorize(desc) {
   const d = ' ' + (desc || '').toLowerCase() + ' ';
   for (const [c, ks] of IMP_CAT_RULES) if (ks.some(k => d.includes(k))) return c;
-  return 'outros';
+  return impCategoryByLabel(desc) || 'outros';   // cobre categorias novas/custom pelo próprio nome
+}
+// Se a descrição contém o NOME de alguma categoria (inclui as criadas pelo
+// usuário em config/categories), classifica nela. Roda só DEPOIS das regras de
+// keyword (mais específicas) — então "MERCADO LIVRE" cai em Compras, e
+// "MERCADO DONA MARIA" cai em Mercado.
+function impCategoryByLabel(desc) {
+  const d = (desc || '').toLowerCase();
+  for (const [k, c] of Object.entries(CATEGORIES)) {
+    if (k === 'outros' || !c || !c.label) continue;
+    const lbl = String(c.label).toLowerCase().trim();
+    if (lbl.length >= 3 && d.includes(lbl)) return k;
+  }
+  return null;
 }
 const IMP_KIDS = ['escola','colegio','agrico','milium','clubkids','baby','kids','crianc','pediatr','brinq','luddi'];
 const IMP_HOUSE = ['supermerc','unidos','koch','cooper','mercado garcia',' garcia','posto','combust','veloe','pedagio','auto re','empreend','condom','energia','copel','sanepar','conta de gas','conta de telefone'];
