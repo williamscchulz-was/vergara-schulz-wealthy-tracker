@@ -2661,11 +2661,11 @@ body::before {
               <div class="meta" data-i18n="exp.card.bycat.sub">Distribuição do mês</div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button class="btn-ghost btn-budget" id="btnEditCats" title="Gerenciar categorias">
+              <button class="btn-ghost btn-budget" id="btnEditCats" title="Gerenciar categorias" data-i18n-title="cat.btn.title">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7l11 11-7 7L3 10z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>
                 <span data-i18n="cat.btn">Categorias</span>
               </button>
-              <button class="btn-ghost btn-budget" id="btnEditBudgets" title="Orçamento">
+              <button class="btn-ghost btn-budget" id="btnEditBudgets" title="Orçamento" data-i18n-title="exp.budget.btn">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h18"/><circle cx="8" cy="6" r="2" fill="currentColor"/><circle cx="16" cy="12" r="2" fill="currentColor"/><circle cx="10" cy="18" r="2" fill="currentColor"/></svg>
                 <span data-i18n="exp.budget.btn">Orçamento</span>
               </button>
@@ -2706,7 +2706,7 @@ body::before {
               <option value="fixa" data-i18n="exp.nature.fixa">Fixa</option>
               <option value="variavel" data-i18n="exp.nature.variavel">Variável</option>
             </select>
-            <button class="btn-ghost btn-csv" id="btnExportCsv" title="Exportar CSV">
+            <button class="btn-ghost btn-csv" id="btnExportCsv" title="Exportar CSV" data-i18n-title="exp.csv.title">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               <span data-i18n="exp.csv">CSV</span>
             </button>
@@ -2768,7 +2768,7 @@ body::before {
         <div class="hero-meta-row" id="i10EquitySub">
           <div class="applied-text" data-i18n="hero.manual">Manual update</div>
         </div>
-        <div class="louise-chip" id="louiseChip" style="display:none" title="Carteira da Louise (filha) — acompanhada separadamente, não soma no patrimônio da casa">
+        <div class="louise-chip" id="louiseChip" style="display:none" title="Carteira da Louise (filha) — acompanhada separadamente, não soma no patrimônio da casa" data-i18n-title="louise.title">
           <span class="louise-chip-heart"><svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
           <span class="louise-chip-name">Louise</span>
           <span class="louise-chip-sep">·</span>
@@ -3000,7 +3000,7 @@ body::before {
               <div style="font-size:13px;color:var(--ink-muted);margin-top:4px" data-i18n="sub.history">net worth + dividends per year</div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button class="btn-ghost" id="btnImportHistory" title="Import net worth and dividends history from Investidor10">
+              <button class="btn-ghost" id="btnImportHistory" title="Import net worth and dividends history from Investidor10" data-i18n-title="hist.import.title">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 I10
               </button>
@@ -3139,11 +3139,11 @@ body::before {
 </div></div>
 
 <div class="modal-bg" id="i10Modal"><div class="modal">
-  <h3>Editar valores do Investidor10</h3>
-  <p class="sub">Enquanto a automação não está pronta, atualize os valores manualmente. Abra o Investidor10 e copie os valores exatos.</p>
+  <h3 data-i18n="i10.modal.title">Editar valores do Investidor10</h3>
+  <p class="sub" data-i18n="i10.modal.sub">Enquanto a automação não está pronta, atualize os valores manualmente. Abra o Investidor10 e copie os valores exatos.</p>
   <div class="form-grid">
-    <div class="field full"><label>Patrimônio total (R$)</label><input type="number" id="i10EquityInput" placeholder="1757288.45" min="0" step="0.01" /><div class="hint">Valor exibido no Investidor10</div></div>
-    <div class="field full"><label>Dividendos YTD <span id="i10YearInput2">2026</span> (R$)</label><input type="number" id="i10DivsInput" placeholder="60054.59" min="0" step="0.01" /><div class="hint">Total recebido neste ano até agora</div></div>
+    <div class="field full"><label data-i18n="i10.f.equity">Patrimônio total (R$)</label><input type="number" id="i10EquityInput" placeholder="1757288.45" min="0" step="0.01" /><div class="hint" data-i18n="i10.f.equity.hint">Valor exibido no Investidor10</div></div>
+    <div class="field full"><label><span data-i18n="i10.f.divs">Dividendos YTD</span> <span id="i10YearInput2">2026</span> (R$)</label><input type="number" id="i10DivsInput" placeholder="60054.59" min="0" step="0.01" /><div class="hint" data-i18n="i10.f.divs.hint">Total recebido neste ano até agora</div></div>
   </div>
   <div class="modal-foot">
     <div class="spacer"></div>
@@ -3153,23 +3153,23 @@ body::before {
 </div></div>
 
 <div class="modal-bg" id="i10CfgModal"><div class="modal">
-  <h3>Configurar sincronização I10</h3>
-  <p class="sub">Cole a URL do seu Cloudflare Worker e o ID da sua carteira pública. A configuração é compartilhada entre os dois usuários via Firestore.</p>
+  <h3 data-i18n="cfg.modal.title">Configurar sincronização I10</h3>
+  <p class="sub" data-i18n="cfg.modal.sub">Cole a URL do seu Cloudflare Worker e o ID da sua carteira pública. A configuração é compartilhada entre os dois usuários via Firestore.</p>
   <div class="form-grid">
     <div class="field full">
       <label>Worker URL</label>
       <input type="url" id="i10CfgWorker" placeholder="https://ledger-i10-proxy.seu-subdominio.workers.dev" />
-      <div class="hint">URL do Cloudflare Worker publicado · veja DEPLOY-WORKER.md</div>
+      <div class="hint" data-i18n="cfg.f.worker.hint">URL do Cloudflare Worker publicado · veja DEPLOY-WORKER.md</div>
     </div>
     <div class="field full">
       <label>Wallet ID</label>
       <input type="text" id="i10CfgWallet" placeholder="2814459" inputmode="numeric" />
-      <div class="hint">Número que aparece na URL pública da sua carteira no Investidor 10</div>
+      <div class="hint" data-i18n="cfg.f.wallet.hint">Número que aparece na URL pública da sua carteira no Investidor 10</div>
     </div>
     <div class="field full">
-      <label>Public hash <span style="opacity:.6;font-weight:400">(opcional)</span></label>
+      <label><span data-i18n="cfg.f.hash">Public hash</span> <span style="opacity:.6;font-weight:400" data-i18n="cfg.optional">(opcional)</span></label>
       <input type="text" id="i10CfgHash" placeholder="e7342357fda4..." />
-      <div class="hint">Hash do link público da carteira (parâmetro <code>?h=</code> na URL)</div>
+      <div class="hint" data-i18n="cfg.f.hash.hint">Hash do link público da carteira (parâmetro <code>?h=</code> na URL)</div>
     </div>
   </div>
   <div class="modal-foot">
@@ -3223,11 +3223,11 @@ body::before {
 
 <div class="modal-bg" id="yearlyModal"><div class="modal">
   <h3 id="yearlyModalTitle">Adicionar ano</h3>
-  <p class="sub">Snapshot anual para gráficos de crescimento.</p>
+  <p class="sub" data-i18n="yearly.modal.sub">Snapshot anual para gráficos de crescimento.</p>
   <div class="form-grid">
     <div class="field"><label data-i18n="yearly.f.year">Year</label><input type="number" id="yearlyYear" placeholder="2026" min="2000" max="2100" /></div>
-    <div class="field"><label>Patrimônio (R$)</label><input type="number" id="yearlyEquity" placeholder="1000000" min="0" step="0.01" /></div>
-    <div class="field full"><label>Proventos do ano (R$)</label><input type="number" id="yearlyDivs" placeholder="50000" min="0" step="0.01" /><div class="hint">Total de dividendos recebidos neste ano</div></div>
+    <div class="field"><label data-i18n="yearly.f.equity">Patrimônio (R$)</label><input type="number" id="yearlyEquity" placeholder="1000000" min="0" step="0.01" /></div>
+    <div class="field full"><label data-i18n="yearly.f.divs">Proventos do ano (R$)</label><input type="number" id="yearlyDivs" placeholder="50000" min="0" step="0.01" /><div class="hint" data-i18n="yearly.f.divs.hint">Total de dividendos recebidos neste ano</div></div>
   </div>
   <div class="modal-foot">
     <button class="btn-danger" id="yearlyDelete" data-i18n="exp.btn.delete" style="display:none">Excluir</button>
@@ -3249,18 +3249,18 @@ body::before {
 </div></div>
 
 <div class="modal-bg" id="contribModal"><div class="modal">
-  <h3>Aporte mensal</h3>
-  <p class="sub">Registre um aporte feito no mês</p>
+  <h3 data-i18n="contrib.modal.title">Aporte mensal</h3>
+  <p class="sub" data-i18n="contrib.modal.sub">Registre um aporte feito no mês</p>
   <div class="form-grid">
-    <div class="field"><label>Ano</label><input type="number" id="contribYear" min="2020" max="2099" /></div>
-    <div class="field"><label>Mês</label><select id="contribMonth">
+    <div class="field"><label data-i18n="contrib.f.year">Ano</label><input type="number" id="contribYear" min="2020" max="2099" /></div>
+    <div class="field"><label data-i18n="contrib.f.month">Mês</label><select id="contribMonth">
       <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
       <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
       <option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option>
       <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
     </select></div>
-    <div class="field full"><label>Valor (R$)</label><input type="text" inputmode="decimal" id="contribAmount" placeholder="R$ 0,00" autocomplete="off" /></div>
-    <div class="field full"><label>Descrição (opcional)</label><input type="text" id="contribNote" placeholder="Ex: ITSA4, Tesouro IPCA, aporte XP..." autocomplete="off" maxlength="80" /></div>
+    <div class="field full"><label data-i18n="contrib.f.value">Valor (R$)</label><input type="text" inputmode="decimal" id="contribAmount" placeholder="R$ 0,00" autocomplete="off" /></div>
+    <div class="field full"><label data-i18n="contrib.f.note">Descrição (opcional)</label><input type="text" id="contribNote" data-i18n-ph="contrib.f.note.ph" placeholder="Ex: ITSA4, Tesouro IPCA, aporte XP..." autocomplete="off" maxlength="80" /></div>
   </div>
   <div class="modal-foot">
     <button class="btn-danger" id="contribDelete" data-i18n="exp.btn.delete" style="display:none">Excluir</button>

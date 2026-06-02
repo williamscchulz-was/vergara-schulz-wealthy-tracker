@@ -369,6 +369,40 @@ const I18N = {
     'imp.stage.read': 'Lendo',
     'imp.stage.cat': 'Categorizando',
     'imp.stage.done': 'Pronto',
+    'i10.modal.title': 'Editar valores do Investidor10',
+    'i10.modal.sub': 'Enquanto a automação não está pronta, atualize os valores manualmente. Abra o Investidor10 e copie os valores exatos.',
+    'i10.f.equity': 'Patrimônio total (R$)',
+    'i10.f.equity.hint': 'Valor exibido no Investidor10',
+    'i10.f.divs': 'Dividendos YTD',
+    'i10.f.divs.hint': 'Total recebido neste ano até agora',
+    'cfg.modal.title': 'Configurar sincronização I10',
+    'cfg.modal.sub': 'Cole a URL do seu Cloudflare Worker e o ID da sua carteira pública. A configuração é compartilhada entre os dois usuários via Firestore.',
+    'cfg.f.worker.hint': 'URL do Cloudflare Worker publicado · veja DEPLOY-WORKER.md',
+    'cfg.f.wallet.hint': 'Número que aparece na URL pública da sua carteira no Investidor 10',
+    'cfg.f.hash': 'Public hash',
+    'cfg.optional': '(opcional)',
+    'cfg.f.hash.hint': 'Hash do link público da carteira (parâmetro <code>?h=</code> na URL)',
+    'yearly.modal.sub': 'Snapshot anual para gráficos de crescimento.',
+    'yearly.modal.add': 'Adicionar ano',
+    'yearly.modal.edit': 'Editar ano',
+    'yearly.f.equity': 'Patrimônio (R$)',
+    'yearly.f.divs': 'Proventos do ano (R$)',
+    'yearly.f.divs.hint': 'Total de dividendos recebidos neste ano',
+    'contrib.modal.title': 'Aporte mensal',
+    'contrib.modal.sub': 'Registre um aporte feito no mês',
+    'contrib.f.year': 'Ano',
+    'contrib.f.month': 'Mês',
+    'contrib.f.value': 'Valor (R$)',
+    'contrib.f.note': 'Descrição (opcional)',
+    'contrib.f.note.ph': 'Ex: ITSA4, Tesouro IPCA, aporte XP...',
+    'a11y.edit': 'Editar',
+    'a11y.delete': 'Excluir',
+    'a11y.prev': 'Anterior',
+    'a11y.next': 'Próximo',
+    'cat.btn.title': 'Gerenciar categorias',
+    'exp.csv.title': 'Exportar CSV',
+    'louise.title': 'Carteira da Louise (filha) — acompanhada separadamente, não soma no patrimônio da casa',
+    'hist.import.title': 'Importar histórico de patrimônio e dividendos do Investidor10',
     'imp.type.title': 'O que você quer importar?',
     'imp.type.sub': 'Escolha a origem do arquivo.',
     'imp.type.card': 'Cartão de crédito',
@@ -739,6 +773,40 @@ const I18N = {
     'imp.stage.read': 'Reading',
     'imp.stage.cat': 'Categorizing',
     'imp.stage.done': 'Done',
+    'i10.modal.title': 'Edit Investidor10 values',
+    'i10.modal.sub': 'While the automation is not ready, update the values manually. Open Investidor10 and copy the exact values.',
+    'i10.f.equity': 'Total net worth (R$)',
+    'i10.f.equity.hint': 'Value shown on Investidor10',
+    'i10.f.divs': 'Dividends YTD',
+    'i10.f.divs.hint': 'Total received so far this year',
+    'cfg.modal.title': 'Configure I10 sync',
+    'cfg.modal.sub': 'Paste your Cloudflare Worker URL and your public wallet ID. The settings are shared between both users via Firestore.',
+    'cfg.f.worker.hint': 'Published Cloudflare Worker URL · see DEPLOY-WORKER.md',
+    'cfg.f.wallet.hint': 'The number shown in your public wallet URL on Investidor 10',
+    'cfg.f.hash': 'Public hash',
+    'cfg.optional': '(optional)',
+    'cfg.f.hash.hint': 'Public wallet link hash (the <code>?h=</code> URL param)',
+    'yearly.modal.sub': 'Yearly snapshot for growth charts.',
+    'yearly.modal.add': 'Add year',
+    'yearly.modal.edit': 'Edit year',
+    'yearly.f.equity': 'Net worth (R$)',
+    'yearly.f.divs': "Year's dividends (R$)",
+    'yearly.f.divs.hint': 'Total dividends received this year',
+    'contrib.modal.title': 'Monthly contribution',
+    'contrib.modal.sub': 'Log a contribution made this month',
+    'contrib.f.year': 'Year',
+    'contrib.f.month': 'Month',
+    'contrib.f.value': 'Amount (R$)',
+    'contrib.f.note': 'Description (optional)',
+    'contrib.f.note.ph': 'e.g. ITSA4, Tesouro IPCA, XP contribution...',
+    'a11y.edit': 'Edit',
+    'a11y.delete': 'Delete',
+    'a11y.prev': 'Previous',
+    'a11y.next': 'Next',
+    'cat.btn.title': 'Manage categories',
+    'exp.csv.title': 'Export CSV',
+    'louise.title': "Louise's wallet (daughter) — tracked separately, not counted in the household net worth",
+    'hist.import.title': 'Import net worth and dividends history from Investidor10',
     'imp.type.title': 'What do you want to import?',
     'imp.type.sub': 'Choose the file source.',
     'imp.type.card': 'Credit card',
@@ -982,7 +1050,7 @@ function applyI18n() {
   if (label) label.textContent = lang === 'pt' ? 'EN' : 'PT';
   // Categorias padrão traduzem junto com o idioma (override do usuário vence)
   if (typeof applyCategoryConfig === 'function') {
-    try { applyCategoryConfig(state && state.catConfig); populateCategorySelect(); populateExpFilterCat(); } catch (e) {}
+    try { applyCategoryConfig(state && state.catConfig); populateCategorySelect(); populateExpFilterCat(); populateContribMonths(); } catch (e) {}
   }
   // Re-render dynamic views ONLY if app is loaded and user is logged in
   try {
@@ -1396,7 +1464,7 @@ function renderResumo() {
         <button class="${annual ? '' : 'on'}" data-rzview="mensal">${esc(t('rz.monthly'))}</button>
         <button class="${annual ? 'on' : ''}" data-rzview="anual">${esc(t('rz.annual'))}</button>
       </div>
-      <div class="rz-nav"><button data-rznav="-1" aria-label="anterior">‹</button><span class="rz-period">${esc(periodLabel)}</span><button data-rznav="1" aria-label="próximo">›</button></div>
+      <div class="rz-nav"><button data-rznav="-1" aria-label="${esc(t('a11y.prev'))}">‹</button><span class="rz-period">${esc(periodLabel)}</span><button data-rznav="1" aria-label="${esc(t('a11y.next'))}">›</button></div>
     </div>
     <div class="rz-kpis">
       <div class="rz-kpi"><div class="rz-kpi-l">${esc(t('rz.income'))}</div><div class="rz-kpi-v">${m(ganhos)}</div></div>
@@ -1709,6 +1777,14 @@ function populateExpFilterCat() {
   sel.innerHTML = `<option value="">${esc(t('exp.filter.cat.all'))}</option>` + Object.entries(CATEGORIES).map(([k, c]) => `<option value="${k}">${esc(c.label)}</option>`).join('');
   if (cur && CATEGORIES[cur]) sel.value = cur;
   sel.classList.toggle('on', !!sel.value);
+}
+// Popula o select de mês do modal de aporte conforme o idioma atual.
+function populateContribMonths() {
+  const sel = $('contribMonth'); if (!sel) return;
+  const names = getLang() === 'en' ? MONTH_NAMES_EN : MONTH_NAMES_PT;
+  const cur = sel.value;
+  sel.innerHTML = names.map((m, i) => `<option value="${i + 1}">${m}</option>`).join('');
+  if (cur) sel.value = cur;
 }
 
 function renderExpenseTable(entries) {
@@ -3404,10 +3480,10 @@ function openContribListModal(year, month) {
   listEl.innerHTML = items.map(c => `
     <div class="contrib-item" data-id="${c.id}">
       <div class="contrib-val">${fmtBRL0(+c.amount || 0)}${c.note ? `<span class="contrib-note">${esc(c.note)}</span>` : ''}</div>
-      <button class="contrib-edit" data-action="edit" data-id="${c.id}" title="Editar">
+      <button class="contrib-edit" data-action="edit" data-id="${c.id}" title="${esc(t('a11y.edit'))}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
       </button>
-      <button class="contrib-del" data-action="delete" data-id="${c.id}" title="Excluir">
+      <button class="contrib-del" data-action="delete" data-id="${c.id}" title="${esc(t('a11y.delete'))}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
@@ -3942,13 +4018,13 @@ function openYearlyModal(id = null) {
   editingYearlyId = id;
   if (id) {
     const y = state.yearly.find(x => x.id === id); if (!y) return;
-    $('yearlyModalTitle').textContent = 'Editar ano';
+    $('yearlyModalTitle').textContent = t('yearly.modal.edit');
     $('yearlyYear').value = y.year || '';
     $('yearlyEquity').value = y.equity || '';
     $('yearlyDivs').value = y.divs || '';
     $('yearlyDelete').style.display = '';
   } else {
-    $('yearlyModalTitle').textContent = 'Adicionar ano';
+    $('yearlyModalTitle').textContent = t('yearly.modal.add');
     $('yearlyYear').value = '';
     $('yearlyEquity').value = '';
     $('yearlyDivs').value = '';
@@ -4075,7 +4151,7 @@ function catRowHtml(key, label, color, iconSvg, iconKey, isDefault) {
     <button type="button" class="cat-edit-ic" style="color:${color}" ${isDefault ? 'tabindex="-1"' : 'title="' + esc(t('cat.icon.hint')) + '"'}>${iconSvg}</button>
     <input class="cat-edit-nm" type="text" value="${esc(label)}" maxlength="22" autocomplete="off" spellcheck="false" />
     <input class="cat-edit-co" type="color" value="${color}" title="${esc(t('cat.color.hint'))}" />
-    <button type="button" class="cat-edit-del" ${isDefault ? 'hidden' : ''} title="${esc(t('cat.del.hint'))}" aria-label="delete"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <button type="button" class="cat-edit-del" ${isDefault ? 'hidden' : ''} title="${esc(t('cat.del.hint'))}" aria-label="${esc(t('a11y.delete'))}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   </div>`;
 }
 function wireCatRow(row) {
@@ -5103,10 +5179,10 @@ function saveParams(p) {
 function render() {
   const p = readSliders();
   $('gvAporte').textContent = fmtBRL(p.aporte);
-  $('gvCrescAporte').textContent = p.crescAporte.toFixed(1).replace('.',',') + '%/ano';
+  $('gvCrescAporte').textContent = p.crescAporte.toFixed(1).replace('.',',') + (getLang() === 'en' ? '%/yr' : '%/ano');
   $('gvDY').textContent = p.dy.toFixed(1).replace('.',',') + '%';
   $('gvReinv').textContent = p.reinv + '%';
-  $('gvCrescDiv').textContent = p.crescDiv.toFixed(1).replace('.',',') + '%/ano';
+  $('gvCrescDiv').textContent = p.crescDiv.toFixed(1).replace('.',',') + (getLang() === 'en' ? '%/yr' : '%/ano');
 
   const { proj, metaHitYear } = simulate(p);
 
@@ -5121,7 +5197,8 @@ function render() {
   $('gStatHit').textContent = metaHitYear || '> '+TARGET_YEAR;
   if (metaHitYear) {
     const d = TARGET_YEAR - metaHitYear;
-    $('gStatHitSub').textContent = d > 0 ? d+(d===1?' year early':' years early') : (d < 0 ? Math.abs(d)+(Math.abs(d)===1?' year late':' years late') : 'on schedule');
+    { const _en = getLang() === 'en'; const _yr = k => _en ? (k === 1 ? 'year' : 'years') : (k === 1 ? 'ano' : 'anos');
+      $('gStatHitSub').textContent = d > 0 ? `${d} ${_yr(d)} ${_en ? 'early' : 'antes'}` : (d < 0 ? `${Math.abs(d)} ${_yr(Math.abs(d))} ${_en ? 'late' : 'depois'}` : (_en ? 'on schedule' : 'no prazo')); }
   } else $('gStatHitSub').textContent = t('goal.notreach');
 
   const pAt = proj.find(x => x.year === TARGET_YEAR);            // divs durante TARGET_YEAR
