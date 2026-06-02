@@ -1456,12 +1456,19 @@ body::before {
 .rz-nav button { width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--ink-2); cursor: pointer; font-size: 16px; }
 .rz-nav button:hover { border-color: var(--border-strong); color: var(--purple-light); }
 .rz-period { font-family: 'Geist Mono', monospace; font-weight: 600; font-size: 14px; min-width: 130px; text-align: center; }
-.rz-kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 16px; }
-.rz-kpi { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 16px; padding: 16px 18px; box-shadow: var(--shadow); }
-.rz-kpi-l { font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-muted); font-weight: 600; }
-.rz-kpi-v { font-family: 'Geist Mono', monospace; font-size: 21px; font-weight: 600; margin-top: 8px; letter-spacing: -.01em; }
-.rz-kpi.rz-saldo { background: linear-gradient(135deg, rgba(172,95,219,.18), transparent 60%), var(--bg-elevated); border-color: var(--border-strong); }
-.rz-pos { color: var(--gain); } .rz-neg { color: var(--loss); } .rz-muted { color: var(--ink-3); }
+.rz-kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 18px; }
+.rz-kpi { position: relative; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 18px; padding: 15px 16px 17px; overflow: hidden; box-shadow: var(--shadow); transition: transform .2s var(--ease-out), box-shadow .2s, border-color .2s; }
+.rz-kpi::after { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 3px; background: var(--rzc, var(--purple)); }
+.rz-kpi:hover { transform: translateY(-3px); box-shadow: 0 18px 38px -24px rgba(0,0,0,.45); border-color: color-mix(in oklab, var(--rzc, var(--purple)) 42%, var(--border)); }
+.rz-kpi-top { display: flex; align-items: center; gap: 9px; margin-bottom: 14px; }
+.rz-kpi-ic { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: color-mix(in oklab, var(--rzc, var(--purple)) 15%, transparent); color: var(--rzc, var(--purple)); flex-shrink: 0; }
+.rz-kpi-ic svg { width: 16px; height: 16px; }
+.rz-kpi-l { font-size: 9.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-muted); font-weight: 700; }
+.rz-kpi-v { font-family: 'Geist Mono', monospace; font-size: 22px; font-weight: 600; letter-spacing: -.02em; color: var(--ink); }
+.rz-k-income { --rzc: #30d158; } .rz-k-expense { --rzc: #ff9f0a; } .rz-k-debt { --rzc: #ff453a; } .rz-k-savings { --rzc: #5ac8fa; } .rz-k-balance { --rzc: var(--purple); }
+.rz-kpi.rz-saldo { background: linear-gradient(155deg, color-mix(in oklab, var(--purple) 18%, var(--bg-elevated)), var(--bg-elevated) 72%); border-color: color-mix(in oklab, var(--purple) 32%, var(--border)); }
+.rz-kpi.rz-saldo .rz-kpi-v { font-size: 24px; font-weight: 700; }
+.rz-pos { color: var(--gain) !important; } .rz-neg { color: var(--loss) !important; } .rz-muted { color: var(--ink-2); }
 .rz-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 16px; align-items: start; }
 .rz-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 18px; padding: 20px 22px; box-shadow: var(--shadow); }
 .rz-card-h { font-size: 15px; font-weight: 650; margin-bottom: 16px; }
@@ -1470,18 +1477,20 @@ body::before {
 .rz-donut-c { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 1px; }
 .rz-dc-a { font-size: 11px; color: var(--ink-3); } .rz-dc-b { font-family: 'Geist Mono', monospace; font-weight: 600; font-size: 15px; }
 .rz-cats { margin-top: 16px; display: flex; flex-direction: column; gap: 2px; }
-.rz-cat { display: grid; grid-template-columns: 12px 1fr auto 44px; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.045); }
+.rz-cat { display: grid; grid-template-columns: 12px 1fr auto 44px; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
 .rz-cat:last-child { border-bottom: none; }
 .rz-cat-dot { width: 11px; height: 11px; border-radius: 3px; }
 .rz-cat-nm { font-size: 13px; font-weight: 600; color: var(--ink); }
-.rz-bar { height: 5px; border-radius: 3px; background: rgba(255,255,255,.06); margin-top: 6px; overflow: hidden; }
+.rz-bar { height: 5px; border-radius: 3px; background: var(--border); margin-top: 6px; overflow: hidden; }
 .rz-bar i { display: block; height: 100%; border-radius: 3px; }
 .rz-cat-v { font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--ink-2); }
 .rz-cat-pct { font-family: 'Geist Mono', monospace; font-size: 13px; font-weight: 600; text-align: right; color: var(--ink-2); }
 .rz-people { display: flex; flex-direction: column; gap: 6px; }
 .rz-person { display: grid; grid-template-columns: 44px 1fr auto auto; gap: 14px; align-items: center; padding: 10px 6px; border-radius: 12px; }
 .rz-person:hover { background: var(--bg-elevated-2); }
-.rz-av { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-family: 'Geist Mono', monospace; font-weight: 700; font-size: 14px; color: #10121a; }
+.rz-av { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-family: 'Geist Mono', monospace; font-weight: 700; font-size: 14px; color: #10121a; box-shadow: 0 4px 12px -4px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.3); }
+.rz-card { transition: box-shadow .25s var(--ease-out); }
+.rz-card:hover { box-shadow: var(--shadow-lg, 0 20px 44px -28px rgba(0,0,0,.5)); }
 .rz-person-nm { font-size: 14px; font-weight: 600; }
 .rz-blk { text-align: right; } .rz-k { font-size: 10px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .05em; }
 .rz-out { font-family: 'Geist Mono', monospace; font-size: 13px; font-weight: 600; color: var(--ink); }
@@ -1497,7 +1506,7 @@ body::before {
 .rz-mbars i { width: 9px; border-radius: 3px 3px 0 0; min-height: 2px; animation: barGrow .7s var(--ease-out) both; transform-origin: bottom; }
 .rz-rec { background: var(--gain); } .rz-desp { background: #E3A2EE; }
 .rz-mlabel { font-family: 'Geist Mono', monospace; font-size: 9px; color: var(--ink-3); }
-.rz-vis { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,.045); }
+.rz-vis { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); }
 .rz-vis:last-child { border-bottom: none; }
 .rz-vis-k { font-size: 12px; color: var(--ink-3); }
 .rz-vis-v { font-size: 13px; font-weight: 600; color: var(--ink); text-align: right; }

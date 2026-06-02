@@ -1393,6 +1393,14 @@ function renderExpensesNetWorthPill() {
 // ============================================================
 let _resumoView = 'mensal';  // 'mensal' | 'anual'
 const RZ_PERSON = { william: ['William', '#64d2ff', 'W'], flavia: ['Flávia', '#E3A2EE', 'F'], louise: ['Louise', '#30d158', 'L'], familia: ['Família', '#AC5FDB', 'Fam'] };
+// Ícones dos KPIs do Resumo (cor herda do CSS via currentColor).
+const RZ_KIC = {
+  income:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>',
+  expense: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>',
+  debt:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>',
+  savings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="2.5"/><path d="M8 9V6.5a4 4 0 0 1 8 0V9"/></svg>',
+  balance: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10.5h18"/><circle cx="16.5" cy="14.5" r="1.3" fill="currentColor"/></svg>',
+};
 function setResumoView(v) { _resumoView = v === 'anual' ? 'anual' : 'mensal'; renderResumo(); }
 function resumoNav(dir) {
   const d = state.currentViewMonth || new Date();
@@ -1490,18 +1498,18 @@ function renderResumo() {
       <div class="rz-nav"><button data-rznav="-1" aria-label="${esc(t('a11y.prev'))}">‹</button><span class="rz-period">${esc(periodLabel)}</span><button data-rznav="1" aria-label="${esc(t('a11y.next'))}">›</button></div>
     </div>
     <div class="rz-kpis">
-      <div class="rz-kpi"><div class="rz-kpi-l">${esc(t('rz.income'))}</div><div class="rz-kpi-v">${m(ganhos)}</div></div>
-      <div class="rz-kpi"><div class="rz-kpi-l">${esc(t('rz.expenses'))}</div><div class="rz-kpi-v">${m(despesas)}</div></div>
-      <div class="rz-kpi"><div class="rz-kpi-l">${esc(t('rz.debts'))}</div><div class="rz-kpi-v ${dividas > 0 ? 'rz-neg' : 'rz-muted'}">${m(dividas)}</div></div>
-      <div class="rz-kpi"><div class="rz-kpi-l">${esc(t('rz.savings'))}</div><div class="rz-kpi-v rz-muted">${m(economias)}</div></div>
-      <div class="rz-kpi rz-saldo"><div class="rz-kpi-l">${esc(t('rz.balance'))}</div><div class="rz-kpi-v ${saldo < 0 ? 'rz-neg' : 'rz-pos'}">${m(saldo)}</div></div>
+      <div class="rz-kpi rz-k-income"><div class="rz-kpi-top"><span class="rz-kpi-ic">${RZ_KIC.income}</span><div class="rz-kpi-l">${esc(t('rz.income'))}</div></div><div class="rz-kpi-v">${m(ganhos)}</div></div>
+      <div class="rz-kpi rz-k-expense"><div class="rz-kpi-top"><span class="rz-kpi-ic">${RZ_KIC.expense}</span><div class="rz-kpi-l">${esc(t('rz.expenses'))}</div></div><div class="rz-kpi-v">${m(despesas)}</div></div>
+      <div class="rz-kpi rz-k-debt"><div class="rz-kpi-top"><span class="rz-kpi-ic">${RZ_KIC.debt}</span><div class="rz-kpi-l">${esc(t('rz.debts'))}</div></div><div class="rz-kpi-v ${dividas > 0 ? 'rz-neg' : ''}">${m(dividas)}</div></div>
+      <div class="rz-kpi rz-k-savings"><div class="rz-kpi-top"><span class="rz-kpi-ic">${RZ_KIC.savings}</span><div class="rz-kpi-l">${esc(t('rz.savings'))}</div></div><div class="rz-kpi-v">${m(economias)}</div></div>
+      <div class="rz-kpi rz-saldo rz-k-balance"><div class="rz-kpi-top"><span class="rz-kpi-ic">${RZ_KIC.balance}</span><div class="rz-kpi-l">${esc(t('rz.balance'))}</div></div><div class="rz-kpi-v ${saldo < 0 ? 'rz-neg' : 'rz-pos'}">${m(saldo)}</div></div>
     </div>
     ${chartHtml}
     <div class="rz-grid">
       <div class="rz-card">
         <div class="rz-card-h">${esc(t('rz.byCat'))}</div>
         <div class="rz-donut-wrap"><div class="rz-donut">
-          <svg width="172" height="172" viewBox="0 0 172 172"><circle cx="86" cy="86" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="20"/>${segs}</svg>
+          <svg width="172" height="172" viewBox="0 0 172 172"><circle cx="86" cy="86" r="${R}" fill="none" stroke="rgba(130,130,130,.18)" stroke-width="20"/>${segs}</svg>
           <div class="rz-donut-c"><span class="rz-dc-a">${esc(t('rz.variable'))} · ${vrPct}%</span><span class="rz-dc-b">${m(variaveis)}</span><span class="rz-dc-a" style="margin-top:6px">${esc(t('rz.fixed'))} · ${fxPct}%</span><span class="rz-dc-b" style="color:var(--ink-2)">${m(fixas)}</span></div>
         </div></div>
         <div class="rz-cats">${catRows}</div>
