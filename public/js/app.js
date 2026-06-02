@@ -87,6 +87,7 @@ const ICONS = {
   tag:          _svg('<path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7.5" cy="7.5" r="1" fill="currentColor"/>'),
   gift:         _svg('<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C9 3 10.5 4.5 12 8"/><path d="M16.5 8a2.5 2.5 0 0 0 0-5C15 3 13.5 4.5 12 8"/>'),
   cart:         _svg('<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>'),
+  plane:        _svg('<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 4.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>'),
   // Status / utility icons used outside the category lists
   check:        _svg('<polyline points="20 6 9 17 4 12"/>'),
   alertTri:     _svg('<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'),
@@ -100,6 +101,7 @@ const CATEGORIES = {
   transporte:  { label: 'Transporte',        icon: ICONS.car,         color: '#ff9500' },
   saude:       { label: 'Saúde',             icon: ICONS.heartPulse,  color: '#ff375f' },
   lazer:       { label: 'Lazer',             icon: ICONS.gamepad,     color: '#af52de' },
+  viagem:      { label: 'Viagem',            icon: ICONS.plane,       color: '#5856d6' },
   educacao:    { label: 'Educação',          icon: ICONS.book,        color: '#64d2ff' },
   assinaturas: { label: 'Assinaturas',       icon: ICONS.repeat,      color: '#bf5af2' },
   cartao:      { label: 'Cartão de crédito', icon: ICONS.creditCard,  color: '#ff453a' },
@@ -114,7 +116,7 @@ const DEFAULT_CATEGORIES = {};
 Object.entries(CATEGORIES).forEach(([k, v]) => { DEFAULT_CATEGORIES[k] = { ...v }; });
 const DEFAULT_CAT_KEYS = Object.keys(CATEGORIES);
 const CAT_PALETTE = ['#0071e3', '#30d158', '#ff9500', '#ff375f', '#af52de', '#64d2ff', '#bf5af2', '#ff453a', '#ffd60a', '#8e8e93', '#AC5FDB', '#E3A2EE'];
-const CAT_ICON_KEYS = ['tag', 'home', 'utensils', 'cart', 'car', 'heartPulse', 'gamepad', 'book', 'repeat', 'creditCard', 'shoppingBag', 'package', 'briefcase', 'wrench', 'pieChart', 'trendingUp', 'gift'];
+const CAT_ICON_KEYS = ['tag', 'home', 'utensils', 'cart', 'car', 'plane', 'heartPulse', 'gamepad', 'book', 'repeat', 'creditCard', 'shoppingBag', 'package', 'briefcase', 'wrench', 'pieChart', 'trendingUp', 'gift'];
 function applyCategoryConfig(cfg) {
   cfg = cfg || {};
   // 1. reset ao default (tira custom antigas, restaura label/cor padrão)
@@ -314,6 +316,8 @@ const I18N = {
     'exp.hero.balance': 'SALDO DO MÊS',
     'exp.hero.balance.sub': '{in} entraram · {out} saíram',
     'exp.hero.committed': ' · <span style="color:var(--ink-3)">{v} comprometido</span>',
+    'exp.hero.committedonly': '<span style="color:var(--ink-3)">{v} comprometido em {n} parcelas (provisão)</span>',
+    'exp.toast.cascade': '{n} parcelas atualizadas',
     'exp.hero.empty': 'Nenhum lançamento registrado ainda',
     'exp.hero.sub': '{n} {label} · média {avg}',
     'exp.count.singular': 'despesa',
@@ -488,6 +492,7 @@ const I18N = {
     'cat.label.transporte': 'Transporte',
     'cat.label.saude': 'Saúde',
     'cat.label.lazer': 'Lazer',
+    'cat.label.viagem': 'Viagem',
     'cat.label.educacao': 'Educação',
     'cat.label.assinaturas': 'Assinaturas',
     'cat.label.cartao': 'Cartão de crédito',
@@ -728,6 +733,8 @@ const I18N = {
     'exp.hero.balance': 'MONTH BALANCE',
     'exp.hero.balance.sub': '{in} in · {out} out',
     'exp.hero.committed': ' · <span style="color:var(--ink-3)">{v} committed</span>',
+    'exp.hero.committedonly': '<span style="color:var(--ink-3)">{v} committed across {n} installments (provisioned)</span>',
+    'exp.toast.cascade': '{n} installments updated',
     'exp.hero.empty': 'No entries recorded yet',
     'exp.hero.sub': '{n} {label} · avg {avg}',
     'exp.count.singular': 'expense',
@@ -902,6 +909,7 @@ const I18N = {
     'cat.label.transporte': 'Transport',
     'cat.label.saude': 'Health',
     'cat.label.lazer': 'Leisure',
+    'cat.label.viagem': 'Travel',
     'cat.label.educacao': 'Education',
     'cat.label.assinaturas': 'Subscriptions',
     'cat.label.cartao': 'Credit card',
@@ -1501,7 +1509,6 @@ function renderResumo() {
       <div class="rz-kpi rz-k-income"><div class="rz-kpi-top"><span class="rz-kpi-ic">${RZ_KIC.income}</span><div class="rz-kpi-l">${esc(t('rz.income'))}</div></div><div class="rz-kpi-v">${m(ganhos)}</div></div>
       <div class="rz-kpi rz-k-expense"><div class="rz-kpi-top"><span class="rz-kpi-ic">${RZ_KIC.expense}</span><div class="rz-kpi-l">${esc(t('rz.expenses'))}</div></div><div class="rz-kpi-v">${m(despesas)}</div></div>
       <div class="rz-kpi rz-k-debt"><div class="rz-kpi-top"><span class="rz-kpi-ic">${RZ_KIC.debt}</span><div class="rz-kpi-l">${esc(t('rz.debts'))}</div></div><div class="rz-kpi-v ${dividas > 0 ? 'rz-neg' : ''}">${m(dividas)}</div></div>
-      <div class="rz-kpi rz-k-savings"><div class="rz-kpi-top"><span class="rz-kpi-ic">${RZ_KIC.savings}</span><div class="rz-kpi-l">${esc(t('rz.savings'))}</div></div><div class="rz-kpi-v">${m(economias)}</div></div>
       <div class="rz-kpi rz-saldo rz-k-balance"><div class="rz-kpi-top"><span class="rz-kpi-ic">${RZ_KIC.balance}</span><div class="rz-kpi-l">${esc(t('rz.balance'))}</div></div><div class="rz-kpi-v ${saldo < 0 ? 'rz-neg' : 'rz-pos'}">${m(saldo)}</div></div>
     </div>
     ${chartHtml}
@@ -1624,13 +1631,14 @@ function renderExpenses() {
   if (heroCurEl) heroCurEl.textContent = saldo < 0 ? '− R$' : 'R$';
   // Subline: "↑ 46k entraram · ↓ 82k saíram" — or empty state
   const heroSub = $('expHeroSub');
+  const provTotal = monthProv.reduce((s, e) => s + (+e.value || 0), 0);
   if (monthExp.length === 0 && monthIncome.length === 0) {
-    heroSub.textContent = t('exp.hero.empty');
+    if (provTotal > 0) heroSub.innerHTML = t('exp.hero.committedonly').replace('{v}', fmtBRL0(provTotal)).replace('{n}', monthProv.length);
+    else heroSub.textContent = t('exp.hero.empty');
   } else {
     let sub = t('exp.hero.balance.sub')
       .replace('{in}', `<span class="pos">↑ ${fmtBRL0(incomeTotal)}</span>`)
       .replace('{out}', `<span class="neg">↓ ${fmtBRL0(total)}</span>`);
-    const provTotal = monthProv.reduce((s, e) => s + (+e.value || 0), 0);
     if (provTotal > 0) sub += t('exp.hero.committed').replace('{v}', fmtBRL0(provTotal));
     heroSub.innerHTML = sub;
   }
@@ -2305,7 +2313,16 @@ async function saveExpense() {
     btn.disabled = true; btn.textContent = t('exp.btn.saving');
     if (editingExpenseId) {
       await setDoc(docExpense(editingExpenseId), data, { merge: true });
-      showToast(t(type === 'income' ? 'exp.toast.income.saved' : 'exp.toast.saved'));
+      // Parcelado: propaga de-quem/categoria/descrição/natureza pra TODAS as parcelas da mesma compra.
+      const entry = state.expenses.find(x => x.id === editingExpenseId);
+      const grp = entry && entry.installment && entry.fpBase ? String(entry.fpBase).replace(/\|\d+\/\d+$/, '') : null;
+      const sibs = grp ? (state.expenses || []).filter(e => e.id !== editingExpenseId && e.fpBase && String(e.fpBase).replace(/\|\d+\/\d+$/, '') === grp) : [];
+      if (sibs.length) {
+        await Promise.allSettled(sibs.map(s => setDoc(docExpense(s.id), { owner: _modalOwner, category, description, nature: _modalNature, updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'unknown' }, { merge: true })));
+        showToast(t('exp.toast.cascade').replace('{n}', sibs.length + 1));
+      } else {
+        showToast(t(type === 'income' ? 'exp.toast.income.saved' : 'exp.toast.saved'));
+      }
     } else {
       await addDoc(colExpenses(), { ...data, createdAt: serverTimestamp() });
       showToast(t(type === 'income' ? 'exp.toast.income.added' : 'exp.toast.added'));
@@ -4377,11 +4394,12 @@ function impRuleKey(desc) { return impNormalize(desc).replace(/\s+/g, '').slice(
 const IMP_CATS = [
   ['mercado', ['carrefour','assai','atacadao','tenda','makro','sams','extra','mambo','zaffari','condor','muffato','angeloni','bistek','comper','supernosso','verdemar','festval','mateus','sendas','epa','cooper','koch','giassi','hippo','imperatriz','prezunic','guanabara','mundial','sonda','savegnago','roldao','nagumo','hirota','bahamas','carone','semar','bramil','fort','enxuto'], ['supermerc','superm','hortifrut','acoug','mercear','quitand','sacolao','atacad','minimerc'], ['pao de acucar','fort atacad','mercado garcia','natural da terra','sao vicente','oba horti']],
   ['alimentacao', ['ifood','rappi','aiqfome','mcdonalds','subway','bobs','habibs','outback','spoleto','starbucks','madero','dominos','giraffas','kfc','popeyes','vivenda','gendai','jeronimo','patroni','montana','abbraccio','sodie','sterna','kopenhagen','chiquinho','ragazzo','vezpa','restaurante','padaria','lanchonete','cantina','bar','boteco','cafe','cafeteria','confeitaria','doceria','acai','adega','pizzaria','temaki','sushi','churrascaria','hamburgueria','sorveteria','pastelaria','rotisseria','marmitaria'], ['restaur','padar','panific','lanch','hamburg','cervej','sorvet','pizz','marmit','gastro','bistr','confeit','doceri','churrasc','cafeter','pastel'], ['coco bambu','divino fogao','china in box','cacau show','brasil cacau','ze delivery','burger king','fogo de chao','pizza hut','bob s','mc donalds','baby beef','dunkin donuts']],
-  ['transporte', ['uber','99','indrive','cabify','latam','localiza','movida','unidas','ipiranga','shell','petrobras','texaco','veloe','conectcar','smiles','clickbus','buser','metro','cptm','blablacar','taxi','sptrans','supervia','ecovias','arteris','raizen','alesat','gasbar','riocard','autopass'], ['posto','combust','estacion','pedagi','gasolin','rodoviar','uber','locadora','transport'], ['99app','rek park','sem parar','auto re','bilhete unico','azul linhas','gol linhas','voe gol','tam linhas','br distribuidora']],
+  ['transporte', ['uber','99','indrive','cabify','localiza','movida','unidas','ipiranga','shell','petrobras','texaco','veloe','conectcar','metro','cptm','blablacar','taxi','sptrans','supervia','ecovias','arteris','raizen','alesat','gasbar','riocard','autopass'], ['posto','combust','estacion','pedagi','gasolin','rodoviar','uber','locadora','transport'], ['99app','rek park','sem parar','auto re','bilhete unico','br distribuidora']],
+  ['viagem', ['latam','decolar','booking','airbnb','trivago','hostel','pousada','resort','hotel','cvc','hurb','expedia','smiles','maxmilhas','jetsmart','clickbus','buser','passaredo'], ['hosped','pousad','turismo'], ['azul linhas','gol linhas','voe gol','tam linhas','hoteis com','booking com','123 milhas','latam air','azul viagens']],
   ['saude', ['farmacia','farmacias','drogasil','drogaria','droga','panvel','pacheco','raia','nissei','araujo','venancio','bifarma','ultrafarma','extrafarma','onofre','agafarma','catarinense','drogamais','unimed','amil','hapvida','notredame','intermedica','sulamerica','vacina','hospital','clinica','laboratorio','dentista','psicologo','fisioterapia','otica','oticas','fleury','sabin','dasa','delboni','lavoisier','einstein','smartfit','bodytech','selfit','bluefit','gympass','totalpass','crossfit','pilates','academia','bioritmo'], ['farmac','drogar','clinic','odonto','laborat','psico','dentist','dermat','oftalmo','fisio','vacin','hospital','academ','consultori'], ['pague menos','sao joao','drogaraia','smart fit','plano de saude','hermes pardini','total pass']],
   ['assinaturas', ['netflix','spotify','disney','hbo','globoplay','paramount','crunchyroll','deezer','tidal','youtube','twitch','chatgpt','openai','anthropic','claude','notion','dropbox','icloud','adobe','canva','linkedin','github','figma','audible','patreon','itunes','apple','microsoft','office','playstation','xbox','nintendo','telecine','looke','skeelo','mubi','midjourney','vercel','cursor','onedrive'], ['kindle'], ['amazon prime','prime video','google one','apple com','apple tv','game pass','google youtu','dl google','yt premium','ps plus','hbo max','disney plus','paramount plus','star plus','youtube premium','apple music']],
   ['educacao', ['escola','colegio','faculdade','universidade','unopar','anhanguera','estacio','uninter','puc','senac','senai','udemy','alura','coursera','hotmart','descomplica','duolingo','babbel','wizard','ccaa','fisk','kumon','milium','livraria','saraiva','rocketseat','fiap','mackenzie','unicesumar','unip','fmu','insper','fgv','alfacon','qconcursos'], ['faculda','curso','ensino','colegi','escola','universi','livrari'], ['gran cursos','cultura inglesa','sistema de ensino','livraria cultura']],
-  ['lazer', ['cinemark','kinoplex','cinepolis','uci','ingresso','sympla','eventim','cinema','teatro','boliche','kart','decolar','booking','airbnb','trivago','hostel','pousada','resort','hotel','playcenter','ticketmaster','ticket360','sesc','riot','epicgames','ubisoft'], ['ingress','cinem'], ['123milhas','hoteis com','escape room','beto carrero','hopi hari']],
+  ['lazer', ['cinemark','kinoplex','cinepolis','uci','ingresso','sympla','eventim','cinema','teatro','boliche','kart','playcenter','ticketmaster','ticket360','sesc','riot','epicgames','ubisoft'], ['ingress','cinem'], ['escape room','beto carrero','hopi hari']],
   ['compras', ['amazon','shopee','mercadolivre','magalu','magazine','americanas','submarino','casasbahia','pontofrio','kabum','fastshop','samsung','nike','adidas','decathlon','centauro','netshoes','dafiti','riachuelo','renner','marisa','pernambucanas','hering','zara','cea','shein','aliexpress','havan','leroy','telhanorte','tokstok','mobly','etna','petz','cobasi','petlove','kalunga','koerich','salfer','colombo','lebes','polishop','ikea','camicado','mmartan','youcom','animale','malwee','lupo','lacoste','levis','amaro','posthaus','kanui','sallve','boticario','natura','avon','sephora','oceane'], ['marketplace','amazon','papelari'], ['mercado livre','casas bahia','ponto frio','fast shop','tok stok','leroy merlin','madeira madeira','ri happy','pb kids','apple store','world tennis','track field','calvin klein','o boticario','quem disse','ricardo eletro']],
   ['moradia', ['aluguel','condominio','iptu','quintoandar','loft','energia','copel','celesc','cemig','cpfl','enel','equatorial','energisa','light','sabesp','sanepar','casan','samae','cedae','caesb','embasa','comgas','naturgy','ultragaz','liquigas','supergasbras','internet','vivo','claro','sky','algar','brisanet','unifique','gvt','tim','copasa','celpe','coelba','cosern','elektro','neoenergia','edp','rge'], ['condomin','imobil','energi','aluguel'], ['conta de gas','conta de telefone','seguro residencial','quinto andar','net servicos','net claro']],
 ];
