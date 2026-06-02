@@ -52,6 +52,7 @@ const docReserves = doc(db, "household", "main", "config", "reserves");
 const docPension  = doc(db, "household", "main", "config", "pension");
 const docBudgets  = doc(db, "household", "main", "config", "budgets");
 const docCategories = doc(db, "household", "main", "config", "categories");
+const docImportMeta = doc(db, "household", "main", "config", "importMeta");
 const docUserPrefs = doc(db, "household", "main", "config", "userPrefs");
 const docImportRules = doc(db, "household", "main", "config", "importRules");  // memória do importador (estabelecimento → categoria/de-quem)
 
@@ -417,6 +418,10 @@ const I18N = {
     'exp.filter.type.in': 'Ganhos',
     'exp.filter.none': 'Nada com esses filtros',
     'imp.clear': 'Limpar importados',
+    'imp.undo': 'Desfazer último',
+    'imp.undo.confirm': 'Desfazer {n}? Clique de novo',
+    'imp.undo.done': '{n} do último import desfeitos',
+    'imp.undo.none': 'Nada pra desfazer',
     'imp.clear.confirm': 'Apagar {n}? Clique de novo',
     'imp.clear.done': '{n} importados apagados',
     'imp.clear.none': 'Nada importado pra limpar',
@@ -827,6 +832,10 @@ const I18N = {
     'exp.filter.type.in': 'Income',
     'exp.filter.none': 'Nothing matches these filters',
     'imp.clear': 'Clear imported',
+    'imp.undo': 'Undo last',
+    'imp.undo.confirm': 'Undo {n}? Click again',
+    'imp.undo.done': '{n} from the last import undone',
+    'imp.undo.none': 'Nothing to undo',
     'imp.clear.confirm': 'Delete {n}? Click again',
     'imp.clear.done': '{n} imported deleted',
     'imp.clear.none': 'Nothing imported to clear',
@@ -1664,6 +1673,7 @@ function renderExpenses() {
   renderExpenseTable(all);
 
   renderExpensesNetWorthPill();
+  updateUndoBtn();
 }
 
 function renderCategoryBreakdown(monthExp, total) {
@@ -4564,6 +4574,36 @@ async function clearImportedExpenses() {
   finally { btn.disabled = false; }
 }
 
+// Desfazer só o último import (por batchId) — mais cirúrgico que "limpar tudo".
+function updateUndoBtn() {
+  const btn = $('btnUndoImport'); if (!btn) return;
+  const id = state.importMeta && state.importMeta.lastBatchId;
+  const n = id ? (state.expenses || []).filter(e => e.batchId === id).length : 0;
+  btn.hidden = n === 0;
+}
+let _undoArmed = false;
+async function undoLastImport() {
+  const btn = $('btnUndoImport'); if (!btn) return;
+  const id = state.importMeta && state.importMeta.lastBatchId;
+  const docs = id ? (state.expenses || []).filter(e => e.batchId === id) : [];
+  if (!docs.length) { showToast(t('imp.undo.none')); return; }
+  if (!_undoArmed) {
+    _undoArmed = true;
+    if (!btn.dataset.orig) btn.dataset.orig = btn.textContent;
+    btn.textContent = t('imp.undo.confirm').replace('{n}', docs.length);
+    btn.classList.add('danger-armed');
+    setTimeout(() => { if (_undoArmed) { _undoArmed = false; btn.textContent = btn.dataset.orig; btn.classList.remove('danger-armed'); } }, 4000);
+    return;
+  }
+  _undoArmed = false; btn.classList.remove('danger-armed'); btn.textContent = btn.dataset.orig; btn.disabled = true;
+  try {
+    await Promise.allSettled(docs.map(e => deleteDoc(docExpense(e.id))));
+    setDoc(docImportMeta, { lastBatchId: null }, { merge: true }).catch(() => {});
+    showToast(t('imp.undo.done').replace('{n}', docs.length));
+  } catch (e) { console.error('[undo] failed', e); showToast(t('toast.error.save')); }
+  finally { btn.disabled = false; }
+}
+
 let _importTxns = [];
 let _importKind = null;   // 'card' (PDF) | 'cc' (CSV) — escolhido no seletor de origem
 async function handleImportFile(file) {
@@ -4683,6 +4723,7 @@ async function doImport() {
   const monthISO = (off) => { const t0 = baseY * 12 + (baseM - 1) + off; return `${Math.floor(t0 / 12)}-${String((t0 % 12) + 1).padStart(2, '0')}-15`; };
 
   const checks = [...document.querySelectorAll('#importList .imp-row input[type="checkbox"]:checked')];
+  const batchId = 'b' + Date.now().toString(36);   // marca o lote pra permitir desfazer só este import
   const batch = []; let provCount = 0; const learned = {};
   for (const cb of checks) {
     const tx = _importTxns[+cb.dataset.idx];
@@ -4695,7 +4736,7 @@ async function doImport() {
       const idate = impToISO(tx.date, baseY);
       const got = fpFor(impFp(idate, tx.value, tx.desc));
       if (!got) continue;
-      batch.push({ type: 'income', description: tx.desc, value: tx.value, category: tx.incomeCat || 'outros', owner, nature: null, source: 'import:conta', date: idate, fp: got.fp, fpBase: got.fpBase, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import', notes: '' });
+      batch.push({ type: 'income', description: tx.desc, value: tx.value, category: tx.incomeCat || 'outros', owner, nature: null, source: 'import:conta', batchId, date: idate, fp: got.fp, fpBase: got.fpBase, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import', notes: '' });
       continue;
     }
     const nat = impNature(category, tx.desc);
@@ -4706,7 +4747,7 @@ async function doImport() {
       learned[impRuleKey(tx.desc)] = { category, owner, nature: nat };
     }
     const cardNote = tx.holder ? ('cartão: ' + tx.holder.split(' ')[0]) : '';
-    const base = { type: 'expense', description: tx.desc, value: tx.value, category, owner, nature: nat, source: 'import:' + (tx._src === 'cc' ? 'conta' : 'cartao'), createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import' };
+    const base = { type: 'expense', description: tx.desc, value: tx.value, category, owner, nature: nat, source: 'import:' + (tx._src === 'cc' ? 'conta' : 'cartao'), batchId, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import' };
     const realDate = impToISO(tx.date, baseY);          // data REAL da compra (estável p/ o fingerprint, ano da competência)
     const im = (tx.inst || '').match(/^(\d{1,2})\/(\d{1,2})$/);
     if (im) {
@@ -4747,6 +4788,7 @@ async function doImport() {
   // Dispara TODAS as gravações sem esperar a rede — nunca trava. O Firestore
   // confirma em background e o onSnapshot atualiza a lista conforme cada cai.
   batch.forEach(d => addDoc(colExpenses(), d).catch(err => console.error('[import] doc falhou', err)));
+  setDoc(docImportMeta, { lastBatchId: batchId, lastCount: batch.length, lastSource: (_importKind === 'cc' ? 'conta' : 'cartao'), lastAt: serverTimestamp() }, { merge: true }).catch(() => {});
   try {
     if (ov && !reduce) await new Promise(r => setTimeout(r, 4250));   // duração total da animação
     else showToast(t('imp.done').replace('{n}', batch.length));
@@ -4806,6 +4848,7 @@ $('impFile')?.addEventListener('change', (e) => { const file = e.target.files &&
 $('importCancel')?.addEventListener('click', () => $('importModal').classList.remove('show'));
 $('importConfirm')?.addEventListener('click', doImport);
 $('btnClearImports')?.addEventListener('click', clearImportedExpenses);
+$('btnUndoImport')?.addEventListener('click', undoLastImport);
 // Escape de emergência: clicar no overlay (ou Esc) fecha, caso algo trave.
 $('importOverlay')?.addEventListener('click', () => {
   const o = $('importOverlay'); if (o) { o.hidden = true; o.classList.remove('done', 'out'); }
@@ -5065,6 +5108,10 @@ function subscribeAll() {
   });
   unsub.importRules = onSnapshot(docImportRules, (snap) => {
     state.importRules = (snap.exists() && snap.data() && snap.data().rules) || {};
+  });
+  unsub.importMeta = onSnapshot(docImportMeta, (snap) => {
+    state.importMeta = snap.exists() ? (snap.data() || {}) : {};
+    updateUndoBtn();
   });
   unsub.categories = onSnapshot(docCategories, (snap) => {
     state.catConfig = snap.exists() ? (snap.data() || {}) : {};
