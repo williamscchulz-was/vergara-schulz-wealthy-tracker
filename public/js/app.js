@@ -4376,32 +4376,54 @@ function impPersonGuess(tx) {
 function parseStatement(lines) {
   const out = [];
   let holder = '';
-  const HOLDER = /^([A-ZÀ-Ý][A-ZÀ-Ý '.]+?)\s*-\s*VISA/;
-  const ROW = /^(\d{2}\/\d{2})\s+(.+?)\s+(-?\d{1,3}(?:\.\d{3})*,\d{2})$/;
-  const SKIP = /(SALDO ANTERIOR|PAGTO|TOTAL|ENCARGOS|^JUROS|ANUIDADE|^IOF|MULTA|LIMITE)/i;
+  // Titular: "NOME - VISA/MASTERCARD/ELO/AMEX/...". Aceita acento, hífen (Vergara-Schulz), maiúsc/minúsc.
+  const HOLDER = /^([A-ZÀ-Ýa-zà-ý][A-ZÀ-Ýa-zà-ý '.\-]{2,40}?)\s*[-–]\s*(?:VISA|MASTER(?:CARD)?|ELO|AMEX|AMERICAN|HIPERCARD|DINERS)\b/i;
+  const DATE = /^(\d{2}\/\d{2})\s+(.+)$/;
+  // Ruído de fatura (não é compra): pagamento, encargos, anuidade, IOF/juros, seguro/tarifa,
+  // conversão de moeda estrangeira (linha própria — duplicaria a compra), cashback/ajuste/rotativo.
+  const SKIP = /(SALDO ANTERIOR|SALDO ATUAL|PAGAMENTO|PAGTO|\bTOTAL\b|ENCARGOS|\bJUROS\b|ANUIDADE|\bIOF\b|MULTA|LIMITE|SEGURO|TARIFA|MENSALIDAD|CASHBACK|AJUSTE|DOLAR|D[OÓ]LAR|CONVERS|COTACAO|REPASSE|PROTEC|ASSIST|ROTATIV)/i;
+  const moneyAll = (s) => s.match(/-?\d{1,3}(?:\.\d{3})*,\d{2}/g) || [];
   for (const L of lines) {
     const h = L.match(HOLDER);
-    if (h) { holder = h[1].replace(/\s+/g, ' ').trim(); continue; }
-    const m = L.match(ROW);
+    if (h) { holder = h[1].replace(/\s+/g, ' ').trim().toUpperCase(); continue; }
+    const m = L.match(DATE);
     if (!m) continue;
-    let desc = m[2].replace(/\s+/g, ' ').trim();
-    if (!desc || SKIP.test(desc)) continue;
+    let rest = m[2].replace(/\s+/g, ' ').trim();
+    if (!rest || SKIP.test(rest)) continue;
+    const monies = moneyAll(rest);
+    if (!monies.length) continue;                         // linha sem valor → não é lançamento
+    let value = parseFloat(monies[monies.length - 1].replace(/\./g, '').replace(',', '.'));  // último valor = BRL (mesmo em compra USD)
+    if (!isFinite(value)) continue;
+    const refund = value < 0;                             // crédito/estorno na fatura
+    value = Math.abs(value);
+    if (value === 0) continue;
+    let desc = rest;
+    monies.forEach(v => { desc = desc.replace(v, ' '); });                       // tira todos os valores da descrição
+    desc = desc.replace(/\b(USD|US\$|EUR|GBP|D[OÓ]LAR(?:ES)?)\b/gi, ' ').replace(/[()]/g, ' ').replace(/\s+/g, ' ').trim();
+    // Parcela: só formato canônico no FIM ("03/10" ou "03 DE 10") ou prefixado por PARC; valida 1<=k<=tot<=72.
     let inst = null;
-    const im = desc.match(/\b(\d{1,2}\/\d{1,2})\b\s*$/) || desc.match(/\b(\d{1,2}\/\d{1,2})\b/);
-    if (im) { inst = im[1]; desc = desc.replace(im[0], '').replace(/\s+/g, ' ').trim(); }
-    const value = parseFloat(m[3].replace(/\./g, '').replace(',', '.'));
-    if (!isFinite(value) || value <= 0) continue;  // ignora estornos/créditos — não são despesa
-    out.push({ date: m[1], desc, inst, value, holder, refund: false });
+    const pm = desc.match(/(?:\bPARC(?:ELA)?\.?\s*)?\b(\d{1,2})\s*(?:\/|\s+DE\s+)\s*(\d{1,2})\s*$/i)
+            || desc.match(/\bPARC(?:ELA)?\.?\s*(\d{1,2})\s*(?:\/|\s+DE\s+)\s*(\d{1,2})\b/i);
+    if (pm) {
+      const k = +pm[1], tot = +pm[2];
+      if (k >= 1 && tot >= 2 && k <= tot && tot <= 72) {
+        inst = k + '/' + tot;
+        desc = desc.replace(pm[0], ' ').replace(/[()]/g, ' ').replace(/\s+/g, ' ').trim();
+      }
+    }
+    if (!desc) desc = '—';
+    out.push({ date: m[1], desc, inst, value, holder, refund });
   }
   return out;
 }
-function impToISO(ddmm) {
-  const parts = (ddmm || '').split('/');
-  const d = +parts[0], mo = +parts[1];
+function impToISO(dmy, baseYear) {
+  const p = String(dmy || '').split('/');
+  const d = +p[0], mo = +p[1];
   if (!d || !mo) return new Date().toISOString().split('T')[0];
-  const now = new Date();
-  let y = now.getFullYear();
-  if (mo > now.getMonth() + 2) y -= 1;  // mês muito à frente → ano passado
+  let y;
+  if (p[2]) { y = +p[2]; if (y < 100) y += 2000; }     // ano explícito (CSV traz DD/MM/AAAA)
+  else if (baseYear) { y = +baseYear; }                // competência da fatura (cartão)
+  else { const now = new Date(); y = now.getFullYear(); if (mo > now.getMonth() + 2) y -= 1; }
   return `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 }
 function impFp(date, value, desc) {
@@ -4410,26 +4432,40 @@ function impFp(date, value, desc) {
 const impMoney = (n) => 'R$ ' + Math.abs(+n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 // ---- Conta corrente (CSV do Bradesco) ----
 function parseBRMoney(raw) {
-  const s = String(raw || '').trim();
+  const s = String(raw || '').replace(/[^\d.,-]/g, '');   // tira R$, espaços, aspas, sufixo C/D, etc.
   if (!s) return 0;
   return parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0;
 }
 // Linhas que NÃO são despesa de consumo: transferências entre contas próprias,
 // investimentos (CDB/fundos), saques, pagamento da fatura do cartão (pra não
 // duplicar com o import do cartão), impostos e taxas.
-const CC_SKIP = /(TRANSF CC PARA CC|APLICAC|RESGATE|RESG\/|SAQUE DINHEIRO|GASTOS CARTAO|^IOF|IRRF|TX REM|TAXA BTC|PAG JUROS|PAG DIVIDENDOS|COD\. LANC|REEMBOLSO)/i;
+const CC_SKIP = /(TRANSF CC PARA CC|TRANSFERENCIA ENTRE|APLICAC|RESGATE|RESG\/|SAQUE|GASTOS CARTAO|\bIOF\b|IRRF|TX REM|TAXA BTC|PAG JUROS|PAG DIVIDENDOS|COD\. LANC|REEMBOLSO|TARIFA|ANUIDADE|CESTA|PACOTE DE SERV|MANUTENCAO CONTA)/i;
 function parseCheckingCSV(text) {
   const out = [];
-  for (const line of String(text || '').split(/\r?\n/)) {
-    const cols = line.split(';');
-    if (cols.length < 5) continue;
-    const date = (cols[0] || '').trim();
-    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(date)) continue;   // só linhas de lançamento
-    const hist = (cols[1] || '').trim();
-    const debito = parseBRMoney(cols[4]);                // coluna Débito (saída)
+  const rows = String(text || '').replace(/^﻿/, '').split(/\r?\n/);
+  const cell = (c) => String(c || '').replace(/^\s*"|"\s*$/g, '').trim();   // tira aspas/espaços
+  // Detecta a coluna de Débito pelo cabeçalho (fallback: layout padrão Bradesco).
+  let dateCol = 0, histCol = 1, debCol = 4;
+  for (const line of rows) {
+    const low = line.split(';').map(c => cell(c).toLowerCase());
+    const di = low.findIndex(c => c === 'débito' || c === 'debito' || c.includes('saída') || c.includes('saida'));
+    if (di >= 0) {
+      debCol = di;
+      const dt = low.findIndex(c => c.includes('data')); if (dt >= 0) dateCol = dt;
+      const ht = low.findIndex(c => c.includes('hist') || c.includes('lanç') || c.includes('lanc') || c.includes('descri')); if (ht >= 0) histCol = ht;
+      break;
+    }
+  }
+  for (const line of rows) {
+    const cols = line.split(';').map(cell);
+    if (cols.length <= debCol) continue;
+    const date = cols[dateCol] || '';
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(date)) continue;   // só linhas de lançamento (ignora cabeçalho/rodapé)
+    const hist = cols[histCol] || '';
+    const debito = parseBRMoney(cols[debCol]);           // coluna Débito (saída)
     if (!(debito > 0)) continue;                         // só despesas (saídas)
-    if (CC_SKIP.test(hist)) continue;                    // ruído: transf/invest/imposto/cartão
-    out.push({ date: date.slice(0, 5), desc: hist, value: debito, holder: '', inst: null, _src: 'cc' });
+    if (CC_SKIP.test(hist)) continue;                    // ruído: transf/invest/imposto/cartão/tarifa
+    out.push({ date, desc: hist, value: debito, holder: '', inst: null, _src: 'cc' });  // date = DD/MM/AAAA (ano preservado)
   }
   return out;
 }
