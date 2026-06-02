@@ -4663,7 +4663,7 @@ function renderImportReview() {
   const ownerOpts = OWNERS.map(o => `<option value="${o}">${esc(t('exp.owner.' + o))}</option>`).join('');
   const catOpts = Object.keys(CATEGORIES).map(k => `<option value="${k}">${esc(CATEGORIES[k].label)}</option>`).join('');
   let lowN = 0;
-  const rows = _importTxns.map((tx, i) => {
+  const built = _importTxns.map((tx, i) => {
     const rule = (state.importRules || {})[impRuleKey(tx.desc)];
     let cat, conf;
     if (rule && rule.category) { cat = rule.category; conf = 'alta'; }       // memória = confiança alta
@@ -4683,7 +4683,7 @@ function renderImportReview() {
       + (rec ? `<span class="imp-badge rec">${esc(t('imp.recurring'))}</span> ` : '')
       + (low ? `<span class="imp-badge low" title="${esc(t('imp.lowconf'))}">?</span> ` : '');
     const card = tx.holder ? `<span class="imp-card">· ${esc(t('imp.cardword'))} ${esc(tx.holder.split(' ')[0])}</span>` : '';
-    return `<label class="imp-row${low ? ' imp-low' : ''}">
+    const html = `<label class="imp-row${low ? ' imp-low' : ''}">
       <input type="checkbox" data-idx="${i}" ${checked}>
       <span class="imp-date">${esc(tx.date)}</span>
       <span class="imp-desc">${esc(tx.desc)} ${badges}${card}</span>
@@ -4691,7 +4691,10 @@ function renderImportReview() {
       <select class="imp-cat" data-idx="${i}">${catOpts.replace(`value="${cat}"`, `value="${cat}" selected`)}</select>
       <span class="imp-val${(tx.refund || isInc) ? ' ref' : ''}">${(tx.refund || isInc) ? '+ ' : ''}${impMoney(tx.value)}</span>
     </label>`;
-  }).join('');
+    return { low, order: i, html };
+  });
+  // "A conferir" (incertos) sobem pro topo; o resto mantém a ordem original.
+  const rows = built.sort((a, b) => ((a.low ? 0 : 1) - (b.low ? 0 : 1)) || (a.order - b.order)).map(o => o.html).join('');
   $('importList').innerHTML = rows;
   $('importCount').textContent = _importTxns.length;
   const note = $('importLowNote');
