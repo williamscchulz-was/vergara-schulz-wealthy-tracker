@@ -365,6 +365,7 @@ const I18N = {
     'imp.modal.sub': 'Confira de quem é o gasto e a categoria. Desmarque o que não quer importar.',
     'imp.count': 'lançamentos encontrados',
     'imp.reading': 'Lendo o PDF…',
+    'imp.reading.n': 'Lendo {n} arquivos…',
     'imp.none': 'Não encontrei lançamentos nesse PDF. É o extrato do cartão?',
     'imp.fail.read': 'Não consegui ler esse PDF — tente outro arquivo.',
     'imp.confirm': 'Importar {n}',
@@ -412,7 +413,7 @@ const I18N = {
     'louise.title': 'Carteira da Louise (filha) — acompanhada separadamente, não soma no patrimônio da casa',
     'hist.import.title': 'Importar histórico de patrimônio e dividendos do Investidor10',
     'imp.type.title': 'O que você quer importar?',
-    'imp.type.sub': 'Escolha a origem do arquivo.',
+    'imp.type.sub': 'Escolha a origem — pode selecionar vários arquivos de uma vez.',
     'imp.type.card': 'Cartão de crédito',
     'imp.type.cc': 'Conta corrente',
     'exp.filter.cat.all': 'Categoria',
@@ -782,6 +783,7 @@ const I18N = {
     'imp.modal.sub': "Check whose expense it is and the category. Uncheck anything you don't want to import.",
     'imp.count': 'entries found',
     'imp.reading': 'Reading the PDF…',
+    'imp.reading.n': 'Reading {n} files…',
     'imp.none': 'No entries found in this PDF. Is it the card statement?',
     'imp.fail.read': "Couldn't read this PDF — try another file.",
     'imp.confirm': 'Import {n}',
@@ -829,7 +831,7 @@ const I18N = {
     'louise.title': "Louise's wallet (daughter) — tracked separately, not counted in the household net worth",
     'hist.import.title': 'Import net worth and dividends history from Investidor10',
     'imp.type.title': 'What do you want to import?',
-    'imp.type.sub': 'Choose the file source.',
+    'imp.type.sub': 'Choose the source — you can select several files at once.',
     'imp.type.card': 'Credit card',
     'imp.type.cc': 'Checking account',
     'exp.filter.cat.all': 'Category',
@@ -4632,12 +4634,12 @@ async function undoLastImport() {
 
 let _importTxns = [];
 let _importKind = null;   // 'card' (PDF) | 'cc' (CSV) — escolhido no seletor de origem
-async function handleImportFile(file) {
-  if (!file) return;
+async function handleImportFiles(fileList) {
+  const files = [...(fileList || [])].filter(Boolean);
+  if (!files.length) return;
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const ov = $('importOverlay');
-  const isCsv = _importKind ? (_importKind === 'cc') : (/\.csv$/i.test(file.name || '') || file.type === 'text/csv');
-  // Estado "lendo": overlay premium com o anel girando enquanto o arquivo é parseado.
+  // Estado "lendo": overlay premium com o anel girando enquanto os arquivos são parseados.
   if (ov && !reduce) {
     ov.classList.remove('done', 'out', 'scanning');
     ov.querySelectorAll('.imp-pnode').forEach(n => n.classList.remove('act', 'fin'));
@@ -4645,26 +4647,35 @@ async function handleImportFile(file) {
     { const r = $('impRows'); if (r) r.innerHTML = ''; }
     ov.classList.add('reading'); ov.hidden = false;
     if ($('importOvText')) $('importOvText').textContent = t('imp.reading');
-    if ($('importOvSub')) $('importOvSub').textContent = file.name || '';
+    if ($('importOvSub')) $('importOvSub').textContent = files.length === 1 ? (files[0].name || '') : t('imp.reading.n').replace('{n}', files.length);
   } else { showToast(t('imp.reading')); }
   const startedAt = Date.now();
-  let txns;
+  const all = [];
   try {
-    if (isCsv) txns = parseCheckingCSV(await file.text());
-    else txns = parseStatement(await extractPdfLines(file));
+    for (const file of files) {
+      const isCsv = _importKind ? (_importKind === 'cc') : (/\.csv$/i.test(file.name || '') || file.type === 'text/csv');
+      const txns = isCsv ? parseCheckingCSV(await file.text()) : parseStatement(await extractPdfLines(file));
+      // Competência por ARQUIVO (cartão): cada fatura cai no seu mês, não no mês mais recente do lote.
+      if (!isCsv) {
+        let ym = null;
+        for (const tx of txns) { const mo = impToISO(tx.date).slice(0, 7); if (!ym || mo > ym) ym = mo; }
+        if (ym) txns.forEach(tx => { tx._compY = +ym.slice(0, 4); tx._compM = +ym.slice(5, 7); });
+      }
+      all.push(...txns);
+    }
   } catch (e) {
     console.error('[import] read failed', e);
     if (ov) { ov.hidden = true; ov.classList.remove('reading'); }
     showToast(t('imp.fail.read')); return;
   }
-  // Segura o overlay no mínimo ~760ms pra leitura não "piscar" em CSV instantâneo.
+  // Segura o overlay no mínimo ~760ms pra leitura não "piscar".
   if (ov && !reduce) {
     const el = Date.now() - startedAt;
     if (el < 760) await new Promise(r => setTimeout(r, 760 - el));
     ov.hidden = true; ov.classList.remove('reading');
   }
-  if (!txns.length) { showToast(t('imp.none')); return; }
-  _importTxns = txns;
+  if (!all.length) { showToast(t('imp.none')); return; }
+  _importTxns = all;
   renderImportReview();
 }
 function impUpdateConfirm() {
@@ -4744,12 +4755,13 @@ async function doImport() {
     if (idx < (existCount[baseFp] || 0)) return null;          // as primeiras N já existem no banco → pula (reimport idempotente)
     return { fp: idx === 0 ? baseFp : baseFp + '#' + idx, fpBase: baseFp };
   };
-  // Competência base = mês mais recente da fatura → de onde as parcelas seguem.
-  let baseYM = null;
-  for (const tx of _importTxns) { const ym = impToISO(tx.date).slice(0, 7); if (!baseYM || ym > baseYM) baseYM = ym; }
-  const baseY = baseYM ? +baseYM.slice(0, 4) : new Date().getFullYear();
-  const baseM = baseYM ? +baseYM.slice(5, 7) : new Date().getMonth() + 1;
-  const monthISO = (off) => { const t0 = baseY * 12 + (baseM - 1) + off; return `${Math.floor(t0 / 12)}-${String((t0 % 12) + 1).padStart(2, '0')}-15`; };
+  // Competência POR TRANSAÇÃO: cada fatura (arquivo) tem seu mês, marcado em _compY/_compM
+  // no parse → permite importar vários meses de uma vez sem jogar tudo no mês mais recente.
+  const txBase = (tx) => {
+    if (tx._compY && tx._compM) return [tx._compY, tx._compM];
+    const iso = impToISO(tx.date); return [+iso.slice(0, 4), +iso.slice(5, 7)];
+  };
+  const monthISO = (tx, off) => { const [by, bm] = txBase(tx); const t0 = by * 12 + (bm - 1) + off; return `${Math.floor(t0 / 12)}-${String((t0 % 12) + 1).padStart(2, '0')}-15`; };
 
   const checks = [...document.querySelectorAll('#importList .imp-row input[type="checkbox"]:checked')];
   const batchId = 'b' + Date.now().toString(36);   // marca o lote pra permitir desfazer só este import
@@ -4762,7 +4774,7 @@ async function doImport() {
     const category = row.querySelector('.imp-cat').value;
     // RECEITA detectada na conta (crédito = salário/dividendos/pró-labore) → vira ganho.
     if (tx._kind === 'income') {
-      const idate = impToISO(tx.date, baseY);
+      const idate = impToISO(tx.date, txBase(tx)[0]);
       const got = fpFor(impFp(idate, tx.value, tx.desc));
       if (!got) continue;
       batch.push({ type: 'income', description: tx.desc, value: tx.value, category: tx.incomeCat || 'outros', owner, nature: null, source: 'import:conta', batchId, date: idate, fp: got.fp, fpBase: got.fpBase, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import', notes: '' });
@@ -4777,7 +4789,7 @@ async function doImport() {
     }
     const cardNote = tx.holder ? ('cartão: ' + tx.holder.split(' ')[0]) : '';
     const base = { type: 'expense', description: tx.desc, value: tx.value, category, owner, nature: nat, source: 'import:' + (tx._src === 'cc' ? 'conta' : 'cartao'), batchId, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import' };
-    const realDate = impToISO(tx.date, baseY);          // data REAL da compra (estável p/ o fingerprint, ano da competência)
+    const realDate = impToISO(tx.date, txBase(tx)[0]);  // data REAL (estável p/ o fingerprint; ano da competência do arquivo)
     const im = (tx.inst || '').match(/^(\d{1,2})\/(\d{1,2})$/);
     if (im) {
       // PARCELADO: provisiona da parcela atual (X) até a última (Y), uma por mês à frente.
@@ -4790,14 +4802,14 @@ async function doImport() {
         const got = fpFor(`parc|${descKey}|${valKey}|${realDate}|${k}/${Y}`);
         if (!got) continue;
         if (prov) provCount++;
-        batch.push({ ...base, date: monthISO(off), fp: got.fp, fpBase: got.fpBase, provisioned: prov, installment: { k, total: Y },
+        batch.push({ ...base, date: monthISO(tx, off), fp: got.fp, fpBase: got.fpBase, provisioned: prov, installment: { k, total: Y },
           notes: [cardNote, `parcela ${k}/${Y}` + (prov ? ' · provisão' : '')].filter(Boolean).join(' · ') });
       }
     } else {
       // fp pela data REAL da compra (estável entre imports), mas grava na competência da fatura.
       const got = fpFor(impFp(realDate, tx.value, tx.desc));
       if (!got) continue;
-      const date = tx._src === 'cc' ? impToISO(tx.date) : monthISO(0);
+      const date = tx._src === 'cc' ? impToISO(tx.date) : monthISO(tx, 0);
       batch.push({ ...base, date, fp: got.fp, fpBase: got.fpBase, notes: cardNote });
     }
   }
@@ -4873,7 +4885,7 @@ document.querySelectorAll('#importTypeModal .imp-type-opt').forEach(b => b.addEv
   const f = $('impFile');
   if (f) { f.setAttribute('accept', _importKind === 'cc' ? 'text/csv,.csv' : 'application/pdf,.pdf'); f.value = ''; f.click(); }
 }));
-$('impFile')?.addEventListener('change', (e) => { const file = e.target.files && e.target.files[0]; e.target.value = ''; handleImportFile(file); });
+$('impFile')?.addEventListener('change', (e) => { const files = e.target.files; const f = e.target; handleImportFiles(files).finally(() => { f.value = ''; }); });
 $('importCancel')?.addEventListener('click', () => $('importModal').classList.remove('show'));
 $('importConfirm')?.addEventListener('click', doImport);
 $('btnClearImports')?.addEventListener('click', clearImportedExpenses);
