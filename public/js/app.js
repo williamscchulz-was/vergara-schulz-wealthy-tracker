@@ -451,6 +451,12 @@ const I18N = {
     'rz.topSpender': 'Quem mais gastou',
     'rz.yearExp': 'Despesas do ano',
     'rz.avgMonth': 'média mensal',
+    'rz.share': 'do total',
+    'rz.in1': 'entrada', 'rz.inN': 'entradas', 'rz.in0': 'nenhuma entrada',
+    'rz.it1': 'lançamento', 'rz.itN': 'lançamentos',
+    'rz.due': 'parcelas a vencer', 'rz.due0': 'nada a vencer',
+    'rz.bform': 'ganhos − despesas',
+    'rz.topExpenses': 'Maiores despesas',
     'fx.modal.title': 'Dólar (USD)',
     'fx.modal.sub': 'Quanto você tem em dólar — convertido pela cotação atual.',
     'fx.f.usd': 'Quantidade em USD',
@@ -870,6 +876,12 @@ const I18N = {
     'rz.topSpender': 'Top spender',
     'rz.yearExp': 'Yearly expenses',
     'rz.avgMonth': 'monthly avg',
+    'rz.share': 'of total',
+    'rz.in1': 'entry', 'rz.inN': 'entries', 'rz.in0': 'no income',
+    'rz.it1': 'item', 'rz.itN': 'items',
+    'rz.due': 'upcoming installments', 'rz.due0': 'nothing due',
+    'rz.bform': 'income − expenses',
+    'rz.topExpenses': 'Top expenses',
     'fx.modal.title': 'US Dollar (USD)',
     'fx.modal.sub': 'How much you hold in dollars — converted at the current rate.',
     'fx.f.usd': 'Amount in USD',
@@ -1438,9 +1450,14 @@ function renderResumo() {
   const ganhos = sum(inc), despesas = sum(exp);
   const economias = (typeof reservesTotal === 'function' ? reservesTotal() : 0);
   const _tYM = new Date().toISOString().slice(0, 7);
-  let dividas = 0;  // comprometido à frente: parcelas provisionadas em meses futuros
-  for (const e of (state.expenses || [])) { if (e.provisioned && String(e.date || '').slice(0, 7) > _tYM) dividas += (+e.value || 0); }
+  let dividas = 0, dividasCount = 0;  // comprometido à frente: parcelas provisionadas em meses futuros
+  for (const e of (state.expenses || [])) { if (e.provisioned && String(e.date || '').slice(0, 7) > _tYM) { dividas += (+e.value || 0); dividasCount++; } }
   const saldo = ganhos - despesas;
+  // Sub-linhas de contexto dos KPIs (matam o vazio dos cards e dão significado)
+  const subIncome = ganhos > 0 ? (inc.length + ' ' + t(inc.length === 1 ? 'rz.in1' : 'rz.inN')) : t('rz.in0');
+  const subExpense = exp.length + ' ' + t(exp.length === 1 ? 'rz.it1' : 'rz.itN');
+  const subDebt = dividas > 0 ? t('rz.due') : t('rz.due0');
+  const subBalance = t('rz.bform');
 
   let fixas = 0, variaveis = 0;
   for (const e of exp) { if (e.nature === 'fixa') fixas += (+e.value || 0); else variaveis += (+e.value || 0); }
@@ -1453,28 +1470,42 @@ function renderResumo() {
   for (const e of inc) { const o = normOwner(e.owner) || 'familia'; if (!byPerson[o]) byPerson[o] = { out: 0, inc: 0 }; byPerson[o].inc += (+e.value || 0); }
 
   const R = 66, CIRC = 2 * Math.PI * R, total = despesas || 1;
+  const GAP = catArr.length > 1 ? 3 : 0;   // respiro entre fatias → anel "segmentado", não um borrão
   let acc = 0;
   const segs = catArr.map(([c, v]) => {
     const len = (v / total) * CIRC;
+    const draw = Math.max(len - GAP, 0.6);
     const col = (CATEGORIES[c] && CATEGORIES[c].color) || '#8e8e93';
-    const s = `<circle cx="86" cy="86" r="${R}" fill="none" stroke="${col}" stroke-width="20" stroke-dasharray="${len.toFixed(2)} ${(CIRC - len).toFixed(2)}" stroke-dashoffset="${(-acc).toFixed(2)}" transform="rotate(-90 86 86)"/>`;
+    const s = `<circle cx="86" cy="86" r="${R}" fill="none" stroke="${col}" stroke-width="17" stroke-dasharray="${draw.toFixed(2)} ${(CIRC - draw).toFixed(2)}" stroke-dashoffset="${(-acc).toFixed(2)}" transform="rotate(-90 86 86)"/>`;
     acc += len; return s;
   }).join('');
   const fxPct = despesas > 0 ? Math.round(fixas / despesas * 100) : 0;
   const vrPct = despesas > 0 ? (100 - fxPct) : 0;
 
+  const catMax = catArr.length ? catArr[0][1] : 1;   // barra relativa à maior categoria → contraste visual
   const catRows = catArr.map(([c, v]) => {
     const col = (CATEGORIES[c] && CATEGORIES[c].color) || '#8e8e93';
     const label = (CATEGORIES[c] && CATEGORIES[c].label) || c;
     const pct = despesas > 0 ? Math.round(v / despesas * 100) : 0;
-    return `<div class="rz-cat"><span class="rz-cat-dot" style="background:${col}"></span><div class="rz-cat-main"><div class="rz-cat-nm">${esc(label)}</div><div class="rz-bar"><i style="width:${pct}%;background:${col}"></i></div></div><span class="rz-cat-v">${m(v)}</span><span class="rz-cat-pct">${pct}%</span></div>`;
+    const w = Math.max(2, Math.round(v / catMax * 100));
+    return `<div class="rz-cat"><div class="rz-cat-top"><span class="rz-cat-dot" style="background:${col}"></span><span class="rz-cat-nm">${esc(label)}</span><span class="rz-cat-v">${m(v)}</span><span class="rz-cat-pct">${pct}%</span></div><div class="rz-bar"><i style="width:${w}%;background:${col}"></i></div></div>`;
   }).join('') || `<div class="rz-empty">${esc(t('rz.empty'))}</div>`;
 
   const personRows = OWNERS.map(o => {
     const p = byPerson[o] || { out: 0, inc: 0 };
     const [nm, col, ini] = RZ_PERSON[o];
-    return `<div class="rz-person"><div class="rz-av" style="background:${col}">${ini}</div><div class="rz-person-nm">${esc(nm)}</div><div class="rz-blk"><div class="rz-k">${esc(t('rz.out'))}</div><div class="rz-out">${m(p.out)}</div></div><div class="rz-blk"><div class="rz-k">${esc(t('rz.in'))}</div><div class="rz-in">${m(p.inc)}</div></div></div>`;
+    const share = despesas > 0 ? Math.round(p.out / despesas * 100) : 0;
+    const inNote = p.inc > 0 ? `<span class="rz-person-in">+ ${m(p.inc)}</span>` : '';
+    return `<div class="rz-person"><div class="rz-av" style="background:${col}">${ini}</div><div class="rz-person-main"><div class="rz-person-top"><span class="rz-person-nm">${esc(nm)}</span><span class="rz-person-out">${m(p.out)}</span></div><div class="rz-pbar"><i style="width:${Math.max(p.out > 0 ? 3 : 0, share)}%;background:${col}"></i></div><div class="rz-person-sub"><span>${share}% ${esc(t('rz.share'))}</span>${inNote}</div></div></div>`;
   }).join('');
+
+  // Maiores despesas individuais do período → preenche a coluna direita e dá uma leitura útil.
+  const topExp = exp.slice().sort((a, b) => (+b.value || 0) - (+a.value || 0)).slice(0, 5);
+  const topRows = topExp.map(e => {
+    const c = CATEGORIES[e.category] || CATEGORIES.outros || { label: e.category, color: '#8e8e93' };
+    const who = RZ_PERSON[normOwner(e.owner) || 'familia'];
+    return `<div class="rz-top"><span class="rz-top-dot" style="background:${c.color}"></span><div class="rz-top-main"><span class="rz-top-nm">${esc(e.description || c.label)}</span><span class="rz-top-meta">${esc(c.label)}${who ? ' · ' + esc(who[0]) : ''}</span></div><span class="rz-top-v">${m(+e.value || 0)}</span></div>`;
+  }).join('') || `<div class="rz-empty">${esc(t('rz.empty'))}</div>`;
 
   // ---- Anual: gráfico de 12 meses (receitas × despesas) + visões do ano ----
   let chartHtml = '', visoesHtml = '';
@@ -1510,24 +1541,34 @@ function renderResumo() {
       <div class="rz-nav"><button data-rznav="-1" aria-label="${esc(t('a11y.prev'))}">‹</button><span class="rz-period">${esc(periodLabel)}</span><button data-rznav="1" aria-label="${esc(t('a11y.next'))}">›</button></div>
     </div>
     <div class="rz-kpis">
-      <div class="rz-kpi rz-k-income"><div class="rz-kpi-top"><span class="rz-kpi-ic">${RZ_KIC.income}</span><div class="rz-kpi-l">${esc(t('rz.income'))}</div></div><div class="rz-kpi-v">${m(ganhos)}</div></div>
-      <div class="rz-kpi rz-k-expense"><div class="rz-kpi-top"><span class="rz-kpi-ic">${RZ_KIC.expense}</span><div class="rz-kpi-l">${esc(t('rz.expenses'))}</div></div><div class="rz-kpi-v">${m(despesas)}</div></div>
-      <div class="rz-kpi rz-k-debt"><div class="rz-kpi-top"><span class="rz-kpi-ic">${RZ_KIC.debt}</span><div class="rz-kpi-l">${esc(t('rz.debts'))}</div></div><div class="rz-kpi-v ${dividas > 0 ? 'rz-neg' : ''}">${m(dividas)}</div></div>
-      <div class="rz-kpi rz-saldo rz-k-balance"><div class="rz-kpi-top"><span class="rz-kpi-ic">${RZ_KIC.balance}</span><div class="rz-kpi-l">${esc(t('rz.balance'))}</div></div><div class="rz-kpi-v ${saldo < 0 ? 'rz-neg' : 'rz-pos'}">${m(saldo)}</div></div>
+      <div class="rz-kpi rz-k-income"><span class="rz-kpi-ic">${RZ_KIC.income}</span><div class="rz-kpi-l">${esc(t('rz.income'))}</div><div class="rz-kpi-v">${m(ganhos)}</div><div class="rz-kpi-sub">${esc(subIncome)}</div></div>
+      <div class="rz-kpi rz-k-expense"><span class="rz-kpi-ic">${RZ_KIC.expense}</span><div class="rz-kpi-l">${esc(t('rz.expenses'))}</div><div class="rz-kpi-v">${m(despesas)}</div><div class="rz-kpi-sub">${esc(subExpense)}</div></div>
+      <div class="rz-kpi rz-k-debt"><span class="rz-kpi-ic">${RZ_KIC.debt}</span><div class="rz-kpi-l">${esc(t('rz.debts'))}</div><div class="rz-kpi-v ${dividas > 0 ? 'rz-neg' : ''}">${m(dividas)}</div><div class="rz-kpi-sub">${esc(subDebt)}</div></div>
+      <div class="rz-kpi rz-saldo rz-k-balance"><span class="rz-kpi-ic">${RZ_KIC.balance}</span><div class="rz-kpi-l">${esc(t('rz.balance'))}</div><div class="rz-kpi-v ${saldo < 0 ? 'rz-neg' : 'rz-pos'}">${m(saldo)}</div><div class="rz-kpi-sub">${esc(subBalance)}</div></div>
     </div>
     ${chartHtml}
     <div class="rz-grid">
       <div class="rz-card">
         <div class="rz-card-h">${esc(t('rz.byCat'))}</div>
         <div class="rz-donut-wrap"><div class="rz-donut">
-          <svg width="172" height="172" viewBox="0 0 172 172"><circle cx="86" cy="86" r="${R}" fill="none" stroke="rgba(130,130,130,.18)" stroke-width="20"/>${segs}</svg>
-          <div class="rz-donut-c"><span class="rz-dc-a">${esc(t('rz.variable'))} · ${vrPct}%</span><span class="rz-dc-b">${m(variaveis)}</span><span class="rz-dc-a" style="margin-top:6px">${esc(t('rz.fixed'))} · ${fxPct}%</span><span class="rz-dc-b" style="color:var(--ink-2)">${m(fixas)}</span></div>
+          <svg width="172" height="172" viewBox="0 0 172 172"><circle cx="86" cy="86" r="${R}" fill="none" stroke="rgba(130,130,130,.14)" stroke-width="17"/>${segs}</svg>
+          <div class="rz-donut-c"><span class="rz-dc-b">${m(despesas)}</span><span class="rz-dc-a">${esc(periodLabel)}</span></div>
         </div></div>
+        <div class="rz-split">
+          <div class="rz-split-bar"><i class="vv" style="width:${vrPct}%"></i><i class="ff" style="width:${fxPct}%"></i></div>
+          <div class="rz-split-leg"><span class="rz-sl"><b class="vv"></b>${esc(t('rz.variable'))} · ${vrPct}% · ${m(variaveis)}</span><span class="rz-sl"><b class="ff"></b>${esc(t('rz.fixed'))} · ${fxPct}% · ${m(fixas)}</span></div>
+        </div>
         <div class="rz-cats">${catRows}</div>
       </div>
-      <div class="rz-card">
-        <div class="rz-card-h">${esc(t('rz.byPerson'))}</div>
-        <div class="rz-people">${personRows}</div>
+      <div class="rz-col">
+        <div class="rz-card">
+          <div class="rz-card-h">${esc(t('rz.byPerson'))}</div>
+          <div class="rz-people">${personRows}</div>
+        </div>
+        <div class="rz-card">
+          <div class="rz-card-h">${esc(t('rz.topExpenses'))}</div>
+          <div class="rz-tops">${topRows}</div>
+        </div>
       </div>
     </div>
     ${visoesHtml}`;
