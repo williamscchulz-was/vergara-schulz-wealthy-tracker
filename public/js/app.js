@@ -4325,53 +4325,101 @@ async function extractPdfLines(file) {
   }
   return lines;
 }
-const IMP_CAT_RULES = [
-  ['mercado', ['supermerc','atacad','carrefour','assai','assaí','hortifruti','horti fruti','acougue','açougue','koch','unidos','cooper','condor','muffato','angeloni','festval','sinuelo','mercado garcia','big supermerc']],
-  ['alimentacao', ['restaurante','restaur','coffee',' cafe','padaria','panific','ifood','burger','hamburg','pizza','lanche','rotiss','marmita','sushi','sorvet']],
-  ['transporte', ['uber','99app','posto','combust','veloe','pedagio','estacion','parking','rek park','latam','gol ','azul','auto re','isleb']],
-  ['saude', ['vacina','farmacia','panvel','drogaria','droga','maxiderma','clinica','odonto','hospital','laborat','exame','psico','esthetic','dunnia','htm*','dra ']],
-  ['assinaturas', ['netflix','google youtu','youtube','kindle unltd','spotify','amazon prime','livelo','disney','hbo','prime video','dl*google']],
-  ['educacao', ['escola','colegio','faculdade','curso','udemy','alura','milium','livraria','ensino','academia','agrico']],
-  ['lazer', ['cinema','ingresso','steam','playstation','xbox','teatro','parque','hotel','booking','airbnb','barbearia','beauty','mazi','salao','estetica','rasato']],
-  ['compras', ['amazon','shopee','mercadolivre','mercado livre','magazine','magalu','riachuelo','renner','c&a','shein','aliexpress','marketplace','americanas','centauro','bluvitta','espor','neumarkt','mlb','fazstore','blusa','loja']],
-  ['moradia', ['aluguel','condominio','imobil','energia','copel','celesc','sanepar','internet','claro','vivo','tim ','enel','empreend','conta de gas','conta de telefone']],
-];
-function impRuleKey(desc) { return String(desc || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 16); }
-function impCategorize(desc) {
-  const d = ' ' + (desc || '').toLowerCase() + ' ';
-  for (const [c, ks] of IMP_CAT_RULES) if (ks.some(k => d.includes(k))) return c;
-  return impCategoryByLabel(desc) || 'outros';   // cobre categorias novas/custom pelo próprio nome
+// ---- Normalização do nome do estabelecimento ----
+// Tira adquirente (PG*/MP*/PAYPAL*...), nº de loja, UF no fim, acento e pontuação.
+// É o que REVIVE a memória (a chave deixa de mudar a cada compra por causa do nº de loja).
+const IMP_GATEWAY = /\b(?:pg|mp|mercpago|mercadopago|pag|pagseguro|pags|paypal|pp|ame|picpay|stone|cielo|rede|getnet|sumup|iz|ifd|ec|tef|pos|dl)\s*\*+/gi;
+const IMP_UF = /\s\b(?:ac|al|ap|am|ba|ce|df|es|go|ma|mt|ms|mg|pa|pb|pr|pe|pi|rj|rn|rs|ro|rr|sc|sp|se|to)\s*$/;
+const IMP_STOP = new Set(['ltda','me','epp','eireli','sa','cia','com','comercio','servicos','industria','do','da','de','dos','das','e','ind']);
+function impNormalize(raw) {
+  let s = ' ' + String(raw || '').toLowerCase() + ' ';
+  s = s.normalize('NFD').replace(/[̀-ͯ]/g, '');  // tira acento: café→cafe, açougue→acougue
+  s = s.replace(IMP_GATEWAY, ' ');                         // "PG *", "MP *", "PAYPAL *", "IFD*"
+  s = s.replace(/[*#]+/g, ' ');
+  s = s.replace(/\b\d{2,}\b/g, ' ');                       // nº de loja/documento
+  s = s.replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ');
+  s = s.replace(IMP_UF, ' ').trim();                       // UF no fim (… curitiba pr → tira pr)
+  return s;
 }
-// Se a descrição contém o NOME de alguma categoria (inclui as criadas pelo
-// usuário em config/categories), classifica nela. Roda só DEPOIS das regras de
-// keyword (mais específicas) — então "MERCADO LIVRE" cai em Compras, e
-// "MERCADO DONA MARIA" cai em Mercado.
+function impTokens(raw) {
+  return impNormalize(raw).split(' ').filter(w => w.length >= 2 && !IMP_STOP.has(w));
+}
+function impRuleKey(desc) { return impNormalize(desc).replace(/\s+/g, '').slice(0, 24); }
+
+// Regras: [categoria, exatos (peso 10), prefixos (peso 7), substrings (peso 4)].
+// Token EXATO evita pegar palavra-dentro-de-palavra (Garcia/Koch/Azul não casam mais por acaso).
+const IMP_CATS = [
+  ['mercado', ['carrefour','assai','atacadao','tenda','makro','sams','extra','mambo','zaffari','condor','muffato','angeloni','bistek','comper','supernosso','verdemar','festval','mateus','sendas','epa'], ['supermerc','superm','hortifrut','acoug','mercear','quitand','sacolao'], ['pao de acucar','horti fruti','natural da terra','oba horti','mercado garcia','supermercado koch','sinuelo']],
+  ['alimentacao', ['ifood','rappi','aiqfome','mcdonalds','subway','bobs','habibs','outback','spoleto','starbucks','madero','dominos','giraffas','restaurante','padaria','lanchonete','cantina','bar','boteco','cafe','cafeteria','confeitaria','doceria','acai','adega','pizzaria','temaki','sushi','churrascaria'], ['restaur','padar','panific','lanch','hamburg','cervej','sorvet','pizz','marmit','gastro','bistr'], ['coco bambu','divino fogao','china in box','cacau show','ze delivery','burger king','bob s','mc donalds']],
+  ['transporte', ['uber','99','indrive','cabify','latam','localiza','movida','unidas','ipiranga','shell','petrobras','texaco','veloe','conectcar','smiles','clickbus','buser','metro','cptm'], ['posto','combust','estacion','pedagi','gasolin','rodoviar'], ['99app','rek park','sem parar','auto re','bilhete unico','azul linhas','gol linhas','voe gol','tam linhas']],
+  ['saude', ['farmacia','farmacias','drogasil','drogaria','droga','panvel','pacheco','raia','nissei','araujo','venancio','bifarma','ultrafarma','extrafarma','unimed','amil','hapvida','notredame','intermedica','vacina','hospital','clinica','laboratorio','dentista','psicologo','fisioterapia','otica','oticas','smartfit','bodytech','selfit','bluefit','gympass','crossfit','pilates','academia'], ['farmac','drogar','clinic','odonto','laborat','psico','dentist','dermat','oftalmo','fisio','vacin'], ['pague menos','sao joao','drogaraia','smart fit','plano de saude']],
+  ['assinaturas', ['netflix','spotify','disney','hbo','globoplay','paramount','crunchyroll','deezer','tidal','youtube','twitch','chatgpt','openai','anthropic','claude','notion','dropbox','icloud','adobe','canva','linkedin','github','figma','audible','patreon','itunes','apple','microsoft','office','playstation','xbox','nintendo'], ['kindle'], ['amazon prime','prime video','google one','apple com','apple tv','game pass','google youtu','dl google','yt premium','ps plus']],
+  ['educacao', ['escola','colegio','faculdade','universidade','unopar','anhanguera','estacio','uninter','puc','senac','senai','udemy','alura','coursera','hotmart','descomplica','duolingo','babbel','wizard','ccaa','fisk','kumon','milium','livraria','saraiva'], ['faculda','curso','ensino','colegi'], ['gran cursos','cultura inglesa','sistema de ensino']],
+  ['lazer', ['cinemark','kinoplex','cinepolis','uci','ingresso','sympla','eventim','cinema','teatro','steam','parque','clube','boliche','kart','decolar','booking','airbnb','trivago','hostel','pousada','resort','hotel'], ['ingress','cinem'], ['123milhas','hoteis com','escape room']],
+  ['compras', ['amazon','shopee','mercadolivre','magalu','magazine','americanas','submarino','casasbahia','pontofrio','kabum','fastshop','samsung','nike','adidas','decathlon','centauro','netshoes','dafiti','riachuelo','renner','marisa','pernambucanas','hering','zara','cea','shein','aliexpress','havan','leroy','telhanorte','tokstok','mobly','etna','petz','cobasi','petlove','kalunga'], ['marketplace'], ['mercado livre','casas bahia','ponto frio','fast shop','tok stok','leroy merlin','madeira madeira','ri happy','pb kids']],
+  ['moradia', ['aluguel','condominio','iptu','quintoandar','loft','energia','copel','celesc','cemig','cpfl','enel','equatorial','energisa','light','sabesp','sanepar','cedae','caesb','embasa','comgas','naturgy','ultragaz','liquigas','supergasbras','internet','vivo','claro','sky','algar','brisanet','unifique'], ['condomin','imobil','energi'], ['conta de gas','conta de telefone','seguro residencial','quinto andar']],
+];
+function impScoreCat(toks) {
+  const joined = ' ' + toks.join(' ') + ' ';
+  const sc = {};
+  for (const [cat, ex, pre, sub] of IMP_CATS) {
+    let s = 0;
+    for (const k of ex) if (toks.includes(k)) s += 10;
+    for (const k of (pre || [])) if (toks.some(t => t.startsWith(k))) s += 7;
+    for (const k of (sub || [])) if (joined.includes(' ' + k + ' ') || joined.includes(k)) s += 4;
+    if (s) sc[cat] = s;
+  }
+  return sc;
+}
+// Palpite de categoria + confiança (alta/média/baixa) — usado pra revisão dirigida.
+function impGuessCat(desc) {
+  const r = Object.entries(impScoreCat(impTokens(desc))).sort((a, b) => b[1] - a[1]);
+  if (!r.length) { const lbl = impCategoryByLabel(desc); return { cat: lbl || 'outros', conf: lbl ? 'media' : 'baixa' }; }
+  const top = r[0], second = r[1];
+  let conf = 'media';
+  if (top[1] >= 10 && (!second || top[1] - second[1] >= 6)) conf = 'alta';
+  else if (top[1] < 7) conf = 'baixa';
+  return { cat: top[0], conf };
+}
+function impCategorize(desc) { return impGuessCat(desc).cat; }
+// Cobre categorias novas/custom: se a descrição contém o NOME da categoria.
 function impCategoryByLabel(desc) {
-  const d = (desc || '').toLowerCase();
+  const d = impNormalize(desc);
   for (const [k, c] of Object.entries(CATEGORIES)) {
     if (k === 'outros' || !c || !c.label) continue;
-    const lbl = String(c.label).toLowerCase().trim();
-    if (lbl.length >= 3 && d.includes(lbl)) return k;
+    const lbl = impNormalize(c.label);
+    if (lbl.length >= 3 && (' ' + d + ' ').includes(' ' + lbl + ' ')) return k;
   }
   return null;
 }
-const IMP_KIDS = ['escola','colegio','agrico','milium','clubkids','baby','kids','crianc','pediatr','brinq','luddi'];
-const IMP_HOUSE = ['supermerc','unidos','koch','cooper','mercado garcia',' garcia','posto','combust','veloe','pedagio','auto re','empreend','condom','energia','copel','sanepar','conta de gas','conta de telefone'];
-const IMP_FEM = ['maxiderma','esthetic','mazi','beauty','dunnia','htm*','salao','manicure','depil','estetica','mulhe','panvel'];
-const IMP_MAL = ['rasato','barbearia'];
+const IMP_KIDS = ['escola','colegio','creche','bercario','pediatr','fralda','pampers','huggies','brinquedo','rihappy','pbkids','lilica','tigor','marisol','milium','luddi','clubkids'];
+const IMP_FEM = ['oboticario','boticario','natura','avon','sephora','maquiagem','manicure','cabeleireiro','salao','depilacao','sobrancelha','estetica','maxiderma','dunnia','mazi'];
+const IMP_MAL = ['barbearia','barber'];
 function impHolderOwner(holder) {
   const h = (holder || '').toUpperCase();
   if (h.includes('WILLIAM')) return 'william';
-  if (h.includes('FLAVIA') || h.includes('VERGARA')) return 'flavia';
+  if (h.includes('FLAVIA') || h.includes('FERNANDA') || h.includes('VERGARA')) return 'flavia';
   return 'familia';
 }
+// De-quem: criança → louise; senão o PORTADOR nominal do cartão (sinal mais forte);
+// só usa gênero (fem/masc) como desempate quando o portador é genérico.
 function impPersonGuess(tx) {
-  const d = ' ' + (tx.desc || '').toLowerCase() + ' ';
-  if (IMP_KIDS.some(k => d.includes(k))) return 'louise';
-  if (IMP_HOUSE.some(k => d.includes(k))) return 'familia';
-  if (IMP_FEM.some(k => d.includes(k))) return 'flavia';
-  if (IMP_MAL.some(k => d.includes(k))) return 'william';
-  return impHolderOwner(tx.holder);
+  const toks = impTokens(tx.desc);
+  const has = (arr) => arr.some(k => toks.some(t => t.startsWith(k)));
+  if (has(IMP_KIDS)) return 'louise';
+  const byHolder = impHolderOwner(tx.holder);
+  if (byHolder !== 'familia') return byHolder;
+  if (has(IMP_FEM)) return 'flavia';
+  if (has(IMP_MAL)) return 'william';
+  return 'familia';
+}
+// Fixa × variável: assinatura/moradia e dicas de gasto recorrente são fixas.
+const IMP_FIXED_HINT = ['aluguel','condominio','energia','internet','mensalidade','escola','colegio','plano','seguro','financiamento','prestacao','iptu','ipva','consorcio','faculdade','universidade'];
+function impNature(category, desc) {
+  if (category === 'assinaturas' || category === 'moradia') return 'fixa';
+  const toks = impTokens(desc);
+  if (IMP_FIXED_HINT.some(h => toks.some(t => t.startsWith(h)))) return 'fixa';
+  return 'variavel';
 }
 function parseStatement(lines) {
   const out = [];
@@ -4594,7 +4642,7 @@ async function doImport() {
     const owner = row.querySelector('.imp-owner').value;
     const category = row.querySelector('.imp-cat').value;
     learned[impRuleKey(tx.desc)] = { category, owner };  // memória: aprende a escolha pra próxima fatura
-    const nat = category === 'assinaturas' ? 'fixa' : 'variavel';
+    const nat = impNature(category, tx.desc);
     const cardNote = tx.holder ? ('cartão: ' + tx.holder.split(' ')[0]) : '';
     const base = { type: 'expense', description: tx.desc, value: tx.value, category, owner, nature: nat, source: 'import:' + (tx._src === 'cc' ? 'conta' : 'cartao'), createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import' };
     const realDate = impToISO(tx.date, baseY);          // data REAL da compra (estável p/ o fingerprint, ano da competência)
