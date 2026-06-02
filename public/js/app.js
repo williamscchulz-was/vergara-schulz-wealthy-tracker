@@ -312,6 +312,7 @@ const I18N = {
     'exp.hero.total': 'TOTAL DO MÊS',
     'exp.hero.balance': 'SALDO DO MÊS',
     'exp.hero.balance.sub': '{in} entraram · {out} saíram',
+    'exp.hero.committed': ' · <span style="color:var(--ink-3)">{v} comprometido</span>',
     'exp.hero.empty': 'Nenhum lançamento registrado ainda',
     'exp.hero.sub': '{n} {label} · média {avg}',
     'exp.count.singular': 'despesa',
@@ -717,6 +718,7 @@ const I18N = {
     'exp.hero.total': 'MONTH TOTAL',
     'exp.hero.balance': 'MONTH BALANCE',
     'exp.hero.balance.sub': '{in} in · {out} out',
+    'exp.hero.committed': ' · <span style="color:var(--ink-3)">{v} committed</span>',
     'exp.hero.empty': 'No entries recorded yet',
     'exp.hero.sub': '{n} {label} · avg {avg}',
     'exp.count.singular': 'expense',
@@ -1571,10 +1573,11 @@ function entryMeta(e) {
 function renderExpenses() {
   const viewDate = state.currentViewMonth;
   const all = filterExpensesByMonth(viewDate);
-  const monthExp = all.filter(isExpense);
+  const monthExp = all.filter(e => isExpense(e) && !e.provisioned);   // provisão (parcela futura) NÃO é gasto realizado
+  const monthProv = all.filter(e => isExpense(e) && e.provisioned);   // compromisso futuro — mostrado à parte
   const monthIncome = all.filter(isIncome);
   const prevDate = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1);
-  const prevMonthExp = filterExpensesByMonth(prevDate).filter(isExpense);
+  const prevMonthExp = filterExpensesByMonth(prevDate).filter(e => isExpense(e) && !e.provisioned);
 
   const total = monthExp.reduce((s,e) => s + (+e.value||0), 0);
   const prevTotal = prevMonthExp.reduce((s,e) => s + (+e.value||0), 0);
@@ -1599,9 +1602,12 @@ function renderExpenses() {
   if (monthExp.length === 0 && monthIncome.length === 0) {
     heroSub.textContent = t('exp.hero.empty');
   } else {
-    heroSub.innerHTML = t('exp.hero.balance.sub')
+    let sub = t('exp.hero.balance.sub')
       .replace('{in}', `<span class="pos">↑ ${fmtBRL0(incomeTotal)}</span>`)
       .replace('{out}', `<span class="neg">↓ ${fmtBRL0(total)}</span>`);
+    const provTotal = monthProv.reduce((s, e) => s + (+e.value || 0), 0);
+    if (provTotal > 0) sub += t('exp.hero.committed').replace('{v}', fmtBRL0(provTotal));
+    heroSub.innerHTML = sub;
   }
   // Label swap "TOTAL DO MÊS" → "SALDO DO MÊS" (also honored by data-i18n)
   const heroLabelEl = document.querySelector('.exp-hero-eyebrow .label');
@@ -1638,7 +1644,7 @@ function renderExpenses() {
   }
 
   // Expense-only surfaces (category breakdown, daily chart, trend, recurring, budgets)
-  const allExpHistory = (state.expenses || []).filter(isExpense);
+  const allExpHistory = (state.expenses || []).filter(e => isExpense(e) && !e.provisioned);
   renderCategoryBreakdown(monthExp, total);
   renderDailyChart(monthExp, viewDate);
   renderTrend12m(allExpHistory, viewDate);
