@@ -528,6 +528,7 @@ const I18N = {
     'imp.refund': 'estorno',
     'imp.cardword': 'cartão',
     'imp.recurring': 'recorrente',
+    'imp.income': 'ganho',
     'imp.lowconf': 'palpite incerto — confira a categoria',
     'imp.uncertain': '{n} a conferir',
     'login.foot': 'Seus dados ficam privados no Firebase Firestore.<br/>Só contas autorizadas acessam este app.',
@@ -937,6 +938,7 @@ const I18N = {
     'imp.refund': 'refund',
     'imp.cardword': 'card',
     'imp.recurring': 'recurring',
+    'imp.income': 'income',
     'imp.lowconf': 'uncertain guess — check the category',
     'imp.uncertain': '{n} to check',
     'login.foot': 'Your data is stored privately in Firebase Firestore.<br/>Only authorized accounts can access this app.',
@@ -4494,12 +4496,20 @@ function parseBRMoney(raw) {
 // investimentos (CDB/fundos), saques, pagamento da fatura do cartão (pra não
 // duplicar com o import do cartão), impostos e taxas.
 const CC_SKIP = /(TRANSF CC PARA CC|TRANSFERENCIA ENTRE|APLICAC|RESGATE|RESG\/|SAQUE|GASTOS CARTAO|\bIOF\b|IRRF|TX REM|TAXA BTC|PAG JUROS|PAG DIVIDENDOS|COD\. LANC|REEMBOLSO|TARIFA|ANUIDADE|CESTA|PACOTE DE SERV|MANUTENCAO CONTA)/i;
+// Crédito na conta que É renda de verdade (resto = transferência/aplicação/resgate → ignora).
+const CC_INCOME = [
+  [/sal[aá]rio|vencimento|folha\s*p|pro.?-?\s*labore|prolabore/i, 'salario'],
+  [/dividend|\bjcp\b|proventos|rendimento|juros\s*s\/?\s*cap/i, 'dividendos'],
+  [/distribuic|lucro/i, 'distribuicao'],
+  [/restituic|ressarc|reembolso/i, 'outros'],
+];
+function ccIncomeSource(hist) { for (const [re, src] of CC_INCOME) if (re.test(hist)) return src; return null; }
 function parseCheckingCSV(text) {
   const out = [];
   const rows = String(text || '').replace(/^﻿/, '').split(/\r?\n/);
   const cell = (c) => String(c || '').replace(/^\s*"|"\s*$/g, '').trim();   // tira aspas/espaços
-  // Detecta a coluna de Débito pelo cabeçalho (fallback: layout padrão Bradesco).
-  let dateCol = 0, histCol = 1, debCol = 4;
+  // Detecta colunas pelo cabeçalho (fallback: layout padrão Bradesco data;hist;doc;crédito;débito;saldo).
+  let dateCol = 0, histCol = 1, debCol = 4, credCol = 3;
   for (const line of rows) {
     const low = line.split(';').map(c => cell(c).toLowerCase());
     const di = low.findIndex(c => c === 'débito' || c === 'debito' || c.includes('saída') || c.includes('saida'));
@@ -4507,6 +4517,7 @@ function parseCheckingCSV(text) {
       debCol = di;
       const dt = low.findIndex(c => c.includes('data')); if (dt >= 0) dateCol = dt;
       const ht = low.findIndex(c => c.includes('hist') || c.includes('lanç') || c.includes('lanc') || c.includes('descri')); if (ht >= 0) histCol = ht;
+      const cr = low.findIndex(c => c === 'crédito' || c === 'credito' || c.includes('entrada')); credCol = cr >= 0 ? cr : Math.max(0, di - 1);
       break;
     }
   }
@@ -4516,10 +4527,16 @@ function parseCheckingCSV(text) {
     const date = cols[dateCol] || '';
     if (!/^\d{2}\/\d{2}\/\d{4}$/.test(date)) continue;   // só linhas de lançamento (ignora cabeçalho/rodapé)
     const hist = cols[histCol] || '';
-    const debito = parseBRMoney(cols[debCol]);           // coluna Débito (saída)
-    if (!(debito > 0)) continue;                         // só despesas (saídas)
-    if (CC_SKIP.test(hist)) continue;                    // ruído: transf/invest/imposto/cartão/tarifa
-    out.push({ date, desc: hist, value: debito, holder: '', inst: null, _src: 'cc' });  // date = DD/MM/AAAA (ano preservado)
+    const debito = parseBRMoney(cols[debCol]);
+    const credito = credCol < cols.length ? parseBRMoney(cols[credCol]) : 0;
+    if (debito > 0) {                                    // SAÍDA = despesa
+      if (CC_SKIP.test(hist)) continue;                  // ruído: transf/invest/imposto/cartão/tarifa
+      out.push({ date, desc: hist, value: debito, holder: '', inst: null, _src: 'cc' });
+    } else if (credito > 0) {                            // ENTRADA = só se for renda de verdade
+      const src = ccIncomeSource(hist);
+      if (src) out.push({ date, desc: hist, value: credito, holder: '', inst: null, _src: 'cc', _kind: 'income', incomeCat: src });
+      // crédito sem match de renda (transferência/aplicação/resgate) → ignora
+    }
   }
   return out;
 }
@@ -4614,13 +4631,15 @@ function renderImportReview() {
     const owner = (rule && rule.owner) || impPersonGuess(tx);
     const rec = !rule && impRecurrence(tx);
     if (rec && cat !== 'assinaturas') { cat = 'assinaturas'; conf = 'alta'; } // recorrente → assinatura
-    const low = conf === 'baixa' && !tx.refund;
+    const isInc = tx._kind === 'income';
+    const low = conf === 'baixa' && !tx.refund && !isInc;
     if (low) lowN++;
     // Todos os portadores são cartões ADICIONAIS do casal → todo lançamento é gasto de vocês.
     // Só o estorno (crédito/devolução) vem desmarcado por padrão.
     const checked = !tx.refund ? 'checked' : '';
     const badges = (tx.inst ? `<span class="imp-badge">${esc(tx.inst)}</span> ` : '')
       + (tx.refund ? `<span class="imp-badge ref">${esc(t('imp.refund'))}</span> ` : '')
+      + (isInc ? `<span class="imp-badge inc">${esc(t('imp.income'))}</span> ` : '')
       + (rec ? `<span class="imp-badge rec">${esc(t('imp.recurring'))}</span> ` : '')
       + (low ? `<span class="imp-badge low" title="${esc(t('imp.lowconf'))}">?</span> ` : '');
     const card = tx.holder ? `<span class="imp-card">· ${esc(t('imp.cardword'))} ${esc(tx.holder.split(' ')[0])}</span>` : '';
@@ -4630,7 +4649,7 @@ function renderImportReview() {
       <span class="imp-desc">${esc(tx.desc)} ${badges}${card}</span>
       <select class="imp-owner" data-idx="${i}">${ownerOpts.replace(`value="${owner}"`, `value="${owner}" selected`)}</select>
       <select class="imp-cat" data-idx="${i}">${catOpts.replace(`value="${cat}"`, `value="${cat}" selected`)}</select>
-      <span class="imp-val${tx.refund ? ' ref' : ''}">${tx.refund ? '+ ' : ''}${impMoney(tx.value)}</span>
+      <span class="imp-val${(tx.refund || isInc) ? ' ref' : ''}">${(tx.refund || isInc) ? '+ ' : ''}${impMoney(tx.value)}</span>
     </label>`;
   }).join('');
   $('importList').innerHTML = rows;
@@ -4671,6 +4690,14 @@ async function doImport() {
     const row = cb.closest('.imp-row');
     const owner = row.querySelector('.imp-owner').value;
     const category = row.querySelector('.imp-cat').value;
+    // RECEITA detectada na conta (crédito = salário/dividendos/pró-labore) → vira ganho.
+    if (tx._kind === 'income') {
+      const idate = impToISO(tx.date, baseY);
+      const got = fpFor(impFp(idate, tx.value, tx.desc));
+      if (!got) continue;
+      batch.push({ type: 'income', description: tx.desc, value: tx.value, category: tx.incomeCat || 'outros', owner, nature: null, source: 'import:conta', date: idate, fp: got.fp, fpBase: got.fpBase, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import', notes: '' });
+      continue;
+    }
     const nat = impNature(category, tx.desc);
     // Memória esperta: só aprende quando o usuário CORRIGIU o palpite ou confirmou
     // algo de alta confiança — não decora palpites incertos deixados como vieram.
