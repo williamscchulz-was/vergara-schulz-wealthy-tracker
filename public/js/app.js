@@ -527,6 +527,9 @@ const I18N = {
     'yearly.delete.title': 'Excluir este ano?',
     'imp.refund': 'estorno',
     'imp.cardword': 'cartão',
+    'imp.recurring': 'recorrente',
+    'imp.lowconf': 'palpite incerto — confira a categoria',
+    'imp.uncertain': '{n} a conferir',
     'login.foot': 'Seus dados ficam privados no Firebase Firestore.<br/>Só contas autorizadas acessam este app.',
     'brand.tag': 'finanças pessoais',
     'topbar.lang': 'Idioma',
@@ -933,6 +936,9 @@ const I18N = {
     'yearly.delete.title': 'Delete this year?',
     'imp.refund': 'refund',
     'imp.cardword': 'card',
+    'imp.recurring': 'recurring',
+    'imp.lowconf': 'uncertain guess — check the category',
+    'imp.uncertain': '{n} to check',
     'login.foot': 'Your data is stored privately in Firebase Firestore.<br/>Only authorized accounts can access this app.',
     'brand.tag': 'personal finance',
     'topbar.lang': 'Language',
@@ -4583,20 +4589,42 @@ function impUpdateConfirm() {
   const btn = $('importConfirm');
   if (btn) { btn.textContent = t('imp.confirm').replace('{n}', n); btn.disabled = n === 0; }
 }
+// Recorrência: mesmo estabelecimento (chave normalizada) já visto em ≥2 meses
+// com valor ~igual → provável assinatura/conta fixa.
+function impRecurrence(tx) {
+  const key = impRuleKey(tx.desc);
+  if (!key) return false;
+  const months = new Set();
+  for (const e of (state.expenses || [])) {
+    if (impRuleKey(e.description) !== key) continue;
+    if (tx.value && Math.abs((+e.value || 0) - tx.value) / tx.value > 0.05) continue;
+    months.add(String(e.date || '').slice(0, 7));
+  }
+  return months.size >= 2;
+}
 function renderImportReview() {
   const ownerOpts = OWNERS.map(o => `<option value="${o}">${esc(t('exp.owner.' + o))}</option>`).join('');
   const catOpts = Object.keys(CATEGORIES).map(k => `<option value="${k}">${esc(CATEGORIES[k].label)}</option>`).join('');
+  let lowN = 0;
   const rows = _importTxns.map((tx, i) => {
     const rule = (state.importRules || {})[impRuleKey(tx.desc)];
+    let cat, conf;
+    if (rule && rule.category) { cat = rule.category; conf = 'alta'; }       // memória = confiança alta
+    else { const g = impGuessCat(tx.desc); cat = g.cat; conf = g.conf; }
     const owner = (rule && rule.owner) || impPersonGuess(tx);
-    const cat = (rule && rule.category) || impCategorize(tx.desc);
-    // Todos os portadores são cartões ADICIONAIS da conta do casal (outras
-    // pessoas compram por eles) → todo lançamento é gasto de vocês. Só o
-    // estorno (crédito/devolução) vem desmarcado por padrão.
+    const rec = !rule && impRecurrence(tx);
+    if (rec && cat !== 'assinaturas') { cat = 'assinaturas'; conf = 'alta'; } // recorrente → assinatura
+    const low = conf === 'baixa' && !tx.refund;
+    if (low) lowN++;
+    // Todos os portadores são cartões ADICIONAIS do casal → todo lançamento é gasto de vocês.
+    // Só o estorno (crédito/devolução) vem desmarcado por padrão.
     const checked = !tx.refund ? 'checked' : '';
-    const badges = (tx.inst ? `<span class="imp-badge">${esc(tx.inst)}</span> ` : '') + (tx.refund ? `<span class="imp-badge ref">${esc(t('imp.refund'))}</span> ` : '');
+    const badges = (tx.inst ? `<span class="imp-badge">${esc(tx.inst)}</span> ` : '')
+      + (tx.refund ? `<span class="imp-badge ref">${esc(t('imp.refund'))}</span> ` : '')
+      + (rec ? `<span class="imp-badge rec">${esc(t('imp.recurring'))}</span> ` : '')
+      + (low ? `<span class="imp-badge low" title="${esc(t('imp.lowconf'))}">?</span> ` : '');
     const card = tx.holder ? `<span class="imp-card">· ${esc(t('imp.cardword'))} ${esc(tx.holder.split(' ')[0])}</span>` : '';
-    return `<label class="imp-row">
+    return `<label class="imp-row${low ? ' imp-low' : ''}">
       <input type="checkbox" data-idx="${i}" ${checked}>
       <span class="imp-date">${esc(tx.date)}</span>
       <span class="imp-desc">${esc(tx.desc)} ${badges}${card}</span>
@@ -4607,6 +4635,8 @@ function renderImportReview() {
   }).join('');
   $('importList').innerHTML = rows;
   $('importCount').textContent = _importTxns.length;
+  const note = $('importLowNote');
+  if (note) { if (lowN > 0) { note.textContent = ' · ' + t('imp.uncertain').replace('{n}', lowN); note.hidden = false; } else note.hidden = true; }
   $('importModal').classList.add('show');
   impUpdateConfirm();
 }
@@ -4641,8 +4671,13 @@ async function doImport() {
     const row = cb.closest('.imp-row');
     const owner = row.querySelector('.imp-owner').value;
     const category = row.querySelector('.imp-cat').value;
-    learned[impRuleKey(tx.desc)] = { category, owner };  // memória: aprende a escolha pra próxima fatura
     const nat = impNature(category, tx.desc);
+    // Memória esperta: só aprende quando o usuário CORRIGIU o palpite ou confirmou
+    // algo de alta confiança — não decora palpites incertos deixados como vieram.
+    const _g = impGuessCat(tx.desc);
+    if (category !== _g.cat || owner !== impPersonGuess(tx) || _g.conf === 'alta') {
+      learned[impRuleKey(tx.desc)] = { category, owner, nature: nat };
+    }
     const cardNote = tx.holder ? ('cartão: ' + tx.holder.split(' ')[0]) : '';
     const base = { type: 'expense', description: tx.desc, value: tx.value, category, owner, nature: nat, source: 'import:' + (tx._src === 'cc' ? 'conta' : 'cartao'), createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import' };
     const realDate = impToISO(tx.date, baseY);          // data REAL da compra (estável p/ o fingerprint, ano da competência)

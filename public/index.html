@@ -1427,6 +1427,10 @@ body::before {
 .imp-card { font-size: 10px; color: var(--ink-muted); margin-left: 4px; }
 .imp-badge { font-family: 'Geist Mono', monospace; font-size: 9px; padding: 1px 5px; border-radius: 5px; background: rgba(100,210,255,.14); color: #9bdcff; }
 .imp-badge.ref { background: var(--gain-soft); color: var(--gain); }
+.imp-badge.rec { background: color-mix(in oklab, var(--purple) 22%, transparent); color: var(--purple-light); }
+.imp-badge.low { background: rgba(255,159,10,.2); color: #ff9f0a; font-weight: 700; cursor: help; }
+.imp-row.imp-low { box-shadow: inset 2px 0 0 #ff9f0a; }
+.imp-lownote { color: #ff9f0a; font-size: 11px; font-weight: 600; }
 .imp-row select { background: var(--bg-elevated-2); color: var(--ink); border: 1px solid var(--border); border-radius: 7px; padding: 5px 6px; font-size: 11px; font-family: inherit; max-width: 100%; cursor: pointer; }
 .imp-val { font-family: 'Geist Mono', monospace; text-align: right; color: var(--ink); }
 .imp-val.ref { color: var(--gain); }
@@ -3295,7 +3299,7 @@ body::before {
   <div class="modal modal-wide">
     <h3 data-i18n="imp.modal.title">Revisar fatura</h3>
     <p class="sub" data-i18n="imp.modal.sub">Confira de quem é o gasto e a categoria. Desmarque o que não quer importar.</p>
-    <div class="imp-meta"><b id="importCount">0</b> <span data-i18n="imp.count">lançamentos encontrados</span></div>
+    <div class="imp-meta"><b id="importCount">0</b> <span data-i18n="imp.count">lançamentos encontrados</span><span class="imp-lownote" id="importLowNote" hidden></span></div>
     <div class="imp-list" id="importList"></div>
     <div class="modal-foot">
       <button class="btn-secondary" id="importCancel" data-i18n="exp.btn.cancel">Cancelar</button>
