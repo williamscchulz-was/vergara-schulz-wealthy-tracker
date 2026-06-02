@@ -4563,9 +4563,21 @@ function renderImportReview() {
   impUpdateConfirm();
 }
 async function doImport() {
-  // Dedup usa o fp guardado quando existe (parcelas têm fp por parcela), senão
-  // o derivado de data+valor+descrição.
-  const seen = new Set((state.expenses || []).map(e => e.fp || impFp(e.date, e.value, e.description)));
+  // Dedup MULTISET por fingerprint-base: conta quantas ocorrências de cada base já
+  // existem; a 1ª ocorrência usa o base, repetições ganham sufixo #1,#2... Assim
+  // 2 compras iguais legítimas NÃO se anulam, e reimportar o mesmo extrato é idempotente.
+  const stripOrd = (s) => String(s || '').replace(/#\d+$/, '');
+  const existCount = {};
+  for (const e of (state.expenses || [])) {
+    const b = e.fpBase || stripOrd(e.fp || impFp(e.date, e.value, e.description));
+    existCount[b] = (existCount[b] || 0) + 1;
+  }
+  const used = {};   // conta as ocorrências DESTE import (0,1,2...)
+  const fpFor = (baseFp) => {
+    const idx = used[baseFp] || 0; used[baseFp] = idx + 1;
+    if (idx < (existCount[baseFp] || 0)) return null;          // as primeiras N já existem no banco → pula (reimport idempotente)
+    return { fp: idx === 0 ? baseFp : baseFp + '#' + idx, fpBase: baseFp };
+  };
   // Competência base = mês mais recente da fatura → de onde as parcelas seguem.
   let baseYM = null;
   for (const tx of _importTxns) { const ym = impToISO(tx.date).slice(0, 7); if (!baseYM || ym > baseYM) baseYM = ym; }
@@ -4585,31 +4597,28 @@ async function doImport() {
     const nat = category === 'assinaturas' ? 'fixa' : 'variavel';
     const cardNote = tx.holder ? ('cartão: ' + tx.holder.split(' ')[0]) : '';
     const base = { type: 'expense', description: tx.desc, value: tx.value, category, owner, nature: nat, source: 'import:' + (tx._src === 'cc' ? 'conta' : 'cartao'), createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import' };
+    const realDate = impToISO(tx.date, baseY);          // data REAL da compra (estável p/ o fingerprint, ano da competência)
     const im = (tx.inst || '').match(/^(\d{1,2})\/(\d{1,2})$/);
     if (im) {
       // PARCELADO: provisiona da parcela atual (X) até a última (Y), uma por mês à frente.
       const X = +im[1], Y = +im[2];
-      const descKey = (tx.desc || '').slice(0, 16).toLowerCase().replace(/\s+/g, '');
+      const valKey = (Math.round(tx.value * 100) / 100).toFixed(2);
+      const descKey = impRuleKey(tx.desc);             // chave normalizada (mais entropia que slice cru)
       for (let k = X; k <= Y; k++) {
         const off = k - X, prov = off > 0;
-        const fp = `parc|${descKey}|${(Math.round(tx.value * 100) / 100).toFixed(2)}|${k}/${Y}`;
-        if (seen.has(fp)) continue;
-        // transição: a parcela atual pode já ter sido importada no esquema antigo
-        // (data+valor+descrição) — nesse caso não reimporta, só registra o fp novo.
-        if (!prov && seen.has(impFp(impToISO(tx.date), tx.value, tx.desc))) { seen.add(fp); continue; }
-        seen.add(fp);
+        // base ancorada à compra-mãe (descKey + valor + data real) → não colide com outra compra de mesmo prefixo
+        const got = fpFor(`parc|${descKey}|${valKey}|${realDate}|${k}/${Y}`);
+        if (!got) continue;
         if (prov) provCount++;
-        batch.push({ ...base, date: monthISO(off), fp, provisioned: prov, installment: { k, total: Y },
+        batch.push({ ...base, date: monthISO(off), fp: got.fp, fpBase: got.fpBase, provisioned: prov, installment: { k, total: Y },
           notes: [cardNote, `parcela ${k}/${Y}` + (prov ? ' · provisão' : '')].filter(Boolean).join(' · ') });
       }
     } else {
-      // Cartão à vista → competência da fatura (a fatura inteira cai num mês só).
-      // Conta corrente → data real do débito.
+      // fp pela data REAL da compra (estável entre imports), mas grava na competência da fatura.
+      const got = fpFor(impFp(realDate, tx.value, tx.desc));
+      if (!got) continue;
       const date = tx._src === 'cc' ? impToISO(tx.date) : monthISO(0);
-      const fp = impFp(date, tx.value, tx.desc);
-      if (seen.has(fp)) continue;
-      seen.add(fp);
-      batch.push({ ...base, date, fp, notes: cardNote });
+      batch.push({ ...base, date, fp: got.fp, fpBase: got.fpBase, notes: cardNote });
     }
   }
   if (!batch.length) { showToast(t('imp.alldup')); return; }
