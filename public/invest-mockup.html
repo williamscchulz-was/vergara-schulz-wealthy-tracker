@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Ledger · Investimentos (mockup de layout/paleta)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+:root{
+  --bg:#f3f3f6; --bg-soft:#fafafb;
+  --card:#ffffff; --border:#e8e8ee; --border-2:#f0f0f4;
+  --ink:#1b1b22; --ink-2:#55555f; --ink-3:#8a8a95; --ink-4:#adadb6;
+  --accent:#7c3aed; --accent-2:#a78bfa; --accent-soft:#f1ecfe;
+  --gain:#16a34a; --gain-soft:#e9f7ef; --loss:#dc2626; --loss-soft:#fdeceb; --warn:#d97706;
+  --mono:'Geist Mono',monospace;
+  --r:16px; --ease:cubic-bezier(.16,1,.3,1);
+  --shadow:0 1px 2px rgba(24,24,40,.04), 0 6px 20px -10px rgba(24,24,40,.12);
+}
+:root[data-theme="dark"]{
+  --bg:#141418; --bg-soft:#1a1a20;
+  --card:#1e1e25; --border:#2c2c35; --border-2:#26262e;
+  --ink:#f2f2f5; --ink-2:#b2b2bd; --ink-3:#7c7c87; --ink-4:#5d5d68;
+  --accent:#a78bfa; --accent-2:#8b5cf6; --accent-soft:#241f33;
+  --gain:#34d27a; --gain-soft:#13301f; --loss:#f0584f; --loss-soft:#331a19; --warn:#f0a73a;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;font-size:14px}
+
+.wrap{max-width:1240px;margin:0 auto;padding:28px 28px 80px}
+
+.bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.tabs{display:inline-flex;gap:2px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:4px;box-shadow:var(--shadow)}
+.tab{border:none;background:transparent;color:var(--ink-3);font:600 13px Inter;padding:8px 16px;border-radius:9px;cursor:pointer}
+.tab.on{background:var(--accent);color:#fff}
+.bar-actions{display:flex;gap:8px;align-items:center}
+.ibtn{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--border);background:var(--card);color:var(--ink-3);border-radius:10px;cursor:pointer;box-shadow:var(--shadow)}
+.ibtn:hover{color:var(--accent)}
+.ibtn svg{width:16px;height:16px}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow)}
+.card-pad{padding:20px 22px}
+.c-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.c-title{font-size:14px;font-weight:650;letter-spacing:-.01em}
+.tag{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.08em;color:var(--ink-3);background:var(--bg);border:1px solid var(--border);padding:3px 8px;border-radius:6px;text-transform:uppercase}
+
+.hero{padding:26px 26px 22px;margin-bottom:18px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center}
+.hero-l{min-width:0}
+.eyebrow{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.live{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.hero-amt{font-family:var(--mono);font-size:42px;font-weight:700;letter-spacing:-.03em;margin:12px 0 14px;line-height:1}
+.hero-amt .cur{font-size:22px;color:var(--ink-3);font-weight:500;margin-right:6px}
+.hero-stats{display:flex;gap:26px;flex-wrap:wrap}
+.hs{display:flex;flex-direction:column;gap:3px}
+.hs .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);font-weight:600}
+.hs .v{font-family:var(--mono);font-size:15px;font-weight:600}
+.v.gain{color:var(--gain)}.v.loss{color:var(--loss)}
+.hero-r{display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:999px;font-size:13px;font-weight:700;font-family:var(--mono)}
+.pill.gain{background:var(--gain-soft);color:var(--gain)}
+.spark{width:200px;height:54px;display:block}
+.hero-upd{font-family:var(--mono);font-size:11px;color:var(--ink-4)}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.kpi{padding:16px 18px;position:relative;overflow:hidden}
+.kpi .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);font-weight:700;display:flex;align-items:center;gap:8px}
+.kpi .ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}
+.kpi .ic svg{width:14px;height:14px}
+.kpi .v{font-family:var(--mono);font-size:22px;font-weight:650;letter-spacing:-.02em;margin-top:12px}
+.kpi .sub{font-size:11px;color:var(--ink-3);margin-top:4px}
+
+.main{display:grid;grid-template-columns:1.55fr 1fr;gap:18px;margin-bottom:18px;align-items:start}
+.side{display:flex;flex-direction:column;gap:18px}
+
+.asset{display:grid;grid-template-columns:34px 1fr auto auto;gap:12px;align-items:center;padding:11px 6px;border-bottom:1px solid var(--border-2)}
+.asset:last-child{border-bottom:none}
+.asset:hover{background:var(--bg-soft);border-radius:10px}
+.av{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:11px;color:#fff}
+.asset-nm{font-size:13.5px;font-weight:600}
+.asset-q{font-size:11px;color:var(--ink-3);font-family:var(--mono);margin-top:1px}
+.asset-v{font-family:var(--mono);font-size:13.5px;font-weight:600;text-align:right}
+.asset-pct{font-family:var(--mono);font-size:11px;color:var(--ink-3);text-align:right;min-width:42px}
+.asset-ap{font-family:var(--mono);font-size:11.5px;font-weight:600;text-align:right;min-width:54px}
+.ap.pos{color:var(--gain)}.ap.neg{color:var(--loss)}
+
+.mt{margin-bottom:18px}.mt:last-child{margin-bottom:6px}
+.mt.gap{margin-bottom:26px}
+.mt-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:9px}
+.mt-nm{font-size:13.5px;font-weight:600}
+.mt-num{font-family:var(--mono);font-size:12.5px}
+.mt-num small{color:var(--ink-3)}
+.mt-line{display:flex;align-items:center;gap:11px}
+.mt-bar{position:relative;flex:1;height:6px;border-radius:4px;background:var(--bg)}
+.mt-fill{height:100%;border-radius:4px}
+.mt-fill.ok{background:var(--gain)}.mt-fill.pr{background:var(--accent)}.mt-fill.bh{background:var(--warn)}
+.mt-mark{position:absolute;top:-3px;bottom:-3px;width:1.5px;background:var(--ink-3);border-radius:2px}
+.mt-tail{font-family:var(--mono);font-size:11px;color:var(--ink-3);white-space:nowrap}
+
+.cash{display:flex;align-items:center;justify-content:space-between;padding:10px 4px;border-bottom:1px solid var(--border-2)}
+.cash:last-child{border-bottom:none}
+.cash-nm{font-size:13px;font-weight:500}
+.cash-nm small{color:var(--ink-3);font-weight:400;margin-left:6px}
+.cash-v{font-family:var(--mono);font-size:13px;font-weight:600}
+
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+.bars{display:flex;align-items:flex-end;gap:7px;height:140px;padding-top:8px}
+.bcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%}
+.bwrap{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center}
+.bar{width:62%;border-radius:5px 5px 0 0;background:var(--accent);min-height:3px}
+.bar.alt{background:var(--accent-soft);border:1px solid var(--accent-2)}
+.blabel{font-family:var(--mono);font-size:9px;color:var(--ink-4)}
+
+.ytab{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px}
+.ytab th{font:600 9px Inter;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);text-align:right;padding:8px 10px;border-bottom:1px solid var(--border)}
+.ytab th:first-child{text-align:left}
+.ytab td{text-align:right;padding:11px 10px;border-bottom:1px solid var(--border-2)}
+.ytab td:first-child{text-align:left;font-weight:600;font-family:Inter}
+.ytab tr:last-child td{border-bottom:none}
+.ytab td.pos{color:var(--gain)}.ytab td.neg{color:var(--loss)}
+
+@media(max-width:1000px){.main{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.charts{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.hero-r{align-items:flex-start}}
+@media(max-width:560px){.wrap{padding:20px 16px 60px}.kpis{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar">
+    <div class="tabs">
+      <button class="tab on">Investimentos</button>
+      <button class="tab">Despesas</button>
+      <button class="tab">Resumo</button>
+    </div>
+    <div class="bar-actions">
+      <button class="ibtn" id="themeBtn" title="Tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+
+  <div class="card hero">
+    <div class="hero-l">
+      <div class="eyebrow"><span class="live"></span>Patrimônio total</div>
+      <div class="hero-amt"><span class="cur">R$</span>1.847.392</div>
+      <div class="hero-stats">
+        <div class="hs"><span class="k">Aplicado</span><span class="v">R$ 1,64M</span></div>
+        <div class="hs"><span class="k">Dividendos YTD</span><span class="v">R$ 70.430</span></div>
+        <div class="hs"><span class="k">Em dólar</span><span class="v">US$ 18.200</span></div>
+      </div>
+    </div>
+    <div class="hero-r">
+      <span class="pill gain">▲ +12,4% retorno</span>
+      <svg class="spark" viewBox="0 0 200 54" preserveAspectRatio="none">
+        <polyline points="0,46 25,42 50,44 75,34 100,30 125,24 150,18 175,14 200,8" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="200" cy="8" r="3.5" fill="var(--accent)"/>
+      </svg>
+      <span class="hero-upd">atualizado hoje 09:45 · via I10</span>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="card kpi"><div class="k"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Total recebido</div><div class="v">R$ 312K</div><div class="sub">desde 2020</div></div>
+    <div class="card kpi"><div class="k"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="2.5"/><path d="M8 9V6.5a4 4 0 0 1 8 0V9"/></svg></span>Reservas</div><div class="v">R$ 120K</div><div class="sub">3 contas</div></div>
+    <div class="card kpi"><div class="k"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 4v5c0 5-3.5 8-9 9-5.5-1-9-4-9-9V7z"/></svg></span>Previdência</div><div class="v">R$ 84K</div><div class="sub">Bradesco</div></div>
+    <div class="card kpi"><div class="k"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span>Aportes 2026</div><div class="v">R$ 168K</div><div class="sub">+ R$ 24K/mês</div></div>
+  </div>
+
+  <div class="main">
+    <div class="card card-pad">
+      <div class="c-head"><span class="c-title">Minha carteira</span><span class="tag">via I10</span></div>
+      <div id="assets"></div>
+    </div>
+    <div class="side">
+      <div class="card card-pad">
+        <div class="c-head"><span class="c-title">Metas</span></div>
+        <div id="metas"></div>
+      </div>
+      <div class="card card-pad">
+        <div class="c-head"><span class="c-title">Reservas &amp; previdência</span></div>
+        <div class="cash"><span class="cash-nm">Bradesco CC <small>reserva</small></span><span class="cash-v">R$ 62.000</span></div>
+        <div class="cash"><span class="cash-nm">Nubank <small>poupança</small></span><span class="cash-v">R$ 38.000</span></div>
+        <div class="cash"><span class="cash-nm">XP <small>caixa</small></span><span class="cash-v">R$ 20.000</span></div>
+        <div class="cash"><span class="cash-nm">Bradesco <small>previdência</small></span><span class="cash-v">R$ 84.000</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="charts">
+    <div class="card card-pad"><div class="c-head"><span class="c-title">Dividendos por ano</span><span class="tag">R$</span></div><div class="bars" id="ch1"></div></div>
+    <div class="card card-pad"><div class="c-head"><span class="c-title">Patrimônio por ano</span><span class="tag">R$</span></div><div class="bars" id="ch2"></div></div>
+    <div class="card card-pad"><div class="c-head"><span class="c-title">Rentabilidade mês a mês</span><span class="tag">%</span></div><div class="bars" id="ch3"></div></div>
+    <div class="card card-pad"><div class="c-head"><span class="c-title">Aportes mensais</span><span class="tag">R$</span></div><div class="bars" id="ch4"></div></div>
+  </div>
+
+  <div class="card card-pad">
+    <div class="c-head"><span class="c-title">Histórico anual</span></div>
+    <table class="ytab">
+      <thead><tr><th>Ano</th><th>Patrimônio</th><th>Dividendos</th><th>Aportes</th><th>YoY</th></tr></thead>
+      <tbody id="ytab"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const fmt=n=>(+n).toLocaleString('pt-BR');
+const ACOLORS={BBAS3:'#c79a00',ITSA4:'#1c6bd6',BBSE3:'#1f8a5b',RANI3:'#e07b39',TAEE11:'#7c3aed',CXSE3:'#0ea5a3',VALE3:'#3f7d3a'};
+const assets=[
+  ['BBAS3',12450,248500,13.4,8.2],['ITSA4',21000,198200,10.7,12.5],['BBSE3',6500,156000,8.4,-3.1],
+  ['TAEE11',3200,132800,7.2,5.4],['RANI3',9800,98400,5.3,18.7],['VALE3',1800,92600,5.0,-6.2],['CXSE3',4100,61500,3.3,4.1]
+];
+document.getElementById('assets').innerHTML=assets.map(a=>{
+  const[tk,q,v,pct,ap]=a;const c=ACOLORS[tk]||'#7c3aed';
+  return `<div class="asset"><div class="av" style="background:${c}">${tk.slice(0,2)}</div><div><div class="asset-nm">${tk}</div><div class="asset-q">${fmt(q)} cotas</div></div><div class="asset-v">R$ ${fmt(v)}</div><div class="asset-pct">${pct}%</div><div class="asset-ap ap ${ap>=0?'pos':'neg'}">${ap>=0?'+':''}${ap}%</div></div>`;
+}).join('');
+
+const metas=[
+  {nm:'Renda em dividendos',num:'R$ 70K <small>/ R$ 1M · ano</small>',fill:7,mark:18,cls:'bh',tail:'2035'},
+  {nm:'BBAS3',num:'12.450 <small>/ 20.000</small>',fill:62,cls:'pr',tail:'faltam 38%'},
+  {nm:'BBSE3',num:'6.500 <small>/ 20.000</small>',fill:33,cls:'pr',tail:'faltam 67%'},
+  {nm:'RANI3',num:'9.800 <small>/ 20.000</small>',fill:49,cls:'pr',tail:'faltam 51%'},
+];
+document.getElementById('metas').innerHTML=metas.map((m,i)=>`<div class="mt${i===0?' gap':''}"><div class="mt-top"><span class="mt-nm">${m.nm}</span><span class="mt-num">${m.num}</span></div><div class="mt-line"><div class="mt-bar"><div class="mt-fill ${m.cls}" style="width:${m.fill}%"></div>${m.mark!=null?`<div class="mt-mark" style="left:${m.mark}%"></div>`:''}</div><span class="mt-tail">${m.tail}</span></div></div>`).join('');
+
+const bars=(id,vals,alt)=>{const mx=Math.max(...vals);document.getElementById(id).innerHTML=vals.map((v,i)=>`<div class="bcol"><div class="bwrap"><div class="bar ${alt&&i%2?'alt':''}" style="height:${Math.max(4,v/mx*100)}%"></div></div><span class="blabel">${2020+i}</span></div>`).join('');};
+bars('ch1',[12,18,28,41,55,67,70]);
+bars('ch2',[420,560,710,980,1240,1560,1847]);
+document.getElementById('ch3').innerHTML=[2.1,-1.2,3.4,1.8,-0.6,2.9,4.1,1.2,-2.1,3.6,2.4,1.9].map((v,i)=>`<div class="bcol"><div class="bwrap" style="align-items:${v>=0?'flex-end':'flex-start'}"><div class="bar" style="height:${Math.abs(v)/4.1*70}%;background:${v>=0?'var(--gain)':'var(--loss)'}"></div></div><span class="blabel">${['J','F','M','A','M','J','J','A','S','O','N','D'][i]}</span></div>`).join('');
+document.getElementById('ch4').innerHTML=[24,24,18,24,30,24,24,24,12,24,24,24].map((v,i)=>`<div class="bcol"><div class="bwrap"><div class="bar" style="height:${v/30*88}%;background:var(--accent-2)"></div></div><span class="blabel">${['J','F','M','A','M','J','J','A','S','O','N','D'][i]}</span></div>`).join('');
+
+const yrs=[[2020,420000,12000,90000,null],[2021,560000,18000,110000,33],[2022,710000,28000,120000,27],[2023,980000,41000,150000,38],[2024,1240000,55000,168000,27],[2025,1560000,67000,180000,26],[2026,1847000,70430,168000,18]];
+document.getElementById('ytab').innerHTML=yrs.map(y=>`<tr><td>${y[0]}</td><td>R$ ${fmt(y[1])}</td><td>R$ ${fmt(y[2])}</td><td>R$ ${fmt(y[3])}</td><td class="${y[4]==null?'':y[4]>=0?'pos':'neg'}">${y[4]==null?'—':(y[4]>=0?'+':'')+y[4]+'%'}</td></tr>`).join('');
+
+document.getElementById('themeBtn').addEventListener('click',()=>{const h=document.documentElement;h.setAttribute('data-theme',h.getAttribute('data-theme')==='light'?'dark':'light');});
+</script>
+</body>
+</html>
