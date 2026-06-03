@@ -1552,8 +1552,8 @@ body::before {
 .mt-goal { position: relative; margin-bottom: 26px; }
 .mt-goal.gap { margin-bottom: 40px; }
 .mt-goal:last-of-type { margin-bottom: 14px; }
-.mt-row { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 11px; }
-.mt-name { font-size: 14px; font-weight: 550; letter-spacing: -.01em; color: var(--ink); }
+.mt-row { display: flex; align-items: center; gap: 12px; margin-bottom: 11px; }
+.mt-name { flex: 1; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing: -.01em; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mt-num { font-family: 'Geist Mono', monospace; font-size: 13px; color: var(--ink); white-space: nowrap; }
 .mt-num small { color: var(--ink-3); font-weight: 400; }
 .mt-line { display: flex; align-items: center; gap: 13px; }
@@ -1562,13 +1562,9 @@ body::before {
 .mt-fill.ahead { background: var(--gain); } .mt-fill.ontrack { background: var(--purple); } .mt-fill.behind { background: var(--warn); }
 .mt-mark { position: absolute; top: -3px; bottom: -3px; width: 1.5px; background: var(--ink-3); border-radius: 2px; transition: left .5s var(--ease-out); }
 .mt-year { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--ink-muted); width: 36px; text-align: right; flex-shrink: 0; }
-.mt-edit { cursor: text; border-bottom: 1px dotted transparent; transition: border-color .15s; }
-.mt-edit:hover { border-bottom-color: var(--ink-3); }
-.mt-in { font: inherit; color: var(--purple); background: transparent; border: none; border-bottom: 1px solid var(--purple); outline: none; padding: 0; margin: 0; text-align: inherit; }
-.mt-name .mt-in { font-weight: 550; }
-.mt-del { position: absolute; top: -2px; right: -2px; width: 18px; height: 18px; display: grid; place-items: center; border: none; background: transparent; color: var(--ink-muted); cursor: pointer; opacity: 0; font-size: 15px; line-height: 1; transition: opacity .15s, color .15s; }
-.mt-goal:hover .mt-del { opacity: .55; }
-.mt-del:hover { opacity: 1; color: var(--warn); }
+.mt-edit-btn { flex-shrink: 0; width: 26px; height: 26px; display: grid; place-items: center; border: none; background: transparent; color: var(--ink-3); cursor: pointer; border-radius: 7px; padding: 0; transition: color .15s, background .15s; }
+.mt-edit-btn:hover { color: var(--purple); background: var(--bg-elevated-2); }
+.mt-edit-btn svg { width: 15px; height: 15px; }
 .mt-add { display: inline-block; margin-top: 4px; color: var(--ink-muted); font-size: 12.5px; cursor: pointer; user-select: none; }
 .mt-add:hover { color: var(--purple); }
 /* v10 — overlay de import: pipeline (3 etapas) + scan do documento + extração ao vivo */
@@ -3302,6 +3298,32 @@ body::before {
     <div class="spacer"></div>
     <button class="btn-secondary" id="pensionModalCancel" data-i18n="exp.btn.cancel">Cancelar</button>
     <button class="btn-primary" id="pensionModalSave" data-i18n="exp.btn.save">Salvar</button>
+  </div>
+</div></div>
+
+<!-- Editor de meta (dividendos / quantidade de ações) -->
+<div class="modal-bg" id="metaModal"><div class="modal">
+  <h3 id="metaModalTitle">Editar meta</h3>
+  <p class="sub" id="metaModalSub">Quantidade de ações</p>
+  <div class="form-grid">
+    <div class="field full" id="metaTickerField">
+      <label data-i18n="metas.field.ticker">Ticker</label>
+      <input type="text" id="metaTickerInput" placeholder="BBAS3" autocomplete="off" spellcheck="false" style="text-transform:uppercase" />
+    </div>
+    <div class="field full">
+      <label id="metaTargetLabel" data-i18n="metas.field.targetShares">Quantidade alvo</label>
+      <input type="text" id="metaTargetInput" inputmode="numeric" placeholder="20000" autocomplete="off" />
+    </div>
+    <div class="field full" id="metaYearField">
+      <label data-i18n="metas.field.year">Prazo (ano)</label>
+      <input type="text" id="metaYearInput" inputmode="numeric" placeholder="2030" autocomplete="off" />
+    </div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn-secondary" id="metaDeleteBtn" data-i18n="exp.btn.delete" style="background:transparent;border:1px solid rgba(255,94,87,0.3);color:#ff5e57">Excluir</button>
+    <div class="spacer"></div>
+    <button class="btn-secondary" id="metaModalCancel" data-i18n="exp.btn.cancel">Cancelar</button>
+    <button class="btn-primary" id="metaModalSave" data-i18n="exp.btn.save">Salvar</button>
   </div>
 </div></div>
 

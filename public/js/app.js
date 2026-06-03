@@ -466,6 +466,17 @@ const I18N = {
     'metas.add': 'nova meta',
     'metas.remove': 'remover',
     'metas.fixed': 'prazo fixo',
+    'metas.edit': 'Editar',
+    'metas.modal.new': 'Nova meta',
+    'metas.modal.edit': 'Editar meta',
+    'metas.modal.editDiv': 'Editar meta de dividendos',
+    'metas.modal.subShare': 'Quantidade de ações',
+    'metas.modal.subDiv': 'Renda anual em dividendos',
+    'metas.field.ticker': 'Ticker',
+    'metas.field.targetShares': 'Quantidade alvo',
+    'metas.field.targetDiv': 'Alvo (R$ por ano)',
+    'metas.field.year': 'Prazo (ano)',
+    'metas.invalid': 'Preencha o ticker e a quantidade.',
     'fx.modal.title': 'Dólar (USD)',
     'fx.modal.sub': 'Quanto você tem em dólar — convertido pela cotação atual.',
     'fx.f.usd': 'Quantidade em USD',
@@ -898,6 +909,17 @@ const I18N = {
     'metas.add': 'new goal',
     'metas.remove': 'remove',
     'metas.fixed': 'fixed deadline',
+    'metas.edit': 'Edit',
+    'metas.modal.new': 'New goal',
+    'metas.modal.edit': 'Edit goal',
+    'metas.modal.editDiv': 'Edit dividend goal',
+    'metas.modal.subShare': 'Share quantity',
+    'metas.modal.subDiv': 'Annual dividend income',
+    'metas.field.ticker': 'Ticker',
+    'metas.field.targetShares': 'Target quantity',
+    'metas.field.targetDiv': 'Target (R$ per year)',
+    'metas.field.year': 'Deadline (year)',
+    'metas.invalid': 'Fill in the ticker and quantity.',
     'fx.modal.title': 'US Dollar (USD)',
     'fx.modal.sub': 'How much you hold in dollars — converted at the current rate.',
     'fx.f.usd': 'Amount in USD',
@@ -5534,13 +5556,10 @@ function _metaCompact(n) {
 function _metaRow(o) {
   const f = Math.max(2, Math.min(100, o.fill || 0));
   const mk = Math.max(0, Math.min(100, o.mark || 0));
-  const yearHtml = o.yearLocked
-    ? `<span class="mt-year" title="${esc(t('metas.fixed'))}">${o.year}</span>`
-    : `<span class="mt-year mt-edit" data-f="year">${o.year}</span>`;
+  const pencil = `<button class="mt-edit-btn" data-edit="${o.id}" aria-label="${esc(t('metas.edit'))}" title="${esc(t('metas.edit'))}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`;
   return `<div class="mt-goal${o.gap ? ' gap' : ''}" data-id="${o.id}" data-type="${o.type}">`
-    + (o.type === 'shares' ? `<button class="mt-del" title="${esc(t('metas.remove'))}">×</button>` : '')
-    + `<div class="mt-row"><span class="mt-name">${o.name}</span><span class="mt-num">${o.curHtml}</span></div>`
-    + `<div class="mt-line"><div class="mt-bar"><div class="mt-fill ${o.st}" style="width:${f}%"></div><div class="mt-mark" style="left:${mk}%"></div></div>${yearHtml}</div>`
+    + `<div class="mt-row"><span class="mt-name">${o.name}</span><span class="mt-num">${o.curHtml}</span>${pencil}</div>`
+    + `<div class="mt-line"><div class="mt-bar"><div class="mt-fill ${o.st}" style="width:${f}%"></div><div class="mt-mark" style="left:${mk}%"></div></div><span class="mt-year">${o.year}</span></div>`
     + `</div>`;
 }
 function renderMetas() {
@@ -5554,8 +5573,8 @@ function renderMetas() {
   const divMark = (nowY - META_DIV_START) / Math.max(1, (divYear - META_DIV_START)) * 100;
   let html = _metaRow({
     id: 'div', type: 'dividends', name: esc(t('metas.dividends')),
-    curHtml: `${_metaCompact(divCur)} <small>/ <span class="mt-edit" data-f="tgt">${_metaCompact(divTgt)}</span> · ${esc(t('metas.perYear'))}</small>`,
-    fill: divFill, mark: divMark, st: metaClassify(divFill, divMark), year: divYear, yearLocked: true, gap: true,
+    curHtml: `${_metaCompact(divCur)} <small>/ ${_metaCompact(divTgt)} · ${esc(t('metas.perYear'))}</small>`,
+    fill: divFill, mark: divMark, st: metaClassify(divFill, divMark), year: divYear, gap: true,
   });
   // 2) Ações — quantidade atual sincronizada do I10.
   for (const g of (state.shareGoals || [])) {
@@ -5564,55 +5583,81 @@ function renderMetas() {
     const fill = tgt > 0 ? cur / tgt * 100 : 0;
     const mark = (nowY - start) / Math.max(1, (year - start)) * 100;
     html += _metaRow({
-      id: g.id, type: 'shares', name: `<span class="mt-edit" data-f="name">${esc(g.ticker)}</span>`,
-      curHtml: `${_metaFmtN(cur)} <small>/ <span class="mt-edit" data-f="tgt">${_metaFmtN(tgt)}</span></small>`,
+      id: g.id, type: 'shares', name: esc(g.ticker),
+      curHtml: `${_metaFmtN(cur)} <small>/ ${_metaFmtN(tgt)}</small>`,
       fill, mark, st: metaClassify(fill, mark), year,
     });
   }
   wrap.innerHTML = html + `<span class="mt-add" id="mtAdd">+ ${esc(t('metas.add'))}</span>`;
 }
-function _metaStartEdit(el) {
-  const goalEl = el.closest('.mt-goal'); if (!goalEl) return;
-  const id = goalEl.dataset.id, type = goalEl.dataset.type, f = el.dataset.f;
-  let raw;
-  if (type === 'dividends') raw = String(state.dividendsYearlyGoal || 1000000);
-  else { const g = (state.shareGoals || []).find(x => x.id === id); if (!g) return; raw = f === 'name' ? g.ticker : String((f === 'tgt' ? g.target : g.year) || ''); }
-  const input = document.createElement('input');
-  input.className = 'mt-in'; input.value = raw; input.style.width = Math.max(2, raw.length + 1) + 'ch';
-  if (f !== 'name') input.inputMode = 'numeric';
-  el.textContent = ''; el.appendChild(input); input.focus(); input.select();
-  let done = false;
-  const commit = () => {
-    if (done) return; done = true;
-    const v = input.value.trim();
-    if (type === 'dividends') {
-      const n = parseInt(v.replace(/\D/g, ''), 10);
-      if (isFinite(n) && n > 0) { state.dividendsYearlyGoal = n; setDoc(docConfig, { dividendsYearlyGoal: n, updatedAt: serverTimestamp() }, { merge: true }).catch(() => {}); }
-      renderMetas();
-    } else {
-      const g = (state.shareGoals || []).find(x => x.id === id);
-      if (!g) { renderMetas(); return; }
-      if (f === 'name') { g.ticker = v.toUpperCase() || g.ticker; }
-      else { const n = parseInt(v.replace(/\D/g, ''), 10); if (isFinite(n) && n > 0) { if (f === 'tgt') g.target = n; else g.year = (n <= (+g.startYear || META_DIV_START)) ? (+g.startYear || META_DIV_START) + 1 : n; } }
-      saveShareGoals(); renderMetas();
-    }
-  };
-  input.addEventListener('blur', commit);
-  input.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); } if (ev.key === 'Escape') { done = true; renderMetas(); } });
+// Edição via modal (popup) — botão de lápis em cada meta abre a tela.
+let _metaEditingId = null;
+function openMetaModal(id) {
+  _metaEditingId = id || null;
+  const isDiv = id === 'div';
+  const isNew = !id;
+  const tickerField = $('metaTickerField'), yearField = $('metaYearField'), delBtn = $('metaDeleteBtn');
+  $('metaModalTitle').textContent = isNew ? t('metas.modal.new') : (isDiv ? t('metas.modal.editDiv') : t('metas.modal.edit'));
+  $('metaModalSub').textContent = isDiv ? t('metas.modal.subDiv') : t('metas.modal.subShare');
+  if (isDiv) {
+    tickerField.style.display = 'none';
+    yearField.style.display = 'none';
+    $('metaTargetLabel').textContent = t('metas.field.targetDiv');
+    $('metaTargetInput').value = String(state.dividendsYearlyGoal || 1000000);
+    delBtn.style.display = 'none';
+  } else {
+    tickerField.style.display = '';
+    yearField.style.display = '';
+    $('metaTargetLabel').textContent = t('metas.field.targetShares');
+    const g = isNew ? null : (state.shareGoals || []).find(x => x.id === id);
+    $('metaTickerInput').value = g ? g.ticker : '';
+    $('metaTargetInput').value = g ? String(g.target) : '';
+    $('metaYearInput').value = g ? String(g.year) : String(new Date().getFullYear() + 5);
+    delBtn.style.display = isNew ? 'none' : '';
+  }
+  $('metaModal').classList.add('show');
+  setTimeout(() => { (isDiv ? $('metaTargetInput') : $('metaTickerInput')).focus(); }, 60);
+}
+function closeMetaModal() { $('metaModal').classList.remove('show'); _metaEditingId = null; }
+function saveMetaModal() {
+  const id = _metaEditingId;
+  const parseN = (s) => { const n = parseInt(String(s || '').replace(/\D/g, ''), 10); return isFinite(n) ? n : 0; };
+  if (id === 'div') {
+    const n = parseN($('metaTargetInput').value);
+    if (n > 0) { state.dividendsYearlyGoal = n; setDoc(docConfig, { dividendsYearlyGoal: n, updatedAt: serverTimestamp() }, { merge: true }).catch(() => {}); }
+    renderMetas(); closeMetaModal(); return;
+  }
+  const ticker = ($('metaTickerInput').value || '').toUpperCase().trim();
+  const target = parseN($('metaTargetInput').value);
+  let year = parseN($('metaYearInput').value);
+  if (!ticker || target <= 0) { showToast(t('metas.invalid')); return; }
+  const nowY = new Date().getFullYear();
+  if (!id) {
+    const startYear = nowY;
+    if (year <= startYear) year = startYear + 1;
+    state.shareGoals = [...(state.shareGoals || []), { id: 'sg' + Date.now().toString(36), ticker, target, startYear, year }];
+  } else {
+    const g = (state.shareGoals || []).find(x => x.id === id);
+    if (g) { g.ticker = ticker; g.target = target; const st = +g.startYear || META_DIV_START; g.year = year <= st ? st + 1 : year; }
+  }
+  saveShareGoals(); renderMetas(); closeMetaModal();
+}
+function deleteMetaFromModal() {
+  const id = _metaEditingId;
+  if (id && id !== 'div') { state.shareGoals = (state.shareGoals || []).filter(g => g.id !== id); saveShareGoals(); renderMetas(); }
+  closeMetaModal();
 }
 document.getElementById('metasList')?.addEventListener('click', (e) => {
-  if (e.target.closest('#mtAdd')) {
-    const y = new Date().getFullYear();
-    state.shareGoals = [...(state.shareGoals || []), { id: 'sg' + Date.now().toString(36), ticker: 'TICK3', target: 10000, startYear: y, year: y + 5 }];
-    saveShareGoals(); renderMetas();
-    const last = document.getElementById('metasList').querySelector('.mt-goal[data-type="shares"]:last-of-type .mt-edit');
-    last && last.click();
-    return;
-  }
-  const del = e.target.closest('.mt-del');
-  if (del) { const id = del.closest('.mt-goal').dataset.id; state.shareGoals = (state.shareGoals || []).filter(g => g.id !== id); saveShareGoals(); renderMetas(); return; }
-  const el = e.target.closest('.mt-edit');
-  if (el && !el.querySelector('input')) _metaStartEdit(el);
+  if (e.target.closest('#mtAdd')) { openMetaModal(null); return; }
+  const btn = e.target.closest('.mt-edit-btn');
+  if (btn) openMetaModal(btn.dataset.edit);
+});
+$('metaModalCancel')?.addEventListener('click', closeMetaModal);
+$('metaModalSave')?.addEventListener('click', saveMetaModal);
+$('metaDeleteBtn')?.addEventListener('click', deleteMetaFromModal);
+$('metaModal')?.addEventListener('click', (e) => { if (e.target.id === 'metaModal') closeMetaModal(); });
+['metaTickerInput', 'metaTargetInput', 'metaYearInput'].forEach(idn => {
+  $(idn)?.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); saveMetaModal(); } });
 });
 
 // ============================================================
