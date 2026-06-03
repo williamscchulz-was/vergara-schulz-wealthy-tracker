@@ -50,6 +50,7 @@ const docFx = doc(db, "household", "main", "config", "fx");
 const docI10Cfg   = doc(db, "household", "main", "config", "i10sync");
 const docReserves = doc(db, "household", "main", "config", "reserves");
 const docPension  = doc(db, "household", "main", "config", "pension");
+const docShareGoals = doc(db, "household", "main", "config", "shareGoals");
 const docBudgets  = doc(db, "household", "main", "config", "budgets");
 const docCategories = doc(db, "household", "main", "config", "categories");
 const docImportMeta = doc(db, "household", "main", "config", "importMeta");
@@ -185,6 +186,7 @@ const state = {
   i10Syncing: false,
   dividendsYearlyGoal: 1_000_000,
   dividendsYearlyGoalYear: 2035,
+  shareGoals: [],                // metas de quantidade de ações [{id,ticker,target,startYear,year}]
   currentViewMonth: new Date(),  // month being viewed in Expenses
 };
 
@@ -457,6 +459,13 @@ const I18N = {
     'rz.due': 'parcelas a vencer', 'rz.due0': 'nada a vencer',
     'rz.bform': 'ganhos − despesas',
     'rz.topExpenses': 'Maiores despesas',
+    'metas.title': 'Metas',
+    'metas.note': 'a marca é o ritmo necessário · toque nos valores pra editar',
+    'metas.dividends': 'Renda em dividendos',
+    'metas.perYear': 'ano',
+    'metas.add': 'nova meta',
+    'metas.remove': 'remover',
+    'metas.fixed': 'prazo fixo',
     'fx.modal.title': 'Dólar (USD)',
     'fx.modal.sub': 'Quanto você tem em dólar — convertido pela cotação atual.',
     'fx.f.usd': 'Quantidade em USD',
@@ -882,6 +891,13 @@ const I18N = {
     'rz.due': 'upcoming installments', 'rz.due0': 'nothing due',
     'rz.bform': 'income − expenses',
     'rz.topExpenses': 'Top expenses',
+    'metas.title': 'Goals',
+    'metas.note': 'the marker is the pace needed · tap any value to edit',
+    'metas.dividends': 'Dividend income',
+    'metas.perYear': 'yr',
+    'metas.add': 'new goal',
+    'metas.remove': 'remove',
+    'metas.fixed': 'fixed deadline',
     'fx.modal.title': 'US Dollar (USD)',
     'fx.modal.sub': 'How much you hold in dollars — converted at the current rate.',
     'fx.f.usd': 'Amount in USD',
@@ -2878,6 +2894,7 @@ function renderInvestments() {
   renderI10Assets();
   renderMonthlyReturns();
   renderContributions();
+  if (typeof renderMetas === 'function') renderMetas();
 }
 
 // v8 Turno 6 — Bar chart range state (1Y / 5Y / All)
@@ -5209,6 +5226,17 @@ function subscribeAll() {
     }
     if (state.mode === 'investments') renderInvestments();
   });
+  unsub.shareGoals = onSnapshot(docShareGoals, (snap) => {
+    const d = snap.data();
+    if (d && Array.isArray(d.goals)) {
+      state.shareGoals = d.goals;
+    } else if (!snap.exists()) {
+      // Primeira carga: semeia as metas que o W já tinha em mente (20 mil de cada).
+      state.shareGoals = DEFAULT_SHARE_GOALS.map(g => ({ ...g }));
+      saveShareGoals();
+    }
+    if (state.mode === 'investments' && typeof renderMetas === 'function') renderMetas();
+  });
   unsub.contributions = onSnapshot(colContrib(), (snap) => {
     state.contributions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     if (state.mode === 'investments') renderContributions();
@@ -5501,6 +5529,119 @@ function getHistory() {
 function getCurrentPL() {
   return window.__ledgerEquity || 1795442;
 }
+
+// ============================================================
+//   METAS — barras minimalistas de progresso (dividendos + ações)
+//   Substitui o simulador. A quantidade atual das ações vem do I10.
+// ============================================================
+const DEFAULT_SHARE_GOALS = [
+  { id: 'bbas3', ticker: 'BBAS3', target: 20000, startYear: 2024, year: 2030 },
+  { id: 'bbse3', ticker: 'BBSE3', target: 20000, startYear: 2024, year: 2030 },
+  { id: 'cxse3', ticker: 'CXSE3', target: 20000, startYear: 2024, year: 2030 },
+  { id: 'rani3', ticker: 'RANI3', target: 20000, startYear: 2024, year: 2030 },
+];
+const META_DIV_START = 2024;   // ano-base do ritmo da meta de dividendos
+
+function i10Qty(ticker) {
+  const tk = String(ticker || '').toUpperCase().trim();
+  const a = (state.i10.assets || []).find(x => String(x.ticker || '').toUpperCase().trim() === tk);
+  return a ? (+a.quantity || 0) : 0;
+}
+function metaClassify(fill, mark) { const d = fill - mark; return d >= 5 ? 'ahead' : d <= -5 ? 'behind' : 'ontrack'; }
+function saveShareGoals() {
+  setDoc(docShareGoals, { goals: state.shareGoals, updatedAt: serverTimestamp() }, { merge: true })
+    .catch(e => console.warn('[metas] save', e));
+}
+function _metaFmtN(n) { return Math.round(+n || 0).toLocaleString('pt-BR'); }
+function _metaCompact(n) {
+  n = +n || 0;
+  if (n >= 1e6) return 'R$ ' + (n / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + 'M';
+  if (n >= 1e3) return 'R$ ' + (n / 1e3).toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + 'K';
+  return 'R$ ' + _metaFmtN(n);
+}
+function _metaRow(o) {
+  const f = Math.max(2, Math.min(100, o.fill || 0));
+  const mk = Math.max(0, Math.min(100, o.mark || 0));
+  const yearHtml = o.yearLocked
+    ? `<span class="mt-year" title="${esc(t('metas.fixed'))}">${o.year}</span>`
+    : `<span class="mt-year mt-edit" data-f="year">${o.year}</span>`;
+  return `<div class="mt-goal${o.gap ? ' gap' : ''}" data-id="${o.id}" data-type="${o.type}">`
+    + (o.type === 'shares' ? `<button class="mt-del" title="${esc(t('metas.remove'))}">×</button>` : '')
+    + `<div class="mt-row"><span class="mt-name">${o.name}</span><span class="mt-num">${o.curHtml}</span></div>`
+    + `<div class="mt-line"><div class="mt-bar"><div class="mt-fill ${o.st}" style="width:${f}%"></div><div class="mt-mark" style="left:${mk}%"></div></div>${yearHtml}</div>`
+    + `</div>`;
+}
+function renderMetas() {
+  const wrap = $('metasList'); if (!wrap) return;
+  const nowY = new Date().getFullYear();
+  // 1) Dividendos — alvo editável, prazo travado.
+  const divCur = +state.i10.dividends || 0;
+  const divTgt = +state.dividendsYearlyGoal || 1000000;
+  const divYear = +state.dividendsYearlyGoalYear || 2035;
+  const divFill = divTgt > 0 ? divCur / divTgt * 100 : 0;
+  const divMark = (nowY - META_DIV_START) / Math.max(1, (divYear - META_DIV_START)) * 100;
+  let html = _metaRow({
+    id: 'div', type: 'dividends', name: esc(t('metas.dividends')),
+    curHtml: `${_metaCompact(divCur)} <small>/ <span class="mt-edit" data-f="tgt">${_metaCompact(divTgt)}</span> · ${esc(t('metas.perYear'))}</small>`,
+    fill: divFill, mark: divMark, st: metaClassify(divFill, divMark), year: divYear, yearLocked: true, gap: true,
+  });
+  // 2) Ações — quantidade atual sincronizada do I10.
+  for (const g of (state.shareGoals || [])) {
+    const cur = i10Qty(g.ticker), tgt = +g.target || 0;
+    const start = +g.startYear || META_DIV_START, year = +g.year || (nowY + 5);
+    const fill = tgt > 0 ? cur / tgt * 100 : 0;
+    const mark = (nowY - start) / Math.max(1, (year - start)) * 100;
+    html += _metaRow({
+      id: g.id, type: 'shares', name: `<span class="mt-edit" data-f="name">${esc(g.ticker)}</span>`,
+      curHtml: `${_metaFmtN(cur)} <small>/ <span class="mt-edit" data-f="tgt">${_metaFmtN(tgt)}</span></small>`,
+      fill, mark, st: metaClassify(fill, mark), year,
+    });
+  }
+  wrap.innerHTML = html + `<span class="mt-add" id="mtAdd">+ ${esc(t('metas.add'))}</span>`;
+}
+function _metaStartEdit(el) {
+  const goalEl = el.closest('.mt-goal'); if (!goalEl) return;
+  const id = goalEl.dataset.id, type = goalEl.dataset.type, f = el.dataset.f;
+  let raw;
+  if (type === 'dividends') raw = String(state.dividendsYearlyGoal || 1000000);
+  else { const g = (state.shareGoals || []).find(x => x.id === id); if (!g) return; raw = f === 'name' ? g.ticker : String((f === 'tgt' ? g.target : g.year) || ''); }
+  const input = document.createElement('input');
+  input.className = 'mt-in'; input.value = raw; input.style.width = Math.max(2, raw.length + 1) + 'ch';
+  if (f !== 'name') input.inputMode = 'numeric';
+  el.textContent = ''; el.appendChild(input); input.focus(); input.select();
+  let done = false;
+  const commit = () => {
+    if (done) return; done = true;
+    const v = input.value.trim();
+    if (type === 'dividends') {
+      const n = parseInt(v.replace(/\D/g, ''), 10);
+      if (isFinite(n) && n > 0) { state.dividendsYearlyGoal = n; setDoc(docConfig, { dividendsYearlyGoal: n, updatedAt: serverTimestamp() }, { merge: true }).catch(() => {}); }
+      renderMetas();
+    } else {
+      const g = (state.shareGoals || []).find(x => x.id === id);
+      if (!g) { renderMetas(); return; }
+      if (f === 'name') { g.ticker = v.toUpperCase() || g.ticker; }
+      else { const n = parseInt(v.replace(/\D/g, ''), 10); if (isFinite(n) && n > 0) { if (f === 'tgt') g.target = n; else g.year = (n <= (+g.startYear || META_DIV_START)) ? (+g.startYear || META_DIV_START) + 1 : n; } }
+      saveShareGoals(); renderMetas();
+    }
+  };
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); } if (ev.key === 'Escape') { done = true; renderMetas(); } });
+}
+document.getElementById('metasList')?.addEventListener('click', (e) => {
+  if (e.target.closest('#mtAdd')) {
+    const y = new Date().getFullYear();
+    state.shareGoals = [...(state.shareGoals || []), { id: 'sg' + Date.now().toString(36), ticker: 'TICK3', target: 10000, startYear: y, year: y + 5 }];
+    saveShareGoals(); renderMetas();
+    const last = document.getElementById('metasList').querySelector('.mt-goal[data-type="shares"]:last-of-type .mt-edit');
+    last && last.click();
+    return;
+  }
+  const del = e.target.closest('.mt-del');
+  if (del) { const id = del.closest('.mt-goal').dataset.id; state.shareGoals = (state.shareGoals || []).filter(g => g.id !== id); saveShareGoals(); renderMetas(); return; }
+  const el = e.target.closest('.mt-edit');
+  if (el && !el.querySelector('input')) _metaStartEdit(el);
+});
 
 function simulate(p) {
   const proj = [];
