@@ -5502,37 +5502,9 @@ window.addEventListener('resize', () => {
 
 
 // ============================================================
-//  GOAL SIMULATOR (scoped to avoid $/fmtBRL collision with main module)
-// ============================================================
-{
-
-const TARGET = 1000000;
-const TARGET_YEAR = 2035;
-const START_YEAR = 2026;
-const DEFAULTS = { aporte: 24000, crescAporte: 10, dy: 8, reinv: 100, crescDiv: 6 };
-
-let saveDebounce = null;
-let isLoadingFromFirestore = false;
-let userLoaded = false;
-
-const $ = id => document.getElementById(id);
-const fmtBRL = v => 'R$ ' + Math.round(v).toLocaleString('pt-BR');
-const fmtBRLk = v => v >= 1e6 ? 'R$ ' + (v/1e6).toFixed(2).replace('.',',') + 'M' : 'R$ ' + Math.round(v/1000) + 'k';
-
-function getHistory() {
-  // Lê do window.__ledgerState que app.js expoe (yearly history)
-  const yearly = window.__ledgerYearly || [];
-  return yearly.filter(y => y.equity != null || y.divs != null).sort((a,b) => a.year - b.year)
-    .map(y => ({ year: y.year, equity: +y.equity || 0, divs: +y.divs || 0 }));
-}
-
-function getCurrentPL() {
-  return window.__ledgerEquity || 1795442;
-}
-
-// ============================================================
 //   METAS — barras minimalistas de progresso (dividendos + ações)
 //   Substitui o simulador. A quantidade atual das ações vem do I10.
+//   (escopo de MÓDULO — precisa ser visível a renderInvestments/subscribeAll)
 // ============================================================
 const DEFAULT_SHARE_GOALS = [
   { id: 'bbas3', ticker: 'BBAS3', target: 20000, startYear: 2024, year: 2030 },
@@ -5642,6 +5614,35 @@ document.getElementById('metasList')?.addEventListener('click', (e) => {
   const el = e.target.closest('.mt-edit');
   if (el && !el.querySelector('input')) _metaStartEdit(el);
 });
+
+// ============================================================
+//  GOAL SIMULATOR (scoped to avoid $/fmtBRL collision with main module)
+// ============================================================
+{
+
+const TARGET = 1000000;
+const TARGET_YEAR = 2035;
+const START_YEAR = 2026;
+const DEFAULTS = { aporte: 24000, crescAporte: 10, dy: 8, reinv: 100, crescDiv: 6 };
+
+let saveDebounce = null;
+let isLoadingFromFirestore = false;
+let userLoaded = false;
+
+const $ = id => document.getElementById(id);
+const fmtBRL = v => 'R$ ' + Math.round(v).toLocaleString('pt-BR');
+const fmtBRLk = v => v >= 1e6 ? 'R$ ' + (v/1e6).toFixed(2).replace('.',',') + 'M' : 'R$ ' + Math.round(v/1000) + 'k';
+
+function getHistory() {
+  // Lê do window.__ledgerState que app.js expoe (yearly history)
+  const yearly = window.__ledgerYearly || [];
+  return yearly.filter(y => y.equity != null || y.divs != null).sort((a,b) => a.year - b.year)
+    .map(y => ({ year: y.year, equity: +y.equity || 0, divs: +y.divs || 0 }));
+}
+
+function getCurrentPL() {
+  return window.__ledgerEquity || 1795442;
+}
 
 function simulate(p) {
   const proj = [];
