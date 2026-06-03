@@ -1560,8 +1560,9 @@ body::before {
 .mt-bar { position: relative; flex: 1; height: 5px; border-radius: 4px; background: color-mix(in oklab, var(--ink-3) 16%, transparent); }
 .mt-fill { height: 100%; border-radius: 4px; transition: width .5s var(--ease-out), background .3s; }
 .mt-fill.ahead { background: var(--gain); } .mt-fill.ontrack { background: var(--purple); } .mt-fill.behind { background: var(--warn); }
+.mt-fill.progress { background: var(--purple); }
 .mt-mark { position: absolute; top: -3px; bottom: -3px; width: 1.5px; background: var(--ink-3); border-radius: 2px; transition: left .5s var(--ease-out); }
-.mt-year { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--ink-muted); width: 36px; text-align: right; flex-shrink: 0; }
+.mt-tail { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--ink-muted); text-align: right; flex-shrink: 0; white-space: nowrap; }
 .mt-edit-btn { flex-shrink: 0; width: 26px; height: 26px; display: grid; place-items: center; border: none; background: transparent; color: var(--ink-3); cursor: pointer; border-radius: 7px; padding: 0; transition: color .15s, background .15s; }
 .mt-edit-btn:hover { color: var(--purple); background: var(--bg-elevated-2); }
 .mt-edit-btn svg { width: 15px; height: 15px; }
