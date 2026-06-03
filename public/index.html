@@ -497,43 +497,25 @@ body::before {
 @media (min-width: 1760px) { .page { max-width: 1680px; } }
 
 /* ===========================================================
-   DESKTOP DASHBOARD — 2-column layout for wide screens.
-   Mobile-first stack stays the default; at ≥1100px the
-   Investments module flows into a 2-col grid (hero + the wide
-   yearly table span full width, the rest sit side-by-side).
-   Expenses already pairs its cards via .grid-2 internally, so
-   it just gets the wider container.
+   DESKTOP DASHBOARD v2 — stacked regions com grids 2-up internos.
+   Investimentos empilha regiões (hero · inv-top · carteira ·
+   inv-charts · histórico). .inv-top e .inv-charts viram 2 colunas
+   no desktop, então os cards encaixam densos, SEM buracos.
    =========================================================== */
-@media (min-width: 1100px) {
-  #moduleInvestments.active {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 22px;
-    align-items: start;
-  }
-  /* kill per-card stacking margin inside the grid (gap handles spacing) */
-  #moduleInvestments.active > .card,
-  #moduleInvestments.active > .hero-card { margin-bottom: 0; }
-  /* full-width spanners: the net-worth hero, anything tagged dash-span,
-     and any card holding a wide table or chart (cramped in a half column).
-     :has() is zero-JS and supported in all current browsers. */
-  #moduleInvestments.active > .hero-card,
-  #moduleInvestments.active > .dash-span,
-  #moduleInvestments.active > .card:has(.yearly-table),
-  #moduleInvestments.active > .card:has(.mr-table),
-  #moduleInvestments.active > .card:has(svg.chart) { grid-column: 1 / -1; }
+#moduleInvestments.active { display: flex; flex-direction: column; gap: 18px; }
+#moduleInvestments.active .card,
+#moduleInvestments.active .hero-card { margin-bottom: 0; }   /* gaps cuidam do espaçamento */
+.inv-top, .inv-charts { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
 
-  /* DESKTOP DENSITY — the app was tuned for phones; tighten on wide
-     screens so it reads as a dashboard, not a blown-up phone. */
+@media (min-width: 1000px) {
+  .inv-top, .inv-charts { grid-template-columns: 1fr 1fr; }
+  /* DENSIDADE no desktop — não parecer um celular esticado */
   .card { padding: 20px 22px; margin-bottom: 14px; }
   .hero-card { padding: 26px 26px 22px; }
   .card-head { margin-bottom: 14px; }
   .cat-row { padding: 11px 4px; }
   .cat-row:hover { padding: 11px 12px; }
   .exp-table td { padding: 10px 14px; }
-
-  /* Expenses: stop the hero/table from sprawling the full 1500px. */
-  /* Despesas ocupa a largura toda, igual ao Resumo (sem corredor estreito) */
   #moduleExpenses.active { max-width: none; }
 }
 
@@ -2866,6 +2848,8 @@ body::before {
         </div>
       </div>
 
+      <!-- REGIÃO TOPO: Metas + YTD lado a lado (2 colunas no desktop) -->
+      <div class="inv-top">
       <!-- METAS — barras de progresso (substitui o simulador de meta) -->
       <div class="card animate-in" id="metasCard">
         <div class="mt-head"><span class="mt-h-title" data-i18n="metas.title">Metas</span><span class="mt-h-note" data-i18n="metas.note">a marca é o ritmo necessário · toque nos valores pra editar</span></div>
@@ -2948,8 +2932,9 @@ body::before {
           </div>
         </div>
       </div>
+      </div><!-- /inv-top -->
 
-      <!-- CARTEIRA AGRUPADA -->
+      <!-- CARTEIRA AGRUPADA (largura total) -->
       <div class="card animate-in">
         <div class="card-body">
           <div class="card-head">
@@ -2963,6 +2948,8 @@ body::before {
         </div>
       </div>
 
+      <!-- REGIÃO GRÁFICOS: 2 a 2 no desktop -->
+      <div class="inv-charts">
       <!-- DIVIDENDOS POR ANO -->
       <div class="card animate-in">
         <div class="card-body">
@@ -3056,18 +3043,19 @@ body::before {
             </button>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
-            <div style="padding:14px 16px;background:rgba(255,255,255,0.025);border:1px solid var(--card-divider);border-radius:14px">
+            <div style="padding:14px 16px;background:var(--bg-elevated-2);border:1px solid var(--card-divider);border-radius:14px">
               <div style="font-size:12px;color:var(--ink-muted);margin-bottom:6px" data-i18n="contrib.total">total invested</div>
               <div id="contribTotal" style="font-family:'Geist Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-0.02em">R$ 0</div>
             </div>
-            <div style="padding:14px 16px;background:rgba(255,255,255,0.025);border:1px solid var(--card-divider);border-radius:14px">
+            <div style="padding:14px 16px;background:var(--bg-elevated-2);border:1px solid var(--card-divider);border-radius:14px">
               <div style="font-size:12px;color:var(--ink-muted);margin-bottom:6px" data-i18n="contrib.avg">monthly average</div>
               <div id="contribAvg" style="font-family:'Geist Mono',monospace;font-size:20px;font-weight:700;color:var(--purple-light);letter-spacing:-0.02em">R$ 0</div>
             </div>
           </div>
-          <div id="contribList" style="display:flex;flex-direction:column;gap:1px;background:rgba(0,0,0,0.25);border:1px solid var(--card-border);border-radius:14px;padding:6px 8px;max-height:320px;overflow-y:auto"></div>
+          <div id="contribList" style="display:flex;flex-direction:column;gap:1px;background:var(--bg-elevated-2);border:1px solid var(--card-border);border-radius:14px;padding:6px 8px;max-height:320px;overflow-y:auto"></div>
         </div>
       </div>
+      </div><!-- /inv-charts -->
 
       <!-- HISTORICO ANUAL -->
       <div class="card animate-in dash-span">
