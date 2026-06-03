@@ -6,21 +6,19 @@
 <title>Ledger · Metas (mockup)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;padding:0}
 :root{
-  --bg:#29262B;--bg-elevated:#3C3541;--bg-elevated-2:#322c37;
-  --border:rgba(255,255,255,0.08);--border-2:rgba(255,255,255,0.10);
+  --bg:#29262B;--bg-2:#322c37;
   --ink:#fafafa;--ink-2:#d4cfd9;--ink-3:#9c95a6;--ink-muted:#6b6473;
   --purple:#AC5FDB;--gain:#34e17a;--warn:#ffb340;
-  --track:color-mix(in oklab,var(--ink-3) 15%,transparent);
-  --radius:16px;--ease:cubic-bezier(.16,1,.3,1);
+  --track:color-mix(in oklab,var(--ink-3) 16%,transparent);
+  --ease:cubic-bezier(.16,1,.3,1);
 }
 :root[data-theme="light"]{
-  --bg:#ebe0f7;--bg-elevated:rgba(255,255,255,.66);--bg-elevated-2:rgba(255,255,255,.5);
-  --border:rgba(255,255,255,.9);--border-2:rgba(13,39,80,.07);
+  --bg:#ebe0f7;--bg-2:rgba(255,255,255,.5);
   --ink:#1a0d2e;--ink-2:#3d2856;--ink-3:#6b5680;--ink-muted:#9b8ab3;
   --purple:#9333ea;--gain:#16a34a;--warn:#d97706;
 }
@@ -31,140 +29,69 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:var(--bg)}
   radial-gradient(ellipse 60% 55% at 85% 20%,#f7e7f6 0%,transparent 60%),
   radial-gradient(ellipse 80% 60% at 50% 100%,#f1e8fb 0%,transparent 70%),#ebe0f7}
 
-.wrap{max-width:920px;margin:0 auto;padding:48px 24px 100px}
+.wrap{max-width:680px;margin:0 auto;padding:64px 28px 120px}
+.top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px}
+h1{font-size:20px;font-weight:600;letter-spacing:-.01em;margin:0}
+.theme{border:none;background:transparent;color:var(--ink-3);cursor:pointer;font-size:15px;padding:4px;line-height:1}
+.theme:hover{color:var(--ink)}
+.note{margin:0 0 52px;color:var(--ink-muted);font-size:12px}
+.note .mk{display:inline-block;width:1.5px;height:11px;background:var(--ink-3);vertical-align:-1px;margin-right:5px}
 
-.page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px}
-.page-head h1{font-size:23px;font-weight:700;letter-spacing:-.02em;margin:0}
-.sub{margin:8px 0 0;color:var(--ink-3);font-size:13px}
-.sub b{color:var(--ink-2);font-weight:600;font-family:'Geist Mono',monospace}
-.head-actions{display:flex;gap:4px;flex-shrink:0}
-.ibtn{width:34px;height:34px;display:grid;place-items:center;border:none;background:transparent;color:var(--ink-3);border-radius:9px;cursor:pointer;transition:.15s}
-.ibtn:hover{color:var(--ink);background:var(--bg-elevated-2)}
-.ibtn svg{width:17px;height:17px}
-.tbtn{border:1px solid var(--border-2);background:transparent;color:var(--ink-2);font:600 12.5px Inter,sans-serif;padding:8px 14px;border-radius:10px;cursor:pointer;transition:.15s}
-.tbtn:hover{border-color:var(--purple);color:var(--purple)}
-
-.hint{margin:18px 0 36px;color:var(--ink-muted);font-size:12px}
-.hint .mk{display:inline-block;width:1.5px;height:12px;background:var(--ink-3);vertical-align:-2px;margin:0 4px}
-
-.section{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-muted);margin:0 2px 14px}
-
-/* card de meta — minimal: hairline, sem sombra pesada, muito ar */
-.goal{background:var(--bg-elevated);border:1px solid var(--border-2);border-radius:var(--radius);padding:22px 24px;transition:border-color .2s var(--ease)}
-:root[data-theme="light"] .goal{backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%)}
-.goal:hover{border-color:color-mix(in oklab,var(--purple) 28%,var(--border-2))}
-
-.g-top{display:flex;align-items:baseline;justify-content:space-between;gap:14px}
-.g-name{font-size:15px;font-weight:600;letter-spacing:-.01em}
-.g-name small{font-weight:400;color:var(--ink-3);font-size:12.5px;margin-left:8px}
-.status{font-size:12px;font-weight:600;white-space:nowrap}
-.status.ahead{color:var(--gain)}.status.ontrack{color:var(--purple)}.status.behind{color:var(--warn)}
-
-.g-figs{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:16px}
-.g-cur{font-family:'Geist Mono',monospace;font-size:23px;font-weight:600;letter-spacing:-.01em;line-height:1}
-.g-cur small{font-size:13px;color:var(--ink-3);font-weight:400}
-.g-pct{font-family:'Geist Mono',monospace;font-size:14px;color:var(--ink-3)}
-
-.gbar{position:relative;height:8px;border-radius:5px;background:var(--track);margin:11px 0 10px}
-.gbar-fill{height:100%;border-radius:5px;transition:width .9s var(--ease)}
+.goal{margin-bottom:30px}
+.goal.gap{margin-bottom:46px}
+.g-row{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:11px}
+.g-name{font-size:14px;font-weight:500;letter-spacing:-.01em}
+.g-num{font-family:'Geist Mono',monospace;font-size:13px;color:var(--ink);white-space:nowrap}
+.g-num small{color:var(--ink-3);font-weight:400}
+.g-line{display:flex;align-items:center;gap:13px}
+.gbar{position:relative;flex:1;height:5px;border-radius:4px;background:var(--track)}
+.gbar-fill{height:100%;border-radius:4px;transition:width 1s var(--ease)}
 .gbar-fill.ahead{background:var(--gain)}.gbar-fill.ontrack{background:var(--purple)}.gbar-fill.behind{background:var(--warn)}
 .gbar-marker{position:absolute;top:-3px;bottom:-3px;width:1.5px;background:var(--ink-3);border-radius:2px}
+.g-year{font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-muted);width:30px;text-align:right;flex-shrink:0}
 
-.g-meta{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:var(--ink-3)}
-.g-meta .accent{color:var(--ink-2);font-weight:500}
-
-/* hero (dividendos) — mesmo estilo, só um pouco mais de contexto */
-.goal-hero .g-cur{font-size:27px}
-
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:680px){.wrap{padding:32px 16px 60px}.grid{grid-template-columns:1fr}}
+.add{margin-top:8px;color:var(--ink-muted);font-size:12.5px;cursor:pointer;display:inline-block}
+.add:hover{color:var(--purple)}
+@media(max-width:560px){.wrap{padding:44px 20px 80px}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="page-head">
-    <div>
-      <h1>Metas</h1>
-      <p class="sub" id="summaryLine"></p>
-    </div>
-    <div class="head-actions">
-      <button class="ibtn" id="themeBtn" title="Tema">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19" stroke-linecap="round"/></svg>
-      </button>
-      <button class="tbtn">+ Nova meta</button>
-    </div>
+  <div class="top">
+    <h1>Metas</h1>
+    <button class="theme" id="themeBtn" title="Tema">◐</button>
   </div>
+  <p class="note"><span class="mk"></span>a marca é o ritmo necessário pra bater no prazo</p>
 
-  <p class="hint">A marca <span class="mk"></span> em cada barra é o ritmo necessário pro prazo — passar dela é estar adiantado.</p>
-
-  <div class="section">Renda passiva</div>
-  <div id="incomeWrap" style="margin-bottom:34px"></div>
-
-  <div class="section">Posição em ações</div>
-  <div class="grid" id="sharesWrap"></div>
+  <div id="list"></div>
+  <span class="add">+ nova meta</span>
 </div>
 
 <script>
-const NOW = { y: 2026, m: 6 };
-const MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-const fmtN = n => (+n).toLocaleString('pt-BR');
-const compactBRL = n => { n=+n; if(n>=1e6) return 'R$ '+(n/1e6).toLocaleString('pt-BR',{maximumFractionDigits:2})+'M'; if(n>=1e3) return 'R$ '+(n/1e3).toLocaleString('pt-BR',{maximumFractionDigits:0})+'K'; return 'R$ '+fmtN(n); };
+const NOW=2026;
+const fmtN=n=>(+n).toLocaleString('pt-BR');
+const compact=n=>{n=+n;if(n>=1e6)return 'R$ '+(n/1e6).toLocaleString('pt-BR',{maximumFractionDigits:2})+'M';if(n>=1e3)return 'R$ '+(n/1e3).toLocaleString('pt-BR',{maximumFractionDigits:0})+'K';return 'R$ '+fmtN(n);};
+const classify=(f,m)=>{const d=f-m;return d>=5?'ahead':d<=-5?'behind':'ontrack';};
 
-const STLABEL = { ahead:'Adiantado', ontrack:'No caminho', behind:'Atrasado' };
-function classify(fillPct, markerPct){ const d=fillPct-markerPct; return d>=5?'ahead':d<=-5?'behind':'ontrack'; }
-function paceInfo(current, target, startY){
-  const monthsElapsed = Math.max(1,(NOW.y-startY)*12+NOW.m);
-  const perMonth = current/monthsElapsed, remaining = Math.max(0,target-current);
-  if(perMonth<=0) return {perMonth:0,eta:'—'};
-  const mi = NOW.m-1+Math.round(remaining/perMonth), y = NOW.y+Math.floor(mi/12);
-  return { perMonth, eta: remaining<=0?'atingida':MES[((mi%12)+12)%12]+' '+y };
-}
-function bar(fillPct, markerPct, st){
-  const f=Math.max(2,Math.min(100,fillPct)), mk=Math.max(0,Math.min(100,markerPct));
-  return `<div class="gbar"><div class="gbar-fill ${st}" style="width:${f}%"></div><div class="gbar-marker" style="left:${mk}%"></div></div>`;
-}
-
-/* dividendos R$ 1M/ano até 2035 */
-const inc = { target:1_000_000, current:218_000, startYear:2024, targetYear:2035, projected:1_240_000, contributed:3_820_000 };
-function renderIncome(){
-  const fillPct=inc.current/inc.target*100, markerPct=(NOW.y-inc.startYear)/(inc.targetYear-inc.startYear)*100;
-  const st=classify(fillPct,markerPct), projPct=Math.round(inc.projected/inc.target*100);
-  document.getElementById('incomeWrap').innerHTML = `
-  <div class="goal goal-hero">
-    <div class="g-top"><div class="g-name">Renda em dividendos <small>R$ 1M por ano até 2035</small></div><span class="status ${st}">${STLABEL[st]}</span></div>
-    <div class="g-figs"><div class="g-cur">${compactBRL(inc.current)}<small> /ano</small></div><div class="g-pct">${Math.round(fillPct)}%</div></div>
-    ${bar(fillPct,markerPct,st)}
-    <div class="g-meta"><span>projeção <span class="accent">${compactBRL(inc.projected)}/ano</span> (${projPct}%)</span><span>aportado ${compactBRL(inc.contributed)} · faltam ${inc.targetYear-NOW.y} anos</span></div>
-  </div>`;
-  return st;
-}
-
-/* 20 mil ações de cada */
-const shares = [
-  { ticker:'BBAS3', name:'Banco do Brasil',         current:12450, target:20000, startYear:2024, targetYear:2030 },
-  { ticker:'BBSE3', name:'BB Seguridade',           current:6500,  target:20000, startYear:2024, targetYear:2030 },
-  { ticker:'CXSE3', name:'Caixa Seguridade',        current:4100,  target:20000, startYear:2024, targetYear:2030 },
-  { ticker:'RANI3', name:'Irani Papel',             current:9800,  target:20000, startYear:2024, targetYear:2030 },
+const goals=[
+  { name:'Renda em dividendos', num:compact(218000)+' <small>/ '+compact(1000000)+'·ano</small>', cur:218000, tgt:1000000, start:2024, year:2035, gap:true },
+  { name:'BBAS3', num:fmtN(12450)+' <small>/ '+fmtN(20000)+'</small>', cur:12450, tgt:20000, start:2024, year:2030 },
+  { name:'BBSE3', num:fmtN(6500)+' <small>/ '+fmtN(20000)+'</small>',  cur:6500,  tgt:20000, start:2024, year:2030 },
+  { name:'CXSE3', num:fmtN(4100)+' <small>/ '+fmtN(20000)+'</small>',  cur:4100,  tgt:20000, start:2024, year:2030 },
+  { name:'RANI3', num:fmtN(9800)+' <small>/ '+fmtN(20000)+'</small>',  cur:9800,  tgt:20000, start:2024, year:2030 },
 ];
-function renderShares(){
-  return shares.map(s=>{
-    const fillPct=s.current/s.target*100, markerPct=(NOW.y-s.startYear)/(s.targetYear-s.startYear)*100;
-    const st=classify(fillPct,markerPct), pace=paceInfo(s.current,s.target,s.startYear);
-    return `<div class="goal">
-      <div class="g-top"><div class="g-name">${s.ticker} <small>${s.name}</small></div><span class="status ${st}">${STLABEL[st]}</span></div>
-      <div class="g-figs"><div class="g-cur">${fmtN(s.current)}<small> / ${fmtN(s.target)}</small></div><div class="g-pct">${Math.round(fillPct)}%</div></div>
-      ${bar(fillPct,markerPct,st)}
-      <div class="g-meta"><span>+${fmtN(Math.round(pace.perMonth))}/mês · atinge <span class="accent">${pace.eta}</span></span><span>prazo ${s.targetYear}</span></div>
-    </div>`;
-  }).join('');
-}
 
-const keys=[];
-keys.push(renderIncome());
-document.getElementById('sharesWrap').innerHTML = renderShares();
-shares.forEach(s=>{const f=s.current/s.target*100,mk=(NOW.y-s.startYear)/(s.targetYear-s.startYear)*100;keys.push(classify(f,mk));});
-const c={ahead:0,ontrack:0,behind:0}; keys.forEach(k=>c[k]++);
-document.getElementById('summaryLine').innerHTML = `${keys.length} metas · <b>${c.ahead}</b> adiantadas · <b>${c.ontrack}</b> no caminho · <b>${c.behind}</b> atrasada`;
+document.getElementById('list').innerHTML = goals.map(g=>{
+  const fill=g.cur/g.tgt*100, mark=(NOW-g.start)/(g.year-g.start)*100;
+  const st=classify(fill,mark);
+  return `<div class="goal${g.gap?' gap':''}">
+    <div class="g-row"><span class="g-name">${g.name}</span><span class="g-num">${g.num}</span></div>
+    <div class="g-line">
+      <div class="gbar"><div class="gbar-fill ${st}" style="width:${Math.max(2,Math.min(100,fill))}%"></div><div class="gbar-marker" style="left:${Math.max(0,Math.min(100,mark))}%"></div></div>
+      <span class="g-year">${g.year}</span>
+    </div>
+  </div>`;
+}).join('');
 
 document.getElementById('themeBtn').addEventListener('click',()=>{const h=document.documentElement;h.setAttribute('data-theme',h.getAttribute('data-theme')==='light'?'dark':'light');});
 </script>
