@@ -37,7 +37,7 @@ h1{font-size:20px;font-weight:600;letter-spacing:-.01em;margin:0}
 .note{margin:0 0 52px;color:var(--ink-muted);font-size:12px}
 .note .mk{display:inline-block;width:1.5px;height:11px;background:var(--ink-3);vertical-align:-1px;margin-right:5px}
 
-.goal{margin-bottom:30px}
+.goal{position:relative;margin-bottom:30px}
 .goal.gap{margin-bottom:46px}
 .g-row{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:11px}
 .g-name{font-size:14px;font-weight:500;letter-spacing:-.01em}
@@ -45,14 +45,24 @@ h1{font-size:20px;font-weight:600;letter-spacing:-.01em;margin:0}
 .g-num small{color:var(--ink-3);font-weight:400}
 .g-line{display:flex;align-items:center;gap:13px}
 .gbar{position:relative;flex:1;height:5px;border-radius:4px;background:var(--track)}
-.gbar-fill{height:100%;border-radius:4px;transition:width 1s var(--ease)}
+.gbar-fill{height:100%;border-radius:4px;transition:width .5s var(--ease),background .3s}
 .gbar-fill.ahead{background:var(--gain)}.gbar-fill.ontrack{background:var(--purple)}.gbar-fill.behind{background:var(--warn)}
-.gbar-marker{position:absolute;top:-3px;bottom:-3px;width:1.5px;background:var(--ink-3);border-radius:2px}
-.g-year{font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-muted);width:30px;text-align:right;flex-shrink:0}
+.gbar-marker{position:absolute;top:-3px;bottom:-3px;width:1.5px;background:var(--ink-3);border-radius:2px;transition:left .5s var(--ease)}
+.g-year{font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-muted);width:34px;text-align:right;flex-shrink:0}
 
-.add{margin-top:8px;color:var(--ink-muted);font-size:12.5px;cursor:pointer;display:inline-block}
+/* edição inline — discreta: pontilhado no hover, vira input no clique */
+.edit{cursor:text;border-bottom:1px dotted transparent;transition:border-color .15s}
+.edit:hover{border-bottom-color:var(--ink-3)}
+.edit-in{font:inherit;color:var(--purple);background:transparent;border:none;border-bottom:1px solid var(--purple);outline:none;padding:0;margin:0;text-align:inherit}
+.g-name .edit-in{color:var(--purple);font-weight:500}
+
+.g-del{position:absolute;top:0;right:-22px;width:18px;height:18px;display:grid;place-items:center;border:none;background:transparent;color:var(--ink-muted);cursor:pointer;opacity:0;font-size:15px;line-height:1;transition:opacity .15s,color .15s}
+.goal:hover .g-del{opacity:.6}
+.g-del:hover{opacity:1;color:var(--warn)}
+
+.add{margin-top:8px;color:var(--ink-muted);font-size:12.5px;cursor:pointer;display:inline-block;user-select:none}
 .add:hover{color:var(--purple)}
-@media(max-width:560px){.wrap{padding:44px 20px 80px}}
+@media(max-width:560px){.wrap{padding:44px 20px 80px}.g-del{right:-4px;opacity:.5}}
 </style>
 </head>
 <body>
@@ -61,10 +71,10 @@ h1{font-size:20px;font-weight:600;letter-spacing:-.01em;margin:0}
     <h1>Metas</h1>
     <button class="theme" id="themeBtn" title="Tema">◐</button>
   </div>
-  <p class="note"><span class="mk"></span>a marca é o ritmo necessário pra bater no prazo</p>
+  <p class="note"><span class="mk"></span>a marca é o ritmo necessário · toque nos valores pra editar</p>
 
   <div id="list"></div>
-  <span class="add">+ nova meta</span>
+  <span class="add" id="addBtn">+ nova meta</span>
 </div>
 
 <script>
@@ -73,27 +83,77 @@ const fmtN=n=>(+n).toLocaleString('pt-BR');
 const compact=n=>{n=+n;if(n>=1e6)return 'R$ '+(n/1e6).toLocaleString('pt-BR',{maximumFractionDigits:2})+'M';if(n>=1e3)return 'R$ '+(n/1e3).toLocaleString('pt-BR',{maximumFractionDigits:0})+'K';return 'R$ '+fmtN(n);};
 const classify=(f,m)=>{const d=f-m;return d>=5?'ahead':d<=-5?'behind':'ontrack';};
 
-const goals=[
-  { name:'Renda em dividendos', num:compact(218000)+' <small>/ '+compact(1000000)+'·ano</small>', cur:218000, tgt:1000000, start:2024, year:2035, gap:true },
-  { name:'BBAS3', num:fmtN(12450)+' <small>/ '+fmtN(20000)+'</small>', cur:12450, tgt:20000, start:2024, year:2030 },
-  { name:'BBSE3', num:fmtN(6500)+' <small>/ '+fmtN(20000)+'</small>',  cur:6500,  tgt:20000, start:2024, year:2030 },
-  { name:'CXSE3', num:fmtN(4100)+' <small>/ '+fmtN(20000)+'</small>',  cur:4100,  tgt:20000, start:2024, year:2030 },
-  { name:'RANI3', num:fmtN(9800)+' <small>/ '+fmtN(20000)+'</small>',  cur:9800,  tgt:20000, start:2024, year:2030 },
+const DEFAULTS=[
+  { id:'div', type:'dividends', name:'Renda em dividendos', cur:218000, tgt:1000000, start:2024, year:2035, gap:true },
+  { id:'bbas', type:'shares', name:'BBAS3', cur:12450, tgt:20000, start:2024, year:2030 },
+  { id:'bbse', type:'shares', name:'BBSE3', cur:6500,  tgt:20000, start:2024, year:2030 },
+  { id:'cxse', type:'shares', name:'CXSE3', cur:4100,  tgt:20000, start:2024, year:2030 },
+  { id:'rani', type:'shares', name:'RANI3', cur:9800,  tgt:20000, start:2024, year:2030 },
 ];
+let goals;
+try{ goals = JSON.parse(localStorage.getItem('metasMock')) || DEFAULTS; }catch(e){ goals = DEFAULTS; }
+const save=()=>localStorage.setItem('metasMock', JSON.stringify(goals));
 
-document.getElementById('list').innerHTML = goals.map(g=>{
-  const fill=g.cur/g.tgt*100, mark=(NOW-g.start)/(g.year-g.start)*100;
-  const st=classify(fill,mark);
-  return `<div class="goal${g.gap?' gap':''}">
-    <div class="g-row"><span class="g-name">${g.name}</span><span class="g-num">${g.num}</span></div>
-    <div class="g-line">
-      <div class="gbar"><div class="gbar-fill ${st}" style="width:${Math.max(2,Math.min(100,fill))}%"></div><div class="gbar-marker" style="left:${Math.max(0,Math.min(100,mark))}%"></div></div>
-      <span class="g-year">${g.year}</span>
-    </div>
-  </div>`;
-}).join('');
+const list=document.getElementById('list');
+function render(){
+  list.innerHTML = goals.map(g=>{
+    const fill=g.cur/g.tgt*100, mark=(NOW-g.start)/((g.year-g.start)||1)*100;
+    const st=classify(fill,mark);
+    // dividendos: alvo editável (quantidade), prazo TRAVADO. ações: tudo editável.
+    const nameHtml = g.type==='shares' ? `<span class="g-name"><span class="edit" data-f="name">${g.name}</span></span>` : `<span class="g-name">${g.name}</span>`;
+    const numHtml = g.type==='dividends'
+      ? `<span class="g-num">${compact(g.cur)} <small>/ <span class="edit" data-f="tgt">${compact(g.tgt)}</span> · ano</small></span>`
+      : `<span class="g-num">${fmtN(g.cur)} <small>/ <span class="edit" data-f="tgt">${fmtN(g.tgt)}</span></small></span>`;
+    const yearHtml = g.type==='dividends'
+      ? `<span class="g-year" title="prazo fixo">${g.year}</span>`
+      : `<span class="g-year edit" data-f="year">${g.year}</span>`;
+    return `<div class="goal${g.gap?' gap':''}" data-id="${g.id}">
+      <button class="g-del" title="remover">×</button>
+      <div class="g-row">${nameHtml}${numHtml}</div>
+      <div class="g-line">
+        <div class="gbar"><div class="gbar-fill ${st}" style="width:${Math.max(2,Math.min(100,fill))}%"></div><div class="gbar-marker" style="left:${Math.max(0,Math.min(100,mark))}%"></div></div>
+        ${yearHtml}
+      </div>
+    </div>`;
+  }).join('');
+}
 
+// edição inline
+list.addEventListener('click', e=>{
+  const del=e.target.closest('.g-del');
+  if(del){ const id=del.closest('.goal').dataset.id; goals=goals.filter(g=>g.id!==id); save(); render(); return; }
+  const el=e.target.closest('.edit');
+  if(!el || el.querySelector('input')) return;
+  const g=goals.find(x=>x.id===el.closest('.goal').dataset.id); if(!g) return;
+  const f=el.dataset.f;
+  const raw = f==='name' ? g.name : String(g[f]);
+  const input=document.createElement('input');
+  input.className='edit-in'; input.value=raw;
+  input.style.width=Math.max(2,(raw.length+1))+'ch';
+  if(f!=='name') input.inputMode='numeric';
+  el.textContent=''; el.appendChild(input); input.focus(); input.select();
+  let done=false;
+  const commit=()=>{
+    if(done) return; done=true;
+    let v=input.value.trim();
+    if(f==='name'){ g.name = v.toUpperCase() || g.name; }
+    else { const n=parseInt(v.replace(/\D/g,''),10); if(isFinite(n)&&n>0) g[f]=n; }
+    if(f==='year' && g.year<=g.start) g.year=g.start+1;  // prazo precisa ser futuro do início
+    save(); render();
+  };
+  input.addEventListener('blur',commit);
+  input.addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ev.preventDefault();input.blur();} if(ev.key==='Escape'){done=true;render();} });
+});
+
+document.getElementById('addBtn').addEventListener('click',()=>{
+  goals.push({ id:'g'+(goals.length)+Math.floor(performance.now()), type:'shares', name:'TICK3', cur:0, tgt:10000, start:NOW, year:NOW+5 });
+  save(); render();
+  // foca direto no nome da nova meta pra renomear
+  const rows=list.querySelectorAll('.goal'); const last=rows[rows.length-1]; last.querySelector('.edit')?.click();
+});
 document.getElementById('themeBtn').addEventListener('click',()=>{const h=document.documentElement;h.setAttribute('data-theme',h.getAttribute('data-theme')==='light'?'dark':'light');});
+
+render();
 </script>
 </body>
 </html>
