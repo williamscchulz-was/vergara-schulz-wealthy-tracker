@@ -6,111 +6,78 @@
 <title>Ledger · Metas (mockup)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;padding:0}
 :root{
   --bg:#29262B;--bg-elevated:#3C3541;--bg-elevated-2:#322c37;
-  --border:rgba(255,255,255,0.06);--border-2:rgba(255,255,255,0.10);
+  --border:rgba(255,255,255,0.08);--border-2:rgba(255,255,255,0.10);
   --ink:#fafafa;--ink-2:#d4cfd9;--ink-3:#9c95a6;--ink-muted:#6b6473;
-  --purple:#AC5FDB;--purple-light:#E3A2EE;
-  --gain:#34e17a;--gain-soft:rgba(52,225,122,.12);
-  --loss:#ff5e57;--loss-soft:rgba(255,94,87,.12);
-  --warn:#ffb340;--warn-soft:rgba(255,179,64,.14);
-  --track:color-mix(in oklab,var(--ink-3) 16%,transparent);
-  --radius:14px;--radius-lg:20px;--ease:cubic-bezier(.16,1,.3,1);
-  --shadow:0 8px 24px -6px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.06);
+  --purple:#AC5FDB;--gain:#34e17a;--warn:#ffb340;
+  --track:color-mix(in oklab,var(--ink-3) 15%,transparent);
+  --radius:16px;--ease:cubic-bezier(.16,1,.3,1);
 }
 :root[data-theme="light"]{
-  --bg:#ebe0f7;--bg-elevated:rgba(255,255,255,.72);--bg-elevated-2:rgba(255,255,255,.55);
-  --border:rgba(255,255,255,.85);--border-2:rgba(13,39,80,.08);
+  --bg:#ebe0f7;--bg-elevated:rgba(255,255,255,.66);--bg-elevated-2:rgba(255,255,255,.5);
+  --border:rgba(255,255,255,.9);--border-2:rgba(13,39,80,.07);
   --ink:#1a0d2e;--ink-2:#3d2856;--ink-3:#6b5680;--ink-muted:#9b8ab3;
-  --purple:#9333ea;--purple-light:#c084fc;
-  --gain:#16a34a;--gain-soft:rgba(22,163,74,.12);
-  --loss:#dc2626;--loss-soft:rgba(220,38,38,.12);
-  --warn:#d97706;--warn-soft:rgba(217,119,6,.14);
-  --shadow:0 8px 24px -8px rgba(13,39,80,.14),inset 0 1px 0 rgba(255,255,255,.95);
+  --purple:#9333ea;--gain:#16a34a;--warn:#d97706;
 }
-body{font-family:Inter,system-ui,sans-serif;color:var(--ink);min-height:100vh;position:relative;-webkit-font-smoothing:antialiased}
+body{font-family:Inter,system-ui,sans-serif;color:var(--ink);min-height:100vh;position:relative;-webkit-font-smoothing:antialiased;font-size:14px}
 body::before{content:'';position:fixed;inset:0;z-index:-1;background:var(--bg)}
 :root[data-theme="light"] body::before{background:
-  radial-gradient(ellipse 70% 50% at 15% 10%,#fef2e8 0%,transparent 55%),
-  radial-gradient(ellipse 60% 55% at 85% 20%,#f8e4f5 0%,transparent 60%),
-  radial-gradient(ellipse 80% 60% at 50% 100%,#f0e6fb 0%,transparent 70%),#ebe0f7}
+  radial-gradient(ellipse 70% 50% at 15% 10%,#fdf4ec 0%,transparent 55%),
+  radial-gradient(ellipse 60% 55% at 85% 20%,#f7e7f6 0%,transparent 60%),
+  radial-gradient(ellipse 80% 60% at 50% 100%,#f1e8fb 0%,transparent 70%),#ebe0f7}
 
-.wrap{max-width:1080px;margin:0 auto;padding:34px 24px 80px}
-.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:8px;flex-wrap:wrap}
-.page-head h1{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:0}
-.page-head p{margin:6px 0 0;color:var(--ink-3);font-size:13.5px}
-.head-actions{display:flex;gap:8px}
-.btn{border:1px solid var(--border-2);background:var(--bg-elevated);color:var(--ink-2);font:600 12.5px Inter,sans-serif;padding:9px 15px;border-radius:11px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:.15s var(--ease)}
-.btn:hover{border-color:var(--purple);color:var(--ink)}
-.btn.primary{background:var(--purple);border-color:var(--purple);color:#fff}
-.btn svg{width:15px;height:15px}
+.wrap{max-width:920px;margin:0 auto;padding:48px 24px 100px}
 
-/* resumo geral */
-.summary{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0 30px}
-.sum-chip{display:inline-flex;align-items:center;gap:8px;padding:10px 15px;border-radius:13px;background:var(--bg-elevated);border:1px solid var(--border-2);box-shadow:var(--shadow);font-size:13px;font-weight:600}
-.sum-chip b{font-family:'Geist Mono',monospace;font-size:16px}
-.dot{width:9px;height:9px;border-radius:50%}
-.dot.ahead{background:var(--gain)}.dot.ontrack{background:var(--purple)}.dot.behind{background:var(--warn)}
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px}
+.page-head h1{font-size:23px;font-weight:700;letter-spacing:-.02em;margin:0}
+.sub{margin:8px 0 0;color:var(--ink-3);font-size:13px}
+.sub b{color:var(--ink-2);font-weight:600;font-family:'Geist Mono',monospace}
+.head-actions{display:flex;gap:4px;flex-shrink:0}
+.ibtn{width:34px;height:34px;display:grid;place-items:center;border:none;background:transparent;color:var(--ink-3);border-radius:9px;cursor:pointer;transition:.15s}
+.ibtn:hover{color:var(--ink);background:var(--bg-elevated-2)}
+.ibtn svg{width:17px;height:17px}
+.tbtn{border:1px solid var(--border-2);background:transparent;color:var(--ink-2);font:600 12.5px Inter,sans-serif;padding:8px 14px;border-radius:10px;cursor:pointer;transition:.15s}
+.tbtn:hover{border-color:var(--purple);color:var(--purple)}
 
-.section-h{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-muted);margin:0 0 14px;display:flex;align-items:center;gap:10px}
-.section-h::after{content:'';flex:1;height:1px;background:var(--border-2)}
+.hint{margin:18px 0 36px;color:var(--ink-muted);font-size:12px}
+.hint .mk{display:inline-block;width:1.5px;height:12px;background:var(--ink-3);vertical-align:-2px;margin:0 4px}
 
-/* card de meta */
-.goal{background:var(--bg-elevated);border:1px solid var(--border-2);border-radius:var(--radius-lg);padding:22px 24px;box-shadow:var(--shadow);transition:transform .2s var(--ease),box-shadow .2s,border-color .2s}
-:root[data-theme="light"] .goal{backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%)}
-.goal:hover{transform:translateY(-3px);box-shadow:0 18px 40px -22px rgba(120,60,180,.5);border-color:color-mix(in oklab,var(--purple) 30%,var(--border-2))}
-.goal-top{display:flex;align-items:center;gap:13px;margin-bottom:18px}
-.g-av{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-family:'Geist Mono',monospace;font-weight:700;font-size:14px;color:#fff;flex-shrink:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 4px 12px -4px rgba(0,0,0,.35)}
-.g-av.round{border-radius:50%}
-.g-ti{min-width:0;flex:1}
-.g-ti h3{margin:0;font-size:16px;font-weight:700;letter-spacing:-.01em}
-.g-ti span{display:block;font-size:12px;color:var(--ink-3);margin-top:2px}
-.status{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
-.status .dot{width:7px;height:7px}
-.status.ahead{background:var(--gain-soft);color:var(--gain)}
-.status.ontrack{background:color-mix(in oklab,var(--purple) 16%,transparent);color:var(--purple)}
-.status.behind{background:var(--warn-soft);color:var(--warn)}
+.section{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-muted);margin:0 2px 14px}
 
-.g-figs{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:11px}
-.g-cur{font-family:'Geist Mono',monospace;font-size:26px;font-weight:650;letter-spacing:-.02em;line-height:1}
-.g-cur small{font-size:14px;color:var(--ink-3);font-weight:500}
-.g-tgt{font-family:'Geist Mono',monospace;font-size:13px;color:var(--ink-3)}
-.g-pct{font-family:'Geist Mono',monospace;font-size:22px;font-weight:700}
+/* card de meta — minimal: hairline, sem sombra pesada, muito ar */
+.goal{background:var(--bg-elevated);border:1px solid var(--border-2);border-radius:var(--radius);padding:22px 24px;transition:border-color .2s var(--ease)}
+:root[data-theme="light"] .goal{backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%)}
+.goal:hover{border-color:color-mix(in oklab,var(--purple) 28%,var(--border-2))}
 
-/* a barra de conquista com marcador de ritmo */
-.gbar{position:relative;height:13px;border-radius:8px;background:var(--track);margin:7px 0 9px}
-.gbar-fill{height:100%;border-radius:8px;transition:width .9s var(--ease);position:relative;overflow:hidden}
-.gbar-fill::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);opacity:.0}
-.gbar-fill.ahead{background:linear-gradient(90deg,var(--gain),color-mix(in oklab,var(--gain) 70%,#7CF))}
-.gbar-fill.ontrack{background:linear-gradient(90deg,var(--purple),var(--purple-light))}
-.gbar-fill.behind{background:linear-gradient(90deg,var(--warn),#ffd27a)}
-.gbar-marker{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--ink-2);border-radius:2px;opacity:.65}
-.gbar-marker::before{content:'';position:absolute;top:-4px;left:50%;transform:translateX(-50%);border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--ink-2)}
-.gbar-cap{display:flex;justify-content:space-between;gap:10px;font-size:11.5px;color:var(--ink-3)}
-.gbar-cap .pace{color:var(--ink-2);font-weight:600}
+.g-top{display:flex;align-items:baseline;justify-content:space-between;gap:14px}
+.g-name{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.g-name small{font-weight:400;color:var(--ink-3);font-size:12.5px;margin-left:8px}
+.status{font-size:12px;font-weight:600;white-space:nowrap}
+.status.ahead{color:var(--gain)}.status.ontrack{color:var(--purple)}.status.behind{color:var(--warn)}
 
-.g-foot{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid var(--border-2)}
-.g-stat{display:flex;flex-direction:column;gap:3px}
-.g-stat .k{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-muted);font-weight:700}
-.g-stat .v{font-family:'Geist Mono',monospace;font-size:14px;font-weight:600}
-.g-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+.g-figs{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:16px}
+.g-cur{font-family:'Geist Mono',monospace;font-size:23px;font-weight:600;letter-spacing:-.01em;line-height:1}
+.g-cur small{font-size:13px;color:var(--ink-3);font-weight:400}
+.g-pct{font-family:'Geist Mono',monospace;font-size:14px;color:var(--ink-3)}
 
-/* hero (dividendos) */
-.goal-hero{background:linear-gradient(160deg,color-mix(in oklab,var(--purple) 12%,var(--bg-elevated)),var(--bg-elevated) 70%);border-color:color-mix(in oklab,var(--purple) 26%,var(--border-2))}
-.goal-hero .g-cur{font-size:32px}
-.goal-hero .g-pct{font-size:26px}
+.gbar{position:relative;height:8px;border-radius:5px;background:var(--track);margin:11px 0 10px}
+.gbar-fill{height:100%;border-radius:5px;transition:width .9s var(--ease)}
+.gbar-fill.ahead{background:var(--gain)}.gbar-fill.ontrack{background:var(--purple)}.gbar-fill.behind{background:var(--warn)}
+.gbar-marker{position:absolute;top:-3px;bottom:-3px;width:1.5px;background:var(--ink-3);border-radius:2px}
 
-/* grid de cards de ações */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:16px}
-@media(min-width:1400px){.grid{grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}}
+.g-meta{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:var(--ink-3)}
+.g-meta .accent{color:var(--ink-2);font-weight:500}
 
-.legend{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-3);margin:0 0 18px;padding:11px 15px;background:var(--bg-elevated-2);border:1px solid var(--border-2);border-radius:12px}
-.legend .mk{display:inline-block;width:2px;height:14px;background:var(--ink-2);vertical-align:middle;margin:0 3px;position:relative}
-@media(max-width:560px){.wrap{padding:24px 16px 60px}.grid{grid-template-columns:1fr}.g-foot{gap:14px}}
+/* hero (dividendos) — mesmo estilo, só um pouco mais de contexto */
+.goal-hero .g-cur{font-size:27px}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:680px){.wrap{padding:32px 16px 60px}.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -118,153 +85,88 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:var(--bg)}
   <div class="page-head">
     <div>
       <h1>Metas</h1>
-      <p>Acompanhe cada objetivo e veja se você está <b style="color:var(--gain)">adiantado</b>, <b style="color:var(--purple)">no caminho</b> ou <b style="color:var(--warn)">atrasado</b> pra bater no prazo.</p>
+      <p class="sub" id="summaryLine"></p>
     </div>
     <div class="head-actions">
-      <button class="btn" id="themeBtn" title="Tema claro/escuro">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19" stroke-linecap="round"/></svg>
-        Tema
+      <button class="ibtn" id="themeBtn" title="Tema">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19" stroke-linecap="round"/></svg>
       </button>
-      <button class="btn primary">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-        Nova meta
-      </button>
+      <button class="tbtn">+ Nova meta</button>
     </div>
   </div>
 
-  <div class="summary" id="summary"></div>
+  <p class="hint">A marca <span class="mk"></span> em cada barra é o ritmo necessário pro prazo — passar dela é estar adiantado.</p>
 
-  <div class="legend">
-    A marca <span class="mk"></span> em cada barra é o <b style="color:var(--ink-2)">ritmo necessário</b> pra chegar no prazo. Barra passando da marca = adiantado; aquém = atrasado.
-  </div>
-
-  <div class="section-h">Renda passiva</div>
+  <div class="section">Renda passiva</div>
   <div id="incomeWrap" style="margin-bottom:34px"></div>
 
-  <div class="section-h">Posição em ações</div>
+  <div class="section">Posição em ações</div>
   <div class="grid" id="sharesWrap"></div>
 </div>
 
 <script>
-const NOW = { y: 2026, m: 6 };  // jun/2026 (mockup)
+const NOW = { y: 2026, m: 6 };
 const MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-const fmtBRL = (n,dec=0)=>'R$ '+(+n).toLocaleString('pt-BR',{minimumFractionDigits:dec,maximumFractionDigits:dec});
-const compactBRL = n => { n=+n; if(n>=1e6) return 'R$ '+(n/1e6).toLocaleString('pt-BR',{maximumFractionDigits:2})+'M'; if(n>=1e3) return 'R$ '+(n/1e3).toLocaleString('pt-BR',{maximumFractionDigits:0})+'K'; return fmtBRL(n); };
 const fmtN = n => (+n).toLocaleString('pt-BR');
+const compactBRL = n => { n=+n; if(n>=1e6) return 'R$ '+(n/1e6).toLocaleString('pt-BR',{maximumFractionDigits:2})+'M'; if(n>=1e3) return 'R$ '+(n/1e3).toLocaleString('pt-BR',{maximumFractionDigits:0})+'K'; return 'R$ '+fmtN(n); };
 
-// classificação adiantado / no caminho / atrasado, a partir do progresso x ritmo
-function classify(fillPct, markerPct){
-  const d = fillPct - markerPct;
-  if (d >= 5) return { key:'ahead', label:'Adiantado' };
-  if (d <= -5) return { key:'behind', label:'Atrasado' };
-  return { key:'ontrack', label:'No caminho' };
-}
+const STLABEL = { ahead:'Adiantado', ontrack:'No caminho', behind:'Atrasado' };
+function classify(fillPct, markerPct){ const d=fillPct-markerPct; return d>=5?'ahead':d<=-5?'behind':'ontrack'; }
 function paceInfo(current, target, startY){
-  const monthsElapsed = Math.max(1, (NOW.y-startY)*12 + NOW.m);
-  const perMonth = current/monthsElapsed;
-  const remaining = Math.max(0, target-current);
-  if (perMonth<=0) return { perMonth:0, eta:null };
-  const monthsToGo = remaining/perMonth;
-  let mi = NOW.m-1 + Math.round(monthsToGo), y = NOW.y + Math.floor(mi/12);
-  return { perMonth, eta: remaining<=0 ? 'atingida' : MES[((mi%12)+12)%12]+' '+y };
+  const monthsElapsed = Math.max(1,(NOW.y-startY)*12+NOW.m);
+  const perMonth = current/monthsElapsed, remaining = Math.max(0,target-current);
+  if(perMonth<=0) return {perMonth:0,eta:'—'};
+  const mi = NOW.m-1+Math.round(remaining/perMonth), y = NOW.y+Math.floor(mi/12);
+  return { perMonth, eta: remaining<=0?'atingida':MES[((mi%12)+12)%12]+' '+y };
 }
-function bar(fillPct, markerPct, status){
-  const f = Math.max(2, Math.min(100, fillPct));
-  const mk = Math.max(0, Math.min(100, markerPct));
-  return `<div class="gbar"><div class="gbar-fill ${status}" style="width:${f}%"></div><div class="gbar-marker" style="left:${mk}%"></div></div>`;
+function bar(fillPct, markerPct, st){
+  const f=Math.max(2,Math.min(100,fillPct)), mk=Math.max(0,Math.min(100,markerPct));
+  return `<div class="gbar"><div class="gbar-fill ${st}" style="width:${f}%"></div><div class="gbar-marker" style="left:${mk}%"></div></div>`;
 }
 
-/* ---------- META 1: dividendos R$ 1M/ano até 2035 ---------- */
-const inc = { target:1_000_000, current:218_000, startYear:2024, targetYear:2035, projected:1_240_000, pl:10_940_000, contributed:3_820_000, monthly:24_000 };
+/* dividendos R$ 1M/ano até 2035 */
+const inc = { target:1_000_000, current:218_000, startYear:2024, targetYear:2035, projected:1_240_000, contributed:3_820_000 };
 function renderIncome(){
-  const fillPct = inc.current/inc.target*100;
-  const markerPct = (NOW.y-inc.startYear)/(inc.targetYear-inc.startYear)*100;
-  const st = classify(fillPct, markerPct);
-  const yearsLeft = inc.targetYear-NOW.y;
-  const projPct = Math.round(inc.projected/inc.target*100);
+  const fillPct=inc.current/inc.target*100, markerPct=(NOW.y-inc.startYear)/(inc.targetYear-inc.startYear)*100;
+  const st=classify(fillPct,markerPct), projPct=Math.round(inc.projected/inc.target*100);
   document.getElementById('incomeWrap').innerHTML = `
   <div class="goal goal-hero">
-    <div class="goal-top">
-      <div class="g-av round" style="background:linear-gradient(135deg,var(--purple),var(--purple-light))">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-      </div>
-      <div class="g-ti"><h3>Renda em dividendos</h3><span>Receber R$ 1M por ano até 2035</span></div>
-      <span class="status ${st.key}"><span class="dot ${st.key}"></span>${st.label}</span>
-    </div>
-    <div class="g-figs">
-      <div class="g-cur">${compactBRL(inc.current)}<small> /ano</small></div>
-      <div style="text-align:right"><div class="g-pct" style="color:var(--${st.key==='ahead'?'gain':st.key==='behind'?'warn':'purple'})">${Math.round(fillPct)}%</div><div class="g-tgt">meta ${compactBRL(inc.target)}/ano</div></div>
-    </div>
-    ${bar(fillPct, markerPct, st.key)}
-    <div class="gbar-cap"><span>hoje</span><span class="pace">ritmo necessário · ${Math.round(markerPct)}%</span><span>2035</span></div>
-    <div class="g-foot">
-      <div class="g-stat"><span class="k">Projetado em 2035</span><span class="v" style="color:var(--gain)">${compactBRL(inc.projected)}/ano <small style="color:var(--ink-3)">(${projPct}%)</small></span></div>
-      <div class="g-stat"><span class="k">PL em 2035</span><span class="v">${compactBRL(inc.pl)}</span></div>
-      <div class="g-stat"><span class="k">Total aportado</span><span class="v">${compactBRL(inc.contributed)}</span></div>
-      <div class="g-stat"><span class="k">Falta</span><span class="v">${yearsLeft} anos</span></div>
-      <div class="g-actions">
-        <button class="btn">Ver gráfico</button>
-        <button class="btn">Ajustar</button>
-      </div>
-    </div>
+    <div class="g-top"><div class="g-name">Renda em dividendos <small>R$ 1M por ano até 2035</small></div><span class="status ${st}">${STLABEL[st]}</span></div>
+    <div class="g-figs"><div class="g-cur">${compactBRL(inc.current)}<small> /ano</small></div><div class="g-pct">${Math.round(fillPct)}%</div></div>
+    ${bar(fillPct,markerPct,st)}
+    <div class="g-meta"><span>projeção <span class="accent">${compactBRL(inc.projected)}/ano</span> (${projPct}%)</span><span>aportado ${compactBRL(inc.contributed)} · faltam ${inc.targetYear-NOW.y} anos</span></div>
   </div>`;
-  return st.key;
+  return st;
 }
 
-/* ---------- METAS 2-5: 20 mil ações de cada ---------- */
+/* 20 mil ações de cada */
 const shares = [
-  { ticker:'BBAS3', name:'Banco do Brasil',           color:'#c79a00', current:12450, target:20000, startYear:2024, targetYear:2030 },
-  { ticker:'BBSE3', name:'BB Seguridade',             color:'#1f8a5b', current:6500,  target:20000, startYear:2024, targetYear:2030 },
-  { ticker:'CXSE3', name:'Caixa Seguridade',          color:'#1c6bd6', current:4100,  target:20000, startYear:2024, targetYear:2030 },
-  { ticker:'RANI3', name:'Irani Papel e Embalagem',   color:'#e07b39', current:9800,  target:20000, startYear:2024, targetYear:2030 },
+  { ticker:'BBAS3', name:'Banco do Brasil',         current:12450, target:20000, startYear:2024, targetYear:2030 },
+  { ticker:'BBSE3', name:'BB Seguridade',           current:6500,  target:20000, startYear:2024, targetYear:2030 },
+  { ticker:'CXSE3', name:'Caixa Seguridade',        current:4100,  target:20000, startYear:2024, targetYear:2030 },
+  { ticker:'RANI3', name:'Irani Papel',             current:9800,  target:20000, startYear:2024, targetYear:2030 },
 ];
 function renderShares(){
   return shares.map(s=>{
-    const fillPct = s.current/s.target*100;
-    const markerPct = (NOW.y-s.startYear)/(s.targetYear-s.startYear)*100;
-    const st = classify(fillPct, markerPct);
-    const pace = paceInfo(s.current, s.target, s.startYear);
-    const remaining = s.target - s.current;
+    const fillPct=s.current/s.target*100, markerPct=(NOW.y-s.startYear)/(s.targetYear-s.startYear)*100;
+    const st=classify(fillPct,markerPct), pace=paceInfo(s.current,s.target,s.startYear);
     return `<div class="goal">
-      <div class="goal-top">
-        <div class="g-av" style="background:${s.color}">${s.ticker.slice(0,2)}</div>
-        <div class="g-ti"><h3>${s.ticker}</h3><span>${s.name}</span></div>
-        <span class="status ${st.key}"><span class="dot ${st.key}"></span>${st.label}</span>
-      </div>
-      <div class="g-figs">
-        <div class="g-cur">${fmtN(s.current)}<small> / ${fmtN(s.target)}</small></div>
-        <div class="g-pct" style="color:var(--${st.key==='ahead'?'gain':st.key==='behind'?'warn':'purple'})">${Math.round(fillPct)}%</div>
-      </div>
-      ${bar(fillPct, markerPct, st.key)}
-      <div class="gbar-cap"><span>faltam ${fmtN(remaining)} ações</span><span class="pace">ritmo · ${Math.round(markerPct)}%</span></div>
-      <div class="g-foot">
-        <div class="g-stat"><span class="k">Ritmo atual</span><span class="v">+${fmtN(Math.round(pace.perMonth))}/mês</span></div>
-        <div class="g-stat"><span class="k">Nesse ritmo, atinge</span><span class="v" style="color:var(--${st.key==='behind'?'warn':'gain'})">${pace.eta}</span></div>
-        <div class="g-stat"><span class="k">Prazo</span><span class="v">${s.targetYear}</span></div>
-      </div>
+      <div class="g-top"><div class="g-name">${s.ticker} <small>${s.name}</small></div><span class="status ${st}">${STLABEL[st]}</span></div>
+      <div class="g-figs"><div class="g-cur">${fmtN(s.current)}<small> / ${fmtN(s.target)}</small></div><div class="g-pct">${Math.round(fillPct)}%</div></div>
+      ${bar(fillPct,markerPct,st)}
+      <div class="g-meta"><span>+${fmtN(Math.round(pace.perMonth))}/mês · atinge <span class="accent">${pace.eta}</span></span><span>prazo ${s.targetYear}</span></div>
     </div>`;
   }).join('');
 }
 
-function renderSummary(keys){
-  const c = { ahead:0, ontrack:0, behind:0 };
-  keys.forEach(k=>c[k]++);
-  document.getElementById('summary').innerHTML =
-    `<div class="sum-chip"><span class="dot ahead"></span><b>${c.ahead}</b> adiantadas</div>
-     <div class="sum-chip"><span class="dot ontrack"></span><b>${c.ontrack}</b> no caminho</div>
-     <div class="sum-chip"><span class="dot behind"></span><b>${c.behind}</b> atrasadas</div>
-     <div class="sum-chip" style="margin-left:auto"><b>${keys.length}</b> metas ativas</div>`;
-}
-
-const incKey = renderIncome();
+const keys=[];
+keys.push(renderIncome());
 document.getElementById('sharesWrap').innerHTML = renderShares();
-const shareKeys = shares.map(s=>{const f=s.current/s.target*100,mk=(NOW.y-s.startYear)/(s.targetYear-s.startYear)*100;return classify(f,mk).key;});
-renderSummary([incKey, ...shareKeys]);
+shares.forEach(s=>{const f=s.current/s.target*100,mk=(NOW.y-s.startYear)/(s.targetYear-s.startYear)*100;keys.push(classify(f,mk));});
+const c={ahead:0,ontrack:0,behind:0}; keys.forEach(k=>c[k]++);
+document.getElementById('summaryLine').innerHTML = `${keys.length} metas · <b>${c.ahead}</b> adiantadas · <b>${c.ontrack}</b> no caminho · <b>${c.behind}</b> atrasada`;
 
-document.getElementById('themeBtn').addEventListener('click',()=>{
-  const h=document.documentElement;
-  h.setAttribute('data-theme', h.getAttribute('data-theme')==='light'?'dark':'light');
-});
+document.getElementById('themeBtn').addEventListener('click',()=>{const h=document.documentElement;h.setAttribute('data-theme',h.getAttribute('data-theme')==='light'?'dark':'light');});
 </script>
 </body>
 </html>
