@@ -1485,7 +1485,8 @@ function renderResumo() {
   const MN = getLang() === 'en' ? MONTH_NAMES_EN : MONTH_NAMES_PT;
   const periodLabel = annual ? String(year) : (MN[vd.getMonth()] + ' ' + year);
 
-  const items = (state.expenses || []).filter(e => (e.date || '').startsWith(prefix));
+  // Agrupa pela competência (mês da fatura) quando existe; senão pela data real.
+  const items = (state.expenses || []).filter(e => (e.competencia || e.date || '').startsWith(prefix));
   const exp = items.filter(e => e.type !== 'income');
   const inc = items.filter(e => e.type === 'income');
   const sum = arr => arr.reduce((s, e) => s + (+e.value || 0), 0);
@@ -1669,8 +1670,9 @@ async function pickInitialMode(user) {
 function filterExpensesByMonth(date) {
   const targetKey = monthKey(date);
   return state.expenses.filter(e => {
-    if (!e.date) return false;
-    return monthKey(parseLocalDate(e.date)) === targetKey;
+    // Agrupa pela competência (mês da fatura) quando existe; senão, pelo mês da data real.
+    const key = e.competencia || (e.date ? monthKey(parseLocalDate(e.date)) : null);
+    return key === targetKey;
   });
 }
 
@@ -4923,6 +4925,9 @@ async function doImport() {
     const iso = impToISO(tx.date); return [+iso.slice(0, 4), +iso.slice(5, 7)];
   };
   const monthISO = (tx, off) => { const [by, bm] = txBase(tx); const t0 = by * 12 + (bm - 1) + off; return `${Math.floor(t0 / 12)}-${String((t0 % 12) + 1).padStart(2, '0')}-15`; };
+  // competência "YYYY-MM" (mês da fatura, +off pras parcelas) — usada pra AGRUPAR o mês,
+  // enquanto `date` guarda a data REAL da compra (pra a lista mostrar a data certa).
+  const compStr = (tx, off) => { const [by, bm] = txBase(tx); const t0 = by * 12 + (bm - 1) + off; return `${Math.floor(t0 / 12)}-${String((t0 % 12) + 1).padStart(2, '0')}`; };
 
   const checks = [...document.querySelectorAll('#importList .imp-row input[type="checkbox"]:checked')];
   const batchId = 'b' + Date.now().toString(36);   // marca o lote pra permitir desfazer só este import
@@ -4938,7 +4943,7 @@ async function doImport() {
       const idate = impToISO(tx.date, txBase(tx)[0]);
       const got = fpFor(impFp(idate, tx.value, tx.desc));
       if (!got) continue;
-      batch.push({ type: 'income', description: tx.desc, value: tx.value, category: tx.incomeCat || 'outros', owner, nature: null, source: 'import:conta', batchId, date: idate, fp: got.fp, fpBase: got.fpBase, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import', notes: '' });
+      batch.push({ type: 'income', description: tx.desc, value: tx.value, category: tx.incomeCat || 'outros', owner, nature: null, source: 'import:conta', batchId, date: idate, competencia: compStr(tx, 0), fp: got.fp, fpBase: got.fpBase, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import', notes: '' });
       continue;
     }
     const nat = impNature(category, tx.desc);
@@ -4963,15 +4968,14 @@ async function doImport() {
         const got = fpFor(`parc|${descKey}|${valKey}|${realDate}|${k}/${Y}`);
         if (!got) continue;
         if (prov) provCount++;
-        batch.push({ ...base, date: monthISO(tx, off), fp: got.fp, fpBase: got.fpBase, provisioned: prov, installment: { k, total: Y },
+        batch.push({ ...base, date: off === 0 ? realDate : monthISO(tx, off), competencia: compStr(tx, off), fp: got.fp, fpBase: got.fpBase, provisioned: prov, installment: { k, total: Y },
           notes: [cardNote, `parcela ${k}/${Y}` + (prov ? ' · provisão' : '')].filter(Boolean).join(' · ') });
       }
     } else {
-      // fp pela data REAL da compra (estável entre imports), mas grava na competência da fatura.
+      // Data REAL da compra no `date` (a lista mostra a data certa); `competencia` agrupa no mês da fatura.
       const got = fpFor(impFp(realDate, tx.value, tx.desc));
       if (!got) continue;
-      const date = tx._src === 'cc' ? impToISO(tx.date) : monthISO(tx, 0);
-      batch.push({ ...base, date, fp: got.fp, fpBase: got.fpBase, notes: cardNote });
+      batch.push({ ...base, date: realDate, competencia: compStr(tx, 0), fp: got.fp, fpBase: got.fpBase, notes: cardNote });
     }
   }
   if (!batch.length) { showToast(t('imp.alldup')); return; }
