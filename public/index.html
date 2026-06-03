@@ -381,54 +381,51 @@ body {
 
 /* LIGHT MODE OVERRIDES */
 :root[data-theme="light"] {
-  --bg:            #ebe0f7;
-  --bg-deep:       #e0d0f0;
-  --bg-elevated:   rgba(255,255,255,0.72);
-  --bg-elevated-2: rgba(255,255,255,0.55);
-  --bg-elevated-3: rgba(255,255,255,0.40);
-  --border:        rgba(255,255,255,0.85);
-  --border-2:      rgba(13,39,80,0.08);
-  --border-strong: rgba(147,51,234,0.30);
-  --border-glow:   rgba(147,51,234,0.45);
-  --ink:           #1a0d2e;
-  --ink-2:         #3d2856;
-  --ink-3:         #6b5680;
-  --ink-muted:     #9b8ab3;
-  --purple:        #9333ea;
-  --purple-light:  #c084fc;
-  --purple-deep:   #6b21a8;
-  --purple-soft:   rgba(147,51,234,0.08);
-  --purple-glow:   rgba(147,51,234,0.28);
+  /* CLEAN / NEUTRO — fundo off-white, cards branco sólido, roxo só de acento */
+  --bg:            #f3f3f6;
+  --bg-deep:       #ececf0;
+  --bg-elevated:   #ffffff;
+  --bg-elevated-2: #f4f4f7;
+  --bg-elevated-3: #fafafb;
+  --border:        #e8e8ee;
+  --border-2:      #eeeef2;
+  --border-strong: rgba(124,58,237,0.28);
+  --border-glow:   rgba(124,58,237,0.40);
+  --ink:           #1b1b22;
+  --ink-2:         #55555f;
+  --ink-3:         #8a8a95;
+  --ink-muted:     #adadb6;
+  --purple:        #7c3aed;
+  --purple-light:  #a78bfa;
+  --purple-deep:   #6d28d9;
+  --purple-soft:   rgba(124,58,237,0.07);
+  --purple-glow:   rgba(124,58,237,0.20);
   --gain:          #16a34a;
   --gain-soft:     rgba(22,163,74,0.10);
   --loss:          #dc2626;
   --loss-soft:     rgba(220,38,38,0.10);
   --warn:          #d97706;
-  --shadow-sm:     0 2px 6px rgba(13,39,80,0.08);
-  --shadow:        0 8px 24px -8px rgba(13,39,80,0.14), 0 2px 8px -2px rgba(107,33,168,0.08), inset 0 1px 0 rgba(255,255,255,0.95);
-  --shadow-lg:     0 18px 50px -12px rgba(13,39,80,0.18), 0 8px 24px -8px rgba(107,33,168,0.12), inset 0 1px 0 rgba(255,255,255,0.95);
-  --shadow-glow:   0 12px 28px -6px rgba(147,51,234,0.32);
+  --shadow-sm:     0 1px 2px rgba(24,24,40,0.05);
+  --shadow:        0 1px 2px rgba(24,24,40,0.04), 0 6px 20px -10px rgba(24,24,40,0.12);
+  --shadow-lg:     0 4px 10px -4px rgba(24,24,40,0.08), 0 18px 44px -16px rgba(24,24,40,0.18);
+  --shadow-glow:   0 10px 26px -8px rgba(124,58,237,0.20);
 
-  /* v8 glass tokens — light variant (frosted white over lavender bg) */
-  --glass-bg:         rgba(255,255,255,0.55);
-  --glass-bg-strong:  rgba(255,255,255,0.72);
-  --glass-border:     rgba(147,51,234,0.22);
-  --glass-highlight:  rgba(255,255,255,0.60);
+  /* vidro vira branco quase opaco (login/modais) — sem mais lavanda translúcida */
+  --glass-bg:         rgba(255,255,255,0.85);
+  --glass-bg-strong:  rgba(255,255,255,0.94);
+  --glass-border:     #e8e8ee;
+  --glass-highlight:  rgba(255,255,255,0.9);
 }
 :root[data-theme="light"] body::before {
-  background:
-    radial-gradient(ellipse 70% 50% at 15% 10%, #fef2e8 0%, transparent 55%),
-    radial-gradient(ellipse 60% 55% at 85% 20%, #f8e4f5 0%, transparent 60%),
-    radial-gradient(ellipse 80% 60% at 50% 100%, #f0e6fb 0%, transparent 70%),
-    #ebe0f7 !important;
+  background: linear-gradient(180deg, #f6f6f9 0%, #f1f1f5 100%) !important;
 }
 :root[data-theme="light"] .card,
 :root[data-theme="light"] .hero-card,
 :root[data-theme="light"] .goal-card,
 :root[data-theme="light"] .login-card,
 :root[data-theme="light"] .modal {
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 :root[data-theme="light"] .modal-bg { background: rgba(60,53,65,0.40); }
 :root[data-theme="light"] .modal select option { background: #ffffff; color: #29262B; }
