@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Aevo · brand</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+:root{
+  --bg:#131410; --card:#1c1d16; --card-2:#24251c; --border:#2c2d23;
+  --ink:#f3f4ee; --ink-2:#b4b6aa; --ink-3:#7e8075;
+  --lime:#c7f73e; --green:#3bd07a; --dgreen:#14331f;
+}
+:root[data-theme="light"]{
+  --bg:#f4f6f0; --card:#ffffff; --card-2:#eef3e7; --border:#e4e9da;
+  --ink:#15211a; --ink-2:#53604f; --ink-3:#8a9482;
+  --lime:#bdf04a; --green:#2fae5f; --dgreen:#14331f;
+}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1100px;margin:0 auto;padding:40px 28px 90px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+h1{font-size:13px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);margin:0}
+.theme{border:1px solid var(--border);background:var(--card);color:var(--ink-2);width:36px;height:36px;border-radius:10px;cursor:pointer;display:grid;place-items:center}
+.theme svg{width:16px;height:16px}
+.sec{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin:42px 0 16px}
+
+/* ---- LOGO MARK ---- */
+.mark{display:inline-block}
+.mark svg{display:block}
+.lockup{display:inline-flex;align-items:center;gap:16px}
+.word{font-weight:800;letter-spacing:-.03em;font-size:46px;line-height:1}
+.word .dot{color:var(--lime)}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.panel{border:1px solid var(--border);border-radius:20px;padding:34px;display:flex;align-items:center;justify-content:center;min-height:170px}
+.panel.dark{background:#131410;color:#f3f4ee}
+.panel.light{background:#f4f6f0;color:#15211a}
+.panel .word{color:inherit}
+.cap{font-size:11px;color:var(--ink-3);margin-top:8px;font-family:'Geist Mono',monospace}
+
+.icons{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+.appicon{width:88px;height:88px;border-radius:22px;display:grid;place-items:center;box-shadow:0 10px 30px -12px rgba(0,0,0,.6)}
+.appicon.lime{background:#131410}
+.appicon.green{background:linear-gradient(150deg,#1a7f3f,#0f4d27)}
+.appicon.white{background:#fff;border:1px solid var(--border)}
+
+/* ---- SPLASH ---- */
+.splash{position:relative;border:1px solid var(--border);border-radius:26px;overflow:hidden;height:420px;background:radial-gradient(120% 80% at 50% 18%, #1d2415 0%, #131410 60%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+.splash .lockup{flex-direction:column;gap:18px;animation:rise 1.1s cubic-bezier(.16,1,.3,1) both}
+.splash .word{font-size:40px;color:#f3f4ee}
+.splash .tag{position:absolute;bottom:28px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#6f725f;font-family:'Geist Mono',monospace}
+@keyframes rise{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+
+/* ---- PALETTE ---- */
+.sw{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px}
+.chip{border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.chip .c{height:64px}
+.chip .n{padding:9px 11px;font-size:10.5px;font-family:'Geist Mono',monospace;color:var(--ink-2)}
+.chip .n b{display:block;color:var(--ink);font-family:Inter;font-weight:600;font-size:11.5px;margin-bottom:2px}
+
+/* ---- CONCEPT (light Fynix) ---- */
+.demo{display:grid;grid-template-columns:1.3fr 1fr;gap:14px}
+.dcard{border-radius:18px;padding:20px;border:1px solid var(--border);background:var(--card)}
+.dcard.hero{grid-column:1/-1;background:linear-gradient(140deg,#1c8f47,#0f4d27);border:none;color:#eafff1;display:flex;justify-content:space-between;align-items:flex-end}
+.dcard.hero .big{font-family:'Geist Mono',monospace;font-size:34px;font-weight:700;letter-spacing:-.02em}
+.dcard .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.8;margin-bottom:8px}
+.dcard .v{font-family:'Geist Mono',monospace;font-size:22px;font-weight:700}
+.btn-lime{background:var(--lime);color:#14331f;border:none;border-radius:11px;padding:10px 18px;font-weight:700;font-size:13px}
+.demobars{display:flex;align-items:flex-end;gap:6px;height:80px;margin-top:14px}
+.demobars i{flex:1;border-radius:4px 4px 0 0;background:var(--green)}
+.demobars i.alt{background:var(--lime)}
+@media(max-width:720px){.grid,.demo{grid-template-columns:1fr}.word{font-size:38px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>Aevo · brand</h1>
+    <button class="theme" id="themeBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19" stroke-linecap="round"/></svg></button>
+  </div>
+
+  <div class="sec">Logo</div>
+  <div class="grid">
+    <div>
+      <div class="panel dark">
+        <div class="lockup">
+          <span class="mark" style="color:#c7f73e"><svg width="56" height="56" viewBox="0 0 48 48" fill="currentColor"><path d="M24 6 L43 25 L35.5 25 L24 13.5 L12.5 25 L5 25 Z"/><path d="M24 20.5 L43 39.5 L35.5 39.5 L24 28 L12.5 39.5 L5 39.5 Z"/></svg></span>
+          <span class="word">AEVO</span>
+        </div>
+      </div>
+      <div class="cap">// principal — mark lime + wordmark</div>
+    </div>
+    <div>
+      <div class="panel light">
+        <div class="lockup">
+          <span class="mark" style="color:#2fae5f"><svg width="56" height="56" viewBox="0 0 48 48" fill="currentColor"><path d="M24 6 L43 25 L35.5 25 L24 13.5 L12.5 25 L5 25 Z"/><path d="M24 20.5 L43 39.5 L35.5 39.5 L24 28 L12.5 39.5 L5 39.5 Z"/></svg></span>
+          <span class="word">AEVO</span>
+        </div>
+      </div>
+      <div class="cap">// claro — mark verde esmeralda</div>
+    </div>
+  </div>
+
+  <div class="sec">Ícone do app (chevron ascendente = crescimento)</div>
+  <div class="icons">
+    <div><div class="appicon lime"><svg width="48" height="48" viewBox="0 0 48 48" fill="#c7f73e"><path d="M24 6 L43 25 L35.5 25 L24 13.5 L12.5 25 L5 25 Z"/><path d="M24 20.5 L43 39.5 L35.5 39.5 L24 28 L12.5 39.5 L5 39.5 Z"/></svg></div><div class="cap" style="text-align:center">dark</div></div>
+    <div><div class="appicon green"><svg width="48" height="48" viewBox="0 0 48 48" fill="#eafff1"><path d="M24 6 L43 25 L35.5 25 L24 13.5 L12.5 25 L5 25 Z"/><path d="M24 20.5 L43 39.5 L35.5 39.5 L24 28 L12.5 39.5 L5 39.5 Z"/></svg></div><div class="cap" style="text-align:center">green</div></div>
+    <div><div class="appicon white"><svg width="48" height="48" viewBox="0 0 48 48" fill="#15211a"><path d="M24 6 L43 25 L35.5 25 L24 13.5 L12.5 25 L5 25 Z"/><path d="M24 20.5 L43 39.5 L35.5 39.5 L24 28 L12.5 39.5 L5 39.5 Z"/></svg></div><div class="cap" style="text-align:center">mono</div></div>
+  </div>
+
+  <div class="sec">Splash de abertura (minimalista)</div>
+  <div class="splash">
+    <div class="lockup">
+      <span class="mark" style="color:#c7f73e"><svg width="76" height="76" viewBox="0 0 48 48" fill="currentColor"><path d="M24 6 L43 25 L35.5 25 L24 13.5 L12.5 25 L5 25 Z"/><path d="M24 20.5 L43 39.5 L35.5 39.5 L24 28 L12.5 39.5 L5 39.5 Z"/></svg></span>
+      <span class="word">AEVO</span>
+    </div>
+    <span class="tag">patrimônio do casal</span>
+  </div>
+
+  <div class="sec">Paleta verde</div>
+  <div class="sw">
+    <div class="chip"><div class="c" style="background:#131410"></div><div class="n"><b>bg dark</b>#131410</div></div>
+    <div class="chip"><div class="c" style="background:#1c1d16"></div><div class="n"><b>card dark</b>#1c1d16</div></div>
+    <div class="chip"><div class="c" style="background:#c7f73e"></div><div class="n"><b>lime</b>#c7f73e</div></div>
+    <div class="chip"><div class="c" style="background:#3bd07a"></div><div class="n"><b>green</b>#3bd07a</div></div>
+    <div class="chip"><div class="c" style="background:#14331f"></div><div class="n"><b>green deep</b>#14331f</div></div>
+    <div class="chip"><div class="c" style="background:#f4f6f0"></div><div class="n"><b>bg light</b>#f4f6f0</div></div>
+    <div class="chip"><div class="c" style="background:#2fae5f"></div><div class="n"><b>green (claro)</b>#2fae5f</div></div>
+    <div class="chip"><div class="c" style="background:#ffffff;border-bottom:1px solid #e4e9da"></div><div class="n"><b>card light</b>#ffffff</div></div>
+  </div>
+
+  <div class="sec">Conceito aplicado — modo claro (estilo Fynix)</div>
+  <div class="demo">
+    <div class="dcard hero">
+      <div><div class="lbl">Patrimônio total</div><div class="big">R$ 1.847.392</div></div>
+      <button class="btn-lime">+12,4%</button>
+    </div>
+    <div class="dcard">
+      <div class="lbl">Dividendos YTD <small>(só recebidos)</small></div>
+      <div class="v">R$ 74.857</div>
+      <div class="demobars"><i style="height:30%"></i><i style="height:45%"></i><i style="height:38%"></i><i class="alt" style="height:62%"></i><i style="height:55%"></i><i class="alt" style="height:80%"></i></div>
+    </div>
+    <div class="dcard">
+      <div class="lbl">Carteira</div>
+      <div class="v">7 ativos · R$ 988K</div>
+      <div class="demobars"><i class="alt" style="height:90%"></i><i style="height:70%"></i><i style="height:56%"></i><i style="height:48%"></i><i style="height:35%"></i><i style="height:22%"></i></div>
+    </div>
+  </div>
+</div>
+<script>
+document.getElementById('themeBtn').addEventListener('click',()=>{const h=document.documentElement;h.setAttribute('data-theme',h.getAttribute('data-theme')==='light'?'dark':'light');});
+</script>
+</body>
+</html>
