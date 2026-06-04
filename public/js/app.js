@@ -116,7 +116,7 @@ const CATEGORIES = {
 const DEFAULT_CATEGORIES = {};
 Object.entries(CATEGORIES).forEach(([k, v]) => { DEFAULT_CATEGORIES[k] = { ...v }; });
 const DEFAULT_CAT_KEYS = Object.keys(CATEGORIES);
-const CAT_PALETTE = ['#0071e3', '#30d158', '#ff9500', '#ff375f', '#af52de', '#64d2ff', '#bf5af2', '#ff453a', '#ffd60a', '#8e8e93', '#AC5FDB', '#E3A2EE'];
+const CAT_PALETTE = ['#0071e3', '#30d158', '#ff9500', '#ff375f', '#af52de', '#64d2ff', '#bf5af2', '#ff453a', '#ffd60a', '#8e8e93', '#c7f73e', '#d8fa72'];
 const CAT_ICON_KEYS = ['tag', 'home', 'utensils', 'cart', 'car', 'plane', 'heartPulse', 'gamepad', 'book', 'repeat', 'creditCard', 'shoppingBag', 'package', 'briefcase', 'wrench', 'pieChart', 'trendingUp', 'gift'];
 function applyCategoryConfig(cfg) {
   cfg = cfg || {};
@@ -150,8 +150,8 @@ function populateCategorySelect() {
 const INCOME_SOURCES = {
   salario:      { icon: ICONS.briefcase,   color: '#30d158', labelKey: 'exp.sources.salario' },
   freelance:    { icon: ICONS.wrench,      color: '#64d2ff', labelKey: 'exp.sources.freelance' },
-  distribuicao: { icon: ICONS.pieChart,    color: '#AC5FDB', labelKey: 'exp.sources.distribuicao' },
-  dividendos:   { icon: ICONS.trendingUp,  color: '#E3A2EE', labelKey: 'exp.sources.dividendos' },
+  distribuicao: { icon: ICONS.pieChart,    color: '#c7f73e', labelKey: 'exp.sources.distribuicao' },
+  dividendos:   { icon: ICONS.trendingUp,  color: '#d8fa72', labelKey: 'exp.sources.dividendos' },
   venda:        { icon: ICONS.tag,         color: '#ffd60a', labelKey: 'exp.sources.venda' },
   presente:     { icon: ICONS.gift,        color: '#ff9500', labelKey: 'exp.sources.presente' },
   outros:       { icon: ICONS.package,     color: '#8e8e93', labelKey: 'exp.sources.outros' },
@@ -1458,7 +1458,7 @@ function renderExpensesNetWorthPill() {
 //                 RESUMO (planejamento) — aba dashboard
 // ============================================================
 let _resumoView = 'mensal';  // 'mensal' | 'anual'
-const RZ_PERSON = { william: ['William', '#64d2ff', 'W'], flavia: ['Flávia', '#E3A2EE', 'F'], louise: ['Louise', '#30d158', 'L'], familia: ['Família', '#AC5FDB', 'Fam'] };
+const RZ_PERSON = { william: ['William', '#64d2ff', 'W'], flavia: ['Flávia', '#d8fa72', 'F'], louise: ['Louise', '#30d158', 'L'], familia: ['Família', '#c7f73e', 'Fam'] };
 // Ícones dos KPIs do Resumo (cor herda do CSS via currentColor).
 const RZ_KIC = {
   income:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>',
@@ -2560,7 +2560,7 @@ const CASH_CAT = {
     state: () => state.pension,
     iconClass: 'pension-icon',
     rowClass: 'pension-row',
-    countColor: '#E3A2EE',
+    countColor: '#d8fa72',
     rowId: 'pensionRow',
     expId: 'pensionExpanded',
     addBtnId: 'pensionAddBtn',
@@ -3052,7 +3052,7 @@ function buildBarChart(years, values, opts = {}) {
         // Dashed connector line between the two bar tops (from right edge of prev to left edge of cur)
         const prevRight = prev.cx + barWidth / 2;
         const curLeft = cur.cx - barWidth / 2;
-        svg += '<line x1="' + prevRight + '" y1="' + prev.top + '" x2="' + curLeft + '" y2="' + cur.top + '" stroke="rgba(227,162,238,.35)" stroke-width="1.5" stroke-dasharray="2 3"/>';
+        svg += '<line x1="' + prevRight + '" y1="' + prev.top + '" x2="' + curLeft + '" y2="' + cur.top + '" stroke="rgba(199,247,62,.35)" stroke-width="1.5" stroke-dasharray="2 3"/>';
         // Pill centered on midpoint of the connector, opaque fill
         const midX = (prev.cx + cur.cx) / 2;
         const midY = (prev.top + cur.top) / 2;
@@ -3066,9 +3066,9 @@ function buildBarChart(years, values, opts = {}) {
       const valid = points.filter(p => p !== null);
       if (valid.length >= 2) {
         const linePts = valid.map(p => p.cx + ',' + p.top).join(' ');
-        svg += '<polyline points="' + linePts + '" fill="none" stroke="#E3A2EE" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>';
+        svg += '<polyline points="' + linePts + '" fill="none" stroke="#d8fa72" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>';
         for (const p of valid) {
-          svg += '<circle cx="' + p.cx + '" cy="' + p.top + '" r="4" fill="#E3A2EE" stroke="#29262B" stroke-width="2"/>';
+          svg += '<circle cx="' + p.cx + '" cy="' + p.top + '" r="4" fill="#d8fa72" stroke="#131410" stroke-width="2"/>';
         }
         // Show YoY % only on top 3 highest growths to avoid clutter
         const yoys = [];
@@ -5821,10 +5821,10 @@ function drawChart(proj, metaHitYear) {
   let svg = '<g class="chart-svg">';
   svg += '<defs>';
   svg += '<pattern id="hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">';
-  svg += '<line x1="0" y1="0" x2="0" y2="8" stroke="#AC5FDB" stroke-width="1.2" stroke-opacity=".38"/>';
+  svg += '<line x1="0" y1="0" x2="0" y2="8" stroke="#c7f73e" stroke-width="1.2" stroke-opacity=".38"/>';
   svg += '</pattern>';
   svg += '<linearGradient id="histLine" x1="0" y1="0" x2="1" y2="0">';
-  svg += '<stop offset="0" stop-color="#8b3fb8"/><stop offset="1" stop-color="#E3A2EE"/>';
+  svg += '<stop offset="0" stop-color="#a6d22e"/><stop offset="1" stop-color="#d8fa72"/>';
   svg += '</linearGradient>';
   svg += '</defs>';
 
@@ -5833,17 +5833,17 @@ function drawChart(proj, metaHitYear) {
     const y = yS(t);
     svg += '<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>';
     const lbl = t===0 ? '0' : (t>=1000000 ? '1M' : (t/1000)+'K');
-    svg += '<text x="'+(padL-8)+'" y="'+(y+3)+'" text-anchor="end" fill="#6b6473" font-family="Geist Mono, monospace" font-size="9">'+lbl+'</text>';
+    svg += '<text x="'+(padL-8)+'" y="'+(y+3)+'" text-anchor="end" fill="#5d5f56" font-family="Geist Mono, monospace" font-size="9">'+lbl+'</text>';
   }
   // X labels
   for (const t of [2020,2025,2030,2035]) {
-    svg += '<text x="'+xS(t)+'" y="'+(H-padB+18)+'" text-anchor="middle" fill="#6b6473" font-family="Geist Mono, monospace" font-size="10">'+t+'</text>';
+    svg += '<text x="'+xS(t)+'" y="'+(H-padB+18)+'" text-anchor="middle" fill="#5d5f56" font-family="Geist Mono, monospace" font-size="10">'+t+'</text>';
   }
 
   // Target horizontal line (1M) — animated via .target-line
   const yT = yS(TARGET);
-  svg += '<line class="target-line" x1="'+padL+'" y1="'+yT+'" x2="'+(W-padR)+'" y2="'+yT+'" stroke="#E3A2EE" stroke-width="1" stroke-dasharray="2 3" opacity=".6"/>';
-  svg += '<text x="'+(padL+6)+'" y="'+(yT-6)+'" text-anchor="start" fill="#E3A2EE" font-weight="600" font-family="Geist Mono, monospace" font-size="9" letter-spacing="1" opacity=".7">TARGET 1M</text>';
+  svg += '<line class="target-line" x1="'+padL+'" y1="'+yT+'" x2="'+(W-padR)+'" y2="'+yT+'" stroke="#d8fa72" stroke-width="1" stroke-dasharray="2 3" opacity=".6"/>';
+  svg += '<text x="'+(padL+6)+'" y="'+(yT-6)+'" text-anchor="start" fill="#d8fa72" font-weight="600" font-family="Geist Mono, monospace" font-size="9" letter-spacing="1" opacity=".7">TARGET 1M</text>';
 
   // Hatched area under the history line — anchored at y of last real point, floors at bottom
   const baseY = yS(0);
@@ -5866,15 +5866,15 @@ function drawChart(proj, metaHitYear) {
   const projPath = [lastReal, ...projDivs.filter(d => d.year > lastReal.year)];
   if (projPath.length >= 2) {
     const projD = 'M' + projPath.map(d => xS(d.year)+','+yS(d.divs)).join(' L');
-    svg += '<path class="projection-line" d="'+projD+'" fill="none" stroke="#E3A2EE" stroke-width="2" stroke-linecap="round" opacity=".85"/>';
+    svg += '<path class="projection-line" d="'+projD+'" fill="none" stroke="#d8fa72" stroke-width="2" stroke-linecap="round" opacity=".85"/>';
   }
 
   // History point markers
   for (const d of realDivs.slice(0, -1)) {
-    svg += '<circle cx="'+xS(d.year)+'" cy="'+yS(d.divs)+'" r="3" fill="#E3A2EE" stroke="#29262B" stroke-width="2"/>';
+    svg += '<circle cx="'+xS(d.year)+'" cy="'+yS(d.divs)+'" r="3" fill="#d8fa72" stroke="#131410" stroke-width="2"/>';
   }
   // Current point (last real) — pulses via .current-point
-  svg += '<circle class="current-point" cx="'+xS(lastReal.year)+'" cy="'+yS(lastReal.divs)+'" r="3.5" fill="#E3A2EE" stroke="#29262B" stroke-width="2"/>';
+  svg += '<circle class="current-point" cx="'+xS(lastReal.year)+'" cy="'+yS(lastReal.divs)+'" r="3.5" fill="#d8fa72" stroke="#131410" stroke-width="2"/>';
 
   // Meta hit marker (green glow)
   if (metaHitYear && metaHitYear <= TARGET_YEAR) {
@@ -5882,7 +5882,7 @@ function drawChart(proj, metaHitYear) {
     if (hit) {
       const hx=xS(hit.year), hy=yS(hit.divs);
       svg += '<circle cx="'+hx+'" cy="'+hy+'" r="9" fill="#34e17a" opacity="0.2"/>';
-      svg += '<circle cx="'+hx+'" cy="'+hy+'" r="5" fill="#34e17a" stroke="#29262B" stroke-width="2"/>';
+      svg += '<circle cx="'+hx+'" cy="'+hy+'" r="5" fill="#34e17a" stroke="#131410" stroke-width="2"/>';
     }
   }
   // Target point at 2035 — pulses via .target-point + .target-ring radar ripple (Option C)
@@ -5890,7 +5890,7 @@ function drawChart(proj, metaHitYear) {
   if (f) {
     const tx = xS(f.year), ty = yS(f.divs);
     svg += '<circle class="target-ring" cx="'+tx+'" cy="'+ty+'"/>';
-    svg += '<circle class="target-point" cx="'+tx+'" cy="'+ty+'" r="4" fill="#fff" stroke="#E3A2EE" stroke-width="2"/>';
+    svg += '<circle class="target-point" cx="'+tx+'" cy="'+ty+'" r="4" fill="#fff" stroke="#d8fa72" stroke-width="2"/>';
   }
 
   svg += '</g>';
