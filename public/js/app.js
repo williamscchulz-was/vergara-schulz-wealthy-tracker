@@ -2922,6 +2922,13 @@ function renderInvestments() {
   renderI10Assets();
   renderMonthlyReturns();
   renderContributions();
+  // Fileira de KPIs (reservas · previdência · aportes do ano · aplicado)
+  const _contribYear = (state.contributions || []).reduce((s, c) => s + ((+c.year === currentYear) ? (+c.amount || 0) : 0), 0);
+  if ($('kpiReserves')) $('kpiReserves').textContent = fmtBRL0(_reservesBRL);
+  if ($('kpiPension')) $('kpiPension').textContent = fmtBRL0(_pensionBRL);
+  if ($('kpiContrib')) $('kpiContrib').textContent = fmtBRL0(_contribYear);
+  if ($('kpiContribLbl')) $('kpiContribLbl').textContent = (getLang() === 'en' ? 'Contributions ' : 'Aportes ') + currentYear;
+  if ($('kpiApplied')) $('kpiApplied').textContent = fmtBRL0(+state.i10.applied || 0);
   if (typeof renderMetas === 'function') renderMetas();
 }
 

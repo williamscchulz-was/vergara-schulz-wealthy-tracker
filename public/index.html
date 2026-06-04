@@ -508,10 +508,18 @@ body::before {
 #moduleInvestments.active { display: flex; flex-direction: column; gap: 18px; }
 #moduleInvestments.active .card,
 #moduleInvestments.active .hero-card { margin-bottom: 0; }   /* gaps cuidam do espaçamento */
-.inv-top, .inv-charts { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+.inv-main, .inv-charts { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+.inv-side { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.inv-kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.ikpi { padding: 15px 17px; }
+.ikpi-k { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); font-weight: 700; }
+.ikpi-v { font-family: 'Geist Mono', monospace; font-size: 21px; font-weight: 650; letter-spacing: -.02em; color: var(--ink); margin-top: 10px; }
 
 @media (min-width: 1000px) {
-  .inv-top, .inv-charts { grid-template-columns: 1fr 1fr; }
+  .inv-charts { grid-template-columns: 1fr 1fr; }
+  .inv-main { grid-template-columns: 1.6fr 1fr; }
+  .inv-main > .card { order: -1; }   /* carteira vai pra ESQUERDA (larga) */
+  .inv-kpis { grid-template-columns: repeat(4, 1fr); }
   /* DENSIDADE no desktop — não parecer um celular esticado */
   .card { padding: 20px 22px; margin-bottom: 14px; }
   .hero-card { padding: 26px 26px 22px; }
@@ -2875,8 +2883,17 @@ setTimeout(hide,3500);})();
         </div>
       </div>
 
-      <!-- REGIÃO TOPO: Metas + YTD lado a lado (2 colunas no desktop) -->
-      <div class="inv-top">
+      <!-- FILEIRA DE KPIs -->
+      <div class="inv-kpis">
+        <div class="card ikpi"><div class="ikpi-k">Reservas</div><div class="ikpi-v" id="kpiReserves">R$ 0</div></div>
+        <div class="card ikpi"><div class="ikpi-k">Previdência</div><div class="ikpi-v" id="kpiPension">R$ 0</div></div>
+        <div class="card ikpi"><div class="ikpi-k" id="kpiContribLbl">Aportes no ano</div><div class="ikpi-v" id="kpiContrib">R$ 0</div></div>
+        <div class="card ikpi"><div class="ikpi-k">Aplicado</div><div class="ikpi-v" id="kpiApplied">R$ 0</div></div>
+      </div>
+
+      <!-- REGIÃO PRINCIPAL: carteira (esquerda) + lateral (Metas + dividendos) -->
+      <div class="inv-main">
+      <div class="inv-side">
       <!-- METAS — barras de progresso (substitui o simulador de meta) -->
       <div class="card animate-in" id="metasCard">
         <div class="mt-head"><span class="mt-h-title" data-i18n="metas.title">Metas</span><span class="mt-h-note" data-i18n="metas.note">a marca é o ritmo necessário · toque nos valores pra editar</span></div>
@@ -2959,9 +2976,9 @@ setTimeout(hide,3500);})();
           </div>
         </div>
       </div>
-      </div><!-- /inv-top -->
+      </div><!-- /inv-side -->
 
-      <!-- CARTEIRA AGRUPADA (largura total) -->
+      <!-- CARTEIRA AGRUPADA (vai pra ESQUERDA via order no desktop) -->
       <div class="card animate-in">
         <div class="card-body">
           <div class="card-head">
@@ -2974,6 +2991,8 @@ setTimeout(hide,3500);})();
           <div class="cat-list" id="i10AssetsList"></div>
         </div>
       </div>
+
+      </div><!-- /inv-main -->
 
       <!-- REGIÃO GRÁFICOS: 2 a 2 no desktop -->
       <div class="inv-charts">
