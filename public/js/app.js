@@ -2755,6 +2755,25 @@ const deleteReserve     = () => deleteCash('reserves');
   });
 })();
 
+// Botão de minimizar nos cards com .card-head (estado salvo no localStorage)
+function wireCardCollapse() {
+  document.querySelectorAll('#moduleInvestments .card > .card-body > .card-head').forEach(function (head) {
+    if (head.querySelector('.card-collapse')) return;
+    const card = head.closest('.card');
+    const key = 'cc:' + (((card.querySelector('.eyebrow') || {}).textContent) || '').trim().slice(0, 28);
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'card-collapse'; btn.setAttribute('aria-label', 'Minimizar');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const on = card.classList.toggle('is-collapsed');
+      try { on ? localStorage.setItem(key, '1') : localStorage.removeItem(key); } catch (_) {}
+    });
+    let saved = false; try { saved = localStorage.getItem(key) === '1'; } catch (_) {}
+    if (saved) card.classList.add('is-collapsed');
+    head.appendChild(btn);
+  });
+}
 function renderInvestments() {
   const currentYear = new Date().getFullYear();
   const goalYear = state.dividendsYearlyGoalYear;
@@ -2930,6 +2949,7 @@ function renderInvestments() {
   if ($('kpiContribLbl')) $('kpiContribLbl').textContent = (getLang() === 'en' ? 'Contributions ' : 'Aportes ') + currentYear;
   if ($('kpiApplied')) $('kpiApplied').textContent = fmtBRL0(+state.i10.applied || 0);
   if (typeof renderMetas === 'function') renderMetas();
+  wireCardCollapse();
 }
 
 // v8 Turno 6 — Bar chart range state (1Y / 5Y / All)

@@ -1,6 +1,6 @@
 {
-  "name": "Aevo — Patrimônio do casal",
-  "short_name": "Aevo",
+  "name": "Ledger — Patrimônio do casal",
+  "short_name": "Ledger",
   "description": "Ferramenta de finanças pessoais e investimentos",
   "start_url": "./index.html",
   "display": "standalone",
@@ -9,6 +9,7 @@
   "theme_color": "#131410",
   "lang": "pt-BR",
   "icons": [
+    { "src": "assets/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
     {
       "src": "assets/icons/icon-192.png",
       "sizes": "192x192",
