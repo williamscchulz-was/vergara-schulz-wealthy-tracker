@@ -419,9 +419,7 @@ body {
   --glass-border:     #e4e9da;
   --glass-highlight:  rgba(255,255,255,0.9);
 }
-:root[data-theme="light"] body::before {
-  background: linear-gradient(180deg, #f7f9f1 0%, #f1f4ea 100%) !important;
-}
+/* fundo claro = var(--bg) liso (herda a regra geral do body::before) */
 :root[data-theme="light"] .card,
 :root[data-theme="light"] .hero-card,
 :root[data-theme="light"] .goal-card,
@@ -483,10 +481,7 @@ body::before {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
-    radial-gradient(ellipse 60% 50% at 80% -10%, rgba(199,247,62,0.08), transparent 60%),
-    radial-gradient(ellipse 60% 45% at 12% 28%, rgba(199,247,62,0.05), transparent 60%),
-    #131410;   /* base verde-escuro uniforme — sem mais o roxo-cinza no meio */
+  background: var(--bg);   /* UMA cor só (segue o tema) — sem gradientes/glows */
 }
 
 /* Minimizar card — botão no card-head: some o conteúdo, fica só o cabeçalho */
@@ -500,11 +495,10 @@ body::before {
 .page {
   position: relative;
   z-index: 1;
-  max-width: 1500px;
+  max-width: 1240px;   /* largura do mockup que ficou bom — denso, sem esticar os cards */
   margin: 0 auto;
-  padding: 24px 32px 96px;
+  padding: 24px 28px 96px;
 }
-@media (min-width: 1760px) { .page { max-width: 1680px; } }
 
 /* ===========================================================
    DESKTOP DASHBOARD v2 — stacked regions com grids 2-up internos.
