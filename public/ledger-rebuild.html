@@ -74,8 +74,9 @@ body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink
 .kpi .v small{font-size:11px;color:var(--ink-3);font-weight:400}
 
 /* ===== NÍVEL 3: conteúdo principal — carteira por categoria + lateral ===== */
-.grid{display:grid;grid-template-columns:1.5fr 1fr;gap:14px;align-items:start}
-.acat{border-bottom:1px solid var(--line-2)}
+#port{column-count:2;column-gap:34px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.acat{border-bottom:1px solid var(--line-2);break-inside:avoid;-webkit-column-break-inside:avoid}
 .acat:last-child{border-bottom:none}
 .acat-h{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:11px 4px;cursor:pointer}
 .acat-h .nm{display:flex;align-items:center;gap:9px;font-weight:600;font-size:13px}
@@ -114,7 +115,7 @@ body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink
 .ytab tr:last-child td{border-bottom:none}
 .ytab .up{color:var(--up)}.ytab .down{color:var(--down)}
 
-@media(max-width:880px){.grid{grid-template-columns:1fr}.charts{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.hero{grid-template-columns:1fr}.hero-r{align-items:flex-start}}
+@media(max-width:880px){#port{column-count:1}.grid2{grid-template-columns:1fr}.charts{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.hero{grid-template-columns:1fr}.hero-r{align-items:flex-start}}
 </style>
 </head>
 <body>
@@ -154,19 +155,17 @@ body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink
 
   <!-- NÍVEL 3 -->
   <div class="sec">Carteira</div>
-  <div class="grid">
-    <div class="card pad">
-      <div class="c-h"><span class="c-t">Por classe de ativo</span><span class="chip">via I10</span></div>
-      <div id="port"></div>
-    </div>
-    <div class="side">
-      <div class="card pad"><div class="c-h"><span class="c-t">Metas</span></div><div id="goals"></div></div>
-      <div class="card pad"><div class="c-h"><span class="c-t">Reservas &amp; previdência</span></div>
-        <div class="cash"><span>Bradesco CC</span><span class="v">R$ 62.000</span></div>
-        <div class="cash"><span>Nubank</span><span class="v">R$ 38.000</span></div>
-        <div class="cash"><span>XP</span><span class="v">R$ 20.000</span></div>
-        <div class="cash"><span>Previdência Bradesco</span><span class="v">R$ 84.000</span></div>
-      </div>
+  <div class="card pad">
+    <div class="c-h"><span class="c-t">Por classe de ativo</span><span class="chip">via I10</span></div>
+    <div id="port"></div>
+  </div>
+  <div class="grid2">
+    <div class="card pad"><div class="c-h"><span class="c-t">Metas</span></div><div id="goals"></div></div>
+    <div class="card pad"><div class="c-h"><span class="c-t">Reservas &amp; previdência</span></div>
+      <div class="cash"><span>Bradesco CC</span><span class="v">R$ 62.000</span></div>
+      <div class="cash"><span>Nubank</span><span class="v">R$ 38.000</span></div>
+      <div class="cash"><span>XP</span><span class="v">R$ 20.000</span></div>
+      <div class="cash"><span>Previdência Bradesco</span><span class="v">R$ 84.000</span></div>
     </div>
   </div>
 
