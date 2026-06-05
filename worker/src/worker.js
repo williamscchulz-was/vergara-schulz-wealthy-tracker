@@ -69,35 +69,32 @@ function isValidWalletId(id) {
 
 // AwesomeAPI is a free, no-auth Brazilian endpoint that gives spot
 // USD→BRL pretty close to PTAX. Bid is what consumer apps usually show.
-// I10 returns one /summary/actives endpoint per asset type. We don't
-// have a single endpoint that returns 'all assets across all types',
-// so we fan out and merge. Each failure is non-fatal: a missing type
-// just contributes an empty list to the merged result.
-const I10_ASSET_TYPES = [
-  'Ticker',           // ações
-  'TesouroDireto',
-  'RendaFixa',
-  'Fii',              // fundos imobiliários
-  'Etf',
-  'Bdr',
-  'FundoInvestimento',
-  'Criptomoeda',
-];
-
+// I10 quirk: /summary/actives/<wallet>/all retorna TODAS as classes MENOS
+// renda fixa, e cada row já vem com o `ticker_type` real (Ticker, Treasure,
+// Fund, Etf, ...). A renda fixa fica num subsistema à parte e só sai no
+// /FixedIncome (com ticker_type "fixed"). Então buscamos os dois em paralelo
+// e juntamos. Os tokens em português de antes (RendaFixa, TesouroDireto,
+// FundoInvestimento…) estavam ERRADOS — voltavam vazios. Cada fetch é
+// não-fatal: se um falhar, o outro ainda preenche a lista.
 async function fetchAllActives(walletId) {
-  const fetches = I10_ASSET_TYPES.map(async (type) => {
-    try {
-      const data = await fetchI10(`/summary/actives/${walletId}/${type}?raw=1&selected_wallet_currency=BRL`);
-      const rows = Array.isArray(data?.data) ? data.data : [];
-      // Tag each row with the upstream type so the app maps to a
-      // human-friendly category without guessing from the ticker.
-      return rows.map(r => ({ ...r, __assetClass: type }));
-    } catch (e) {
-      return []; // Asset type not present in this wallet — fine.
-    }
-  });
-  const results = await Promise.all(fetches);
-  return { data: results.flat() };
+  const q = `?raw=1&selected_wallet_currency=BRL`;
+  const [all, fixed] = await Promise.all([
+    fetchI10(`/summary/actives/${walletId}/all${q}`).then(d => d && d.data).catch(() => []),
+    fetchI10(`/summary/actives/${walletId}/FixedIncome${q}`).then(d => d && d.data).catch(() => []),
+  ]);
+  // /all rows já têm ticker_type; renda fixa marcamos explicitamente.
+  const allRows = (Array.isArray(all) ? all : []).map(r => ({ ...r, __assetClass: r.ticker_type || 'Outros' }));
+  const fixRows = (Array.isArray(fixed) ? fixed : []).map(r => ({ ...r, __assetClass: 'FixedIncome' }));
+  // dedup por id (segurança, caso haja sobreposição entre os dois)
+  const seen = new Set();
+  const data = [];
+  for (const r of [...allRows, ...fixRows]) {
+    const id = r.id != null ? String(r.id) : (r.ticker || '');
+    if (id && seen.has(id)) continue;
+    if (id) seen.add(id);
+    data.push(r);
+  }
+  return { data };
 }
 
 async function fetchUSDBRL() {
@@ -290,8 +287,8 @@ const PROJECT_ID = 'wealthy-tracker-68658';
 const WALLET_W = '2814459';      // William (principal) — atualizar se migrar de novo
 const WALLET_LOUISE = '2699282'; // Louise (filha)
 const I10_TYPE_TO_CAT = {
-  Ticker: 'Ações', TesouroDireto: 'Tesouro Direto', RendaFixa: 'Renda Fixa',
-  Fii: 'FIIs', Etf: 'ETFs', Bdr: 'BDRs', FundoInvestimento: 'Fundos', Criptomoeda: 'Criptomoedas',
+  Ticker: 'Ações', Treasure: 'Tesouro Direto', FixedIncome: 'Renda Fixa', fixed: 'Renda Fixa',
+  Fund: 'Fundos', Etf: 'ETFs', Fii: 'FIIs', Bdr: 'BDRs', Cryptocurrency: 'Criptomoedas',
 };
 
 function b64url(buf) {

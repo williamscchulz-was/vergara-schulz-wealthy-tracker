@@ -3927,12 +3927,19 @@ async function syncFromI10() {
     // human-friendly category label. Fallback to inferCategory() (the
     // ticker-based heuristic) for legacy/unexpected rows.
     const I10_TYPE_TO_CAT = {
+      // tokens REAIS do I10 (campo ticker_type, em inglês):
       Ticker: 'Ações',
+      Treasure: 'Tesouro Direto',
+      FixedIncome: 'Renda Fixa',
+      fixed: 'Renda Fixa',
+      Fund: 'Fundos',
+      Etf: 'ETFs',
+      Fii: 'FIIs',
+      Bdr: 'BDRs',
+      Cryptocurrency: 'Criptomoedas',
+      // legados (resiliência contra cache/worker antigo):
       TesouroDireto: 'Tesouro Direto',
       RendaFixa: 'Renda Fixa',
-      Fii: 'FIIs',
-      Etf: 'ETFs',
-      Bdr: 'BDRs',
       FundoInvestimento: 'Fundos',
       Criptomoeda: 'Criptomoedas',
     };
