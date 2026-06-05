@@ -1575,6 +1575,7 @@ function renderResumo() {
       <div class="rz-vis"><span class="rz-vis-k">${esc(t('rz.yearExp'))}</span><span class="rz-vis-v">${m(despesas)} · ${esc(t('rz.avgMonth'))} ${m(despesas / monthsData)}</span></div></div>`;
   }
 
+  const savingsRate = ganhos > 0 ? Math.round((saldo / ganhos) * 100) : 0;
   body.innerHTML = `
     <div class="rz-head">
       <div class="rz-seg">
@@ -1583,13 +1584,23 @@ function renderResumo() {
       </div>
       <div class="rz-nav"><button data-rznav="-1" aria-label="${esc(t('a11y.prev'))}">‹</button><span class="rz-period">${esc(periodLabel)}</span><button data-rznav="1" aria-label="${esc(t('a11y.next'))}">›</button></div>
     </div>
+    <div class="rz-hero ${saldo < 0 ? 'is-neg' : ''}">
+      <div class="rz-hero-l">
+        <div class="rz-hero-eyebrow"><span class="rz-hero-dot"></span>${esc(t('rz.balance'))}</div>
+        <div class="rz-hero-amt">${m(saldo)}</div>
+        <div class="rz-hero-sub">${esc(periodLabel)}${subBalance ? ' · ' + esc(subBalance) : ''}</div>
+      </div>
+      <div class="rz-hero-r">
+        <div class="rz-hero-rate-l">Taxa de poupança</div>
+        <div class="rz-hero-rate">${savingsRate}%</div>
+      </div>
+    </div>
     <div class="rz-kpis">
       <div class="rz-kpi rz-k-income"><span class="rz-kpi-ic">${RZ_KIC.income}</span><div class="rz-kpi-l">${esc(t('rz.income'))}</div><div class="rz-kpi-v">${m(ganhos)}</div><div class="rz-kpi-sub">${esc(subIncome)}</div></div>
       <div class="rz-kpi rz-k-expense"><span class="rz-kpi-ic">${RZ_KIC.expense}</span><div class="rz-kpi-l">${esc(t('rz.expenses'))}</div><div class="rz-kpi-v">${m(despesas)}</div><div class="rz-kpi-sub">${esc(subExpense)}</div></div>
       <div class="rz-kpi rz-k-debt"><span class="rz-kpi-ic">${RZ_KIC.debt}</span><div class="rz-kpi-l">${esc(t('rz.debts'))}</div><div class="rz-kpi-v ${dividas > 0 ? 'rz-neg' : ''}">${m(dividas)}</div><div class="rz-kpi-sub">${esc(subDebt)}</div></div>
-      <div class="rz-kpi rz-saldo rz-k-balance"><span class="rz-kpi-ic">${RZ_KIC.balance}</span><div class="rz-kpi-l">${esc(t('rz.balance'))}</div><div class="rz-kpi-v ${saldo < 0 ? 'rz-neg' : 'rz-pos'}">${m(saldo)}</div><div class="rz-kpi-sub">${esc(subBalance)}</div></div>
     </div>
-    ${chartHtml}
+    <div class="inv-sec">Distribuição</div>
     <div class="rz-grid">
       <div class="rz-card">
         <div class="rz-card-h">${esc(t('rz.byCat'))}</div>
@@ -1614,7 +1625,7 @@ function renderResumo() {
         </div>
       </div>
     </div>
-    ${visoesHtml}`;
+    ${annual ? '<div class="inv-sec">Histórico</div>' + chartHtml + visoesHtml : ''}`;
   body.querySelectorAll('[data-rzview]').forEach(b => b.addEventListener('click', () => setResumoView(b.dataset.rzview)));
   body.querySelectorAll('[data-rznav]').forEach(b => b.addEventListener('click', () => resumoNav(+b.dataset.rznav)));
 }
