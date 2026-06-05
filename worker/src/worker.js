@@ -117,9 +117,23 @@ async function fetchUSDBRL() {
   };
 }
 
+// Today (UTC) as YYYY-MM-DD — Cloudflare runs in UTC.
+function todayUTC() {
+  return new Date().toISOString().slice(0, 10);
+}
+// End date for a dividends window: the year's Dec 31, but NEVER past today —
+// so we sum only proventos JÁ PAGOS, not the ones announced with a future
+// payment date (provisionados). I10's total-period soma por data de pagamento,
+// e com end_date no futuro ele inclui os anunciados-mas-não-pagos. ISO date
+// strings compare lexicographically, so this min() is a plain string compare.
+function dividendsEndDate(y) {
+  const dec31 = `${y}-12-31`;
+  const today = todayUTC();
+  return today < dec31 ? today : dec31;
+}
 function currentYearRange(year) {
   const y = year && /^\d{4}$/.test(year) ? year : new Date().getUTCFullYear();
-  return { start: `${y}-01-01`, end: `${y}-12-31` };
+  return { start: `${y}-01-01`, end: dividendsEndDate(y) };
 }
 
 async function handle(request) {
@@ -220,7 +234,7 @@ async function handle(request) {
       const results = await Promise.all(years.map(async (y) => {
         let divs = 0;
         try {
-          const d = await fetchI10(`/earnings/total-period/${walletId}?start_date=${y}-01-01&end_date=${y}-12-31`);
+          const d = await fetchI10(`/earnings/total-period/${walletId}?start_date=${y}-01-01&end_date=${dividendsEndDate(y)}`);
           divs = +d.sum || 0;
         } catch (e) {}
         const e = yearEnd[String(y)];
@@ -357,7 +371,7 @@ async function cronSyncMain(token) {
   const year = new Date().getUTCFullYear();
   const [metrics, earnings, activesRaw, barchart] = await Promise.all([
     fetchI10(`/summary/metrics/${WALLET_W}?type=without-earnings&raw=1`),
-    fetchI10(`/earnings/total-period/${WALLET_W}?start_date=${year}-01-01&end_date=${year}-12-31`),
+    fetchI10(`/earnings/total-period/${WALLET_W}?start_date=${year}-01-01&end_date=${dividendsEndDate(year)}`),
     fetchAllActives(WALLET_W),
     fetchI10(`/summary/barchart/${WALLET_W}/120/all`).catch(() => null),
   ]);
@@ -382,7 +396,7 @@ async function cronSyncLouise(token) {
   const year = new Date().getUTCFullYear();
   const [metrics, earnings] = await Promise.all([
     fetchI10(`/summary/metrics/${WALLET_LOUISE}?type=without-earnings&raw=1`),
-    fetchI10(`/earnings/total-period/${WALLET_LOUISE}?start_date=${year}-01-01&end_date=${year}-12-31`),
+    fetchI10(`/earnings/total-period/${WALLET_LOUISE}?start_date=${year}-01-01&end_date=${dividendsEndDate(year)}`),
   ]);
   await firestoreWrite(token, 'household/main/config/i10-louise', {
     equity: +metrics.equity || 0, applied: +metrics.applied || 0,
