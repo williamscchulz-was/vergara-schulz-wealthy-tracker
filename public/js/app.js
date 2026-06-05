@@ -1647,6 +1647,7 @@ function switchMode(mode, opts = {}) {
     $('moduleInvestments').classList.add('active');
     renderInvestments();
   }
+  wireCardCollapse();   // botões de recolher (cobre Despesas + Investimentos)
   // Persist this as the user's preferred default for next session.
   // `opts.persist === false` skips writing (used during the initial boot
   // so we don't overwrite the value we just read).
@@ -2766,12 +2767,16 @@ const deleteReserve     = () => deleteCash('reserves');
   });
 })();
 
-// Botão de minimizar nos cards com .card-head (estado salvo no localStorage)
+// Botão de minimizar nos cards com header (Investimentos + Despesas).
+// Cobre as DUAS estruturas: header dentro de .card-body (carteira/gráficos)
+// OU header direto no .card (cards de Despesas). Estado salvo no localStorage.
 function wireCardCollapse() {
-  document.querySelectorAll('#moduleInvestments .card > .card-body > .card-head').forEach(function (head) {
-    if (head.querySelector('.card-collapse')) return;
-    const card = head.closest('.card');
-    const key = 'cc:' + (((card.querySelector('.eyebrow') || {}).textContent) || '').trim().slice(0, 28);
+  document.querySelectorAll('#moduleInvestments .card, #moduleExpenses .card').forEach(function (card) {
+    const head = card.querySelector(':scope > .card-body > .card-head') || card.querySelector(':scope > .card-head');
+    if (!head) return;                                 // sem header → não recolhível (ikpi, ytd, etc.)
+    if (head.querySelector('.card-collapse')) return;  // já tem botão
+    const titleEl = head.querySelector('.eyebrow, h3, h2');
+    const key = 'cc:' + (((titleEl && titleEl.textContent) || head.textContent || '').trim().slice(0, 28));
     const btn = document.createElement('button');
     btn.type = 'button'; btn.className = 'card-collapse'; btn.setAttribute('aria-label', 'Minimizar');
     btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';

@@ -491,6 +491,9 @@ body::before {
 .card.is-collapsed .card-collapse svg { transform: rotate(-90deg); }
 .card.is-collapsed .card-body > :not(.card-head) { display: none; }
 .card.is-collapsed .card-body > .card-head { margin-bottom: 0; }
+/* cards SEM .card-body (Despesas): header é filho direto do .card */
+.card.is-collapsed > :not(.card-head):not(.card-body):not(.card-collapse) { display: none; }
+.card.is-collapsed > .card-head { margin-bottom: 0; }
 
 .page {
   position: relative;
@@ -540,6 +543,8 @@ body::before {
 #moduleInvestments .hero-card { background: linear-gradient(145deg, #1d8f49, #0e4d27) !important; border-color: transparent !important; color: #eafff1; }
 #moduleInvestments .hero-card::after { display: none !important; }
 .hero-card .hero-eyebrow .label, .hero-card .applied-text, .hero-card .hero-amount .cur, .hero-card .hero-usd .usd-sym, .hero-card .louise-chip { color: #cdeed8 !important; }
+.hero-card .hero-usd { color: #cfe9da !important; }      /* valor US$ — legível no verde (era --ink-3) */
+.hero-card .updated { color: #aacdb7 !important; }       /* timestamp "atualizado … via I10" — legível (era --ink-muted) */
 .hero-card .hero-amount .num { color: #f6fff9 !important; }
 .hero-card .applied-text b { color: #ffffff !important; }
 .hero-card .return-pill { background: rgba(199,247,62,.20) !important; color: #d8fa72 !important; }
