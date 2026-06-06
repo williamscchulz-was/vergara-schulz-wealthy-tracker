@@ -5,6 +5,7 @@
 import { app, auth, db, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, doc, getDoc, setDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "./firebase.js";
 import { I18N } from "./i18n.js";
 import { ICONS, CATEGORIES, INCOME_SOURCES, INCOME_OPTS, MONTH_NAMES_PT, MONTH_NAMES_EN } from "./constants.js";
+import { IMP_GATEWAY, IMP_UF, IMP_STOP, impNormalize, impTokens, impRuleKey, impToISO, impFp, parseBRMoney } from "./import-core.js";
 
 // ============================================================
 //  EARLY AUTH GUARD - login works even if main code crashes
@@ -3620,23 +3621,7 @@ async function extractPdfLines(file) {
 // ---- Normalização do nome do estabelecimento ----
 // Tira adquirente (PG*/MP*/PAYPAL*...), nº de loja, UF no fim, acento e pontuação.
 // É o que REVIVE a memória (a chave deixa de mudar a cada compra por causa do nº de loja).
-const IMP_GATEWAY = /\b(?:pg|mp|mercpago|mercadopago|pag|pagseguro|pags|paypal|pp|ame|picpay|stone|cielo|rede|getnet|sumup|iz|ifd|ec|tef|pos|dl|asaas)\s*\*+/gi;
-const IMP_UF = /\s\b(?:ac|al|ap|am|ba|ce|df|es|go|ma|mt|ms|mg|pa|pb|pr|pe|pi|rj|rn|rs|ro|rr|sc|sp|se|to)\s*$/;
-const IMP_STOP = new Set(['ltda','me','epp','eireli','sa','cia','com','comercio','servicos','industria','do','da','de','dos','das','e','ind']);
-function impNormalize(raw) {
-  let s = ' ' + String(raw || '').toLowerCase() + ' ';
-  s = s.normalize('NFD').replace(/[̀-ͯ]/g, '');  // tira acento: café→cafe, açougue→acougue
-  s = s.replace(IMP_GATEWAY, ' ');                         // "PG *", "MP *", "PAYPAL *", "IFD*"
-  s = s.replace(/[*#]+/g, ' ');
-  s = s.replace(/\b\d{2,}\b/g, ' ');                       // nº de loja/documento
-  s = s.replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ');
-  s = s.replace(IMP_UF, ' ').trim();                       // UF no fim (… curitiba pr → tira pr)
-  return s;
-}
-function impTokens(raw) {
-  return impNormalize(raw).split(' ').filter(w => w.length >= 2 && !IMP_STOP.has(w));
-}
-function impRuleKey(desc) { return impNormalize(desc).replace(/\s+/g, '').slice(0, 24); }
+// IMP_GATEWAY, IMP_UF, IMP_STOP, impNormalize, impTokens, impRuleKey → ./import-core.js (v8 Turno 11)
 
 // Regras: [categoria, exatos (peso 10), prefixos (peso 7), substrings (peso 4)].
 // Token EXATO evita pegar palavra-dentro-de-palavra (Garcia/Koch/Azul não casam mais por acaso).
@@ -3798,26 +3783,10 @@ function parseStatementFlat(lines) {
   }
   return out;
 }
-function impToISO(dmy, baseYear) {
-  const p = String(dmy || '').split('/');
-  const d = +p[0], mo = +p[1];
-  if (!d || !mo) return new Date().toISOString().split('T')[0];
-  let y;
-  if (p[2]) { y = +p[2]; if (y < 100) y += 2000; }     // ano explícito (CSV traz DD/MM/AAAA)
-  else if (baseYear) { y = +baseYear; }                // competência da fatura (cartão)
-  else { const now = new Date(); y = now.getFullYear(); if (mo > now.getMonth() + 2) y -= 1; }
-  return `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-}
-function impFp(date, value, desc) {
-  return date + '|' + (Math.round((+value) * 100) / 100).toFixed(2) + '|' + (desc || '').slice(0, 16).toLowerCase().replace(/\s+/g, '');
-}
+// impToISO, impFp → ./import-core.js (v8 Turno 11)
 const impMoney = (n) => 'R$ ' + Math.abs(+n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 // ---- Conta corrente (CSV do Bradesco) ----
-function parseBRMoney(raw) {
-  const s = String(raw || '').replace(/[^\d.,-]/g, '');   // tira R$, espaços, aspas, sufixo C/D, etc.
-  if (!s) return 0;
-  return parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0;
-}
+// parseBRMoney → ./import-core.js (v8 Turno 11)
 // Linhas que NÃO são despesa de consumo: transferências entre contas próprias,
 // investimentos (CDB/fundos), saques, pagamento da fatura do cartão (pra não
 // duplicar com o import do cartão), impostos e taxas.

@@ -1,0 +1,10 @@
+{
+  "name": "ledger-wealthy-tracker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Test-only manifest. SEM dependências, SEM build, SEM npm install. Existe só pra: (1) o node tratar os .js como ES module (igual o browser) e (2) habilitar `npm test` → node --test. O app continua 100% vanilla, servido de public/. NÃO adicionar dependências aqui.",
+  "scripts": {
+    "test": "node --test"
+  }
+}

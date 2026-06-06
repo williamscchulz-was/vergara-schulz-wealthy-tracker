@@ -69,9 +69,11 @@ Layout do repo (pós-reorganização):
 │   ├── css/             → CSS em 9 arquivos (01-base … 09-contrast), <link> NA ORDEM
 │   ├── manifest.json    → PWA
 │   ├── js/
-│   │   ├── app.js       → núcleo (~5100 linhas: renderers, listeners, lógica)
+│   │   ├── app.js       → núcleo (~5000 linhas: renderers, listeners, lógica)
 │   │   ├── firebase.js  → init Firebase + refs (importado por app.js)
 │   │   ├── i18n.js      → tabela de traduções PT/EN (export const I18N)
+│   │   ├── constants.js → ICONS, CATEGORIES, INCOME_*, MONTH_NAMES (puro)
+│   │   ├── import-core.js → núcleo PURO do import (fingerprint, normalize, parse) — testável
 │   │   └── goal-projection.js → card de projeção da meta
 │   └── assets/icons/    → favicons + ícones PWA
 ├── worker/
@@ -83,6 +85,9 @@ Layout do repo (pós-reorganização):
 │   ├── fix-historico.html, import-historico.html
 │   ├── brand.html
 │   └── README.md
+├── tests/               → node --test (SEM deps); `npm test` ou `node --test`
+│   └── import-core.test.js
+├── package.json         → manifest test-only (type:module + script test). SEM deps, SEM npm install
 ├── docs/
 │   ├── ARCHITECTURE.md, FIRESTORE-SCHEMA.md
 │   ├── DEPLOY.md, DEPLOY-WORKER.md
@@ -101,6 +106,9 @@ Layout do repo (pós-reorganização):
 | `public/js/app.js` | Núcleo da aplicação (~5100 linhas). State global, `t()`/`getLang`, renderers, listeners, sync com I10, lógica de despesas, investimentos, reservas, previdência, FX, contribuições, editores, modais, import. Importa `firebase.js` e `i18n.js`. |
 | `public/js/firebase.js` | Init do Firebase (config + `app`/`auth`/`db`) e re-export das funções do SDK que o app usa. Importado por `app.js`. |
 | `public/js/i18n.js` | `export const I18N` — tabela de strings PT/EN (~890 linhas). `t()`/`getLang()` vivem no `app.js` e consomem o `I18N` importado. |
+| `public/js/constants.js` | `ICONS`, `CATEGORIES`, `INCOME_SOURCES`, `INCOME_OPTS`, `MONTH_NAMES_*` + helper `_svg()`. Dados puros, importados por `app.js`. |
+| `public/js/import-core.js` | Núcleo **puro** do import (v8 Turno 11): `impFp` (fingerprint do dedup), `impNormalize`/`impTokens`/`impRuleKey`, `impToISO`, `parseBRMoney`. Sem DOM/Firebase/`state` → coberto por `tests/import-core.test.js`. |
+| `tests/import-core.test.js` + `package.json` | Testes `node --test` (rodar `npm test` ou `node --test`). **Zero dependências, zero `npm install`** — o `package.json` só liga `type:module` (node lê .js como ESM, igual o browser) + o script `test`. Não é deployado (fica fora de `public/`). |
 | `worker/src/worker.js` | Cloudflare Worker (ver §2). **Publicado separadamente** em `https://ledger-i10-proxy.<sub>.workers.dev`. |
 | `public/manifest.json` | Manifesto PWA. |
 | `public/assets/icons/*` | Assets da marca. |
