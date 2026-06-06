@@ -1430,8 +1430,7 @@ body::before {
 .cat-add-btn { width: 100%; justify-content: center; gap: 8px; border-style: dashed; margin-bottom: 4px; }
 /* Seletor de origem do import */
 .imp-type-modal { max-width: min(440px, 94vw); }
-.imp-type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 10px 0 4px; }
-@media (max-width: 480px) { .imp-type-grid { grid-template-columns: 1fr; } }
+.imp-type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0 4px; }
 .imp-type-opt { display: flex; flex-direction: column; align-items: center; gap: 9px; padding: 24px 14px; border-radius: 16px; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--ink-2); cursor: pointer; transition: .18s var(--ease-out); }
 .imp-type-opt:hover { border-color: var(--purple); color: var(--ink); transform: translateY(-2px); box-shadow: 0 14px 30px -18px rgba(199,247,62,.6); }
 .imp-type-opt svg { width: 30px; height: 30px; color: var(--purple-light); }
@@ -3250,11 +3249,6 @@ setTimeout(hide,3500);})();
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7"/><path d="M4 10v10h16V10"/><path d="M9 21v-6h6v6"/></svg>
       <div class="imp-type-nm" data-i18n="imp.type.cc">Conta corrente</div>
       <div class="imp-type-ext">CSV</div>
-    </button>
-    <button class="imp-type-opt" data-kind="b3" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><polyline points="7 13 11 9 14 12 19 6"/></svg>
-      <div class="imp-type-nm">Proventos B3</div>
-      <div class="imp-type-ext">XLSX</div>
     </button>
   </div>
   <div class="modal-foot"><div class="spacer"></div><button class="btn-secondary" id="importTypeCancel" data-i18n="exp.btn.cancel">Cancelar</button></div>
