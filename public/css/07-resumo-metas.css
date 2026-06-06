@@ -464,6 +464,11 @@
 .exp-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; }
 .exp-table th { text-align: left; padding: 0 14px 12px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); border-bottom: 1px solid var(--border); }
 .exp-table th.exp-th-amt { text-align: right; }
+.exp-table th.exp-th-sort { cursor: pointer; user-select: none; transition: color .15s; white-space: nowrap; }
+.exp-table th.exp-th-sort:hover { color: var(--ink-2); }
+.exp-table th.exp-th-sort::after { content: '↕'; margin-left: 5px; font-size: 9px; opacity: .35; }
+.exp-table th.exp-th-sort.is-sorted-asc::after { content: '↑'; opacity: 1; color: var(--purple); }
+.exp-table th.exp-th-sort.is-sorted-desc::after { content: '↓'; opacity: 1; color: var(--purple); }
 .exp-table td { padding: 13px 14px; border-bottom: 1px solid var(--border); color: var(--ink-2); vertical-align: middle; }
 .exp-table tr[data-id] { cursor: pointer; position: relative; transition: background 0.15s var(--ease-out); }
 .exp-table tr[data-id]::after {

@@ -739,7 +739,29 @@ function entryMeta(e) {
   return { icon: c.icon, color: c.color, label: c.label };
 }
 
+// Ordenação da tabela "Todas as despesas do mês" (cabeçalho clicável).
+let _expSort = { key: 'date', dir: 'desc' };   // default: data, mais recente primeiro
+function expCompare(a, b) {
+  const dir = _expSort.dir === 'asc' ? 1 : -1;
+  let r;
+  switch (_expSort.key) {
+    case 'value': r = (+a.value || 0) - (+b.value || 0); break;
+    case 'desc': r = String(a.description || '').localeCompare(String(b.description || ''), 'pt', { sensitivity: 'base' }); break;
+    case 'category': r = String(entryMeta(a).label || '').localeCompare(String(entryMeta(b).label || ''), 'pt', { sensitivity: 'base' }); break;
+    default: r = parseLocalDate(a.date) - parseLocalDate(b.date);   // date
+  }
+  r *= dir;
+  if (r === 0) r = parseLocalDate(b.date) - parseLocalDate(a.date); // desempate: mais recente primeiro
+  return r;
+}
+function updateExpSortHeaders() {
+  document.querySelectorAll('.exp-table thead th[data-sort]').forEach(th => {
+    th.classList.toggle('is-sorted-asc', th.dataset.sort === _expSort.key && _expSort.dir === 'asc');
+    th.classList.toggle('is-sorted-desc', th.dataset.sort === _expSort.key && _expSort.dir === 'desc');
+  });
+}
 function renderExpenses() {
+  updateExpSortHeaders();   // indicador de ordenação sempre reflete _expSort (mesmo c/ tabela vazia)
   const viewDate = state.currentViewMonth;
   const all = filterExpensesByMonth(viewDate);
   const monthExp = all.filter(e => isExpense(e) && !e.provisioned);   // provisão (parcela futura) NÃO é gasto realizado
@@ -1009,7 +1031,7 @@ function renderExpenseTable(entries) {
     return;
   }
 
-  const sorted = [...result].sort((a,b) => parseLocalDate(b.date).getTime() - parseLocalDate(a.date).getTime());
+  const sorted = [...result].sort(expCompare);
   tbody.innerHTML = sorted.map(e => {
     const meta = entryMeta(e);
     const isIn = isIncome(e);
@@ -3492,6 +3514,13 @@ $('expSearch')?.addEventListener('input', e => {
 
 // CSV export
 $('btnExportCsv')?.addEventListener('click', exportCurrentMonthCSV);
+// Cabeçalho clicável → ordena a tabela de despesas (toggle asc/desc).
+document.querySelectorAll('.exp-table thead th[data-sort]').forEach(th => th.addEventListener('click', () => {
+  const key = th.dataset.sort;
+  if (_expSort.key === key) _expSort.dir = _expSort.dir === 'asc' ? 'desc' : 'asc';
+  else { _expSort.key = key; _expSort.dir = (key === 'date' || key === 'value') ? 'desc' : 'asc'; }
+  renderExpenses();
+}));
 
 // Budget modal
 $('btnEditBudgets')?.addEventListener('click', openBudgetModal);
