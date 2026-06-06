@@ -3042,6 +3042,8 @@ async function syncFromI10() {
     // v8 Turno 7: piggyback Louise sync on every successful main sync (both branches)
     syncLouise().catch(e => console.warn('Louise piggyback error:', e));
     fetchFXRate().catch(e => console.warn('FX rate refresh error:', e));
+    // Auto-sync dos proventos do I10 → Ganhos (sem clicar). Dedup torna idempotente.
+    autoSyncProventos().catch(e => console.warn('proventos auto-sync error:', e));
     // Piggyback yearly history refresh — silent + throttled to 24h to
     // avoid hammering /i10/yearly (which fans out per-year upstream).
     if (Date.now() - _autoYearlyLastRun > AUTO_YEARLY_INTERVAL_HOURS * 3600_000) {
@@ -3916,6 +3918,58 @@ async function importI10Proventos() {
   }
 }
 
+// AUTO-SYNC dos proventos do I10 → Ganhos (sem clicar). Roda junto de cada
+// syncFromI10. Só lança os proventos JÁ PAGOS que ainda NÃO existem (dedup por
+// fingerprint multiset, igual ao doImport → idempotente: re-rodar não duplica).
+async function autoSyncProventos() {
+  const { workerUrl, walletId } = state.i10Cfg || {};
+  if (!workerUrl || !walletId) return;
+  let rows;
+  try {
+    const base = workerUrl.replace(/\/+$/, '');
+    const res = await fetch(`${base}/i10/earnings-list/${encodeURIComponent(walletId)}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    rows = (data && data.table && Array.isArray(data.table.data)) ? data.table.data : [];
+  } catch (e) { console.warn('[autoprov] fetch', e); return; }
+  const today = new Date().toISOString().slice(0, 10);
+  // multiset dos proventos JÁ existentes (income lançado por aqui)
+  const stripOrd = s => String(s || '').replace(/#\d+$/, '');
+  const existCount = {};
+  for (const e of (state.expenses || [])) {
+    if (e.type !== 'income') continue;
+    const b = e.fpBase || stripOrd(e.fp || impFp(e.date, e.value, e.description));
+    existCount[b] = (existCount[b] || 0) + 1;
+  }
+  // parseia os pagos e ordena cronologicamente (idx estável p/ o multiset)
+  const parsed = [];
+  for (const r of rows) {
+    const pay = String(r.date_payment_original || '').slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(pay) || pay > today) continue;   // só pagos
+    const val = Math.round((+r.net_total_original || 0) * 100) / 100; // líquido
+    if (!(val > 0)) continue;
+    const tk = r.ticker || r.ticker_name || '?';
+    const lbl = I10_PROV_TYPE[r.type] || r.type || 'Provento';
+    parsed.push({ pay, val, desc: `${tk} · ${lbl}` });
+  }
+  parsed.sort((a, b) => (a.pay < b.pay ? -1 : a.pay > b.pay ? 1 : 0));
+  const used = {}, toAdd = [];
+  for (const p of parsed) {
+    const baseFp = impFp(p.pay, p.val, p.desc);
+    const idx = used[baseFp] || 0; used[baseFp] = idx + 1;
+    if (idx < (existCount[baseFp] || 0)) continue;   // já existe → pula
+    toAdd.push({
+      type: 'income', description: p.desc, value: p.val, category: 'dividendos', owner: 'william', nature: null,
+      source: 'auto:i10prov', date: p.pay, competencia: p.pay.slice(0, 7),
+      fp: idx === 0 ? baseFp : baseFp + '#' + idx, fpBase: baseFp,
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: 'auto', notes: '',
+    });
+  }
+  if (!toAdd.length) return;
+  toAdd.forEach(d => addDoc(colExpenses(), d).catch(err => console.error('[autoprov] doc', err)));
+  showToast(toAdd.length === 1 ? '1 provento novo nos Ganhos' : `${toAdd.length} proventos novos nos Ganhos`);
+}
+
 let _importTxns = [];
 let _importKind = null;   // 'card' (PDF) | 'cc' (CSV) | 'i10prov' (proventos I10 ao vivo)
 async function handleImportFiles(fileList) {
@@ -4154,19 +4208,23 @@ async function doImport() {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const ov = $('importOverlay');
   $('importConfirm').disabled = true; $('importCancel').disabled = true;
-  // Linhas reais (até 5) do lote — a animação "mostra o trabalho" com os dados de verdade.
-  const previewRows = batch.slice(0, 5).map(d => {
-    const c = CATEGORIES[d.category] || CATEGORIES.outros;
-    return { date: formatDateBR(d.date), desc: d.description || '—', cat: c.label, col: c.color, val: fmtBRL0(+d.value || 0) };
-  });
-  if (ov && !reduce) runImportAnimation(ov, previewRows, batch.length, provCount);
-  // Dispara TODAS as gravações sem esperar a rede — nunca trava. O Firestore
-  // confirma em background e o onSnapshot atualiza a lista conforme cada cai.
-  batch.forEach(d => addDoc(colExpenses(), d).catch(err => console.error('[import] doc falhou', err)));
-  setDoc(docImportMeta, { lastBatchId: batchId, lastCount: batch.length, lastSource: (_importKind === 'cc' ? 'conta' : 'cartao'), lastAt: serverTimestamp() }, { merge: true }).catch(() => {});
+  // TUDO dentro do try → o finally SEMPRE reabilita o botão e fecha o modal,
+  // mesmo se a animação/preview lançar erro. (Antes, um throw aqui deixava o
+  // botão "Importar" travado em disabled.)
   try {
+    // Linhas reais (até 5) do lote — a animação "mostra o trabalho".
+    const previewRows = batch.slice(0, 5).map(d => {
+      const c = CATEGORIES[d.category] || CATEGORIES.outros;
+      return { date: formatDateBR(d.date), desc: d.description || '—', cat: c.label, col: c.color, val: fmtBRL0(+d.value || 0) };
+    });
+    if (ov && !reduce) runImportAnimation(ov, previewRows, batch.length, provCount);
+    // Dispara TODAS as gravações sem esperar a rede — nunca trava.
+    batch.forEach(d => addDoc(colExpenses(), d).catch(err => console.error('[import] doc falhou', err)));
+    setDoc(docImportMeta, { lastBatchId: batchId, lastCount: batch.length, lastSource: (_importKind === 'cc' ? 'conta' : 'cartao'), lastAt: serverTimestamp() }, { merge: true }).catch(() => {});
     if (ov && !reduce) await new Promise(r => setTimeout(r, 4250));   // duração total da animação
     else showToast(t('imp.done').replace('{n}', batch.length));
+  } catch (e) {
+    console.error('[import] commit falhou', e); showToast(t('toast.error.save'));
   } finally {
     $('importModal').classList.remove('show');
     if (ov) { ov.hidden = true; ov.classList.remove('done', 'out', 'reading', 'scanning'); }
