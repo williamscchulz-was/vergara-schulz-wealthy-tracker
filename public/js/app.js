@@ -3976,14 +3976,14 @@ function renderImportReview() {
       + (low ? `<span class="imp-badge low" title="${esc(t('imp.lowconf'))}">?</span> ` : '');
     const card = tx.holder ? `<span class="imp-card">· ${esc(t('imp.cardword'))} ${esc(tx.holder.split(' ')[0])}</span>` : '';
     const comp = (tx._compY && tx._compM) ? `${tx._compY}-${String(tx._compM).padStart(2, '0')}` : '';
-    const html = `<label class="imp-row${low ? ' imp-low' : ''}" data-comp="${comp}">
+    const html = `<div class="imp-row${low ? ' imp-low' : ''}" data-comp="${comp}">
       <input type="checkbox" data-idx="${i}" ${checked}>
       <span class="imp-date">${esc(tx.date)}</span>
       <span class="imp-desc">${esc(tx.desc)} ${badges}${card}</span>
       <select class="imp-owner" data-idx="${i}">${ownerOpts.replace(`value="${owner}"`, `value="${owner}" selected`)}</select>
       <select class="imp-cat" data-idx="${i}">${catOpts.replace(`value="${cat}"`, `value="${cat}" selected`)}</select>
       <span class="imp-val${(tx.refund || isInc) ? ' ref' : ''}">${(tx.refund || isInc) ? '+ ' : ''}${impMoney(tx.value)}</span>
-    </label>`;
+    </div>`;
     return { low, order: i, comp, html };
   });
   // Agrupa por competência (o mês de cada fatura) e, dentro de cada mês, joga os
@@ -4188,6 +4188,16 @@ $('importOverlay')?.addEventListener('click', () => {
   const c = $('importConfirm'), x = $('importCancel'); if (c) c.disabled = false; if (x) x.disabled = false;
 });
 $('importList')?.addEventListener('change', (e) => { if (e.target.matches('input[type="checkbox"]')) impUpdateConfirm(); });
+// Clicar na linha alterna o checkbox — MENOS quando o clique é num <select>
+// (dono/categoria) ou no próprio checkbox. Antes a linha era um <label> e mexer
+// no select alternava/desmarcava a linha sem querer (bug no iOS → "não deixa importar").
+$('importList')?.addEventListener('click', (e) => {
+  if (e.target.closest('select') || e.target.matches('input[type="checkbox"]')) return;
+  const row = e.target.closest('.imp-row'); if (!row) return;
+  const cb = row.querySelector('input[type="checkbox"]'); if (!cb) return;
+  cb.checked = !cb.checked;
+  impUpdateConfirm();
+});
 
 $('btnAddExpense').addEventListener('click', () => openExpenseModal(null, { type: 'expense' }));
 
