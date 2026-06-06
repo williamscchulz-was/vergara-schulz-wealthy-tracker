@@ -1,0 +1,83 @@
+/* ===========================================================
+   CARTEIRA AGRUPADA (categorias)
+   =========================================================== */
+.cat-list { display: flex; flex-direction: column; gap: 4px; }
+.cat-row {
+  display: grid;
+  grid-template-columns: 36px 1fr auto auto 18px;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 4px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.2s var(--ease-out), padding 0.2s var(--ease-out);
+  border-bottom: 1px solid var(--border);
+}
+.cat-row:last-of-type { border-bottom: none; }
+.cat-row:hover { background: var(--bg-elevated-2); padding: 14px 12px; }
+.cat-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--purple-soft); border: 1px solid var(--border-strong); display: grid; place-items: center; color: var(--purple-light); transition: all 0.3s var(--ease-back); }
+.cat-row:hover .cat-icon { background: rgba(199,247,62,0.18); transform: scale(1.05) rotate(-3deg); }
+.cat-icon svg { width: 18px; height: 18px; }
+.cat-name { font-size: 13px; font-weight: 600; color: var(--ink-2); letter-spacing: -0.01em; }
+.cat-count { font-size: 10px; color: var(--ink-muted); margin-top: 2px; font-family: 'Geist Mono', monospace; letter-spacing: 0.04em; }
+.cat-value { font-family: 'Geist Mono', monospace; font-size: 15px; font-weight: 700; color: var(--ink); text-align: right; }
+.cat-pct { font-size: 10px; color: var(--ink-muted); margin-top: 2px; text-align: right; font-family: 'Geist Mono', monospace; }
+.cat-appr { font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 600; min-width: 60px; text-align: right; }
+.cat-appr.pos { color: var(--gain); }
+.cat-appr.neg { color: var(--loss); }
+.cat-chevron { color: var(--ink-3); transition: transform 0.4s var(--ease-back); }
+.cat-row.expanded .cat-chevron { transform: rotate(180deg); color: var(--purple-light); }
+.cat-tickers { max-height: 0; overflow: hidden; transition: max-height 0.5s var(--ease-out); padding-left: 50px; }
+.cat-row.expanded + .cat-tickers { max-height: 800px; padding-bottom: 8px; }
+.ticker-row { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: center; padding: 8px 4px; border-bottom: 1px solid var(--border); animation: fadeUp 0.4s var(--ease-out) backwards; }
+.ticker-row:last-child { border-bottom: none; }
+.cat-row.expanded + .cat-tickers .ticker-row:nth-child(1) { animation-delay: 0.05s; }
+.cat-row.expanded + .cat-tickers .ticker-row:nth-child(2) { animation-delay: 0.08s; }
+.cat-row.expanded + .cat-tickers .ticker-row:nth-child(3) { animation-delay: 0.11s; }
+.cat-row.expanded + .cat-tickers .ticker-row:nth-child(4) { animation-delay: 0.14s; }
+.cat-row.expanded + .cat-tickers .ticker-row:nth-child(n+5) { animation-delay: 0.17s; }
+.ticker-name { font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.ticker-val { font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 600; color: var(--ink); text-align: right; }
+.ticker-appr { font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 600; min-width: 58px; text-align: right; }
+.ticker-appr.pos { color: var(--gain); }
+.ticker-appr.neg { color: var(--loss); }
+
+/* ===========================================================
+   TABELA YEARLY HISTORY
+   =========================================================== */
+.yearly-table { width: 100%; border-collapse: collapse; font-family: 'Geist Mono', monospace; font-size: 12px; }
+.yearly-table th { text-align: left; padding: 12px 14px; font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); border-bottom: 1px solid var(--border); }
+.yearly-table th:not(:first-child) { text-align: right; }
+.yearly-table td { padding: 14px; color: var(--ink-2); border-bottom: 1px solid var(--border); transition: background 0.15s; }
+.yearly-table td:not(:first-child) { text-align: right; }
+.yearly-table td:first-child { font-weight: 700; color: var(--ink); }
+.yearly-table tr:last-child td { border-bottom: none; }
+.yearly-table tr:hover td { background: var(--bg-elevated-2); }
+.pos { color: var(--gain); }
+.neg { color: var(--loss); }
+
+/* ===========================================================
+   CHARTS
+   =========================================================== */
+#divChartWrap, #plChartWrap { width: 100%; overflow: hidden; }
+#divChartWrap svg, #plChartWrap svg { width: 100%; height: auto; max-width: 100%; }
+#divChartWrap rect, #plChartWrap rect { transition: opacity 0.2s, fill 0.2s; cursor: pointer; }
+#divChartWrap rect:hover, #plChartWrap rect:hover { opacity: 0.85; }
+.empty-chart { padding: 40px 20px; text-align: center; color: var(--ink-muted); font-size: 12px; }
+.empty-chart .ico { font-size: 32px; margin-bottom: 8px; opacity: 0.5; }
+.empty-chart h4 { color: var(--ink-2); margin: 8px 0 4px; font-size: 13px; }
+.empty-chart p { font-size: 11px; }
+
+/* ===========================================================
+   ENTRY ANIMATIONS
+   =========================================================== */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.animate-in { animation: fadeUp 0.6s var(--ease-out) backwards; }
+.animate-in:nth-of-type(1) { animation-delay: 0.05s; }
+.animate-in:nth-of-type(2) { animation-delay: 0.12s; }
+.animate-in:nth-of-type(3) { animation-delay: 0.19s; }
+.animate-in:nth-of-type(4) { animation-delay: 0.26s; }
+.animate-in:nth-of-type(5) { animation-delay: 0.33s; }
+.animate-in:nth-of-type(6) { animation-delay: 0.40s; }
+

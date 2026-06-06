@@ -1,0 +1,122 @@
+/* ===========================================================
+   DESKTOP DASHBOARD v2 — stacked regions com grids 2-up internos.
+   Investimentos empilha regiões (hero · inv-top · carteira ·
+   inv-charts · histórico). .inv-top e .inv-charts viram 2 colunas
+   no desktop, então os cards encaixam densos, SEM buracos.
+   =========================================================== */
+#moduleInvestments.active { display: flex; flex-direction: column; gap: 18px; }
+#moduleInvestments.active .card,
+#moduleInvestments.active .hero-card { margin-bottom: 0; }   /* gaps cuidam do espaçamento */
+.inv-main, .inv-charts { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+.inv-main > .card { order: -1; }   /* carteira sempre primeiro (mobile e desktop) */
+.inv-side { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.inv-kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.ikpi { padding: 15px 17px; }
+.ikpi-k { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); font-weight: 700; }
+.ikpi-v { font-family: 'Geist Mono', monospace; font-size: 21px; font-weight: 650; letter-spacing: -.02em; color: var(--ink); margin-top: 10px; }
+
+@media (min-width: 1000px) {
+  .inv-charts { grid-template-columns: 1fr 1fr; }
+  .inv-side { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }   /* Metas | dividendos lado a lado */
+  /* CARTEIRA full-width flui em 2 colunas (sem linhas esticadas no card largo) */
+  #i10AssetsList { display: block; column-count: 2; column-gap: 38px; }
+  #i10AssetsList > .cat-row,
+  #i10AssetsList > .cat-tickers,
+  #i10AssetsList > .reserve-expanded,
+  #i10AssetsList > .fx-add-hint { break-inside: avoid; }
+  .inv-kpis { grid-template-columns: repeat(4, 1fr); }
+  /* DENSIDADE no desktop — não parecer um celular esticado */
+  .card { padding: 20px 22px; margin-bottom: 14px; }
+  .hero-card { padding: 26px 26px 22px; }
+  .card-head { margin-bottom: 14px; }
+  .cat-row { padding: 11px 4px; }
+  .cat-row:hover { padding: 11px 12px; }
+  .exp-table td { padding: 10px 14px; }
+  #moduleExpenses.active { max-width: none; }
+}
+/* HERO em destaque verde — âncora de hierarquia (texto claro sobre o verde) */
+#moduleInvestments .hero-card { background: linear-gradient(145deg, #1d8f49, #0e4d27) !important; border-color: transparent !important; color: #eafff1; }
+#moduleInvestments .hero-card::after { display: none !important; }
+.hero-card .hero-eyebrow .label, .hero-card .applied-text, .hero-card .hero-amount .cur, .hero-card .hero-usd .usd-sym, .hero-card .louise-chip { color: #cdeed8 !important; }
+.hero-card .hero-usd { color: #cfe9da !important; }      /* valor US$ — legível no verde (era --ink-3) */
+.hero-card .updated { color: #aacdb7 !important; }       /* timestamp "atualizado … via I10" — legível (era --ink-muted) */
+.hero-card .hero-amount .num { color: #f6fff9 !important; }
+.hero-card .applied-text b { color: #ffffff !important; }
+.hero-card .return-pill { background: rgba(199,247,62,.20) !important; color: #d8fa72 !important; }
+.hero-card .btn-ghost { color: #eafff1 !important; border-color: rgba(255,255,255,.22) !important; background: rgba(255,255,255,.07) !important; }
+.hero-card .btn-ghost.primary { background: var(--purple) !important; color: var(--on-accent) !important; border-color: transparent !important; }
+/* rótulos de seção — separam os blocos (hierarquia) */
+.inv-sec { display: flex; align-items: center; gap: 12px; margin: 6px 2px -4px; font-size: 11px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-3); }
+.inv-sec::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ===========================================================
+   TOPBAR
+   =========================================================== */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  animation: fadeIn 0.5s var(--ease-out);
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--purple) 0%, var(--purple-deep) 100%);
+  color: var(--on-accent);
+  display: grid; place-items: center;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.10), 0 4px 12px var(--purple-glow);
+  transition: transform 0.3s var(--ease-back), box-shadow 0.3s var(--ease-out);
+}
+.brand-mark:hover { transform: rotate(-6deg) scale(1.05); box-shadow: 0 0 0 1px rgba(255,255,255,0.15), 0 8px 20px var(--purple-glow); }
+.brand-mark svg { width: 28px; height: 28px; }
+.brand-text .name { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.brand-text .tag { font-size: 11px; color: var(--ink-muted); margin-top: 1px; }
+
+.user-pill {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 14px 6px 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  font-size: 13px; font-weight: 500;
+  transition: all 0.2s var(--ease-out);
+}
+.user-pill:hover { background: var(--bg-elevated-2); border-color: var(--border-strong); }
+.user-pill .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--purple-deep); }
+.user-pill button { background: none; border: none; color: var(--ink-muted); cursor: pointer; padding: 0 0 0 8px; margin-left: 4px; border-left: 1px solid var(--border-2); display: flex; align-items: center; transition: color 0.2s; }
+.user-pill button:hover { color: var(--purple-light); }
+
+/* ===========================================================
+   MODE SWITCH (tabs)
+   =========================================================== */
+.mode-switch {
+  display: inline-flex;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 4px;
+  margin-bottom: 24px;
+  position: relative;
+}
+.mode-switch button {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 18px;
+  background: transparent;
+  border: none;
+  color: var(--ink-3);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: var(--radius-pill);
+  transition: color 0.2s var(--ease-out);
+  position: relative;
+  z-index: 1;
+}
+.mode-switch button svg { width: 14px; height: 14px; transition: transform 0.3s var(--ease-back); }
+.mode-switch button:hover { color: var(--ink); }
+.mode-switch button:hover svg { transform: scale(1.1); }
+.mode-switch button.active { color: var(--on-accent); background: linear-gradient(135deg, var(--purple), var(--purple-deep)); box-shadow: 0 4px 12px var(--purple-glow); }
+

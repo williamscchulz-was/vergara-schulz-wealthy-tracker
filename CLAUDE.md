@@ -64,10 +64,11 @@ Layout do repo (pós-reorganização):
 
 ```
 ├── public/              → app estático (raiz do GitHub Pages)
-│   ├── index.html       → shell + todo o CSS (~2000 linhas, v7/v8)
+│   ├── index.html       → shell + DOM (~990 linhas; CSS saiu pra css/)
+│   ├── css/             → CSS em 9 arquivos (01-base … 09-contrast), <link> NA ORDEM
 │   ├── manifest.json    → PWA
 │   ├── js/
-│   │   └── app.js       → núcleo (~2800 linhas)
+│   │   └── app.js       → núcleo (~6000 linhas, monolítico)
 │   └── assets/icons/    → favicons + ícones PWA
 ├── worker/
 │   ├── src/worker.js    → CF Worker (CORS proxy)
@@ -91,8 +92,9 @@ Layout do repo (pós-reorganização):
 
 | Arquivo | Papel |
 |---|---|
-| `public/index.html` | Shell do app. Contém **todo o CSS** (~2000 linhas, tokens `v7`/`v8` — "Linear meets Apple", paleta roxo `#AC5FDB`). Define toda a estrutura de DOM. |
-| `public/js/app.js` | Núcleo da aplicação (~2800 linhas). Firebase init, state global, i18n PT/EN, renderers, listeners, sync com I10, lógica de despesas, investimentos, reservas, previdência, FX (USD→BRL), Louise wallet, contribuições, editores, modais. |
+| `public/index.html` | Shell do app: `<head>`, `<link>`s de CSS e **toda a estrutura de DOM** (~990 linhas). O CSS foi extraído pra `public/css/`. |
+| `public/css/*.css` | CSS em 9 arquivos (`01-base` → `09-contrast-light`), ligados por `<link>` **na ordem original** — a cascata depende dessa ordem, **não reordenar**. Tokens `v7`/`v8`, paleta verde (`--purple` = `#c7f73e`). |
+| `public/js/app.js` | Núcleo da aplicação (~6000 linhas, monolítico). Firebase init, state global, i18n PT/EN, renderers, listeners, sync com I10, lógica de despesas, investimentos, reservas, previdência, FX (USD→BRL), Louise wallet, contribuições, editores, modais. |
 | `worker/src/worker.js` | Cloudflare Worker (ver §2). **Publicado separadamente** em `https://ledger-i10-proxy.<sub>.workers.dev`. |
 | `public/manifest.json` | Manifesto PWA. |
 | `public/assets/icons/*` | Assets da marca. |
@@ -313,7 +315,7 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 1. **Zero build step.** Vanilla JS ES modules. Se um dia precisar de build, isso é conversa — não decisão no meio de uma task.
 2. **Zero framework.** Sem React / Vue / Svelte. Funções que manipulam DOM direto, state global em objeto `state`, renderers idempotentes.
 3. **Sem dependências npm.** Firebase entra via import direto da CDN (`https://www.gstatic.com/firebasejs/10.12.0/...`). Fontes via Google Fonts CDN.
-4. **Um arquivo por responsabilidade grande, sem over-engineering.** `public/js/app.js` é monolítico de propósito — é mais fácil navegar 2800 linhas contíguas do que 40 módulos de 70 linhas.
+4. **Sem over-engineering, mas sem arquivo gigante.** O CSS foi extraído do `index.html` pra `public/css/` (9 arquivos por seção, ligados por `<link>` **na ordem** — a cascata depende disso). O `public/js/app.js` segue monolítico **por enquanto** (~6000 linhas); modularizar em ES modules nativos (sem build step) é evolução planejada, feita em fases verificadas. Sempre nativo: nada de bundler/npm.
 5. **Firestore como fonte da verdade compartilhada.** Tudo que os dois usuários precisam ver em tempo real passa por Firestore + `onSnapshot`. Estado local é cache do Firestore, não fonte.
 6. **Worker fica simples.** Proxy GET-only, whitelist, cache, pronto. Se precisar de lógica complexa, ela vai no cliente — não no worker.
 7. **Estética importa.** Tokens de design (`v7`/`v8`), micro-interações, spring easings, liquid glass — isso é parte do produto, não enfeite. Mudanças visuais precisam preservar a linguagem atual (roxo, denso, mono pra números).

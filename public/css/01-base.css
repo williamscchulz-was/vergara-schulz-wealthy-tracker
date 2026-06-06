@@ -1,0 +1,472 @@
+/* ===========================================================
+   LEDGER v7 - "Linear meets Apple"
+   Paleta: #131410 / #3C3541 / #c7f73e / #d8fa72
+   Tipografia: Inter (UI) + Geist Mono (números)
+   Filosofia: clean, denso, profissional, micro-interações refinadas
+   =========================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+
+:root {
+  /* AEVO — dark: grafite quase-preto + acento lime */
+  --bg:            #131410;
+  --bg-deep:       #0e0f0b;
+  --bg-elevated:   #1c1d16;
+  --bg-elevated-2: #24251c;
+  --bg-elevated-3: #2a2b21;
+
+  --border:        rgba(255,255,255,0.07);
+  --border-2:      rgba(255,255,255,0.11);
+  --border-strong: rgba(199,247,62,0.30);
+  --border-glow:   rgba(199,247,62,0.45);
+
+  --ink:           #f3f4ee;
+  --ink-2:         #b9bbae;
+  --ink-3:         #80827a;
+  --ink-muted:     #5d5f56;
+
+  /* o nome do token segue 'purple' (referenciado no app todo); o VALOR agora é lime */
+  --purple:        #c7f73e;
+  --purple-light:  #d8fa72;
+  --purple-deep:   #a6d22e;
+  --purple-soft:   rgba(199,247,62,0.12);
+  --purple-glow:   rgba(199,247,62,0.32);
+  --on-accent:     #15170b;   /* texto escuro sobre o acento lime */
+
+  --gain:          #4fdd8a;
+  --gain-soft:     rgba(79,221,138,0.12);
+  --loss:          #ff6b61;
+  --loss-soft:     rgba(255,107,97,0.12);
+  --warn:          #ffc24d;
+
+  --radius-sm:     8px;
+  --radius:        14px;
+  --radius-lg:     20px;
+  --radius-pill:   999px;
+
+  --ease-out:      cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:   cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-back:     cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-spring:   cubic-bezier(0.5, 1.6, 0.4, 1);
+
+  --shadow-sm:     0 1px 2px rgba(0,0,0,0.30);
+  --shadow:        0 8px 24px -6px rgba(0,0,0,0.55), 0 2px 8px -2px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.2);
+  --shadow-lg:     0 20px 50px -10px rgba(0,0,0,0.70), 0 10px 28px -8px rgba(120,200,50,0.18), inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(0,0,0,0.2);
+  --shadow-glow:   0 8px 32px rgba(199,247,62,0.22);
+
+  /* v8 LIQUID GLASS TOKENS (Part 1 §0) */
+  --glass-bg:         rgba(26,27,20,0.55);
+  --glass-bg-strong:  rgba(26,27,20,0.74);
+  --glass-border:     rgba(199,247,62,0.18);
+  --glass-highlight:  rgba(255,255,255,0.08);
+  --glass-blur:       blur(20px) saturate(1.5);
+  --glass-blur-strong: blur(28px) saturate(1.6);
+
+  /* Aliases — referenced across the app/markup but were never defined,
+     so dividers/borders silently rendered transparent and faint text lost
+     its color (root cause of the "everything floats / weak hierarchy"
+     feel). Map to the real scale; the var() refs auto-adapt to the light
+     theme overrides. */
+  --text:         var(--ink);
+  --text-dim:     var(--ink-3);
+  --text-faint:   var(--ink-muted);
+  --border-soft:  var(--border);
+  --card-border:  var(--border-2);
+  --card-divider: var(--border);
+  --warn-soft:    rgba(255,179,64,0.12);
+}
+
+/* v8 LIQUID BORDER — animated conic gradient ring (Part 1 §-2) */
+@property --liquid-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+.liquid-border {
+  position: relative;
+  isolation: isolate;
+}
+.liquid-border::before {
+  content: "";
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--liquid-angle),
+    transparent 0%,
+    transparent 60%,
+    rgba(199,247,62,.4) 72%,
+    #d8fa72 82%,
+    #fff 88%,
+    #d8fa72 94%,
+    rgba(199,247,62,.4) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: liquid-spin 3.5s linear infinite;
+  filter: drop-shadow(0 0 4px rgba(199,247,62,.6));
+  pointer-events: none;
+  z-index: 2;
+}
+@keyframes liquid-spin { to { --liquid-angle: 360deg; } }
+@supports not (background: conic-gradient(from 0deg, #000, #fff)) {
+  .liquid-border::before {
+    background: linear-gradient(135deg, transparent, #d8fa72, transparent);
+  }
+}
+
+/* v8 MOTION — breathing, pulses, drifts (Part 1 §-1) */
+@keyframes glow-drift-top {
+  0%,100% { transform: translate(0,0) scale(1); opacity: .9 }
+  33%     { transform: translate(-12%,5%) scale(1.2); opacity: 1 }
+  66%     { transform: translate(10%,-4%) scale(.85); opacity: .75 }
+}
+@keyframes glow-drift-bottom {
+  0%,100% { transform: translate(0,0) scale(1) }
+  50%     { transform: translate(8%,-4%) scale(1.25) }
+}
+@keyframes chart-breathe {
+  0%,100% { transform: scale(1) }
+  50%     { transform: scale(1.012) }
+}
+@keyframes hatch-flow {
+  to { transform: translate(6px, -6px) }
+}
+@keyframes projection-shimmer {
+  to { stroke-dashoffset: -20 }
+}
+@keyframes point-pulse {
+  0%,100% { r: 4; filter: drop-shadow(0 0 4px rgba(199,247,62,.6)) }
+  50%     { r: 6; filter: drop-shadow(0 0 12px rgba(199,247,62,.95)) }
+}
+@keyframes target-point-pulse {
+  0%,100% { r: 5; opacity: .85 }
+  50%     { r: 7; opacity: 1 }
+}
+/* Radar ring expanding outward from target point — Option C signature */
+@keyframes target-ring-expand {
+  0%   { r: 5;  opacity: .7 }
+  100% { r: 18; opacity: 0 }
+}
+@keyframes target-line-ripple {
+  0%,100% { opacity: .5; stroke-width: 1 }
+  50%     { opacity: .9; stroke-width: 1.4 }
+}
+@keyframes dot-pulse {
+  0%,100% { opacity: .6; transform: scale(.9) }
+  50%     { opacity: 1;  transform: scale(1.15) }
+}
+@keyframes sync-glow {
+  0%,100% { box-shadow: 0 6px 18px var(--purple-glow), inset 0 1px 0 rgba(255,255,255,.4) }
+  50%     { box-shadow: 0 10px 28px rgba(199,247,62,.6), inset 0 1px 0 rgba(255,255,255,.5) }
+}
+@keyframes island-float {
+  0%,100% { transform: translateX(-50%) translateY(0) }
+  50%     { transform: translateX(-50%) translateY(-3px) }
+}
+@keyframes card-rise {
+  from { opacity: 0; transform: translateY(16px) }
+  to   { opacity: 1; transform: translateY(0) }
+}
+
+/* v8 REDUCED MOTION — kill every animation for users who asked */
+@media (prefers-reduced-motion: reduce) {
+  /* keep subtle decorative loops alive (liquid spin, dot pulse, dashoffset shimmer);
+     only disable transforms/translates that move large layout chunks */
+  .card, .hero-card, .mode-switch { animation: none !important; }
+  .mode-switch { transform: translateX(-50%) !important; }
+  /* CRITICAL: elements that animate IN from opacity:0 / scaleX(0) with
+     `forwards` must be force-shown, not just have animation killed —
+     otherwise they'd stay invisible/collapsed under reduced motion. */
+  .animate-in, .exp-recent-row, .exp-rec-row, .exp-cat-row, .ticker-row {
+    animation: none !important; opacity: 1 !important; transform: none !important;
+  }
+  .exp-cat-bar i { animation: none !important; transform: scaleX(1) !important; }
+  /* Layout-moving decorative loops off; non-moving glows can stay. */
+  .exp-hero-overbudget { animation: none !important; }
+}
+
+/* ===========================================================
+   v8 ACTIVATIONS — wire keyframes + liquid-border to real elements
+   =========================================================== */
+
+/* Fundo de UMA cor só (pedido do dono). O glow ambiente que ficava aqui
+   criava o efeito "duas cores" — verde no topo (dark) e roxo no topo
+   (light, token legado nunca atualizado). body::before já pinta var(--bg)
+   liso, então matamos este glow por completo. */
+body::after { display: none !important; }
+
+/* v8 LIQUID BORDER — applied via ::after to avoid colliding with .btn-ghost::before legacy */
+button#btnSyncI10,
+button#btnAddYear,
+button#btnAddContrib,
+button#btnAddExpense {
+  position: relative !important;
+  isolation: isolate;
+  overflow: visible !important;
+}
+/* Kill the legacy .btn-ghost::before shimmer ONLY on these specific buttons so it doesn't fight the liquid */
+button#btnSyncI10::before,
+button#btnAddYear::before,
+button#btnAddContrib::before,
+button#btnAddExpense::before {
+  display: none !important;
+  content: none !important;
+}
+button#btnSyncI10::after,
+button#btnAddYear::after,
+button#btnAddContrib::after,
+button#btnAddExpense::after {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  top: -2px !important;
+  left: -2px !important;
+  right: -2px !important;
+  bottom: -2px !important;
+  border-radius: 999px !important;
+  padding: 2px !important;
+  background: conic-gradient(
+    from var(--liquid-angle),
+    transparent 0%,
+    transparent 55%,
+    rgba(199,247,62,.5) 68%,
+    #d8fa72 78%,
+    #ffffff 86%,
+    #d8fa72 92%,
+    rgba(199,247,62,.5) 100%
+  ) !important;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0) !important;
+  -webkit-mask-composite: xor !important;
+          mask-composite: exclude !important;
+  animation: liquid-spin 3.5s linear infinite !important;
+  filter: drop-shadow(0 0 6px rgba(199,247,62,.8)) !important;
+  pointer-events: none !important;
+  z-index: 10 !important;
+  transform: none !important;
+}
+/* '+ Nova despesa' sem o anel líquido — pedido do dono */
+button#btnAddExpense::after { display: none !important; content: none !important; }
+/* Sync button also gets the breathing glow */
+#btnSyncI10 {
+  animation: sync-glow 3s ease-in-out infinite;
+}
+
+/* All status dots pulse */
+.dot,
+.status-dot,
+[class*="dot-"] .dot {
+  animation: dot-pulse 2.4s ease-in-out infinite;
+}
+
+/* Cards rise in on load (one-shot via animation, not transition) */
+.card,
+.hero-card {
+  animation: card-rise .6s cubic-bezier(.2,.8,.2,1) both;
+}
+.card:nth-of-type(1), .hero-card:nth-of-type(1) { animation-delay: .05s; }
+.card:nth-of-type(2) { animation-delay: .15s; }
+.card:nth-of-type(3) { animation-delay: .25s; }
+.card:nth-of-type(4) { animation-delay: .35s; }
+.card:nth-of-type(5) { animation-delay: .45s; }
+
+/* Mode switch — upgraded to iOS 26 island bottom nav without markup changes */
+.mode-switch {
+  position: fixed !important;
+  bottom: calc(24px + env(safe-area-inset-bottom)) !important;
+  left: 50% !important;
+  transform: translateX(-50%);
+  margin: 0 !important;
+  background: var(--glass-bg-strong) !important;
+  backdrop-filter: var(--glass-blur-strong);
+  -webkit-backdrop-filter: var(--glass-blur-strong);
+  border: 1px solid var(--glass-border) !important;
+  box-shadow:
+    0 20px 50px rgba(0,0,0,.55),
+    0 0 40px rgba(199,247,62,.15),
+    inset 0 1px 0 var(--glass-highlight) !important;
+  padding: 6px !important;
+  z-index: 100;
+}
+.mode-switch button { padding: 10px 22px !important; font-size: 13px !important; font-weight: 600 !important; }
+.mode-switch button.active {
+  background: linear-gradient(135deg, var(--purple-light), var(--purple)) !important;
+  color: #1a1420 !important;
+  box-shadow: 0 6px 20px var(--purple-glow), inset 0 1px 0 rgba(255,255,255,.4) !important;
+  transition: all 500ms cubic-bezier(.34,1.4,.64,1);
+}
+
+/* Push page content so last row isn't hidden behind the fixed island */
+.module.active {
+  padding-bottom: calc(140px + env(safe-area-inset-bottom));
+}
+
+/* Desktop (≥720px): the mode switch is a STATIC top-nav under the header
+   — no floating island, no bobbing, no dead padding at the bottom. */
+@media (min-width: 720px) {
+  .mode-switch {
+    position: static !important;
+    transform: none !important;
+    left: auto !important;
+    bottom: auto !important;
+    margin: 0 0 20px !important;
+    width: fit-content;
+    box-shadow: 0 8px 24px -10px rgba(0,0,0,.5), inset 0 1px 0 var(--glass-highlight) !important;
+    z-index: 1;
+  }
+  .module.active { padding-bottom: 0 !important; }
+}
+
+/* Respect safe area at the top (header/statusbar collision fix — Part 2 §2) */
+body {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Goal chart SVG elements — animations hook here once markup exists (§4 Turno 4) */
+/* chart-breathe removed: SVG <g> transform was collapsing to origin in Safari */
+#gChart .hatch-layer { animation: hatch-flow 3s linear infinite; }
+#gChart .projection-line {
+  stroke-dasharray: 4 6;
+  animation: projection-shimmer 1.6s linear infinite;
+}
+#gChart .current-point { animation: point-pulse 2.4s ease-in-out infinite; transform-origin: center; }
+#gChart .target-point { animation: target-point-pulse 3s ease-in-out infinite; transform-origin: center; }
+#gChart .target-ring {
+  fill: none;
+  stroke: #d8fa72;
+  stroke-width: 1.5;
+  animation: target-ring-expand 2.8s ease-out infinite;
+  transform-origin: center;
+}
+#gChart .target-line { animation: target-line-ripple 3s ease-in-out infinite; }
+
+
+/* LIGHT MODE OVERRIDES */
+:root[data-theme="light"] {
+  /* AEVO — light: off-white levemente esverdeado, cards brancos, acento verde esmeralda */
+  --bg:            #f4f6f0;
+  --bg-deep:       #ebeee4;
+  --bg-elevated:   #ffffff;
+  --bg-elevated-2: #eef3e7;
+  --bg-elevated-3: #fafbf6;
+  --border:        #e4e9da;
+  --border-2:      #eef1e7;
+  --border-strong: rgba(47,174,95,0.28);
+  --border-glow:   rgba(47,174,95,0.40);
+  --ink:           #15211a;
+  --ink-2:         #53604f;
+  --ink-3:         #8a9482;
+  --ink-muted:     #7e876f;   /* era #aab09f — claro demais no branco */
+  --purple:        #2fae5f;
+  --purple-light:  #5fd08a;
+  --purple-deep:   #1f8f4a;
+  --purple-soft:   rgba(47,174,95,0.08);
+  --purple-glow:   rgba(47,174,95,0.22);
+  --on-accent:     #ffffff;   /* texto branco sobre o verde esmeralda */
+  --gain:          #1f9d4d;
+  --gain-soft:     rgba(31,157,77,0.10);
+  --loss:          #dc2626;
+  --loss-soft:     rgba(220,38,38,0.10);
+  --warn:          #c47d00;
+  --shadow-sm:     0 1px 2px rgba(20,40,24,0.05);
+  --shadow:        0 1px 2px rgba(20,40,24,0.04), 0 6px 20px -10px rgba(20,40,24,0.12);
+  --shadow-lg:     0 4px 10px -4px rgba(20,40,24,0.08), 0 18px 44px -16px rgba(20,40,24,0.18);
+  --shadow-glow:   0 10px 26px -8px rgba(47,174,95,0.22);
+
+  --glass-bg:         rgba(255,255,255,0.85);
+  --glass-bg-strong:  rgba(255,255,255,0.94);
+  --glass-border:     #e4e9da;
+  --glass-highlight:  rgba(255,255,255,0.9);
+}
+/* fundo claro = var(--bg) liso (herda a regra geral do body::before) */
+:root[data-theme="light"] .card,
+:root[data-theme="light"] .hero-card,
+:root[data-theme="light"] .goal-card,
+:root[data-theme="light"] .login-card,
+:root[data-theme="light"] .modal {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+:root[data-theme="light"] .modal-bg { background: rgba(60,53,65,0.40); }
+:root[data-theme="light"] .modal select option { background: #ffffff; color: #131410; }
+:root[data-theme="light"] .btn-ghost.primary { color: #fff; }
+:root[data-theme="light"] .login-card { box-shadow: var(--shadow-lg), 0 0 60px rgba(139,63,184,0.10); }
+:root[data-theme="light"] svg.chart text, :root[data-theme="light"] #gChart text { fill: #5d5f56; }
+
+/* Theme transition */
+html { transition: background-color 0.3s ease; }
+body, .card, .hero-card, .stat, .modal, .login-card, .topbar, .user-pill, .mode-switch, .ticker-row, .cat-row, .cat-icon, .btn-ghost, .btn-primary, .btn-secondary, .return-pill, .ytd-progress, .yearly-table td, .yearly-table th, .contrib-item, .stat .val, .ink, .ink-2, .ink-3 {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--ink-2);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  margin-right: 8px;
+  transition: all 0.2s var(--ease-out);
+}
+.theme-toggle:hover { background: var(--bg-elevated-2); border-color: var(--border-strong); color: var(--purple-light); transform: rotate(15deg); }
+.theme-toggle svg { width: 16px; height: 16px; }
+.theme-toggle .icon-sun { display: none; }
+.theme-toggle .icon-moon { display: block; }
+:root[data-theme="light"] .theme-toggle .icon-sun { display: block; }
+:root[data-theme="light"] .theme-toggle .icon-moon { display: none; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Subtle gradient mesh background */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--bg);   /* UMA cor só (segue o tema) — sem gradientes/glows */
+}
+
+/* Minimizar card — botão no card-head: some o conteúdo, fica só o cabeçalho */
+.card-collapse { flex-shrink: 0; width: 26px; height: 26px; display: grid; place-items: center; border: none; background: transparent; color: var(--ink-3); cursor: pointer; border-radius: 7px; transition: color .15s, background .15s; padding: 0; margin-left: 4px; }
+.card-collapse:hover { color: var(--purple); background: var(--bg-elevated-2); }
+.card-collapse svg { width: 16px; height: 16px; transition: transform .2s var(--ease-out); }
+.card.is-collapsed .card-collapse svg { transform: rotate(-90deg); }
+.card.is-collapsed .card-body > :not(.card-head) { display: none; }
+.card.is-collapsed .card-body > .card-head { margin-bottom: 0; }
+/* cards SEM .card-body (Despesas): header é filho direto do .card */
+.card.is-collapsed > :not(.card-head):not(.card-body):not(.card-collapse) { display: none; }
+.card.is-collapsed > .card-head { margin-bottom: 0; }
+
+.page {
+  position: relative;
+  z-index: 1;
+  max-width: 1240px;   /* largura do mockup que ficou bom — denso, sem esticar os cards */
+  margin: 0 auto;
+  padding: 24px 28px 96px;
+}
+
