@@ -952,7 +952,10 @@ setTimeout(hide,3500);})();
   <div class="modal modal-wide">
     <h3 data-i18n="imp.modal.title">Revisar fatura</h3>
     <p class="sub" data-i18n="imp.modal.sub">Confira de quem é o gasto e a categoria. Desmarque o que não quer importar.</p>
-    <div class="imp-meta"><b id="importCount">0</b> <span data-i18n="imp.count">lançamentos encontrados</span><span class="imp-lownote" id="importLowNote" hidden></span></div>
+    <div class="imp-meta">
+      <span><b id="importCount">0</b> <span data-i18n="imp.count">lançamentos encontrados</span><span class="imp-lownote" id="importLowNote" hidden></span></span>
+      <label class="imp-selall"><input type="checkbox" id="impSelectAll"> <span>Selecionar todos</span></label>
+    </div>
     <div class="imp-tabs" id="importTabs" hidden></div>
     <div class="imp-list" id="importList"></div>
     <div class="modal-foot">

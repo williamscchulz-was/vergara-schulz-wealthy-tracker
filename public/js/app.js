@@ -3937,6 +3937,19 @@ function impUpdateConfirm() {
   const n = document.querySelectorAll('#importList .imp-row input[type="checkbox"]:checked').length;
   const btn = $('importConfirm');
   if (btn) { btn.textContent = t('imp.confirm').replace('{n}', n); btn.disabled = n === 0; }
+  // "Selecionar todos" reflete as linhas VISÍVEIS (respeita a aba de mês ativa)
+  const master = $('impSelectAll');
+  if (master) {
+    const vis = [...document.querySelectorAll('#importList .imp-row:not(.is-hidden) input[type="checkbox"]')];
+    const c = vis.filter(x => x.checked).length;
+    master.checked = vis.length > 0 && c === vis.length;
+    master.indeterminate = c > 0 && c < vis.length;
+  }
+}
+// Marca/desmarca todas as linhas VISÍVEIS (da aba ativa). "Selecionar todos".
+function impSetAllVisible(checked) {
+  document.querySelectorAll('#importList .imp-row:not(.is-hidden) input[type="checkbox"]').forEach(cb => { cb.checked = checked; });
+  impUpdateConfirm();
 }
 // Recorrência: mesmo estabelecimento (chave normalizada) já visto em ≥2 meses
 // com valor ~igual → provável assinatura/conta fixa.
@@ -4027,6 +4040,7 @@ function impSetActiveMonth(comp) {
   document.querySelectorAll('#importList .imp-row').forEach(r =>
     r.classList.toggle('is-hidden', comp !== 'all' && r.dataset.comp !== comp));
   const list = $('importList'); if (list) list.scrollTop = 0;
+  impUpdateConfirm();   // atualiza o "selecionar todos" pro mês ativo
 }
 async function doImport() {
   // Dedup MULTISET por fingerprint-base: conta quantas ocorrências de cada base já
@@ -4188,6 +4202,7 @@ $('importOverlay')?.addEventListener('click', () => {
   const c = $('importConfirm'), x = $('importCancel'); if (c) c.disabled = false; if (x) x.disabled = false;
 });
 $('importList')?.addEventListener('change', (e) => { if (e.target.matches('input[type="checkbox"]')) impUpdateConfirm(); });
+$('impSelectAll')?.addEventListener('change', (e) => impSetAllVisible(e.target.checked));
 // Clicar na linha alterna o checkbox — MENOS quando o clique é num <select>
 // (dono/categoria) ou no próprio checkbox. Antes a linha era um <label> e mexer
 // no select alternava/desmarcava a linha sem querer (bug no iOS → "não deixa importar").

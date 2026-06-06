@@ -540,7 +540,9 @@
 .imp-type-opt svg { width: 30px; height: 30px; color: var(--purple-light); }
 .imp-type-nm { font-size: 13.5px; font-weight: 650; }
 .imp-type-ext { font-family: 'Geist Mono', monospace; font-size: 10px; color: var(--ink-3); background: var(--bg-elevated-2); padding: 2px 8px; border-radius: 6px; }
-.imp-meta { font-size: 12px; color: var(--ink-3); margin: 6px 0 10px; }
+.imp-meta { font-size: 12px; color: var(--ink-3); margin: 6px 0 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.imp-selall { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-weight: 600; color: var(--ink-2); user-select: none; }
+.imp-selall input { width: 15px; height: 15px; accent-color: var(--purple); cursor: pointer; margin: 0; }
 .imp-meta b { color: var(--ink); font-family: 'Geist Mono', monospace; }
 /* Abas por competência (Jan/26, Fev/26…) quando o import junta várias faturas */
 .imp-tabs { display: flex; gap: 6px; overflow-x: auto; margin: 0 0 12px; padding-bottom: 4px; scrollbar-width: thin; }
