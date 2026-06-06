@@ -573,7 +573,10 @@
 .imp-val { font-family: 'Geist Mono', monospace; text-align: right; color: var(--ink); }
 .imp-val.ref { color: var(--gain); }
 /* Overlay de progresso/sucesso da importação */
-.imp-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; background: color-mix(in oklab, var(--bg) 72%, transparent); backdrop-filter: blur(14px) saturate(1.15); animation: impFadeIn .32s var(--ease-out); }
+/* SEM backdrop-filter: blur de tela cheia re-borrava o fundo a cada frame
+   enquanto o scan/linhas animavam por cima → travava (sobretudo no celular).
+   Um fundo quase opaco obscurece a página com custo ~zero. */
+.imp-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; background: color-mix(in oklab, var(--bg) 93%, transparent); animation: impFadeIn .32s var(--ease-out); }
 .imp-overlay.out { animation: impFadeOut .42s var(--ease-out) forwards; }
 @keyframes impFadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes impFadeOut { to { opacity: 0; } }

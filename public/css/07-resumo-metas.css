@@ -153,11 +153,13 @@
 .imp-rrow .rm { font: 600 11px Inter, sans-serif; color: var(--ink); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .imp-rrow .rc { font: 600 9px Inter, sans-serif; padding: 2px 6px; border-radius: 5px; white-space: nowrap; background: color-mix(in oklab, var(--rc) 22%, transparent); color: color-mix(in oklab, var(--rc) 80%, white); }
 .imp-rrow .rv { font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; color: var(--ink-2); }
-.imp-scan { position: absolute; left: 0; right: 0; height: 40px; top: -42px; pointer-events: none; opacity: 0; z-index: 2;
+.imp-scan { position: absolute; left: 0; right: 0; height: 40px; top: -42px; pointer-events: none; opacity: 0; z-index: 2; will-change: transform, opacity;
   background: linear-gradient(180deg, transparent, rgba(199,247,62,.1) 45%, rgba(199,247,62,.22) 50%, rgba(199,247,62,.1) 55%, transparent);
   border-top: 1px solid rgba(199,247,62,.5); border-bottom: 1px solid rgba(199,247,62,.5); box-shadow: 0 0 18px 2px rgba(199,247,62,.3); }
 .imp-overlay.reading .imp-scan, .imp-overlay.scanning .imp-scan { animation: impScan 1.25s var(--ease-out) infinite; }
-@keyframes impScan { 0% { opacity: 0; top: -42px; } 14% { opacity: 1; } 86% { opacity: 1; } 100% { opacity: 0; top: 150px; } }
+/* anima TRANSFORM (GPU), não `top` (layout/paint a cada frame). top fica em -42px
+   e o translateY move 192px → equivale a ir de top -42 até 150. */
+@keyframes impScan { 0% { opacity: 0; transform: translateY(0); } 14% { opacity: 1; } 86% { opacity: 1; } 100% { opacity: 0; transform: translateY(192px); } }
 .imp-overlay.reading .imp-pnode[data-n="0"] .imp-pic { border-color: var(--purple); color: var(--purple-light); box-shadow: 0 0 20px -4px rgba(199,247,62,.6); background: color-mix(in oklab, var(--purple) 15%, var(--bg-elevated)); }
 .imp-overlay.reading .imp-pnode[data-n="0"] .imp-plabel { color: var(--ink); }
 .imp-spark { position: absolute; top: 50%; left: 50%; width: 7px; height: 7px; border-radius: 50%; background: var(--gain); opacity: 0; pointer-events: none; z-index: 4; }
