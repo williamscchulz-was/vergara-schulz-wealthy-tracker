@@ -321,6 +321,48 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2600);
 }
+// Popup de ERRO visível — em vez de o sistema "não fazer nada" calado. Mostra
+// um título humano + o detalhe técnico (mensagem/stack) copiável (pra mandar pro
+// dev). opts.once = não repetir o mesmo erro na sessão (usado no auto-sync e nos
+// handlers globais, pra não ficar piscando popup toda hora).
+const _errSeen = new Set();
+function showErrorPopup(title, err, opts = {}) {
+  try {
+    const msg = (err && err.message) ? err.message : String(err == null ? '(sem detalhe)' : err);
+    const key = (title || '') + '|' + msg;
+    if (opts.once && _errSeen.has(key)) return;
+    _errSeen.add(key);
+    const detail = [
+      msg,
+      (err && err.stack) ? '\n\n' + err.stack : '',
+      opts.extra ? '\n\n— — —\n' + opts.extra : '',
+    ].join('');
+    let bg = document.getElementById('errPopup');
+    if (!bg) {
+      bg = document.createElement('div');
+      bg.id = 'errPopup'; bg.className = 'modal-bg';
+      bg.innerHTML = '<div class="modal" style="max-width:540px">'
+        + '<h3 class="err-pop-title" style="color:var(--loss)"></h3>'
+        + '<p class="sub" style="margin:-4px 0 10px">Detalhe técnico (toque em Copiar pra me mandar):</p>'
+        + '<pre class="err-pop-body" style="white-space:pre-wrap;word-break:break-word;font-family:\'Geist Mono\',monospace;font-size:11px;line-height:1.5;background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:10px;padding:12px;max-height:300px;overflow:auto;color:var(--ink-2);margin:0"></pre>'
+        + '<div class="modal-foot"><button class="btn-secondary err-pop-copy" type="button">Copiar</button><button class="btn-primary err-pop-close" type="button">Fechar</button></div>'
+        + '</div>';
+      document.body.appendChild(bg);
+      bg.querySelector('.err-pop-close').addEventListener('click', () => bg.classList.remove('show'));
+      bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('show'); });
+      bg.querySelector('.err-pop-copy').addEventListener('click', () => {
+        const txt = bg.querySelector('.err-pop-title').textContent + '\n\n' + bg.querySelector('.err-pop-body').textContent;
+        (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => showToast('Erro copiado')).catch(() => showToast('Copie manualmente'));
+      });
+    }
+    bg.querySelector('.err-pop-title').textContent = title || 'Algo falhou';
+    bg.querySelector('.err-pop-body').textContent = detail || '(sem detalhes)';
+    bg.classList.add('show');
+  } catch (e2) { console.error('showErrorPopup falhou', e2, 'orig:', err); try { alert((title || 'Erro') + '\n\n' + ((err && err.message) || err)); } catch (_) {} }
+}
+// Rede de segurança: qualquer erro não-tratado vira popup (1x por mensagem/sessão).
+window.addEventListener('unhandledrejection', e => showErrorPopup('Erro não tratado (promessa)', e && e.reason, { once: true }));
+window.addEventListener('error', e => { if (e && e.error) showErrorPopup('Erro não tratado', e.error, { once: true }); });
 // Parse a value into a Date WITHOUT the UTC-midnight timezone trap.
 // `new Date('2026-05-01')` is parsed as UTC midnight → in BRT (UTC-3)
 // that's Apr 30 21:00 local, so getMonth()/getDate() return the previous
@@ -3914,7 +3956,7 @@ async function importI10Proventos() {
     renderImportReview();
   } catch (e) {
     console.error('[i10prov] falhou', e);
-    showToast('Não deu pra puxar os proventos do I10 agora — tente de novo em instantes.');
+    showErrorPopup('Falha ao puxar proventos do I10', e);
   }
 }
 
@@ -3927,11 +3969,16 @@ async function autoSyncProventos() {
   let rows;
   try {
     const base = workerUrl.replace(/\/+$/, '');
-    const res = await fetch(`${base}/i10/earnings-list/${encodeURIComponent(walletId)}`);
-    if (!res.ok) return;
+    const url = `${base}/i10/earnings-list/${encodeURIComponent(walletId)}`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      let body = ''; try { body = (await res.text()).slice(0, 280); } catch (_) {}
+      showErrorPopup('Proventos I10 — HTTP ' + res.status, new Error(res.statusText || ('HTTP ' + res.status)), { once: true, extra: 'GET ' + url + (body ? '\n\nResposta:\n' + body : '\n\n(provável: o worker não tem o endpoint /i10/earnings-list — falta publicar a versão nova)') });
+      return;
+    }
     const data = await res.json();
     rows = (data && data.table && Array.isArray(data.table.data)) ? data.table.data : [];
-  } catch (e) { console.warn('[autoprov] fetch', e); return; }
+  } catch (e) { console.warn('[autoprov] fetch', e); showErrorPopup('Falha ao buscar proventos do I10', e, { once: true, extra: 'walletId ' + walletId }); return; }
   const today = new Date().toISOString().slice(0, 10);
   // multiset dos proventos JÁ existentes (income lançado por aqui)
   const stripOrd = s => String(s || '').replace(/#\d+$/, '');
@@ -4224,7 +4271,8 @@ async function doImport() {
     if (ov && !reduce) await new Promise(r => setTimeout(r, 4250));   // duração total da animação
     else showToast(t('imp.done').replace('{n}', batch.length));
   } catch (e) {
-    console.error('[import] commit falhou', e); showToast(t('toast.error.save'));
+    console.error('[import] commit falhou', e);
+    showErrorPopup('Falha ao importar', e, { extra: 'Lote de ' + batch.length + ' lançamento(s).' });
   } finally {
     $('importModal').classList.remove('show');
     if (ov) { ov.hidden = true; ov.classList.remove('done', 'out', 'reading', 'scanning'); }
