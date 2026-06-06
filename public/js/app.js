@@ -3847,8 +3847,48 @@ async function undoLastImport() {
   finally { btn.disabled = false; }
 }
 
+// ============================================================
+//  PROVENTOS DO I10 → GANHOS (ao vivo, sem arquivo).
+//  Puxa /i10/earnings-list/<wallet> (lista detalhada), filtra os JÁ PAGOS
+//  (data de pagamento <= hoje), usa o valor LÍQUIDO (net_total_original, que
+//  já vem com o IR de 17,5% do JCP descontado pelo I10), e joga na mesma
+//  tela de revisão (abas por mês) + doImport (com dedup). Dono: William.
+// ============================================================
+const I10_PROV_TYPE = { JSCP: 'JCP', Dividendos: 'Dividendo', 'Rend. Trib.': 'Rendimento', 'Amortização': 'Amortização', Amortizacao: 'Amortização' };
+async function importI10Proventos() {
+  const { workerUrl, walletId } = state.i10Cfg || {};
+  if (!workerUrl || !walletId) { showToast(t('i10prov.cfg') !== 'i10prov.cfg' ? t('i10prov.cfg') : 'Configure o worker e a carteira (⚙️) primeiro.'); return; }
+  showToast('Puxando proventos do I10…');
+  try {
+    const base = workerUrl.replace(/\/+$/, '');
+    const res = await fetch(`${base}/i10/earnings-list/${encodeURIComponent(walletId)}`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const rows = (data && data.table && Array.isArray(data.table.data)) ? data.table.data : [];
+    const today = new Date().toISOString().slice(0, 10);
+    const txns = [];
+    for (const r of rows) {
+      const pay = String(r.date_payment_original || '').slice(0, 10);   // ISO YYYY-MM-DD
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(pay) || pay > today) continue;    // só PAGOS (descarta futuros/provisionados)
+      const val = Math.round((+r.net_total_original || 0) * 100) / 100; // líquido (IR já descontado pelo I10)
+      if (!(val > 0)) continue;
+      const [y, m, d] = pay.split('-');
+      const tk = r.ticker || r.ticker_name || '?';
+      const lbl = I10_PROV_TYPE[r.type] || r.type || 'Provento';
+      txns.push({ date: `${d}/${m}/${y}`, desc: `${tk} · ${lbl}`, value: val, _kind: 'income', incomeCat: 'dividendos', _compY: +y, _compM: +m, _src: 'i10prov', _ownerHint: 'william', inst: null });
+    }
+    if (!txns.length) { showToast('Nenhum provento pago encontrado.'); return; }
+    _importKind = 'i10prov';
+    _importTxns = txns;
+    renderImportReview();
+  } catch (e) {
+    console.error('[i10prov] falhou', e);
+    showToast('Não deu pra puxar os proventos do I10 agora — tente de novo em instantes.');
+  }
+}
+
 let _importTxns = [];
-let _importKind = null;   // 'card' (PDF) | 'cc' (CSV) — escolhido no seletor de origem
+let _importKind = null;   // 'card' (PDF) | 'cc' (CSV) | 'i10prov' (proventos I10 ao vivo)
 async function handleImportFiles(fileList) {
   const files = [...(fileList || [])].filter(Boolean);
   if (!files.length) return;
@@ -3920,7 +3960,7 @@ function renderImportReview() {
     let cat, conf;
     if (rule && rule.category) { cat = rule.category; conf = 'alta'; }       // memória = confiança alta
     else { const g = impGuessCat(tx.desc); cat = g.cat; conf = g.conf; }
-    const owner = (rule && rule.owner) || impPersonGuess(tx);
+    const owner = (rule && rule.owner) || tx._ownerHint || impPersonGuess(tx);
     const rec = !rule && impRecurrence(tx);
     if (rec && cat !== 'assinaturas') { cat = 'assinaturas'; conf = 'alta'; } // recorrente → assinatura
     const isInc = tx._kind === 'income';
@@ -4029,7 +4069,7 @@ async function doImport() {
       const idate = impToISO(tx.date, txBase(tx)[0]);
       const got = fpFor(impFp(idate, tx.value, tx.desc));
       if (!got) continue;
-      batch.push({ type: 'income', description: tx.desc, value: tx.value, category: tx.incomeCat || 'outros', owner, nature: null, source: 'import:conta', batchId, date: idate, competencia: compStr(tx, 0), fp: got.fp, fpBase: got.fpBase, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import', notes: '' });
+      batch.push({ type: 'income', description: tx.desc, value: tx.value, category: tx.incomeCat || 'outros', owner, nature: null, source: tx._src === 'i10prov' ? 'import:i10' : 'import:conta', batchId, date: idate, competencia: compStr(tx, 0), fp: got.fp, fpBase: got.fpBase, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import', notes: '' });
       continue;
     }
     const nat = impNature(category, tx.desc);
@@ -4133,6 +4173,7 @@ $('importTypeModal')?.addEventListener('click', e => { if (e.target.id === 'impo
 document.querySelectorAll('#importTypeModal .imp-type-opt').forEach(b => b.addEventListener('click', () => {
   _importKind = b.dataset.kind;
   $('importTypeModal').classList.remove('show');
+  if (_importKind === 'i10prov') { importI10Proventos(); return; }   // puxa ao vivo, sem arquivo
   const f = $('impFile');
   if (f) { f.setAttribute('accept', _importKind === 'cc' ? 'text/csv,.csv' : 'application/pdf,.pdf'); f.value = ''; f.click(); }
 }));

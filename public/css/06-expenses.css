@@ -533,7 +533,8 @@
 .cat-add-btn { width: 100%; justify-content: center; gap: 8px; border-style: dashed; margin-bottom: 4px; }
 /* Seletor de origem do import */
 .imp-type-modal { max-width: min(440px, 94vw); }
-.imp-type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0 4px; }
+.imp-type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 10px 0 4px; }
+@media (max-width: 480px) { .imp-type-grid { grid-template-columns: 1fr; } }
 .imp-type-opt { display: flex; flex-direction: column; align-items: center; gap: 9px; padding: 24px 14px; border-radius: 16px; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--ink-2); cursor: pointer; transition: .18s var(--ease-out); }
 .imp-type-opt:hover { border-color: var(--purple); color: var(--ink); transform: translateY(-2px); box-shadow: 0 14px 30px -18px rgba(199,247,62,.6); }
 .imp-type-opt svg { width: 30px; height: 30px; color: var(--purple-light); }

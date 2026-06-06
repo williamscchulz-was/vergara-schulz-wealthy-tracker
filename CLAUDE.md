@@ -47,6 +47,7 @@ O app é **single-page**, **client-side puro**, servido estaticamente. Não há 
 - Endpoints expostos:
   - `/i10/metrics/:walletId` — PL, aplicado, variação, profit_twr
   - `/i10/earnings/:walletId?year=YYYY` — soma de proventos no período
+  - `/i10/earnings-list/:walletId` — lista DETALHADA de proventos (cada pagamento: ticker, tipo, data, líquido). Usado pelo import "Proventos I10" → Ganhos (o app filtra os já pagos).
   - `/i10/actives/:walletId` — lista detalhada de ativos (ticker, qtd, preço médio, preço atual, %, appreciation)
   - `/i10/barchart/:walletId` — histórico mensal 12 meses
   - `/i10/all/:walletId?year=YYYY` — **endpoint consolidado usado pelo app** (dispara metrics + earnings + actives + barchart em paralelo com `Promise.all`)

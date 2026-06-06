@@ -170,6 +170,13 @@ async function handle(request) {
       return json(data);
     }
 
+    if (kind === 'earnings-list') {
+      // Lista DETALHADA de proventos (cada pagamento: ticker, tipo, data, líquido).
+      // Usada pra trazer proventos pra aba de Ganhos. O app filtra os já pagos.
+      const data = await fetchI10(`/earnings/list/${walletId}`);
+      return json(data);
+    }
+
     if (kind === 'actives') {
       const data = await fetchAllActives(walletId);
       return json(data);
