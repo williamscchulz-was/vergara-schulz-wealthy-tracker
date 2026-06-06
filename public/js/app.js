@@ -4485,6 +4485,14 @@ async function loadPdfJs() {
   _pdfjsLib = lib;
   return lib;
 }
+// SheetJS (xlsx) — lazy via CDN, igual ao pdf.js. Só carrega quando o usuário
+// importa um .xlsx (extrato de proventos da B3).
+let _xlsxLib = null;
+async function loadXlsx() {
+  if (_xlsxLib) return _xlsxLib;
+  _xlsxLib = await import('https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs');
+  return _xlsxLib;
+}
 async function extractPdfLines(file) {
   const pdfjs = await loadPdfJs();
   const data = new Uint8Array(await file.arrayBuffer());
@@ -4811,8 +4819,72 @@ async function undoLastImport() {
   finally { btn.disabled = false; }
 }
 
+// ============================================================
+//  IMPORTADOR DE PROVENTOS DA B3 (.xlsx) — extrato "Proventos Recebidos".
+//  Colunas: Produto · Pagamento · Tipo de Evento · Instituição · Quantidade ·
+//  Preço unitário · Valor líquido. Cada linha vira um GANHO (type:'income',
+//  categoria 'dividendos', dono William por padrão). O "Reembolso" (provento
+//  de ações alugadas) vem DESMARCADO na revisão — opt-in. Dedup/idempotência
+//  reusam o fpFor() do doImport (reimportar o mesmo arquivo não duplica).
+// ============================================================
+function _b3Money(v) { return typeof v === 'number' ? v : parseBRMoney(v); }
+function _b3DateYMD(v) {
+  if (v instanceof Date && !isNaN(v)) return { y: v.getFullYear(), mo: v.getMonth() + 1, d: v.getDate() };
+  const m = String(v == null ? '' : v).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if (!m) return null;
+  let y = +m[3]; if (y < 100) y += 2000;
+  return { y, mo: +m[2], d: +m[1] };
+}
+function _b3Event(raw) {
+  const s = String(raw || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  if (/reembolso/.test(s)) return { label: 'Reembolso', reembolso: true };
+  if (/juros sobre capital/.test(s)) return { label: 'JCP', reembolso: false };
+  if (/dividendo/.test(s)) return { label: 'Dividendo', reembolso: false };
+  if (/rendimento/.test(s)) return { label: 'Rendimento', reembolso: false };
+  if (/pagamento de juros|^juros/.test(s)) return { label: 'Juros', reembolso: false };
+  const lbl = String(raw || '').trim();
+  return { label: lbl ? lbl[0].toUpperCase() + lbl.slice(1).toLowerCase() : 'Provento', reembolso: false };
+}
+async function parseB3Proventos(file) {
+  const XLSX = await loadXlsx();
+  const wb = XLSX.read(new Uint8Array(await file.arrayBuffer()), { type: 'array' });
+  const sheet = wb.SheetNames.find(n => /provento/i.test(n)) || wb.SheetNames[0];
+  const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheet], { header: 1, raw: true, defval: null });
+  if (!rows.length) return [];
+  const norm = c => String(c == null ? '' : c).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  let hi = rows.findIndex(r => Array.isArray(r) && r.some(c => norm(c).includes('produto')));
+  if (hi < 0) hi = 0;
+  const head = rows[hi].map(norm);
+  const find = (...names) => { for (const n of names) { const i = head.findIndex(h => h.includes(n)); if (i >= 0) return i; } return -1; };
+  const cProd = find('produto'), cPag = find('pagamento', 'data'), cEv = find('evento', 'tipo'), cVal = find('liquido', 'valor');
+  if (cProd < 0 || cVal < 0) { showToast('Planilha não parece um extrato de proventos da B3.'); return []; }
+  const out = [];
+  for (let i = hi + 1; i < rows.length; i++) {
+    const r = rows[i]; if (!Array.isArray(r)) continue;
+    const prod = r[cProd];
+    if (prod == null || String(prod).trim() === '' || /^total\b/i.test(String(prod).trim())) continue;  // pula rodapé/total/blank
+    const value = Math.round(_b3Money(r[cVal]) * 100) / 100;
+    if (!(value > 0)) continue;
+    const dt = cPag >= 0 ? _b3DateYMD(r[cPag]) : null;
+    if (!dt) continue;
+    const ticker = String(prod).split(/\s+-\s+/)[0].trim() || String(prod).trim();
+    const ev = _b3Event(cEv >= 0 ? r[cEv] : '');
+    out.push({
+      date: `${String(dt.d).padStart(2, '0')}/${String(dt.mo).padStart(2, '0')}/${dt.y}`,
+      desc: `${ticker} · ${ev.label}`,
+      value,
+      _kind: 'income', incomeCat: 'dividendos',
+      _compY: dt.y, _compM: dt.mo,
+      _src: 'b3', _ownerHint: 'william',
+      _uncheck: ev.reembolso, _reembolso: ev.reembolso,
+      inst: null,
+    });
+  }
+  return out;
+}
+
 let _importTxns = [];
-let _importKind = null;   // 'card' (PDF) | 'cc' (CSV) — escolhido no seletor de origem
+let _importKind = null;   // 'card' (PDF) | 'cc' (CSV) | 'b3' (XLSX) — escolhido no seletor de origem
 async function handleImportFiles(fileList) {
   const files = [...(fileList || [])].filter(Boolean);
   if (!files.length) return;
@@ -4832,8 +4904,11 @@ async function handleImportFiles(fileList) {
   const all = [];
   try {
     for (const file of files) {
-      const isCsv = _importKind ? (_importKind === 'cc') : (/\.csv$/i.test(file.name || '') || file.type === 'text/csv');
-      const txns = isCsv ? parseCheckingCSV(await file.text()) : parseStatement(await extractPdfLines(file));
+      const isXlsx = _importKind === 'b3' || /\.xlsx$/i.test(file.name || '') || (file.type || '').includes('spreadsheetml');
+      const isCsv = !isXlsx && (_importKind ? (_importKind === 'cc') : (/\.csv$/i.test(file.name || '') || file.type === 'text/csv'));
+      const txns = isXlsx ? await parseB3Proventos(file)
+        : isCsv ? parseCheckingCSV(await file.text())
+        : parseStatement(await extractPdfLines(file));
       // Competência por ARQUIVO (cartão): cada fatura cai no seu mês, não no mês mais recente do lote.
       if (!isCsv && txns.length && !txns[0]._compY) {   // parser do site já marca a competência; só completa se faltar
         let ym = null;
@@ -4884,7 +4959,7 @@ function renderImportReview() {
     let cat, conf;
     if (rule && rule.category) { cat = rule.category; conf = 'alta'; }       // memória = confiança alta
     else { const g = impGuessCat(tx.desc); cat = g.cat; conf = g.conf; }
-    const owner = (rule && rule.owner) || impPersonGuess(tx);
+    const owner = (rule && rule.owner) || tx._ownerHint || impPersonGuess(tx);
     const rec = !rule && impRecurrence(tx);
     if (rec && cat !== 'assinaturas') { cat = 'assinaturas'; conf = 'alta'; } // recorrente → assinatura
     const isInc = tx._kind === 'income';
@@ -4892,10 +4967,11 @@ function renderImportReview() {
     if (low) lowN++;
     // Todos os portadores são cartões ADICIONAIS do casal → todo lançamento é gasto de vocês.
     // Só o estorno (crédito/devolução) vem desmarcado por padrão.
-    const checked = !tx.refund ? 'checked' : '';
+    const checked = (!tx.refund && !tx._uncheck) ? 'checked' : '';
     const badges = (tx.inst ? `<span class="imp-badge">${esc(tx.inst)}</span> ` : '')
       + (tx.refund ? `<span class="imp-badge ref">${esc(t('imp.refund'))}</span> ` : '')
       + (isInc ? `<span class="imp-badge inc">${esc(t('imp.income'))}</span> ` : '')
+      + (tx._reembolso ? `<span class="imp-badge">reembolso</span> ` : '')
       + (rec ? `<span class="imp-badge rec">${esc(t('imp.recurring'))}</span> ` : '')
       + (low ? `<span class="imp-badge low" title="${esc(t('imp.lowconf'))}">?</span> ` : '');
     const card = tx.holder ? `<span class="imp-card">· ${esc(t('imp.cardword'))} ${esc(tx.holder.split(' ')[0])}</span>` : '';
@@ -4993,7 +5069,7 @@ async function doImport() {
       const idate = impToISO(tx.date, txBase(tx)[0]);
       const got = fpFor(impFp(idate, tx.value, tx.desc));
       if (!got) continue;
-      batch.push({ type: 'income', description: tx.desc, value: tx.value, category: tx.incomeCat || 'outros', owner, nature: null, source: 'import:conta', batchId, date: idate, competencia: compStr(tx, 0), fp: got.fp, fpBase: got.fpBase, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import', notes: '' });
+      batch.push({ type: 'income', description: tx.desc, value: tx.value, category: tx.incomeCat || 'outros', owner, nature: null, source: tx._src === 'b3' ? 'import:b3' : 'import:conta', batchId, date: idate, competencia: compStr(tx, 0), fp: got.fp, fpBase: got.fpBase, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import', notes: tx._reembolso ? 'reembolso B3 (proventos de ações alugadas?)' : '' });
       continue;
     }
     const nat = impNature(category, tx.desc);
@@ -5044,7 +5120,7 @@ async function doImport() {
   // Dispara TODAS as gravações sem esperar a rede — nunca trava. O Firestore
   // confirma em background e o onSnapshot atualiza a lista conforme cada cai.
   batch.forEach(d => addDoc(colExpenses(), d).catch(err => console.error('[import] doc falhou', err)));
-  setDoc(docImportMeta, { lastBatchId: batchId, lastCount: batch.length, lastSource: (_importKind === 'cc' ? 'conta' : 'cartao'), lastAt: serverTimestamp() }, { merge: true }).catch(() => {});
+  setDoc(docImportMeta, { lastBatchId: batchId, lastCount: batch.length, lastSource: (_importKind === 'b3' ? 'b3' : _importKind === 'cc' ? 'conta' : 'cartao'), lastAt: serverTimestamp() }, { merge: true }).catch(() => {});
   try {
     if (ov && !reduce) await new Promise(r => setTimeout(r, 4250));   // duração total da animação
     else showToast(t('imp.done').replace('{n}', batch.length));
@@ -5098,7 +5174,7 @@ document.querySelectorAll('#importTypeModal .imp-type-opt').forEach(b => b.addEv
   _importKind = b.dataset.kind;
   $('importTypeModal').classList.remove('show');
   const f = $('impFile');
-  if (f) { f.setAttribute('accept', _importKind === 'cc' ? 'text/csv,.csv' : 'application/pdf,.pdf'); f.value = ''; f.click(); }
+  if (f) { f.setAttribute('accept', _importKind === 'b3' ? '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : _importKind === 'cc' ? 'text/csv,.csv' : 'application/pdf,.pdf'); f.value = ''; f.click(); }
 }));
 $('impFile')?.addEventListener('change', (e) => { const files = e.target.files; const f = e.target; handleImportFiles(files).finally(() => { f.value = ''; }); });
 $('importCancel')?.addEventListener('click', () => $('importModal').classList.remove('show'));
