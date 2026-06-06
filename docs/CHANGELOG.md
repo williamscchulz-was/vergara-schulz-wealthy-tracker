@@ -5,6 +5,28 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Bloco import + erros visíveis (2026-06-06) — v8 Turno 10
+- **Animação de import suavizada**: tirado o `backdrop-filter: blur(14px)` de
+  tela cheia do `.imp-overlay` (re-borrava o fundo a cada frame → travava no
+  celular) por um fundo quase opaco; `.imp-scan` passou a animar
+  `transform: translateY` (GPU) em vez de `top` (layout/paint) + `will-change`.
+- **"Selecionar todos"** na tela de revisão (`#impSelectAll`): marca/desmarca
+  as linhas visíveis (respeita a aba de mês), com estado indeterminate.
+- **Ordenação na tabela de despesas**: cabeçalho clicável (Data/Descrição/
+  Categoria/Valor), asc↔desc, seta na coluna ativa (`_expSort`/`expCompare`).
+- **Auto-sync de proventos I10 → Ganhos** (`autoSyncProventos`): cada
+  `syncFromI10` lança automaticamente os proventos já pagos (líquido) nos
+  Ganhos, sem clicar. Dedup multiset (mesmo `fp` do import manual) →
+  idempotente (verificado na carteira real: 1ª roda 381, 2ª/3ª 0).
+- **Bug "não deixa importar" corrigido + blindagem**: a linha de revisão virou
+  `<div>` (era `<label>` que, no iOS, desmarcava ao mexer no select) + clique
+  que ignora os selects; `doImport` inteiro em try/finally → o botão
+  "Importar" nunca mais trava em disabled. Categorias customizadas auditadas
+  (sem `undefined`/throw).
+- **`showErrorPopup`**: falha agora aparece num modal (título humano + detalhe
+  técnico copiável) em vez de morrer calada. Plugado em import/proventos +
+  rede global (`unhandledrejection`/`error`, deduplicada).
+
 ### Modal FX consertado + sweep de luz no sync (2026-06-01)
 - O modal de USD (FX) estava quebrado: usava classes que não existem
   (`.modal-head/.modal-title/.modal-close/.modal-body/.modal-label`) e

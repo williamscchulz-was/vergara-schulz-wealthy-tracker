@@ -282,7 +282,19 @@ A API interna do I10 é **não oficial** — mapeada por engenharia reversa do l
 - **Pill de patrimônio da casa** (`#expNwPill`): chip clicável no topo do módulo mostrando o mesmo total da hero de Investments em tempo real (fórmula em `calcTotalNetWorth()`: i10 + USD·rate + reservas + previdência); clicar leva pra aba Investments; se esconde quando o total é zero
 - **Default mode por usuário**: `config/userPrefs.{uid}.defaultMode` persistido automaticamente toda vez que `switchMode()` é chamado. Login lê via `getDoc` one-shot; se não houver entry pro UID, cai no fallback: email conhecido `KNOWN_PRIMARY_EMAIL` → investments, qualquer outro → expenses
 - **Auto-sync** do I10 (`maybeAutoSync()` em `public/js/app.js`): dispara `syncFromI10()` em background quando a última sync foi há ≥1h. Sem scheduler externo — três triggers no client: (1) 3s após o login, (2) ao voltar pra aba (`visibilitychange` → `visible`), (3) heartbeat de hora em hora pra sessões deixadas abertas. Como os 2 usuários compartilham `config/i10`, quem dispara primeiro atualiza pros dois via `onSnapshot`. Debounce de 60s nas checagens evita spam. Pula se não houver sync prévia (primeiro setup precisa ser manual pelo usuário pra ele ver funcionar). Cada sync atualiza: metrics, earnings, actives (todas as classes), barchart 12m, Louise, FX (USD→BRL) e — throttled a 24h — também o histórico anual (`dividendsYearly` via `/i10/yearly`).
+- **Ordenação da tabela** (jun/2026): o cabeçalho da tabela "Todas as despesas do mês" é clicável (Data / Descrição / Categoria / Valor), alterna asc↔desc, com seta indicadora na coluna ativa. Estado em `_expSort = {key, dir}` (default `date`/`desc`); comparador `expCompare()`, indicador `updateExpSortHeaders()` (roda no topo de `renderExpenses` p/ refletir sempre). Data/Valor ordenam numericamente, Descrição/Categoria alfabético (locale pt), desempate por data desc.
 - **Não implementado (ideias futuras)**: despesas recorrentes marcadas manualmente, parcelas com projeção (aba Endividamento ficou fora intencionalmente no minimalista), cartões de crédito como entidade separada, comparativo YoY por categoria, visão anual
+
+### Importação (fatura / extrato / proventos)
+
+- **3 origens** via `#importTypeModal`: **PDF de cartão** (`_importKind='card'`, `parseStatement`), **CSV de conta** (`'cc'`), e **Proventos I10 / AO VIVO** (`'i10prov'`, `importI10Proventos()` busca `/i10/earnings-list` e lança como Ganhos).
+- **Tela de revisão** `#importModal`: linhas editáveis (dono + categoria por linha), abas por mês de competência, dedup por **fingerprint multiset** (`fpFor`/`impFp`) → re-importar **não duplica** (idempotente). Animação de "lendo → categorizando → pronto" no `#importOverlay`.
+- **"Selecionar todos"** (`#impSelectAll`, jun/2026): checkbox mestre que marca/desmarca as linhas **visíveis** (respeita a aba de mês ativa); reflete estado all/some/none (indeterminate). `impSetAllVisible()` + sync no `impUpdateConfirm()`.
+- **Robustez (jun/2026, aprendizado real)**:
+  - A linha de revisão é **`<div>`, NÃO `<label>`** + handler de clique-pra-alternar que **ignora cliques nos `<select>`** (dono/categoria). Motivo: um `<label>` envolvendo o checkbox + os selects fazia o iOS **desmarcar a linha** ao mexer no select → "não deixa importar". Não voltar pra `<label>`.
+  - O commit do `doImport` (preview + animação + gravações) está todo dentro de **try/finally** → o botão "Importar" **sempre** reabilita e o modal fecha, mesmo se a animação lançar erro (antes podia travar em `disabled`).
+  - Categorias customizadas (chave `c<timestamp>`) funcionam no import — auditado, sem caso de `undefined`/throw.
+- **Auto-sync de proventos** (`autoSyncProventos()`, jun/2026): roda junto de **cada** `syncFromI10` (piggyback). Busca `/i10/earnings-list`, filtra os **já pagos** (data ≤ hoje), pega o **líquido**, e lança nos **Ganhos** (`category 'dividendos'`, owner william, `source 'auto:i10prov'`) **sem clicar**. Dedup multiset igual ao `doImport` (cruza com import manual pelo mesmo `fp`) → idempotente: 1ª vez faz backfill, depois só adiciona o novo. Toast informa quantos entraram.
 
 ### Transversal
 
@@ -292,6 +304,7 @@ A API interna do I10 é **não oficial** — mapeada por engenharia reversa do l
 - **Tab bar** mobile pra alternar Despesas ↔ Investimentos
 - **Tags "via I10" vs "manual"** pra distinguir fonte do dado
 - **Toasts** de feedback (`showToast`)
+- **Popup de erro** (`showErrorPopup(title, err, opts)`, jun/2026): em vez de o app "não fazer nada" calado numa falha, abre um modal com título humano + **detalhe técnico copiável** (mensagem + stack). Plugado em `doImport`, `importI10Proventos`, `autoSyncProventos` (mostra HTTP status/body — ex.: 404 = worker sem `/i10/earnings-list`) e numa **rede de segurança global** (`window` `unhandledrejection` + `error`, deduplicada por mensagem via `opts.once`, ignora erros de carregamento de recurso). Decisão do dono (app pessoal, p/ debug) — ver nuance em §11.
 - **PWA instalável** (manifest + ícones + apple-touch)
 
 ---
@@ -311,6 +324,7 @@ Marcadores `v8 Turno N` visíveis no código indicam iterações recentes:
 - **v8 Turno 8** — FX module (USD holdings + taxa USD→BRL via worker), USD incluído no hero total.
 - **v8 Turno 9** — Bar chart: conector pontilhado entre topos + pill opaca central.
 - **Liquid glass tokens / liquid border** — tokens `--glass-*` + `@property --liquid-angle` + anel animado `.liquid-border::before`.
+- **v8 Turno 10** (jun/2026) — Bloco de import + erros: (1) animação de import suavizada (tirado `backdrop-filter` de tela cheia do `.imp-overlay`; `.imp-scan` anima `transform` em vez de `top` + `will-change`); (2) "Selecionar todos" na revisão; (3) ordenação clicável no cabeçalho da tabela de despesas; (4) auto-sync de proventos I10 → Ganhos (`autoSyncProventos`); (5) linha de revisão `<div>` (não `<label>`) + `doImport` em try/finally (botão nunca trava); (6) `showErrorPopup` + rede de segurança global de erros.
 
 Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno 1` se for virada) num comentário do trecho afetado. Histórico de git cobre o resto.
 
@@ -367,6 +381,10 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 - **Animações respeitam `prefers-reduced-motion`** (bloco "v8 REDUCED MOTION" no CSS mata tudo quando ativo). Não adicionar animação sem respeitar isso.
 - **Datas**: armazenar como ISO string `YYYY-MM-DD` (despesas) ou `serverTimestamp` (metadados). Sempre absolutas — nada de "3 dias atrás" persistido.
 - **IDs de documento**: `dividendsYearly` usa o próprio ano como ID (`"2026"`). `expenses` e `contributions` usam ID auto do Firestore.
+- **Erros visíveis, não silenciosos**: `showErrorPopup(title, err, {once, extra})` (perto do `showToast`) abre modal com título humano + detalhe técnico copiável. Fluxos que fazem trabalho e podem falhar devem chamá-lo no `catch` (ou ter rede global). `opts.once` deduplica por mensagem (use em loops/auto-sync pra não nag). Toast continua só pra feedback curto/humano.
+- **`<label>` + controle interativo = cilada (iOS)**: nunca envolver um `<input type=checkbox>` **junto** com `<select>`/botões dentro do mesmo `<label>` — no iOS, mexer no select alterna o checkbox do label. Use `<div>` + handler de clique explícito que faz `e.target.closest('select') && return`. (Foi exatamente o bug "não deixa importar" da tela de revisão.)
+- **Animação só em `transform`/`opacity` + cuidado com `backdrop-filter`**: animar `top`/`left`/`width` causa layout/paint por frame (trava, sobretudo no celular). `backdrop-filter` de **tela cheia** com coisas animando por cima re-borra o fundo a cada frame — evitar em overlay animado (preferir fundo quase opaco). Promova o elemento que se move com `will-change: transform`. (Lição da animação de import, v8 Turno 10.)
+- **Dedup de import idempotente**: lançamentos importados carregam `fp` (fingerprint `impFp(date,value,desc)`) e `fpBase`. Pra evitar duplicar ao reimportar, conte ocorrências por `fpBase` no que já existe (multiset) e pule as primeiras N de cada base. Vale pra `doImport` E `autoSyncProventos` — os dois usam o **mesmo** `fp`, então auto e manual não se duplicam. Sempre verificar idempotência (rodar 2× → 2ª adiciona 0) antes de soltar auto-write em coleção compartilhada.
 
 ---
 
@@ -379,7 +397,7 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 - ❌ **Nunca** renomear coleções / caminhos Firestore (`household/main/...`) sem plano de migração. Os dados reais do casal estão lá.
 - ❌ **Nunca** commitar arquivos com credenciais reais de outro serviço. A config do Firebase em `app.js:10` está ok (é client-side público, protegido por Rules) — mas **nada além disso**. Sem tokens de CF, chaves de API externas, secrets de worker.
 - ❌ **Nunca** assumir que a API do I10 é estável. Se um campo mudar, parse defensivo (`|| 0`, `|| ''`, `Array.isArray(...)`) precisa continuar funcionando e o app tem que degradar pro botão ✏️ manual, não quebrar.
-- ❌ **Nunca** mandar toast de erro técnico pro usuário final ("HTTP 502 from upstream"). Logar no console, mostrar mensagem humana ("Não deu pra sincronizar agora — tente de novo em instantes").
+- ⚠️ **Erros: nunca falhar calado.** Atualizado jun/2026 (pedido do dono): falha que pararia uma ação **tem que aparecer**. Os **toasts** seguem humanos (texto curto, sem stack). Mas falhas que antes morriam num `console.warn` silencioso agora usam `showErrorPopup(title, err)` — **título humano + detalhe técnico copiável** (mensagem/stack) pra debug, já que é app pessoal do casal. Use a rede global (`unhandledrejection`/`error`) e os popups nos fluxos críticos (import, sync). O que NÃO fazer: enfiar string técnica crua num **toast** (use o popup), ou engolir erro sem nenhum sinal visível.
 - ❌ **Nunca** deletar docs do Firestore sem passar por um fluxo de UI que o usuário dispare explicitamente. Sem "limpeza automática" de dados.
 - ❌ **Nunca** mudar a paleta / tipografia / spacing sem contexto de design. A linguagem visual é `v7`/`v8` — edições pontuais sim, virada de estilo só em conversa explícita.
 - ❌ **Nunca** ignorar `prefers-reduced-motion` em animação nova. É acessibilidade, não opcional.
