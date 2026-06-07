@@ -133,14 +133,14 @@ body{font-family:var(--font);color:var(--ink);background:var(--bg);min-height:10
 @media(prefers-reduced-motion:reduce){.anim{animation:none;opacity:1;transform:none}.gbars .col i,.years .y i,.goalbar i{transition:none}}
 </style>
 </head>
-<body>
+<body data-theme="obsidian">
 <div class="toolbar">
   <span class="t">Ledger · Resumo — mockup</span>
   <div class="tg"><button id="tLinen"><span data-icon="sun"></span> Linen</button><button id="tObs" class="on"><span data-icon="moon"></span> Obsidian</button></div>
   <div class="tg"><button id="vDesk" class="on"><span data-icon="monitor"></span></button><button id="vMob"><span data-icon="smartphone"></span></button></div>
 </div>
 
-<div class="stage" id="stage" data-theme="obsidian">
+<div class="stage" id="stage">
 <div class="app">
 
   <div class="top anim">
@@ -291,7 +291,7 @@ body{font-family:var(--font);color:var(--ink);background:var(--bg);min-height:10
   function play(){ ring.style.strokeDashoffset='100'; fill(); if(!reduce) requestAnimationFrame(()=>requestAnimationFrame(growBars)); }
   play();
   // theme toggle
-  function theme(t){ stage.setAttribute('data-theme',t);
+  function theme(t){ document.body.setAttribute('data-theme',t);
     document.getElementById('tLinen').classList.toggle('on',t==='linen');
     document.getElementById('tObs').classList.toggle('on',t==='obsidian'); }
   document.getElementById('tLinen').onclick=()=>theme('linen');
