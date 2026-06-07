@@ -26,6 +26,7 @@
 <link rel="stylesheet" href="css/07-resumo-metas.css" />
 <link rel="stylesheet" href="css/08-modals-mobile.css" />
 <link rel="stylesheet" href="css/09-contrast-light.css" />
+<link rel="stylesheet" href="css/10-splash.css" />
 <script>
   // Apply theme ASAP to avoid flash
   (function() {
@@ -77,27 +78,33 @@
 </head>
 <body>
 
-<!-- SPLASH Aevo (minimalista) — some quando o app carrega -->
-<div id="aevoSplash">
-  <div class="as-logo">
-    <svg viewBox="0 0 48 48" fill="#c7f73e" width="66" height="66" aria-hidden="true"><path d="M24 6 L43 25 L35.5 25 L24 13.5 L12.5 25 L5 25 Z"/><path d="M24 20.5 L43 39.5 L35.5 39.5 L24 28 L12.5 39.5 L5 39.5 Z"/></svg>
-    <span class="as-word">Ledger</span>
+<!-- SPLASH de abertura (v9) — 7 flechas sobem em cascata, "Ledger" surge; some revelando login/app (CSS em 10-splash.css). NÃO toca no auth. -->
+<div class="splash" id="aevoSplash" role="status" aria-label="Ledger">
+  <div class="splash-logo">
+    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path class="sp-arrow" style="--i:6" d="M7 13 L24 5 L41 13"/>
+      <path class="sp-arrow" style="--i:5" d="M7 18 L24 10 L41 18"/>
+      <path class="sp-arrow" style="--i:4" d="M7 23 L24 15 L41 23"/>
+      <path class="sp-arrow" style="--i:3" d="M7 28 L24 20 L41 28"/>
+      <path class="sp-arrow" style="--i:2" d="M7 33 L24 25 L41 33"/>
+      <path class="sp-arrow" style="--i:1" d="M7 38 L24 30 L41 38"/>
+      <path class="sp-arrow" style="--i:0" d="M7 43 L24 35 L41 43"/>
+    </svg>
   </div>
+  <div class="splash-word"><h1>Ledger</h1></div>
+  <div class="splash-skip">toque para pular</div>
 </div>
-<style>
-#aevoSplash{position:fixed;inset:0;z-index:9999;background:radial-gradient(120% 80% at 50% 22%,#1d2415 0%,#131410 62%);display:flex;align-items:center;justify-content:center;transition:opacity .5s ease}
-#aevoSplash.hide{opacity:0;pointer-events:none}
-#aevoSplash .as-logo{display:flex;flex-direction:column;align-items:center;gap:15px;animation:asRise 1s cubic-bezier(.16,1,.3,1) both}
-#aevoSplash .as-word{font:800 30px Inter,system-ui,sans-serif;letter-spacing:-.03em;color:#f3f4ee}
-@keyframes asRise{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
-@media(prefers-reduced-motion:reduce){#aevoSplash .as-logo{animation:none}#aevoSplash{transition:none}}
-</style>
 <script>
-(function(){var s=document.getElementById('aevoSplash');if(!s)return;var shown=Date.now();
-function hide(){s.classList.add('hide');setTimeout(function(){s.style.display='none';},560);}
-function go(){setTimeout(hide,Math.max(0,700-(Date.now()-shown)));}
-if(document.readyState==='complete')go();else window.addEventListener('load',go);
-setTimeout(hide,3500);})();
+(function(){
+  var s = document.getElementById('aevoSplash'); if (!s) return;
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var t0 = Date.now(), MIN = reduce ? 350 : 2500, MAXW = 4500, done = false;
+  function hide(){ if (done) return; done = true; s.classList.add('gone'); setTimeout(function(){ if (s) s.style.display = 'none'; }, 640); }
+  function go(){ setTimeout(hide, Math.max(0, MIN - (Date.now() - t0))); }
+  if (document.readyState === 'complete') go(); else window.addEventListener('load', go);
+  s.addEventListener('click', hide);   // pular tocando
+  setTimeout(hide, MAXW);              // trava de segurança
+})();
 </script>
 
 <div class="login-screen" id="loginScreen">

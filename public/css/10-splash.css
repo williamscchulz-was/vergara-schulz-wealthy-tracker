@@ -1,0 +1,70 @@
+/* ===========================================================
+   SPLASH de abertura (v9) — overlay puro: as 7 flechas sobem em
+   cascata, o nome "Ledger" surge cinematográfico, e some sozinho
+   revelando login/app. NÃO toca no auth. Respeita reduced-motion.
+   =========================================================== */
+.splash {
+  position: fixed; inset: 0; z-index: 9999;
+  display: grid; place-content: center; justify-items: center;
+  gap: clamp(18px, 4vh, 30px);
+  background:
+    radial-gradient(120% 80% at 50% 16%, rgba(199,247,62,.10), transparent 55%),
+    var(--bg);
+  transition: opacity .55s var(--ease-out), visibility .55s;
+  -webkit-tap-highlight-color: transparent;
+}
+.splash::after {  /* vinheta sutil pra dar o ar cinematográfico */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(120% 100% at 50% 42%, transparent 54%, rgba(0,0,0,.45));
+  mix-blend-mode: multiply;
+}
+.splash.gone { opacity: 0; visibility: hidden; pointer-events: none; }
+
+.splash-logo {
+  position: relative; z-index: 1;
+  width: clamp(76px, 17vw, 108px); height: clamp(76px, 17vw, 108px);
+  color: var(--purple);
+  filter: drop-shadow(0 0 18px var(--purple-glow));
+}
+.splash-logo svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.sp-arrow {
+  transform-box: fill-box; transform-origin: center;
+  opacity: 0; transform: translateY(120px);
+  animation: sp-rise .9s var(--ease-out) both;
+  animation-delay: calc(.12s + var(--i) * .07s);
+}
+@keyframes sp-rise {
+  0%   { opacity: 0; transform: translateY(120px) scale(.92); }
+  60%  { opacity: 1; }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.splash-word { position: relative; z-index: 1; overflow: hidden; padding: 2px 6px; }
+.splash-word h1 {
+  margin: 0; font-weight: 600; line-height: 1;
+  font-size: clamp(30px, 8vw, 48px); letter-spacing: .18em;
+  color: var(--ink);
+  opacity: 0; transform: translateY(100%); filter: blur(12px);
+  clip-path: inset(100% 0 0 0);
+  animation: sp-word .95s var(--ease-out) 1.0s both;
+}
+@keyframes sp-word {
+  0%   { opacity: 0; transform: translateY(100%); filter: blur(12px); clip-path: inset(100% 0 0 0); letter-spacing: .42em; }
+  55%  { opacity: 1; }
+  100% { opacity: 1; transform: none; filter: blur(0); clip-path: inset(0 0 0 0); letter-spacing: .18em; }
+}
+
+/* dica discreta de "toque pra pular" */
+.splash-skip {
+  position: absolute; bottom: calc(26px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
+  z-index: 1; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600;
+  color: var(--ink-3); opacity: 0; animation: sp-skip .4s var(--ease-out) 1.9s forwards;
+}
+@keyframes sp-skip { to { opacity: .65; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-arrow { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .splash-word h1 { animation: none !important; opacity: 1 !important; transform: none !important; filter: none !important; clip-path: none !important; letter-spacing: .18em !important; }
+  .splash-skip { animation: none !important; opacity: .6 !important; }
+  .splash { transition: opacity .2s linear; }
+}
