@@ -105,10 +105,11 @@
     s.classList.add('play');                 // dispara a cascata só AGORA (main thread já livre → a animação é pintada)
     setTimeout(hide, reduce ? 300 : 2400);   // tempo visível contado a partir do play (não da carga)
   }
-  // Espera o app.js (módulo, executa após o parse) terminar o bloco síncrono.
-  // 2x requestAnimationFrame = depois desse bloco; o +80ms dá folga p/ a 1ª pintura.
+  // Dispara quando a main thread fica OCIOSA (depois do bloco pesado do app.js/render).
+  // requestIdleCallback garante uma janela livre p/ a animação pintar; timeout 1400ms é o teto.
   if (reduce) { play(); }
-  else { requestAnimationFrame(function(){ requestAnimationFrame(function(){ setTimeout(play, 80); }); }); }
+  else if ('requestIdleCallback' in window) { requestIdleCallback(play, { timeout: 1400 }); }
+  else { requestAnimationFrame(function(){ requestAnimationFrame(function(){ setTimeout(play, 120); }); }); }
   s.addEventListener('click', hide);          // pular tocando
   setTimeout(hide, 8000);                      // trava de segurança absoluta
 })();

@@ -30,6 +30,7 @@
 .sp-arrow {
   transform-box: fill-box; transform-origin: center;
   opacity: 0; transform: translateY(120px);
+  will-change: transform, opacity;   /* compositor (GPU) → imune ao travamento da main thread */
 }
 /* a animação só dispara com .play (adicionado por JS após a carga pesada,
    senão o app.js trava a main thread e a animação "passa" sem ser pintada) */
@@ -48,14 +49,14 @@
   margin: 0; font-weight: 600; line-height: 1;
   font-size: clamp(30px, 8vw, 48px); letter-spacing: .18em;
   color: var(--ink);
-  opacity: 0; transform: translateY(100%); filter: blur(12px);
-  clip-path: inset(100% 0 0 0);
+  opacity: 0; transform: translateY(70%);
+  will-change: transform, opacity;   /* só transform/opacity → roda no compositor */
 }
-.splash.play .splash-word h1 { animation: sp-word .95s var(--ease-out) 1.0s both; }
+.splash.play .splash-word h1 { animation: sp-word .9s var(--ease-out) 1.0s both; }
 @keyframes sp-word {
-  0%   { opacity: 0; transform: translateY(100%); filter: blur(12px); clip-path: inset(100% 0 0 0); letter-spacing: .42em; }
-  55%  { opacity: 1; }
-  100% { opacity: 1; transform: none; filter: blur(0); clip-path: inset(0 0 0 0); letter-spacing: .18em; }
+  0%   { opacity: 0; transform: translateY(70%); }
+  60%  { opacity: 1; }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 /* dica discreta de "toque pra pular" */
