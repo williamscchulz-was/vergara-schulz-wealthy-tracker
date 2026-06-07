@@ -30,6 +30,10 @@
 .sp-arrow {
   transform-box: fill-box; transform-origin: center;
   opacity: 0; transform: translateY(120px);
+}
+/* a animação só dispara com .play (adicionado por JS após a carga pesada,
+   senão o app.js trava a main thread e a animação "passa" sem ser pintada) */
+.splash.play .sp-arrow {
   animation: sp-rise .9s var(--ease-out) both;
   animation-delay: calc(.12s + var(--i) * .07s);
 }
@@ -46,8 +50,8 @@
   color: var(--ink);
   opacity: 0; transform: translateY(100%); filter: blur(12px);
   clip-path: inset(100% 0 0 0);
-  animation: sp-word .95s var(--ease-out) 1.0s both;
 }
+.splash.play .splash-word h1 { animation: sp-word .95s var(--ease-out) 1.0s both; }
 @keyframes sp-word {
   0%   { opacity: 0; transform: translateY(100%); filter: blur(12px); clip-path: inset(100% 0 0 0); letter-spacing: .42em; }
   55%  { opacity: 1; }
@@ -58,8 +62,9 @@
 .splash-skip {
   position: absolute; bottom: calc(26px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
   z-index: 1; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600;
-  color: var(--ink-3); opacity: 0; animation: sp-skip .4s var(--ease-out) 1.9s forwards;
+  color: var(--ink-3); opacity: 0;
 }
+.splash.play .splash-skip { animation: sp-skip .4s var(--ease-out) 1.9s forwards; }
 @keyframes sp-skip { to { opacity: .65; } }
 
 @media (prefers-reduced-motion: reduce) {
