@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ledger — Logo lab (7 flechas finas)</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,Inter,system-ui,sans-serif;background:#0a0c08;color:#f3f6ec;padding:26px}
+  h1{font-size:16px;font-weight:800;margin-bottom:4px}
+  p{font-size:12.5px;color:#a7ad98;margin-bottom:22px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
+  .card{border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;background:#14180f}
+  .card h2{font-size:12px;font-weight:700;padding:10px 14px;color:#bdf63f;border-bottom:1px solid rgba(255,255,255,.06)}
+  .card .meta{font-size:11px;color:#6f7563;padding:0 14px 10px}
+  .rows{display:grid;grid-template-columns:1fr 1fr}
+  .cell{display:flex;align-items:center;justify-content:center;gap:14px;padding:20px}
+  .dark{background:#0a0c08}.light{background:#f3efe7}
+  .dark svg{color:#bdf63f}.light svg{color:#2fae5f}
+  .big{width:64px;height:64px}.mid{width:34px;height:34px}.tiny{width:18px;height:18px}
+  svg{display:block;overflow:visible}
+  /* logo "pílula" como no app (mark dentro de um quadrado arredondado) */
+  .chip{display:flex;align-items:center;gap:10px;padding:18px;background:#0a0c08}
+  .mark{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#bdf63f,#9fd62e);display:grid;place-items:center;color:#101604;box-shadow:0 8px 24px -8px rgba(189,246,63,.5)}
+  .mark svg{width:26px;height:26px}
+  .nm{font-weight:800;font-size:17px}
+</style></head>
+<body>
+<h1>Ledger · logo — 7 flechas finas</h1>
+<p>Comparando espessura / profundidade / espaçamento. Cada card: tamanho grande, médio e mini (favicon), no escuro e no claro. Última linha = "pílula" como no header do app.</p>
+<div class="grid" id="grid"></div>
+
+<script>
+  // gera N carets (^) empilhados, centralizados no viewBox 48
+  function logo({count=7, stroke=2, depth=6, spacing=5, halfW=17, cx=24, cap='round', fill=false}){
+    const top = cx; // not used
+    const y0 = 24 - (((count-1)*spacing) - depth)/2;
+    let d='';
+    for(let i=0;i<count;i++){ const y=y0 + i*spacing;
+      d += `M${cx-halfW} ${y} L${cx} ${(y-depth)} L${cx+halfW} ${y} `;
+    }
+    if(fill){
+      // versão preenchida fina: cada caret vira um V com espessura ~stroke
+      let p='';
+      for(let i=0;i<count;i++){ const y=y0 + i*spacing; const t=stroke; // thickness
+        p += `M${cx-halfW} ${y} L${cx} ${y-depth} L${cx+halfW} ${y} L${cx+halfW-t*0.9} ${y} L${cx} ${y-depth+t} L${cx-halfW+t*0.9} ${y} Z `;
+      }
+      return `<svg viewBox="0 0 48 48"><path d="${p}" fill="currentColor"/></svg>`;
+    }
+    return `<svg viewBox="0 0 48 48"><path d="${d}" fill="none" stroke="currentColor" stroke-width="${stroke}" stroke-linecap="${cap}" stroke-linejoin="${cap}"/></svg>`;
+  }
+
+  const variants = [
+    {name:'V1 · base',       o:{stroke:2,   depth:6,   spacing:5}},
+    {name:'V2 · mais fina',  o:{stroke:1.7, depth:6.5, spacing:5}},
+    {name:'V3 · mais grossa',o:{stroke:2.5, depth:5.5, spacing:5}},
+    {name:'V4 · arrow (funda)',o:{stroke:2, depth:8,   spacing:5}},
+    {name:'V5 · compacta',   o:{stroke:2,   depth:6,   spacing:4.3}},
+    {name:'V6 · larga/aberta',o:{stroke:1.9,depth:6,   spacing:5.5, halfW:19}},
+    {name:'V7 · cap butt',   o:{stroke:2.2, depth:6,   spacing:5, cap:'butt'}},
+    {name:'V8 · preenchida',  o:{stroke:2.2, depth:6.5, spacing:5, fill:true}},
+  ];
+
+  const grid=document.getElementById('grid');
+  grid.innerHTML = variants.map(v=>{
+    const m=v.o;
+    const meta=`stroke ${m.stroke||''} · depth ${m.depth} · gap ${m.spacing}${m.halfW?(' · w '+m.halfW):''}${m.cap?(' · '+m.cap):''}${m.fill?' · fill':''}`;
+    return `<div class="card"><h2>${v.name}</h2><div class="meta">${meta}</div>
+      <div class="rows">
+        <div class="cell dark"><span class="big">${logo(m)}</span><span class="mid">${logo(m)}</span><span class="tiny">${logo(m)}</span></div>
+        <div class="cell light"><span class="big">${logo(m)}</span><span class="mid">${logo(m)}</span><span class="tiny">${logo(m)}</span></div>
+      </div>
+      <div class="chip"><span class="mark">${logo({...m, ...(m.fill?{}:{})})}</span><span class="nm">Ledger</span></div>
+    </div>`;
+  }).join('');
+</script>
+</body></html>
