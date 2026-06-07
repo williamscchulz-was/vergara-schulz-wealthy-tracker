@@ -5,6 +5,17 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v8.15 — Import em lote (rápido) + lista de despesas sem ganhos (2026-06-06)
+- **Velocidade:** `doImport` agora grava com `writeBatch` (lotes de 450, limite
+  Firestore 500) em vez de N `addDoc` soltos. Era 1 ida ao servidor + 1
+  re-render POR lançamento (os "~10s por trás"); agora é 1 commit + ~1 render.
+  O `await wb.commit()` ainda detecta falha real → modal fica aberto se falhar.
+  Exigiu exportar `writeBatch` no `firebase.js`.
+- **Ganhos fora da lista de despesas:** a tabela e os "recentes" mostram só
+  despesas. Ganhos só aparecem com o filtro "Ganho" selecionado (o conjunto
+  ainda inclui ganhos pro filtro funcionar). Antes vinham misturados (piorou com
+  os 381 proventos auto-importados).
+
 ### v8.14 — Import nunca perde o trabalho da revisão (2026-06-06)
 - `doImport` reestruturado: **grava primeiro**, fecha o modal **só depois** de
   gravar; a animação virou cosmética (pós-gravação, best-effort). Se algo falhar

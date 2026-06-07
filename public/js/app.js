@@ -2,7 +2,7 @@
 //  LEDGER - Personal Finance (app.js)
 //  Modules: Expenses + Investments (I10 link)
 // ============================================================
-import { app, auth, db, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, doc, getDoc, setDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "./firebase.js";
+import { app, auth, db, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, doc, getDoc, setDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, writeBatch } from "./firebase.js";
 import { I18N } from "./i18n.js";
 import { ICONS, CATEGORIES, INCOME_SOURCES, INCOME_OPTS, MONTH_NAMES_PT, MONTH_NAMES_EN } from "./constants.js";
 import { IMP_GATEWAY, IMP_UF, IMP_STOP, impNormalize, impTokens, impRuleKey, impToISO, impFp, parseBRMoney } from "./import-core.js";
@@ -368,11 +368,11 @@ window.addEventListener('error', e => { if (e && e.error) showErrorPopup('Erro n
 // ---- Versão do app + popup de novidades (minimal) ----
 // Bump APP_VERSION quando lançar algo visível: quem já usou vê o popup 1× com
 // a lista APP_CHANGES; a versão aparece no header (clicável reabre o popup).
-const APP_VERSION = '8.14';
+const APP_VERSION = '8.15';
 const APP_CHANGES = [
-  'Import à prova de erro: se algo falhar, suas escolhas da revisão NÃO se perdem mais.',
-  'O import lembra suas correções (categoria / de-quem) pra próxima fatura vir pronta.',
-  'Import inteligente: bebê / baby / kids / infantil já vão pra Louise.',
+  'Import bem mais rápido: grava tudo de uma vez (acabou o "carregando por trás").',
+  'A lista de despesas mostra só despesas — ganhos não aparecem mais misturados.',
+  'Import à prova de erro: se algo falhar, suas escolhas da revisão não se perdem.',
   'Proventos do I10 entram sozinhos nos Ganhos — sem clicar.',
 ];
 function showUpdatePopup() {
@@ -924,8 +924,10 @@ function renderExpenses() {
   renderTopRecurring(allExpHistory, viewDate);
   updateHeroOverBudgetBadge(monthExp);
 
-  // Mixed surfaces (both income + expense — income rendered in green)
-  renderRecentList(all);
+  // A lista de despesas é só DESPESAS (recentes + tabela). Ganhos não entram
+  // aqui (a tabela tem o filtro "Ganho" pra quem quiser ver). `all` ainda vai
+  // pra tabela porque o filtro "ganho" precisa dos ganhos no conjunto.
+  renderRecentList(all.filter(e => isExpense(e)));
   renderExpenseTable(all);
 
   renderExpensesNetWorthPill();
@@ -1102,9 +1104,12 @@ function renderExpenseTable(entries) {
   let result = filtered;
   if (fc) result = result.filter(e => (e.category || 'outros') === fc);
   if (fo) result = result.filter(e => (e.owner === 'joint' ? 'familia' : (e.owner || 'familia')) === fo);
+  // Tabela = DESPESAS por padrão; ganhos só quando o filtro "Ganho" é escolhido.
   if (ft === 'ganho') result = result.filter(e => isIncome(e));
-  else if (ft === 'saida') result = result.filter(e => !isIncome(e));
-  else if (ft === 'fixa' || ft === 'variavel') result = result.filter(e => !isIncome(e) && (e.nature || 'variavel') === ft);
+  else {
+    result = result.filter(e => !isIncome(e));
+    if (ft === 'fixa' || ft === 'variavel') result = result.filter(e => (e.nature || 'variavel') === ft);
+  }
 
   if (result.length === 0) {
     const msg = q ? t('exp.search.none').replace('{q}', _expSearchQuery.trim()) : t('exp.filter.none');
@@ -4278,29 +4283,30 @@ async function doImport() {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const ov = $('importOverlay');
   $('importConfirm').disabled = true; $('importCancel').disabled = true;
-  // GRAVA PRIMEIRO; só fecha o modal DEPOIS de gravar. Se algo falhar ANTES de
-  // gravar, o modal fica ABERTO com as escolhas dela intactas → ela NUNCA perde
-  // o trabalho da revisão. A animação é só cosmética (best-effort, pós-gravação).
-  let imported = false;
+  // A animação cobre o modal e a gravação vai em LOTE por baixo. writeBatch = 1
+  // ida ao servidor por ~450 docs (era 1 por doc → lento + re-render a cada um →
+  // os "~10s por trás"). Só fecha o modal DEPOIS de gravar; se falhar, o modal
+  // fica ABERTO com as escolhas dela intactas (nunca perde o trabalho).
   try {
-    batch.forEach(d => {
-      try { addDoc(colExpenses(), d).catch(err => console.error('[import] doc falhou', err)); }
-      catch (err) { console.error('[import] doc inválido (pulado)', err, d); }   // 1 doc ruim não derruba o lote
-    });
-    setDoc(docImportMeta, { lastBatchId: batchId, lastCount: batch.length, lastSource: (_importKind === 'cc' ? 'conta' : 'cartao'), lastAt: serverTimestamp() }, { merge: true }).catch(() => {});
-    imported = true;
-    $('importModal').classList.remove('show');   // sucesso → fecha (já gravou; trabalho preservado)
-    // Animação "mostra o trabalho" — DEPOIS de gravar; se falhar, dados já estão salvos.
     const previewRows = batch.slice(0, 5).map(d => {
       const c = CATEGORIES[d.category] || CATEGORIES.outros;
       return { date: formatDateBR(d.date), desc: d.description || '—', cat: c.label, col: c.color, val: fmtBRL0(+d.value || 0) };
     });
-    if (ov && !reduce) { runImportAnimation(ov, previewRows, batch.length, provCount); await new Promise(r => setTimeout(r, 4250)); }
+    if (ov && !reduce) runImportAnimation(ov, previewRows, batch.length, provCount);
+    // Grava em lote(s) de 450 (limite do Firestore é 500/lote). O await detecta falha real.
+    for (let i = 0; i < batch.length; i += 450) {
+      const wb = writeBatch(db);
+      for (const d of batch.slice(i, i + 450)) wb.set(doc(colExpenses()), d);
+      await wb.commit();
+    }
+    setDoc(docImportMeta, { lastBatchId: batchId, lastCount: batch.length, lastSource: (_importKind === 'cc' ? 'conta' : 'cartao'), lastAt: serverTimestamp() }, { merge: true }).catch(() => {});
+    $('importModal').classList.remove('show');   // sucesso → fecha (sob o overlay da animação)
+    if (ov && !reduce) await new Promise(r => setTimeout(r, 4250));   // deixa a animação completar
     else showToast(t('imp.done').replace('{n}', batch.length));
   } catch (e) {
     console.error('[import] commit falhou', e);
-    // Não gravou → modal continua ABERTO (escolhas dela mantidas). Só avisa.
-    showErrorPopup(imported ? 'Importado — só a animação falhou (dados salvos)' : 'Não consegui importar — suas escolhas foram mantidas, tente de novo', e, { extra: 'Lote de ' + batch.length + ' lançamento(s).' });
+    if (ov) { ov.hidden = true; ov.classList.remove('done', 'out', 'reading', 'scanning'); }   // tira a animação → revela o modal (aberto, intacto)
+    showErrorPopup('Não consegui importar — suas escolhas foram mantidas, tente de novo', e, { extra: 'Lote de ' + batch.length + ' lançamento(s).' });
   } finally {
     if (ov) { ov.hidden = true; ov.classList.remove('done', 'out', 'reading', 'scanning'); }
     $('importConfirm').disabled = false; $('importCancel').disabled = false;
