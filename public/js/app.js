@@ -368,10 +368,10 @@ window.addEventListener('error', e => { if (e && e.error) showErrorPopup('Erro n
 // ---- Versão do app + popup de novidades (minimal) ----
 // Bump APP_VERSION quando lançar algo visível: quem já usou vê o popup 1× com
 // a lista APP_CHANGES; a versão aparece no header (clicável reabre o popup).
-const APP_VERSION = '8.11';
+const APP_VERSION = '8.12';
 const APP_CHANGES = [
+  'Import inteligente: bebê / baby / kids / infantil já vão pra Louise.',
   'Proventos do I10 entram sozinhos nos Ganhos — sem clicar.',
-  'Importação mais robusta; agora erro aparece num aviso (não some calado).',
   'Tabela de despesas: clique no cabeçalho pra ordenar.',
   'Desktop usa a tela toda; percentuais maiores e legíveis.',
 ];
@@ -3708,7 +3708,7 @@ function impCategoryByLabel(desc) {
   }
   return null;
 }
-const IMP_KIDS = ['escola','colegio','creche','bercario','pediatr','fralda','pampers','huggies','brinquedo','rihappy','pbkids','lilica','tigor','marisol','milium','luddi','clubkids'];
+const IMP_KIDS = ['bebe','bebes','baby','kids','infantil','escola','colegio','creche','bercario','pediatr','fralda','pampers','huggies','brinquedo','rihappy','pbkids','lilica','tigor','marisol','milium','luddi','clubkids'];
 const IMP_FEM = ['oboticario','boticario','natura','avon','sephora','maquiagem','manicure','cabeleireiro','salao','depilacao','sobrancelha','estetica','maxiderma','dunnia','mazi'];
 const IMP_MAL = ['barbearia','barber'];
 function impHolderOwner(holder) {

@@ -5,6 +5,13 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v8.12 — Import: termos de bebê/infantil → Louise (2026-06-06)
+- `IMP_KIDS` ganhou `bebe`, `bebes`, `baby`, `kids`, `infantil` → o palpite de
+  "de quem é o gasto" (`impPersonGuess`) marca esses lançamentos como **Louise**.
+  Verificado: "Loja do Bebê", "BABY SHOP", "Roupa Infantil Kids", "PG *BABYLAND",
+  "Bebe Store … PR" → Louise; mercado/posto/farmácia não falso-positivam.
+- Versão bumpada pra **8.12** (popup de novidades atualizado).
+
 ### Versão no header + popup de novidades (2026-06-06)
 - Badge **vX.Y** clicável ao lado de "Ledger" (tagline "personal finance"
   removida). Fonte única: `APP_VERSION` em `app.js`.
