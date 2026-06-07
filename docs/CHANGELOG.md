@@ -5,6 +5,19 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Auditoria profunda do import — race condition corrigida (2026-06-06)
+- **Bug real (dobra de proventos):** `autoSyncProventos`/`doImport` deduplicam
+  contra `state.expenses`. Se rodassem ANTES do 1º snapshot de despesas chegar
+  (ex.: auto-sync 3s pós-login com rede lenta), o `existCount` ficava vazio e
+  **relançava todos os ~381 proventos como duplicata** (dobra permanente).
+  Guard: flag `state._expensesLoaded` (setada no listener), checada no topo das
+  duas funções; o listener re-dispara o auto-sync no 1º load se um sync correu antes.
+- Parse de arquivo que falha agora abre o **popup de erro** (com detalhe), não
+  só um toast genérico.
+- Auditado e OK: parsers à prova de NaN (`isFinite`/`parseBRMoney`/`||0`),
+  `data-idx` sobrevive ao reagrupamento por mês, todas as linhas têm os selects,
+  fingerprint manual == auto (cross-dedup), guessers sem caminho de crash.
+
 ### Bloco import + erros visíveis (2026-06-06) — v8 Turno 10
 - **Animação de import suavizada**: tirado o `backdrop-filter: blur(14px)` de
   tela cheia do `.imp-overlay` (re-borrava o fundo a cada frame → travava no

@@ -3935,6 +3935,10 @@ async function importI10Proventos() {
 async function autoSyncProventos() {
   const { workerUrl, walletId } = state.i10Cfg || {};
   if (!workerUrl || !walletId) return;
+  // CRÍTICO: NÃO rodar antes do snapshot de despesas chegar. Se `state.expenses`
+  // ainda estiver vazio (não carregou), o existCount fica vazio e ele relança
+  // TODOS os proventos como duplicata (dobra permanente). Espera o 1º snapshot.
+  if (!state._expensesLoaded) return;
   let rows;
   try {
     const base = workerUrl.replace(/\/+$/, '');
@@ -4020,7 +4024,8 @@ async function handleImportFiles(fileList) {
   } catch (e) {
     console.error('[import] read failed', e);
     if (ov) { ov.hidden = true; ov.classList.remove('reading'); }
-    showToast(t('imp.fail.read')); return;
+    showErrorPopup('Falha ao ler o arquivo', e, { extra: 'Arquivo(s): ' + files.map(f => f.name || '?').join(', ') });
+    return;
   }
   // Segura o overlay no mínimo ~760ms pra leitura não "piscar".
   if (ov && !reduce) {
@@ -4142,6 +4147,9 @@ function impSetActiveMonth(comp) {
   impUpdateConfirm();   // atualiza o "selecionar todos" pro mês ativo
 }
 async function doImport() {
+  // Segurança: sem o snapshot de despesas, o dedup não tem com o que comparar →
+  // poderia duplicar. Bloqueia até carregar (na prática já carregou ao abrir o modal).
+  if (!state._expensesLoaded) { showToast('Aguarde os dados carregarem e tente de novo.'); return; }
   // Dedup MULTISET por fingerprint-base: conta quantas ocorrências de cada base já
   // existem; a 1ª ocorrência usa o base, repetições ganham sufixo #1,#2... Assim
   // 2 compras iguais legítimas NÃO se anulam, e reimportar o mesmo extrato é idempotente.
@@ -4428,7 +4436,12 @@ let unsub = {};
 function subscribeAll() {
   unsub.expenses = onSnapshot(colExpenses(), (snap) => {
     state.expenses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const firstLoad = !state._expensesLoaded;
+    state._expensesLoaded = true;   // o dedup do auto-sync DEPENDE disso (ver autoSyncProventos)
     if (state.mode === 'expenses') renderExpenses();
+    // Se um sync rodou ANTES do snapshot chegar, o auto-sync foi adiado; re-tenta
+    // agora que as despesas existem (idempotente — não duplica).
+    if (firstLoad) autoSyncProventos().catch(() => {});
   });
   unsub.yearly = onSnapshot(colYearly(), (snap) => {
     state.yearly = snap.docs.map(d => ({ id: d.id, ...d.data() }));
