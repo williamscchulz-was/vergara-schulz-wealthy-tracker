@@ -370,12 +370,12 @@ window.addEventListener('error', e => { if (e && e.error) showErrorPopup('Erro n
 // ---- Versão do app + popup de novidades (minimal) ----
 // Bump APP_VERSION quando lançar algo visível: quem já usou vê o popup 1× com
 // a lista APP_CHANGES; a versão aparece no header (clicável reabre o popup).
-const APP_VERSION = '8.16';
+const APP_VERSION = '8.17';
 const APP_CHANGES = [
-  'Tela de despesas mais limpa: saíram o "ritmo diário" e os "recentes".',
-  'Total dos lançamentos agora aparece no topo da tabela.',
-  'Filtro de categorias em ordem alfabética (no app todo).',
-  'Supermercado / mercado já caem na categoria Mercado no import.',
+  'Card "Por categoria" enxuto: mostra as 5 maiores + "Ver todas".',
+  'Despesas mais limpo: saíram o "ritmo diário" e os "recentes".',
+  'Total dos lançamentos no topo da tabela.',
+  'Categorias em ordem alfabética; supermercado já vai pra Mercado.',
 ];
 function showUpdatePopup() {
   let bg = document.getElementById('updPopup');
@@ -957,7 +957,7 @@ function renderCategoryBreakdown(monthExp, total) {
     return b[1] - a[1];
   });
 
-  wrap.innerHTML = sorted.map(([catKey, val], idx) => {
+  const catRowsHtml = sorted.map(([catKey, val], idx) => {
     const cat = CATEGORIES[catKey] || CATEGORIES.outros;
     const limit = +budgets[catKey] || 0;
     // Bar width: % of month total if no budget; % of own limit if budgeted
@@ -974,7 +974,7 @@ function renderCategoryBreakdown(monthExp, total) {
       ? `${fmtBRL0(val)} <span class="exp-cat-of">${t('exp.budget.of').replace('{limit}', fmtBRL0(limit))}</span>`
       : fmtBRL0(val);
 
-    return `<div class="exp-cat-row${overBudget ? ' over-budget' : ''}${limit > 0 ? ' has-budget' : ''}" style="--cat-color:${cat.color};--cat-delay:${0.05 + idx * 0.04}s">
+    return `<div class="exp-cat-row${idx >= 5 ? ' exp-cat-extra' : ''}${overBudget ? ' over-budget' : ''}${limit > 0 ? ' has-budget' : ''}" style="--cat-color:${cat.color};--cat-delay:${0.05 + idx * 0.04}s">
       <div class="exp-cat-icon">${cat.icon}</div>
       <div class="exp-cat-meta">
         <div class="exp-cat-name">${cat.label}</div>
@@ -986,6 +986,16 @@ function renderCategoryBreakdown(monthExp, total) {
       </div>
     </div>`;
   }).join('');
+  // Top 5 visíveis; o resto fica escondido atrás de "Ver todas" (card minimal).
+  const _extra = sorted.length - 5;
+  const _moreLbl = `Ver todas (${sorted.length})`;
+  wrap.innerHTML = catRowsHtml + (_extra > 0 ? `<button class="exp-cat-more" type="button">${_moreLbl}</button>` : '');
+  wrap.classList.remove('show-all');
+  const _mb = wrap.querySelector('.exp-cat-more');
+  if (_mb) _mb.addEventListener('click', () => {
+    const open = wrap.classList.toggle('show-all');
+    _mb.textContent = open ? 'Ver menos' : _moreLbl;
+  });
 
   // Footer: total spent vs total budgeted (across categories that have a limit)
   if (totalEl) {

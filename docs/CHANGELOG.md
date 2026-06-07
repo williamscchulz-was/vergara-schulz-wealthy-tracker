@@ -5,6 +5,12 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v8.17 — Card "Por categoria" enxuto (Top 5 + Ver todas) (2026-06-06)
+- `renderCategoryBreakdown`: mostra as **5 maiores** categorias; as demais ficam
+  com `.exp-cat-extra` e só aparecem ao clicar **"Ver todas (N)"** (toggle
+  `.show-all` no `#catList` + botão `.exp-cat-more`). CSS:
+  `.cat-list:not(.show-all) .exp-cat-extra { display:none }`.
+
 ### v8.16 — Despesas mais enxuto + totalizador + categorias A-Z (2026-06-06)
 - **Removidos:** card "Ritmo diário" (gráfico) e card "Lançamentos recentes"
   (chamadas `renderDailyChart`/`renderRecentList` tiradas; "Por categoria" virou

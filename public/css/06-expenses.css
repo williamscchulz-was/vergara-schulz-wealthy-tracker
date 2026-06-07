@@ -119,6 +119,10 @@
 
 /* ---- Category breakdown (v8) ---- */
 #catList { display: flex; flex-direction: column; gap: 14px; }
+/* Top 5 + "Ver todas": esconde as categorias extras até expandir (card minimal) */
+.cat-list:not(.show-all) .exp-cat-extra { display: none; }
+.exp-cat-more { width: 100%; margin-top: 8px; padding: 9px; background: none; border: none; border-top: 1px solid var(--border); color: var(--ink-3); font: 600 11px Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; transition: color .15s; }
+.exp-cat-more:hover { color: var(--purple); }
 .exp-cat-row {
   display: grid;
   grid-template-columns: auto 1fr auto;
