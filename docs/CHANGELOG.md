@@ -5,6 +5,24 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v8.19 — Despesas fixas / recorrentes (2026-06-06)
+- Nova coleção `household/main/recurring/{id}` = templates de despesa fixa
+  (desc, value, category, owner, dayOfMonth, startYM, endYM|null, card, ruleKey).
+- **Motor puro** `recurring-core.js` (projeção mensal + reconciliação) — 7 testes.
+- **Projeção VIRTUAL**: `renderExpenses` injeta as instâncias da recorrência no mês
+  via `projectRecurring` — **nunca persistidas**. Inerte se não há templates.
+- **Reconciliação automática (não duplica)**: a projeção some quando já existe o
+  lançamento real — manual (`recurringId`) OU da fatura importada (cartão casa por
+  `impRuleKey` do estabelecimento + valor aprox). `doImport` NÃO mudou. Pior caso =
+  uma linha a mais na tela, NUNCA dado duplicado (virtual não persiste).
+- **UI**: no modal, "Fixa" revela "Repetir todo mês" + "até quando". Linha fixa na
+  tabela → clique edita valor/até/parar (`openRecurringEditor`).
+
+### v8.18 — Hotfix: fmtBRL2 inexistente quebrava a tabela (2026-06-06)
+- O totalizador (v8.16) chamava `fmtBRL2()` (não existe) → `renderExpenseTable`
+  lançava com linhas → tabela não abria. Trocado por `fmtBRL`. (O doc CLAUDE.md
+  listava `fmtBRL2` erroneamente — corrigido também.)
+
 ### v8.17 — Card "Por categoria" enxuto (Top 5 + Ver todas) (2026-06-06)
 - `renderCategoryBreakdown`: mostra as **5 maiores** categorias; as demais ficam
   com `.exp-cat-extra` e só aparecem ao clicar **"Ver todas (N)"** (toggle

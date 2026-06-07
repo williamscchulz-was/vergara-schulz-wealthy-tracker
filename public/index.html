@@ -737,6 +737,14 @@ setTimeout(hide,3500);})();
         <button type="button" class="exp-nat-opt" data-nature="fixa" role="radio" aria-checked="false" data-i18n="exp.nature.fixa">Fixa</button>
       </div>
     </div>
+    <div class="field full" id="expRepeatField" hidden>
+      <label class="exp-repeat-toggle"><input type="checkbox" id="expRepeat"> <span>Repetir todo mês (despesa fixa)</span></label>
+      <div id="expRepeatUntilWrap" hidden>
+        <label style="font-size:12px;margin-top:8px;display:block">Repetir até</label>
+        <input type="month" id="expRepeatUntil" class="exp-filter" style="width:100%">
+        <div class="meta">Em branco = indefinido (repete até você parar)</div>
+      </div>
+    </div>
     <div class="field full" id="expNotesField"><label data-i18n="exp.f.notes">Notas (opcional)</label><textarea id="expNotes" data-i18n-ph="exp.f.notes.ph" placeholder="Detalhes adicionais..." rows="2"></textarea></div>
   </div>
   <div class="modal-foot">

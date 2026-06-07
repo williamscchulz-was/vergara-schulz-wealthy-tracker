@@ -6,6 +6,7 @@ import { app, auth, db, GoogleAuthProvider, signInWithPopup, signOut, onAuthStat
 import { I18N } from "./i18n.js";
 import { ICONS, CATEGORIES, INCOME_SOURCES, INCOME_OPTS, MONTH_NAMES_PT, MONTH_NAMES_EN } from "./constants.js";
 import { IMP_GATEWAY, IMP_UF, IMP_STOP, impNormalize, impTokens, impRuleKey, impToISO, impFp, parseBRMoney } from "./import-core.js";
+import { projectMonth as projectRecurring, toYM, ymOf } from "./recurring-core.js";
 
 // ============================================================
 //  EARLY AUTH GUARD - login works even if main code crashes
@@ -29,6 +30,8 @@ const provider = new GoogleAuthProvider();
 const colExpenses = () => collection(db, "household", "main", "expenses");
 const colYearly   = () => collection(db, "household", "main", "dividendsYearly");
 const colContrib  = () => collection(db, "household", "main", "contributions");
+const colRecurring = () => collection(db, "household", "main", "recurring");   // templates de despesa fixa
+const docRecurring = (id) => doc(db, "household", "main", "recurring", id);
 const docExpense  = (id) => doc(db, "household", "main", "expenses", id);
 const docYearly   = (id) => doc(db, "household", "main", "dividendsYearly", id);
 const docConfig   = doc(db, "household", "main", "config", "settings");
@@ -102,6 +105,7 @@ const state = {
   user: null,
   mode: 'investments',          // 'expenses' | 'investments'
   expenses: [],
+  recurring: [],   // templates de despesa fixa/recorrente (projetados, nunca duplicados)
   yearly: [],
   i10: { equity: 0, dividends: 0, updatedAt: null, year: new Date().getFullYear(), assets: [], categories: [], monthly: [] },
   contributions: [],
@@ -370,12 +374,11 @@ window.addEventListener('error', e => { if (e && e.error) showErrorPopup('Erro n
 // ---- Versão do app + popup de novidades (minimal) ----
 // Bump APP_VERSION quando lançar algo visível: quem já usou vê o popup 1× com
 // a lista APP_CHANGES; a versão aparece no header (clicável reabre o popup).
-const APP_VERSION = '8.18';
+const APP_VERSION = '8.19';
 const APP_CHANGES = [
-  'Correção: a tabela de despesas voltou a abrir (erro no totalizador).',
-  'Card "Por categoria" enxuto: as 5 maiores + "Ver todas".',
-  'Total dos lançamentos no topo da tabela.',
-  'Despesas mais limpo + categorias em ordem alfabética.',
+  'Despesas FIXAS: marque "repetir todo mês" (com data-fim) e ela aparece sozinha todo mês.',
+  'Fixa no cartão não duplica: quando a fatura chega, ela substitui a prevista.',
+  'Toque numa despesa "fixa" pra mudar valor / até quando / parar de repetir.',
 ];
 function showUpdatePopup() {
   let bg = document.getElementById('updPopup');
@@ -846,7 +849,13 @@ function updateExpSortHeaders() {
 function renderExpenses() {
   updateExpSortHeaders();   // indicador de ordenação sempre reflete _expSort (mesmo c/ tabela vazia)
   const viewDate = state.currentViewMonth;
-  const all = filterExpensesByMonth(viewDate);
+  const realThisMonth = filterExpensesByMonth(viewDate);
+  // Recorrências (fixas) projetadas pro mês — VIRTUAIS, nunca persistidas. A
+  // reconciliação é automática: `projectRecurring` suprime a recorrência quando
+  // já existe o lançamento real (manual OU da fatura importada) → nunca duplica.
+  // Inerte se não há templates (state.recurring vazio → [] → `all` intacto).
+  const virtuals = projectRecurring(state.recurring, realThisMonth, monthKey(viewDate), monthKey(new Date()));
+  const all = virtuals.length ? realThisMonth.concat(virtuals) : realThisMonth;
   const monthExp = all.filter(e => isExpense(e) && !e.provisioned);   // provisão (parcela futura) NÃO é gasto realizado
   const monthProv = all.filter(e => isExpense(e) && e.provisioned);   // compromisso futuro — mostrado à parte
   const monthIncome = all.filter(isIncome);
@@ -1149,14 +1158,17 @@ function renderExpenseTable(entries) {
     const amt = (+e.value || 0);
     const amtText = isIn ? `+ ${fmtBRL(amt)}` : fmtBRL(amt);
     const pillLabel = isIn ? t('exp.income.pill') : meta.label;
-    return `<tr data-id="${e.id}" class="${isIn ? 'is-income' : ''}" style="--cat-color:${meta.color}">
+    const isV = e._virtual;
+    const fixaBadge = isV ? `<span class="exp-fixa-badge">${e.provisioned ? 'fixa · prevista' : 'fixa'}</span>` : '';
+    return `<tr ${isV ? `data-recurring-id="${esc(e.recurringId)}"` : `data-id="${e.id}"`} class="${isIn ? 'is-income' : ''}${isV ? ' is-recurring' : ''}" style="--cat-color:${meta.color}">
       <td class="mono exp-row-date">${formatDateBR(e.date)}</td>
-      <td class="exp-row-desc-cell">${descHtml}</td>
+      <td class="exp-row-desc-cell">${descHtml}${fixaBadge}</td>
       <td><span class="exp-cat-pill ${isIn ? 'is-income' : ''}" style="--cat-color:${meta.color}"><span class="exp-cat-pill-icon">${meta.icon}</span>${pillLabel}</span></td>
       <td class="mono exp-row-amt">${amtText}</td>
     </tr>`;
   }).join('');
   tbody.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => openExpenseModal(tr.dataset.id)));
+  tbody.querySelectorAll('tr[data-recurring-id]').forEach(tr => tr.addEventListener('click', () => openRecurringEditor(tr.dataset.recurringId)));
 }
 
 // CSV export of the currently viewed month (ignores search filter — users
@@ -1481,7 +1493,14 @@ function setModalNature(nat) {
     b.classList.toggle('active', on);
     b.setAttribute('aria-checked', String(on));
   });
+  // "Repetir todo mês" só aparece em despesa FIXA
+  const rf = $('expRepeatField');
+  if (rf) {
+    rf.hidden = _modalNature !== 'fixa';
+    if (_modalNature !== 'fixa') { const c = $('expRepeat'); if (c) c.checked = false; const w = $('expRepeatUntilWrap'); if (w) w.hidden = true; }
+  }
 }
+$('expRepeat')?.addEventListener('change', (e) => { const w = $('expRepeatUntilWrap'); if (w) w.hidden = !e.target.checked; });
 
 // Toggle the modal's internal state between expense and income. Swaps
 // title/subtitle copy and which of {category, source} fields is visible.
@@ -1514,6 +1533,10 @@ function setModalType(type) {
 
 function openExpenseModal(id = null, opts = {}) {
   editingExpenseId = id;
+  // reseta o controle de recorrência (setModalNature cuida de mostrar/esconder o bloco)
+  if ($('expRepeat')) $('expRepeat').checked = false;
+  if ($('expRepeatUntil')) $('expRepeatUntil').value = '';
+  if ($('expRepeatUntilWrap')) $('expRepeatUntilWrap').hidden = true;
   const today = new Date();
   if (id) {
     const e = state.expenses.find(x => x.id === id); if (!e) return;
@@ -1546,6 +1569,43 @@ function openExpenseModal(id = null, opts = {}) {
 }
 function closeExpenseModal() { $('expenseModal').classList.remove('show'); editingExpenseId = null; }
 
+// Editor minimal de uma despesa fixa (clique numa linha "fixa" projetada): muda
+// valor / "até quando" ou para de repetir. Modal montado dinamicamente.
+function openRecurringEditor(id) {
+  const tpl = (state.recurring || []).find(r => r.id === id);
+  if (!tpl) return;
+  let bg = document.getElementById('recEditPopup');
+  if (!bg) {
+    bg = document.createElement('div'); bg.id = 'recEditPopup'; bg.className = 'modal-bg';
+    bg.innerHTML = '<div class="modal" style="max-width:420px">'
+      + '<h3>Despesa fixa</h3>'
+      + '<p class="sub" id="recEditDesc" style="margin:-4px 0 12px"></p>'
+      + '<div class="field full"><label>Valor</label><input type="text" id="recEditVal" inputmode="decimal" class="exp-filter" style="width:100%"></div>'
+      + '<div class="field full"><label>Repetir até</label><input type="month" id="recEditEnd" class="exp-filter" style="width:100%"><div class="meta">Em branco = indefinido</div></div>'
+      + '<div class="modal-foot" style="justify-content:space-between;align-items:center">'
+      + '<button class="btn-ghost" id="recEditDel" type="button" style="color:var(--loss)">Parar de repetir</button>'
+      + '<span style="display:flex;gap:8px"><button class="btn-secondary" id="recEditCancel" type="button">Cancelar</button><button class="btn-primary" id="recEditSave" type="button">Salvar</button></span>'
+      + '</div></div>';
+    document.body.appendChild(bg);
+    bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('show'); });
+    bg.querySelector('#recEditCancel').addEventListener('click', () => bg.classList.remove('show'));
+  }
+  bg.querySelector('#recEditDesc').textContent = tpl.desc + (tpl.card ? ' · no cartão' : '') + (tpl.endYM ? ` · até ${tpl.endYM}` : ' · indefinido');
+  bg.querySelector('#recEditVal').value = fmtBRLInput(tpl.value);
+  bg.querySelector('#recEditEnd').value = tpl.endYM || '';
+  bg.querySelector('#recEditSave').onclick = async () => {
+    try {
+      await setDoc(docRecurring(id), { value: parseBRLInput(bg.querySelector('#recEditVal').value), endYM: (bg.querySelector('#recEditEnd').value || null), updatedAt: serverTimestamp() }, { merge: true });
+      bg.classList.remove('show'); showToast('Despesa fixa atualizada');
+    } catch (e) { showErrorPopup('Falha ao salvar a recorrência', e); }
+  };
+  bg.querySelector('#recEditDel').onclick = async () => {
+    try { await deleteDoc(docRecurring(id)); bg.classList.remove('show'); showToast('Recorrência removida'); }
+    catch (e) { showErrorPopup('Falha ao remover a recorrência', e); }
+  };
+  bg.classList.add('show');
+}
+
 async function saveExpense() {
   const value = parseBRLInput($('expValue').value);
   const date = $('expDate').value;
@@ -1575,6 +1635,20 @@ async function saveExpense() {
   const originalLabel = t('exp.btn.save');
   try {
     btn.disabled = true; btn.textContent = t('exp.btn.saving');
+    // Despesa FIXA + "repetir todo mês" → cria o template de recorrência e linka o
+    // lançamento (recurringId) pra ele não duplicar com a projeção deste mês.
+    const editing = editingExpenseId ? (state.expenses || []).find(x => x.id === editingExpenseId) : null;
+    if (type === 'expense' && _modalNature === 'fixa' && $('expRepeat')?.checked && !(editing && editing.recurringId)) {
+      const [yy, mm, dd] = date.split('-');
+      const isCard = !!(editing && /cart|import/i.test(editing.source || ''));   // cartão herda a chave p/ casar com a fatura
+      const tplRef = await addDoc(colRecurring(), {
+        desc: description, value, category, owner: _modalOwner, type: 'expense', nature: 'fixa',
+        dayOfMonth: +dd || 1, startYM: `${yy}-${mm}`, endYM: ($('expRepeatUntil')?.value || null),
+        card: isCard, ruleKey: isCard ? impRuleKey(description) : '',
+        createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdBy: state.user?.displayName || 'unknown',
+      });
+      data.recurringId = tplRef.id;
+    }
     if (editingExpenseId) {
       await setDoc(docExpense(editingExpenseId), data, { merge: true });
       // Parcelado: propaga de-quem/categoria/descrição/natureza pra TODAS as parcelas da mesma compra.
@@ -4528,6 +4602,10 @@ function subscribeAll() {
     state.yearly = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     window.__ledgerYearly = state.yearly;
     if (state.mode === 'investments') renderInvestments();
+  });
+  unsub.recurring = onSnapshot(colRecurring(), (snap) => {
+    state.recurring = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (state.mode === 'expenses') renderExpenses();
   });
   unsub.config = onSnapshot(docConfig, (snap) => {
     const data = snap.data() || {};

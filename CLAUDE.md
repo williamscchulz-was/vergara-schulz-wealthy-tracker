@@ -74,6 +74,7 @@ Layout do repo (pós-reorganização):
 │   │   ├── i18n.js      → tabela de traduções PT/EN (export const I18N)
 │   │   ├── constants.js → ICONS, CATEGORIES, INCOME_*, MONTH_NAMES (puro)
 │   │   ├── import-core.js → núcleo PURO do import (fingerprint, normalize, parse) — testável
+│   │   ├── recurring-core.js → núcleo PURO de despesas fixas (projeção + reconciliação) — testável
 │   │   └── goal-projection.js → card de projeção da meta
 │   └── assets/icons/    → favicons + ícones PWA
 ├── worker/
@@ -166,6 +167,17 @@ Todas as coleções e documentos ficam sob `household/main/...` (a casa é uma s
   - amount:    number
   - note:      string (opcional — anotação livre: pra onde foi o aporte)
   - createdBy, createdAt, updatedAt
+
+/household/main/recurring/{id}             // templates de despesa FIXA/recorrente (v8.19)
+  - desc, value, category, owner, type:'expense', nature:'fixa'
+  - dayOfMonth: number (1-28)
+  - startYM:   'YYYY-MM'        // mês de início
+  - endYM:     'YYYY-MM' | null // até quando (null = indefinido)
+  - card:      boolean          // é no cartão? (reconcilia com a fatura)
+  - ruleKey:   string           // impRuleKey do estabelecimento (casar c/ a fatura, se card)
+  - createdAt / updatedAt / createdBy
+  // O lançamento real liga-se ao template por `recurringId` (campo em expenses).
+  // As instâncias mensais são PROJETADAS em runtime (recurring-core.js), NUNCA gravadas.
 ```
 
 ### Documentos de configuração
@@ -277,6 +289,7 @@ A API interna do I10 é **não oficial** — mapeada por engenharia reversa do l
   - Editor via botão "Orçamento" no card → `#budgetModal`
 - Tabela completa do mês (clique na linha edita; `notes` aparece como segunda linha). **Só DESPESAS por padrão** (ganhos só com o filtro "Ganho"). **Totalizador** acima da tabela (`#expTotalBar`): nº de lançamentos + soma do que está à vista. _(v8.16: card "Lançamentos recentes" removido.)_
 - **Categorias em ordem alfabética** em todo seletor — helper `catsAZ()` (filtro, modal de despesa, revisão do import, orçamento).
+- **Despesas FIXAS / recorrentes** (v8.19): no modal, "Fixa" revela "Repetir todo mês" + "até quando" → cria um template em `recurring`. As instâncias mensais são **PROJETADAS** em runtime (`recurring-core.js` `projectRecurring`, injetado no `all` de `renderExpenses`) — **nunca gravadas**. **Não duplica**: a projeção é suprimida quando já existe o lançamento real do mês (manual via `recurringId`, ou da fatura via `impRuleKey`+valor pra cartão) → `doImport` intacto. Linha "fixa" projetada (badge) → clique abre `openRecurringEditor` (valor / até / parar). Meses futuros entram como `provisioned` (compromisso). Regra de ouro: virtual nunca persiste → pior caso é uma linha a mais, nunca dado duplicado.
 - Navegação por mês (`state.currentViewMonth`)
 - CRUD via modal (`#expenseModal` com liquid border)
 - Delete via modal custom `#confirmModal` (substituiu `confirm()` nativo)

@@ -123,6 +123,11 @@
 .cat-list:not(.show-all) .exp-cat-extra { display: none; }
 .exp-cat-more { width: 100%; margin-top: 8px; padding: 9px; background: none; border: none; border-top: 1px solid var(--border); color: var(--ink-3); font: 600 11px Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; transition: color .15s; }
 .exp-cat-more:hover { color: var(--purple); }
+/* Despesa fixa (recorrente) projetada: badge + linha levemente distinta */
+.exp-fixa-badge { display: inline-block; margin-left: 6px; font: 600 9px Inter, sans-serif; text-transform: uppercase; letter-spacing: .05em; color: var(--purple); background: var(--purple-soft); border: 1px solid var(--purple); border-radius: 5px; padding: 1px 5px; vertical-align: middle; white-space: nowrap; }
+.exp-table tr.is-recurring { opacity: .9; }
+.exp-repeat-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: var(--ink-2); user-select: none; }
+.exp-repeat-toggle input { width: 15px; height: 15px; accent-color: var(--purple); margin: 0; }
 .exp-cat-row {
   display: grid;
   grid-template-columns: auto 1fr auto;
