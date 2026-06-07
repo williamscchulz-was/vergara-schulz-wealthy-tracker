@@ -9,15 +9,15 @@
 .rz-period { font-family: 'Geist Mono', monospace; font-weight: 600; font-size: 14px; min-width: 130px; text-align: center; }
 .rz-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
 /* RESUMO REBUILD — hero verde do saldo (âncora) */
-.rz-hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; background: linear-gradient(145deg, #1d8f49, #0e4d27); border-radius: var(--radius-lg); padding: 24px 26px; margin-bottom: 14px; color: #eafff1; }
-.rz-hero-eyebrow { display: flex; align-items: center; gap: 9px; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #cdeed8; margin-bottom: 12px; }
-.rz-hero-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--purple); box-shadow: 0 0 0 4px rgba(199,247,62,.22); }
-.rz-hero-amt { font-family: 'Geist Mono', monospace; font-size: clamp(34px, 4.6vw, 46px); font-weight: 600; letter-spacing: -.03em; line-height: 1; color: #f6fff9; }
+.rz-hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; background: var(--hero-bg); border: 1px solid var(--border); box-shadow: var(--shadow); border-radius: var(--radius-lg); padding: 24px 26px; margin-bottom: 14px; color: var(--hero-ink); }
+.rz-hero-eyebrow { display: flex; align-items: center; gap: 9px; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--hero-label); margin-bottom: 12px; }
+.rz-hero-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--purple); box-shadow: 0 0 0 4px var(--purple-soft); }
+.rz-hero-amt { font-family: 'Geist Mono', monospace; font-size: clamp(34px, 4.6vw, 46px); font-weight: 600; letter-spacing: -.03em; line-height: 1; color: var(--hero-ink); }
 .rz-hero.is-neg .rz-hero-amt { color: #ffd28f; }
-.rz-hero-sub { margin-top: 11px; font-size: 12.5px; color: #cdeed8; }
+.rz-hero-sub { margin-top: 11px; font-size: 12.5px; color: var(--hero-label); }
 .rz-hero-r { text-align: right; }
-.rz-hero-rate-l { font-size: 10.5px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; color: #cdeed8; margin-bottom: 6px; }
-.rz-hero-rate { font-family: 'Geist Mono', monospace; font-size: 30px; font-weight: 600; color: #d8fa72; line-height: 1; }
+.rz-hero-rate-l { font-size: 10.5px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; color: var(--hero-label); margin-bottom: 6px; }
+.rz-hero-rate { font-family: 'Geist Mono', monospace; font-size: 30px; font-weight: 600; color: var(--hero-num); line-height: 1; }
 .rz-hero.is-neg .rz-hero-rate { color: #ffd28f; }
 .rz-kpi { position: relative; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 18px; padding: 16px 18px 17px; overflow: hidden; box-shadow: var(--shadow); transition: transform .2s var(--ease-out), box-shadow .2s, border-color .2s; }
 .rz-kpi::after { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 3px; background: var(--rzc, var(--purple)); }
