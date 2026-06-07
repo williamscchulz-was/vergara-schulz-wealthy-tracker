@@ -313,6 +313,7 @@ A API interna do I10 é **não oficial** — mapeada por engenharia reversa do l
 - **Tags "via I10" vs "manual"** pra distinguir fonte do dado
 - **Toasts** de feedback (`showToast`)
 - **Popup de erro** (`showErrorPopup(title, err, opts)`, jun/2026): em vez de o app "não fazer nada" calado numa falha, abre um modal com título humano + **detalhe técnico copiável** (mensagem + stack). Plugado em `doImport`, `importI10Proventos`, `autoSyncProventos` (mostra HTTP status/body — ex.: 404 = worker sem `/i10/earnings-list`) e numa **rede de segurança global** (`window` `unhandledrejection` + `error`, deduplicada por mensagem via `opts.once`, ignora erros de carregamento de recurso). Decisão do dono (app pessoal, p/ debug) — ver nuance em §11.
+- **Versão no header + popup de novidades** (jun/2026): `const APP_VERSION` (em `app.js`) aparece como badge clicável ao lado de "Ledger" (a tagline "personal finance" foi removida). `showUpdatePopup()` lista `APP_CHANGES` (novidades) num modal minimal; `maybeShowUpdatePopup()` mostra **1× por versão** (compara `localStorage.ledger_seen_ver` com `APP_VERSION`, ~1.4s pós-login). Clicar o badge reabre. **Pra lançar novidade:** bumpar `APP_VERSION` + atualizar `APP_CHANGES`.
 - **PWA instalável** (manifest + ícones + apple-touch)
 
 ---

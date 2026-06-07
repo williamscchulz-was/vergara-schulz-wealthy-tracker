@@ -5,6 +5,16 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Versão no header + popup de novidades (2026-06-06)
+- Badge **vX.Y** clicável ao lado de "Ledger" (tagline "personal finance"
+  removida). Fonte única: `APP_VERSION` em `app.js`.
+- Popup minimal de **novidades** (`APP_CHANGES`), mostrado 1× por versão
+  (`localStorage.ledger_seen_ver`), ~1.4s após o login; clicar o badge reabre.
+- Confirmado o comportamento da **competência**: importar a fatura de junho joga
+  os gastos (feitos em maio) em **junho** (mês que você paga); a data real de
+  cada compra fica preservada na linha. `filterExpensesByMonth` agrupa por
+  `competencia` (mês da fatura), com fallback pro mês da data real.
+
 ### Auditoria profunda do import — race condition corrigida (2026-06-06)
 - **Bug real (dobra de proventos):** `autoSyncProventos`/`doImport` deduplicam
   contra `state.expenses`. Se rodassem ANTES do 1º snapshot de despesas chegar

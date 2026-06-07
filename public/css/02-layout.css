@@ -73,6 +73,12 @@
 .brand-mark svg { width: 28px; height: 28px; }
 .brand-text .name { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
 .brand-text .tag { font-size: 11px; color: var(--ink-muted); margin-top: 1px; }
+/* Versão ao lado do nome — clicável, abre o popup de novidades */
+.app-ver { font: 600 10px 'Geist Mono', monospace; color: var(--ink-3); background: var(--bg-elevated-2); border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px; margin-left: 7px; cursor: pointer; vertical-align: middle; letter-spacing: .02em; transition: color .15s, border-color .15s; }
+.app-ver:hover { color: var(--purple); border-color: var(--purple); }
+/* Lista do popup de novidades (minimal) */
+.upd-list { margin: 8px 0 2px; padding-left: 20px; display: flex; flex-direction: column; gap: 9px; }
+.upd-list li { font-size: 13px; color: var(--ink-2); line-height: 1.45; }
 
 .user-pill {
   display: flex; align-items: center; gap: 10px;

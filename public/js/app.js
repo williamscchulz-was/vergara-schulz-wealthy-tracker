@@ -364,6 +364,44 @@ function showErrorPopup(title, err, opts = {}) {
 // Rede de segurança: qualquer erro não-tratado vira popup (1x por mensagem/sessão).
 window.addEventListener('unhandledrejection', e => showErrorPopup('Erro não tratado (promessa)', e && e.reason, { once: true }));
 window.addEventListener('error', e => { if (e && e.error) showErrorPopup('Erro não tratado', e.error, { once: true }); });
+
+// ---- Versão do app + popup de novidades (minimal) ----
+// Bump APP_VERSION quando lançar algo visível: quem já usou vê o popup 1× com
+// a lista APP_CHANGES; a versão aparece no header (clicável reabre o popup).
+const APP_VERSION = '8.11';
+const APP_CHANGES = [
+  'Proventos do I10 entram sozinhos nos Ganhos — sem clicar.',
+  'Importação mais robusta; agora erro aparece num aviso (não some calado).',
+  'Tabela de despesas: clique no cabeçalho pra ordenar.',
+  'Desktop usa a tela toda; percentuais maiores e legíveis.',
+];
+function showUpdatePopup() {
+  let bg = document.getElementById('updPopup');
+  if (!bg) {
+    bg = document.createElement('div');
+    bg.id = 'updPopup'; bg.className = 'modal-bg';
+    bg.innerHTML = '<div class="modal" style="max-width:440px">'
+      + '<h3 style="display:flex;align-items:center;gap:9px;margin:0">Novidades <span class="app-ver" style="cursor:default">v' + esc(APP_VERSION) + '</span></h3>'
+      + '<ul class="upd-list">' + APP_CHANGES.map(c => '<li>' + esc(c) + '</li>').join('') + '</ul>'
+      + '<div class="modal-foot"><button class="btn-primary upd-ok" type="button">Entendi</button></div>'
+      + '</div>';
+    document.body.appendChild(bg);
+    const close = () => { bg.classList.remove('show'); try { localStorage.setItem('ledger_seen_ver', APP_VERSION); } catch (_) {} };
+    bg.querySelector('.upd-ok').addEventListener('click', close);
+    bg.addEventListener('click', e => { if (e.target === bg) close(); });
+  }
+  bg.classList.add('show');
+}
+// Mostra 1× por versão (quem nunca viu uma versão anterior também vê, pra conhecer).
+function maybeShowUpdatePopup() {
+  let seen = null; try { seen = localStorage.getItem('ledger_seen_ver'); } catch (_) {}
+  if (seen !== APP_VERSION) showUpdatePopup();
+}
+// Versão no header (módulo deferido → o DOM já existe aqui) + clique reabre as novidades.
+{
+  const _vb = document.getElementById('appVerBtn');
+  if (_vb) { _vb.textContent = 'v' + APP_VERSION; _vb.addEventListener('click', showUpdatePopup); }
+}
 // Parse a value into a Date WITHOUT the UTC-midnight timezone trap.
 // `new Date('2026-05-01')` is parsed as UTC midnight → in BRT (UTC-3)
 // that's Apr 30 21:00 local, so getMonth()/getDate() return the previous
@@ -4699,6 +4737,7 @@ onAuthStateChanged(auth, async (user) => {
       // Auto-sync on login: give Firestore listeners ~3s to populate
       // state.i10.updatedAt + state.i10Cfg, then check if a sync is due.
       setTimeout(() => maybeAutoSync('login'), 3000);
+      setTimeout(() => maybeShowUpdatePopup(), 1400);   // novidades 1× por versão
     } catch (err) {
       console.error('Firestore error:', err);
     }
