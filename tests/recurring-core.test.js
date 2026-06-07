@@ -45,15 +45,17 @@ test('satisfies — fixa NÃO-cartão só casa por recurringId (nunca por nome)'
   assert.equal(satisfies({ description: 'Aluguel', value: 2000, recurringId: 'r2' }, tpl), true);
 });
 
-test('makeVirtual — futuro vira provisão; nunca persiste', () => {
+test('makeVirtual — conta no saldo sempre; futuro ganha flag _future', () => {
   const tpl = { id: 'r1', desc: 'Aluguel', value: 2000, category: 'moradia', owner: 'familia', dayOfMonth: 10 };
   const cur = makeVirtual(tpl, '2026-06', '2026-06');
   assert.equal(cur._virtual, true);
-  assert.equal(cur.provisioned, false);            // mês atual = realizado
+  assert.equal(cur.provisioned, false);            // entra no saldo
+  assert.equal(cur._future, false);
   assert.equal(cur.date, '2026-06-10');
   assert.equal(cur.nature, 'fixa');
   const fut = makeVirtual(tpl, '2026-08', '2026-06');
-  assert.equal(fut.provisioned, true);             // mês futuro = compromisso
+  assert.equal(fut.provisioned, false);            // CONTA no saldo do mês futuro também
+  assert.equal(fut._future, true);                 // só marcado "prevista"
 });
 
 test('projectMonth — projeta o que falta, suprime o que já tem real (não duplica)', () => {

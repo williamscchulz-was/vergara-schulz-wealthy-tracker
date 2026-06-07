@@ -5,6 +5,13 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v8.20 — Despesa fixa conta no saldo do mês (2026-06-07)
+- A instância projetada da recorrência agora tem `provisioned:false` → **entra no
+  saldo do mês** (custo real), inclusive nos meses à frente (forecast). Antes ia
+  como "comprometido" (fora do saldo), e o usuário não via no mês seguinte.
+- `_future` (mês > atual) é só pra badge "fixa · prevista" — não muda a contagem.
+  (Diferente da parcela de cartão, que segue `provisioned:true`/à parte.)
+
 ### v8.19 — Despesas fixas / recorrentes (2026-06-06)
 - Nova coleção `household/main/recurring/{id}` = templates de despesa fixa
   (desc, value, category, owner, dayOfMonth, startYM, endYM|null, card, ruleKey).

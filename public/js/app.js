@@ -374,11 +374,11 @@ window.addEventListener('error', e => { if (e && e.error) showErrorPopup('Erro n
 // ---- Versão do app + popup de novidades (minimal) ----
 // Bump APP_VERSION quando lançar algo visível: quem já usou vê o popup 1× com
 // a lista APP_CHANGES; a versão aparece no header (clicável reabre o popup).
-const APP_VERSION = '8.19';
+const APP_VERSION = '8.20';
 const APP_CHANGES = [
-  'Despesas FIXAS: marque "repetir todo mês" (com data-fim) e ela aparece sozinha todo mês.',
-  'Fixa no cartão não duplica: quando a fatura chega, ela substitui a prevista.',
-  'Toque numa despesa "fixa" pra mudar valor / até quando / parar de repetir.',
+  'Despesa fixa agora ENTRA no saldo do mês — inclusive nos meses à frente (marcada "prevista").',
+  'Marque "repetir todo mês" + "até quando"; no cartão não duplica com a fatura.',
+  'Toque numa despesa "fixa" pra mudar valor / até quando / parar.',
 ];
 function showUpdatePopup() {
   let bg = document.getElementById('updPopup');
@@ -1159,7 +1159,7 @@ function renderExpenseTable(entries) {
     const amtText = isIn ? `+ ${fmtBRL(amt)}` : fmtBRL(amt);
     const pillLabel = isIn ? t('exp.income.pill') : meta.label;
     const isV = e._virtual;
-    const fixaBadge = isV ? `<span class="exp-fixa-badge">${e.provisioned ? 'fixa · prevista' : 'fixa'}</span>` : '';
+    const fixaBadge = isV ? `<span class="exp-fixa-badge">${e._future ? 'fixa · prevista' : 'fixa'}</span>` : '';
     return `<tr ${isV ? `data-recurring-id="${esc(e.recurringId)}"` : `data-id="${e.id}"`} class="${isIn ? 'is-income' : ''}${isV ? ' is-recurring' : ''}" style="--cat-color:${meta.color}">
       <td class="mono exp-row-date">${formatDateBR(e.date)}</td>
       <td class="exp-row-desc-cell">${descHtml}${fixaBadge}</td>

@@ -43,11 +43,14 @@ export function satisfies(exp, tpl, tol = 0.30) {
 }
 
 // Instância VIRTUAL (projetada) de um template num mês. _virtual=true → não persiste.
+// CONTA no saldo do mês (despesa fixa é custo real daquele mês — inclusive nos
+// meses futuros, pra você ver o impacto adiantado). `_future` é só pra badge
+// "prevista" (não muda a contagem). provisioned=false sempre (≠ parcela de cartão).
 export function makeVirtual(tpl, yms, currentYM) {
   const day = Math.min(28, Math.max(1, +tpl.dayOfMonth || 1));
-  const future = ymCmp(yms, currentYM || yms) > 0;
   return {
     _virtual: true,
+    _future: ymCmp(yms, currentYM || yms) > 0,
     recurringId: tpl.id,
     type: tpl.type || 'expense',
     description: tpl.desc,
@@ -57,7 +60,7 @@ export function makeVirtual(tpl, yms, currentYM) {
     nature: 'fixa',
     date: `${yms}-${String(day).padStart(2, '0')}`,
     competencia: yms,
-    provisioned: future,   // meses futuros = compromisso (fica fora do total já realizado)
+    provisioned: false,   // entra no saldo do mês (custo real) — não é "compromisso à parte"
     recurring: true,
     card: !!tpl.card,
   };
