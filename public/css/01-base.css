@@ -465,7 +465,7 @@ body::before {
 .page {
   position: relative;
   z-index: 1;
-  max-width: 1240px;   /* largura do mockup que ficou bom — denso, sem esticar os cards */
+  max-width: 1520px;   /* usa melhor monitores largos no desktop (era 1240 — sobrava margem); os grids 2-up dão mais respiro aos gráficos */
   margin: 0 auto;
   padding: 24px 28px 96px;
 }
