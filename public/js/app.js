@@ -374,11 +374,11 @@ window.addEventListener('error', e => { if (e && e.error) showErrorPopup('Erro n
 // ---- Versão do app + popup de novidades (minimal) ----
 // Bump APP_VERSION quando lançar algo visível: quem já usou vê o popup 1× com
 // a lista APP_CHANGES; a versão aparece no header (clicável reabre o popup).
-const APP_VERSION = '8.20';
+const APP_VERSION = '9.0';
 const APP_CHANGES = [
-  'Despesa fixa agora ENTRA no saldo do mês — inclusive nos meses à frente (marcada "prevista").',
-  'Marque "repetir todo mês" + "até quando"; no cartão não duplica com a fatura.',
-  'Toque numa despesa "fixa" pra mudar valor / até quando / parar.',
+  'Visual novo (v9): logo de 7 flechas, tema Obsidian (escuro) e Linen (claro) mais refinados.',
+  'Tela de login minimalista — só a marca e o "Entrar com Google".',
+  'Redesign chegando aba por aba (Despesas, Investimentos, Resumo).',
 ];
 function showUpdatePopup() {
   let bg = document.getElementById('updPopup');
