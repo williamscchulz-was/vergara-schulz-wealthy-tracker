@@ -43,7 +43,8 @@
       <a class="open" id="openNew" href="#" target="_blank">Abrir em tela cheia ↗</a>
     </div>
     <div class="chips" id="chips">
-      <button class="chip on" data-src="despesas-mockup.html">Despesas</button>
+      <button class="chip on" data-src="abertura-mockup.html">Abertura</button>
+      <button class="chip" data-src="despesas-mockup.html">Despesas</button>
       <button class="chip" data-src="redesign-mockup.html">Investimentos</button>
       <button class="chip" data-src="resumo-mockup.html">Resumo</button>
       <span class="chip sep">·</span>
@@ -77,7 +78,7 @@
   chips.forEach(c => c.addEventListener('click', () => show(c.dataset.src, true)));
   // deep-link opcional: ?m=<arquivo>
   const want = new URLSearchParams(location.search).get('m');
-  const initial = (want && chips.some(c => c.dataset.src === want)) ? want : 'despesas-mockup.html';
+  const initial = (want && chips.some(c => c.dataset.src === want)) ? want : 'abertura-mockup.html';
   show(initial, false);
 </script>
 </body>
