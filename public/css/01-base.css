@@ -35,6 +35,13 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   --purple-glow:   rgba(199,247,62,0.32);
   --on-accent:     #15170b;   /* texto escuro sobre o acento lime */
 
+  /* hero do saldo (Despesas) — Obsidian: escuro + número lime (igual mockup) */
+  --hero-bg:    radial-gradient(90% 130% at 100% 0%, rgba(199,247,62,.13), transparent 55%), linear-gradient(180deg, #10140c, #0c0f09);
+  --hero-num:   var(--purple);
+  --hero-ink:   #f3f6ec;
+  --hero-label: #a7ad98;
+  --hero-cur:   #6f7563;
+
   --gain:          #4fdd8a;
   --gain-soft:     rgba(79,221,138,0.12);
   --loss:          #ff6b61;
@@ -371,6 +378,13 @@ body {
   --purple-soft:   rgba(47,174,95,0.08);
   --purple-glow:   rgba(47,174,95,0.22);
   --on-accent:     #ffffff;   /* texto branco sobre o verde esmeralda */
+
+  /* hero do saldo — Linen: gradiente verde + texto claro (igual mockup) */
+  --hero-bg:    linear-gradient(135deg, #2f5e3f, #3f7a52 60%, #5a9b6f);
+  --hero-num:   #eafff2;
+  --hero-ink:   #eafff1;
+  --hero-label: #cdeed8;
+  --hero-cur:   #bfe0c8;
   --gain:          #1f9d4d;
   --gain-soft:     rgba(31,157,77,0.10);
   --loss:          #dc2626;
