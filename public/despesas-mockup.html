@@ -69,7 +69,7 @@ body{font-family:var(--font);color:var(--ink);background:var(--bg);min-height:10
 /* grid */
 .grid{display:grid;grid-template-columns:1fr;gap:14px}
 @media(min-width:900px){
-  .grid{grid-template-columns:repeat(12,1fr);gap:16px}
+  .grid{grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}
   .g-hero{grid-column:span 7}.g-side{grid-column:span 5}
   .g-cat{grid-column:span 5}.g-table{grid-column:span 7}.g-trend{grid-column:span 12}
 }
@@ -81,6 +81,11 @@ body{font-family:var(--font);color:var(--ink);background:var(--bg);min-height:10
 .chead .more{font-size:12.5px;color:var(--lime);font-weight:700;cursor:pointer}
 .klabel{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
 .mono{font-family:var(--mono)}.pos{color:var(--pos)}.neg{color:var(--neg)}
+[data-icon]{display:inline-grid;place-items:center;line-height:0;vertical-align:middle}
+[data-icon] svg{width:16px;height:16px;display:block}
+.catrow .ic,.trow .ic{color:var(--ink-2)}   /* ícone das tiles em tom neutro; nav herda a cor do botão */
+.trow .ic[data-icon] svg,.catrow .ic[data-icon] svg{width:17px;height:17px}
+.seg [data-icon] svg,.vbtn [data-icon] svg{width:15px;height:15px}
 
 /* HERO saldo */
 .hero{grid-column:span 12;background:
@@ -153,8 +158,8 @@ body{font-family:var(--font);color:var(--ink);background:var(--bg);min-height:10
 <body>
 <div class="toolbar">
   <span class="t">Ledger · Despesas — mockup do novo visual</span>
-  <button class="vbtn on" id="vDesk">🖥️ Desktop</button>
-  <button class="vbtn" id="vMob">📱 Mobile</button>
+  <button class="vbtn on" id="vDesk"><span data-icon="monitor"></span> Desktop</button>
+  <button class="vbtn" id="vMob"><span data-icon="smartphone"></span> Mobile</button>
 </div>
 
 <div class="stage" id="stage">
@@ -170,8 +175,8 @@ body{font-family:var(--font);color:var(--ink);background:var(--bg);min-height:10
   </div>
 
   <div class="seg anim" style="--i:1">
-    <button class="on">↓ Despesas</button>
-    <button>↗ Investimentos</button>
+    <button class="on"><span data-icon="arrowDown"></span> Despesas</button>
+    <button><span data-icon="arrowUpRight"></span> Investimentos</button>
   </div>
 
   <div class="grid">
@@ -208,11 +213,11 @@ body{font-family:var(--font);color:var(--ink);background:var(--bg);min-height:10
     <!-- categorias -->
     <div class="card g-cat anim" style="--i:5">
       <div class="chead"><h3>Por categoria</h3><span class="more">Orçamento</span></div>
-      <div class="catrow top"><div class="ic">🏠</div><div><div class="nm">Moradia</div><div class="bar"><i style="--w:1"></i></div></div><div><div class="val">R$ 3.200</div><div class="pc">19%</div></div></div>
-      <div class="catrow"><div class="ic">🛒</div><div><div class="nm">Mercado</div><div class="bar"><i style="--w:.78"></i></div></div><div><div class="val">R$ 2.840</div><div class="pc">17%</div></div></div>
-      <div class="catrow"><div class="ic">💳</div><div><div class="nm">Cartão</div><div class="bar"><i style="--w:.62"></i></div></div><div><div class="val">R$ 2.100</div><div class="pc">13%</div></div></div>
-      <div class="catrow"><div class="ic">🍽️</div><div><div class="nm">Alimentação</div><div class="bar"><i style="--w:.47"></i></div></div><div><div class="val">R$ 1.560</div><div class="pc">9%</div></div></div>
-      <div class="catrow"><div class="ic">🚗</div><div><div class="nm">Transporte</div><div class="bar"><i style="--w:.35"></i></div></div><div><div class="val">R$ 1.180</div><div class="pc">7%</div></div></div>
+      <div class="catrow top"><div class="ic" data-icon="home"></div><div><div class="nm">Moradia</div><div class="bar"><i style="--w:1"></i></div></div><div><div class="val">R$ 3.200</div><div class="pc">19%</div></div></div>
+      <div class="catrow"><div class="ic" data-icon="cart"></div><div><div class="nm">Mercado</div><div class="bar"><i style="--w:.78"></i></div></div><div><div class="val">R$ 2.840</div><div class="pc">17%</div></div></div>
+      <div class="catrow"><div class="ic" data-icon="card"></div><div><div class="nm">Cartão</div><div class="bar"><i style="--w:.62"></i></div></div><div><div class="val">R$ 2.100</div><div class="pc">13%</div></div></div>
+      <div class="catrow"><div class="ic" data-icon="utensils"></div><div><div class="nm">Alimentação</div><div class="bar"><i style="--w:.47"></i></div></div><div><div class="val">R$ 1.560</div><div class="pc">9%</div></div></div>
+      <div class="catrow"><div class="ic" data-icon="car"></div><div><div class="nm">Transporte</div><div class="bar"><i style="--w:.35"></i></div></div><div><div class="val">R$ 1.180</div><div class="pc">7%</div></div></div>
       <button class="seeall">Ver todas (9)</button>
     </div>
 
@@ -220,12 +225,12 @@ body{font-family:var(--font);color:var(--ink);background:var(--bg);min-height:10
     <div class="card g-table anim" style="--i:6">
       <div class="chead"><h3>Todas as despesas</h3><span class="more">CSV</span></div>
       <div class="totbar"><span class="l">12 lançamentos</span><span class="v">R$ 16.420,00</span></div>
-      <div class="trow"><div class="ic">🏠</div><div><div class="nm">Aluguel <span class="badge">fixa</span></div><div class="meta">05/06 · Moradia · Família</div></div><div class="amt">R$ 3.200,00</div></div>
-      <div class="trow"><div class="ic">🛒</div><div><div class="nm">Mercado Garcia</div><div class="meta">12/06 · Mercado · William</div></div><div class="amt">R$ 642,80</div></div>
-      <div class="trow"><div class="ic">▶️</div><div><div class="nm">Netflix <span class="badge">fixa</span></div><div class="meta">15/06 · Assinaturas · Família</div></div><div class="amt">R$ 44,90</div></div>
-      <div class="trow"><div class="ic">🍔</div><div><div class="nm">iFood</div><div class="meta">18/06 · Alimentação · Flávia</div></div><div class="amt">R$ 78,40</div></div>
-      <div class="trow"><div class="ic">⛽</div><div><div class="nm">Posto Shell</div><div class="meta">20/06 · Transporte · William</div></div><div class="amt">R$ 280,00</div></div>
-      <div class="trow"><div class="ic">👶</div><div><div class="nm">Baby Store <span class="badge">Louise</span></div><div class="meta">22/06 · Compras · Louise</div></div><div class="amt">R$ 189,90</div></div>
+      <div class="trow"><div class="ic" data-icon="home"></div><div><div class="nm">Aluguel <span class="badge">fixa</span></div><div class="meta">05/06 · Moradia · Família</div></div><div class="amt">R$ 3.200,00</div></div>
+      <div class="trow"><div class="ic" data-icon="cart"></div><div><div class="nm">Mercado Garcia</div><div class="meta">12/06 · Mercado · William</div></div><div class="amt">R$ 642,80</div></div>
+      <div class="trow"><div class="ic" data-icon="play"></div><div><div class="nm">Netflix <span class="badge">fixa</span></div><div class="meta">15/06 · Assinaturas · Família</div></div><div class="amt">R$ 44,90</div></div>
+      <div class="trow"><div class="ic" data-icon="utensils"></div><div><div class="nm">iFood</div><div class="meta">18/06 · Alimentação · Flávia</div></div><div class="amt">R$ 78,40</div></div>
+      <div class="trow"><div class="ic" data-icon="fuel"></div><div><div class="nm">Posto Shell</div><div class="meta">20/06 · Transporte · William</div></div><div class="amt">R$ 280,00</div></div>
+      <div class="trow"><div class="ic" data-icon="gift"></div><div><div class="nm">Baby Store <span class="badge">Louise</span></div><div class="meta">22/06 · Compras · Louise</div></div><div class="amt">R$ 189,90</div></div>
     </div>
 
     <!-- trend 12m -->
@@ -244,12 +249,33 @@ body{font-family:var(--font);color:var(--ink);background:var(--bg);min-height:10
 
 <!-- mobile tab bar -->
 <div class="tabbar">
-  <button class="on">↓ Despesas</button>
-  <button>↗</button><button>⟳</button><button>🎯</button><button>⚙️</button>
+  <button class="on"><span data-icon="arrowDown"></span> Despesas</button>
+  <button><span data-icon="arrowUpRight"></span></button><button><span data-icon="refresh"></span></button><button><span data-icon="target"></span></button><button><span data-icon="settings"></span></button>
 </div>
 </div>
 
 <script>
+  // Ícones SVG (estilo Lucide) — sem emoji.
+  const SVG = p => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';
+  const ICONS = {
+    home: SVG('<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>'),
+    cart: SVG('<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>'),
+    card: SVG('<rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/>'),
+    utensils: SVG('<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2z"/><path d="M18 15v7"/>'),
+    car: SVG('<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L17 9.1V5.9a1 1 0 0 0-1-.9h-9a1 1 0 0 0-1 .9l-3.5 6.1C2.7 11.3 2 12.1 2 13v3c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>'),
+    play: SVG('<circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16" fill="currentColor" stroke="none"/>'),
+    fuel: SVG('<line x1="3" x2="15" y1="22" y2="22"/><line x1="4" x2="14" y1="9" y2="9"/><path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"/><path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 4 0V9.83a2 2 0 0 0-.59-1.42L18 5"/>'),
+    gift: SVG('<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C9 3 10.5 4.5 12 8"/><path d="M16.5 8a2.5 2.5 0 0 0 0-5C15 3 13.5 4.5 12 8"/>'),
+    arrowDown: SVG('<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>'),
+    arrowUpRight: SVG('<path d="M7 7h10v10"/><path d="M7 17 17 7"/>'),
+    refresh: SVG('<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>'),
+    target: SVG('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>'),
+    settings: SVG('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'),
+    monitor: SVG('<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>'),
+    smartphone: SVG('<rect width="14" height="20" x="5" y="2" rx="2"/><line x1="12" x2="12" y1="18" y2="18"/>'),
+  };
+  document.querySelectorAll('[data-icon]').forEach(e => { e.innerHTML = ICONS[e.getAttribute('data-icon')] || ''; });
+
   // count-up do saldo
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const el = document.getElementById('saldo'), target = 12480;

@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ledger · Resumo — mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===========================================================
+   LEDGER · RESUMO — mockup. 2 temas (Linen claro / Obsidian escuro),
+   responsivo (mobile-first → bento) e animado. Não é o app.
+   =========================================================== */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--font:-apple-system,BlinkMacSystemFont,"Inter",system-ui,sans-serif;--mono:"Geist Mono",ui-monospace,monospace;}
+
+/* ---- OBSIDIAN (dark) ---- */
+[data-theme="obsidian"]{
+  --bg:#0a0c08; --surface:#14180f; --surface-2:#1a1f14; --glass:rgba(255,255,255,.022);
+  --ink:#f3f6ec; --ink-2:#a7ad98; --ink-3:#6f7563; --line:rgba(255,255,255,.07); --line-lime:rgba(190,255,120,.12);
+  --accent:#bdf63f; --accent-2:#d6fb7a; --accent-deep:#9fd62e; --on-accent:#101604;
+  --pos:#7ee787; --neg:#ff6b61; --glow:rgba(189,246,63,.30);
+  --shadow:0 1px 0 rgba(255,255,255,.04) inset,0 24px 50px -26px rgba(0,0,0,.8);
+  --hero-bg:radial-gradient(90% 130% at 100% 0%,rgba(189,246,63,.13),transparent 55%),linear-gradient(180deg,#10140c,#0c0f09);
+  --hero-ink:#f3f6ec; --hero-ink-2:#a7ad98; --hero-accent:#bdf63f; --track:#1f2616;
+  --bg-img:radial-gradient(120% 80% at 12% -8%,rgba(189,246,63,.15),transparent 46%);
+}
+/* ---- LINEN (light) ---- */
+[data-theme="linen"]{
+  --bg:#f3efe7; --surface:#fffdf9; --surface-2:#f4eee2; --glass:rgba(255,255,255,.5);
+  --ink:#2a2620; --ink-2:#73695b; --ink-3:#a89c8a; --line:#e9e1d3; --line-lime:#dfe7c9;
+  --accent:#2fae5f; --accent-2:#46c277; --accent-deep:#1f9d4d; --on-accent:#fff;
+  --pos:#2c8a3f; --neg:#c0584c; --glow:rgba(47,174,95,.22);
+  --shadow:0 1px 2px rgba(120,100,70,.05),0 16px 32px -16px rgba(90,80,60,.2);
+  --hero-bg:linear-gradient(135deg,#2f5e3f,#3f7a52 60%,#5a9b6f);
+  --hero-ink:#f3fbf2; --hero-ink-2:#bfe0c8; --hero-accent:#eafff2; --track:#ece5d6;
+  --bg-img:radial-gradient(120% 80% at 12% -8%,rgba(47,174,95,.10),transparent 46%);
+}
+html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{font-family:var(--font);color:var(--ink);background:var(--bg);min-height:100vh;font-variant-numeric:tabular-nums;
+  background-image:var(--bg-img);background-attachment:fixed;transition:background .4s,color .3s}
+
+.toolbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:11px clamp(14px,4vw,34px);background:color-mix(in oklab,var(--bg) 78%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.toolbar .t{font-size:12px;color:var(--ink-3);margin-right:auto}
+.tg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px;gap:2px}
+.tg button{font:600 12.5px var(--font);border:0;background:transparent;color:var(--ink-2);padding:7px 13px;border-radius:999px;cursor:pointer}
+.tg button.on{background:var(--accent);color:var(--on-accent)}
+
+.stage{margin:0 auto;transition:max-width .35s}.stage.mobile{max-width:430px}
+.stage.mobile .desk-only{display:none!important}
+.app{max-width:1180px;margin:0 auto;padding:20px clamp(14px,4vw,34px) 110px}
+
+.top{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:grid;place-items:center;color:var(--on-accent);font-weight:900;font-size:20px;box-shadow:0 8px 24px -8px var(--glow)}
+.brand .nm{font-weight:800;font-size:17px;letter-spacing:-.02em}.brand .who{font-size:12px;color:var(--ink-3)}
+.mnav{margin-left:auto;display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 6px}
+.mnav button{border:0;background:transparent;color:var(--ink-2);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px}
+.mnav .lbl{font-weight:700;font-size:13.5px;min-width:64px;text-align:center}
+.avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent-2),var(--accent-deep));flex-shrink:0}
+
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px;gap:3px;margin-bottom:20px;flex-wrap:wrap}
+.seg button{font:700 13.5px var(--font);border:0;background:transparent;color:var(--ink-2);padding:9px 18px;border-radius:999px;cursor:pointer}
+.seg button.on{background:var(--accent);color:var(--on-accent);box-shadow:0 6px 18px -8px var(--glow)}
+
+.grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:900px){.grid{grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}
+  .g7{grid-column:span 7}.g5{grid-column:span 5}.g12{grid-column:span 12}}
+.card{background:linear-gradient(180deg,var(--glass),transparent),var(--surface);border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.chead{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}
+.chead h3{font-size:14.5px;font-weight:700;letter-spacing:-.01em}.chead .more{font-size:12.5px;color:var(--accent-deep);font-weight:700;cursor:pointer}
+.klabel{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+.mono{font-family:var(--mono)}.pos{color:var(--pos)}.neg{color:var(--neg)}
+[data-icon]{display:inline-grid;place-items:center;line-height:0;vertical-align:middle}
+[data-icon] svg{width:16px;height:16px;display:block}
+.tg [data-icon] svg,.seg [data-icon] svg{width:15px;height:15px}
+.eyedot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--hero-accent);box-shadow:0 0 9px var(--glow);vertical-align:middle;margin-right:7px}
+
+/* HERO — taxa de poupança */
+.hero{grid-column:span 12;background:var(--hero-bg);color:var(--hero-ink);border:1px solid var(--line);border-radius:26px;padding:26px 28px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+@media(min-width:900px){.hero{grid-column:span 7;display:flex;align-items:center;gap:30px}}
+.gauge{flex-shrink:0;display:grid;place-items:center;position:relative}
+.gauge .pct{position:absolute;text-align:center}
+.gauge .pct b{font-size:30px;font-weight:900;letter-spacing:-.03em;color:var(--hero-accent);display:block;line-height:1}
+.gauge .pct span{font-size:10px;color:var(--hero-ink-2);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.hero .info{flex:1;min-width:0}
+.hero .eye{color:var(--hero-ink-2);font-size:12.5px;font-weight:600;margin-bottom:6px}
+.hero h2{font-size:clamp(22px,4vw,27px);font-weight:800;letter-spacing:-.02em;line-height:1.15}
+.hero .br{display:flex;gap:22px;margin-top:16px;flex-wrap:wrap}
+.hero .br .k{font-size:11px;color:var(--hero-ink-2);font-weight:600}
+.hero .br .v{font-size:18px;font-weight:800;font-family:var(--mono);margin-top:3px}
+
+/* KPI tiles */
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.kpi{padding:16px}.kpi .v{font-size:23px;font-weight:800;letter-spacing:-.02em;margin-top:9px}.kpi .s{font-size:12px;color:var(--ink-2);margin-top:5px;font-weight:500}
+
+/* grouped bars (ganhos vs saídas) */
+.gbars{display:flex;align-items:flex-end;gap:9px;height:150px;margin-top:8px}
+.gbars .col{flex:1;display:flex;align-items:flex-end;justify-content:center;gap:3px;height:100%}
+.gbars .col i{width:42%;border-radius:5px 5px 3px 3px;transform-origin:bottom;transform:scaleY(var(--h));min-height:4px}
+.gbars .col .in{background:linear-gradient(var(--accent-2),var(--accent))}
+.gbars .col .out{background:var(--track)}
+.xl{display:flex;gap:9px;margin-top:9px}.xl span{flex:1;text-align:center;font-size:9.5px;color:var(--ink-3)}
+.lgd{display:flex;gap:16px;font-size:12px;color:var(--ink-2);font-weight:600}
+.lgd b{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:middle}
+
+/* donut */
+.alloc{display:flex;align-items:center;gap:20px}
+.leg{display:flex;flex-direction:column;gap:10px;flex:1;min-width:0}
+.leg .it{display:flex;align-items:center;gap:9px;font-size:13.5px}.leg .dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.leg .nm{color:var(--ink-2);font-weight:500}.leg .pc{margin-left:auto;font-weight:700;font-family:var(--mono)}
+
+/* histórico anos */
+.years{display:flex;align-items:flex-end;gap:12px;height:130px;margin-top:6px}
+.years .y{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end}
+.years .y i{width:100%;max-width:46px;border-radius:8px 8px 4px 4px;background:linear-gradient(var(--accent),var(--accent-deep));transform-origin:bottom;transform:scaleY(var(--h));min-height:6px}
+.years .y.cur i{background:linear-gradient(var(--accent-2),var(--accent));box-shadow:0 0 16px -2px var(--glow)}
+.years .y .yl{font-size:11px;color:var(--ink-3);font-weight:600}.years .y .yv{font-size:11px;font-family:var(--mono);font-weight:700;color:var(--ink-2)}
+
+.goalbar{height:10px;border-radius:999px;background:var(--track);overflow:hidden;margin:13px 0 8px}
+.goalbar i{display:block;height:100%;width:6.5%;border-radius:999px;background:linear-gradient(90deg,var(--accent-2),var(--accent));transform-origin:left;transform:scaleX(var(--g,1))}
+.note{font-size:13px;color:var(--ink-2)}
+
+.tabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:40;display:none;align-items:center;gap:4px;background:color-mix(in oklab,var(--surface) 92%,transparent);backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:999px;padding:7px;box-shadow:0 20px 40px -16px rgba(0,0,0,.4)}
+.tabbar button{border:0;background:transparent;color:var(--ink-3);width:46px;height:44px;border-radius:999px;font-size:18px;cursor:pointer;display:grid;place-items:center}
+.tabbar button.on{background:var(--accent);color:var(--on-accent);width:auto;padding:0 18px;gap:7px;font:700 13px var(--font)}
+.stage.mobile .tabbar{display:flex}@media(max-width:899px){.tabbar{display:flex}.desk-only{display:none!important}}
+
+.anim{opacity:0;transform:translateY(16px);animation:up .65s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--i,0)*65ms)}
+@keyframes up{to{opacity:1;transform:none}}
+.gbars .col i,.years .y i,.goalbar i{transition:transform 1s cubic-bezier(.2,.9,.2,1)}
+@media(prefers-reduced-motion:reduce){.anim{animation:none;opacity:1;transform:none}.gbars .col i,.years .y i,.goalbar i{transition:none}}
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <span class="t">Ledger · Resumo — mockup</span>
+  <div class="tg"><button id="tLinen"><span data-icon="sun"></span> Linen</button><button id="tObs" class="on"><span data-icon="moon"></span> Obsidian</button></div>
+  <div class="tg"><button id="vDesk" class="on"><span data-icon="monitor"></span></button><button id="vMob"><span data-icon="smartphone"></span></button></div>
+</div>
+
+<div class="stage" id="stage" data-theme="obsidian">
+<div class="app">
+
+  <div class="top anim">
+    <div class="logo">L</div>
+    <div class="brand"><div class="nm">Ledger</div><div class="who">Resumo do ano</div></div>
+    <div class="mnav"><button>‹</button><span class="lbl">2026</span><button>›</button></div>
+    <div class="avatar"></div>
+  </div>
+
+  <div class="seg anim" style="--i:1">
+    <button><span data-icon="arrowDown"></span> Despesas</button><button><span data-icon="arrowUpRight"></span> Investimentos</button><button class="on"><span data-icon="pie"></span> Resumo</button>
+  </div>
+
+  <div class="grid">
+    <!-- HERO: taxa de poupança -->
+    <div class="hero anim" style="--i:2">
+      <div class="gauge">
+        <svg width="138" height="138" viewBox="0 0 42 42" style="transform:rotate(-90deg)">
+          <circle cx="21" cy="21" r="15.9" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="4.5"/>
+          <circle id="ring" cx="21" cy="21" r="15.9" fill="none" stroke="var(--hero-accent)" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="100 100" stroke-dashoffset="100"/>
+        </svg>
+        <div class="pct"><b id="rate">0%</b><span>poupança</span></div>
+      </div>
+      <div class="info">
+        <div class="eye"><span class="eyedot"></span>Balanço de 2026</div>
+        <h2>Vocês guardaram <span style="color:var(--hero-accent)">43%</span> do que ganharam</h2>
+        <div class="br">
+          <div><div class="k">Ganhos</div><div class="v">R$ 312,4k</div></div>
+          <div><div class="k">Saídas</div><div class="v">R$ 178,9k</div></div>
+          <div><div class="k">Poupado</div><div class="v">R$ 133,5k</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="g5">
+      <div class="kpis">
+        <div class="card kpi anim" style="--i:3"><div class="klabel">Ganhos no ano</div><div class="v mono">R$ 312,4k</div><div class="s pos">↑ 12% vs 2025</div></div>
+        <div class="card kpi anim" style="--i:4"><div class="klabel">Saídas no ano</div><div class="v mono">R$ 178,9k</div><div class="s neg">↑ 4% vs 2025</div></div>
+        <div class="card kpi anim" style="--i:5"><div class="klabel">Dividendos</div><div class="v mono">R$ 65,5k</div><div class="s">média R$ 5,4k/mês</div></div>
+        <div class="card kpi anim" style="--i:6"><div class="klabel">Patrimônio</div><div class="v mono">R$ 1,28M</div><div class="s pos">↑ R$ 287k no ano</div></div>
+      </div>
+    </div>
+
+    <!-- ganhos vs saídas -->
+    <div class="card g7 anim" style="--i:5">
+      <div class="chead"><h3>Ganhos vs. Saídas</h3><div class="lgd"><span><b style="background:var(--accent)"></b>Ganhos</span><span><b style="background:var(--track)"></b>Saídas</span></div></div>
+      <div class="gbars">
+        <div class="col"><i class="in" style="--h:.62"></i><i class="out" style="--h:.4"></i></div>
+        <div class="col"><i class="in" style="--h:.66"></i><i class="out" style="--h:.44"></i></div>
+        <div class="col"><i class="in" style="--h:.58"></i><i class="out" style="--h:.5"></i></div>
+        <div class="col"><i class="in" style="--h:.74"></i><i class="out" style="--h:.42"></i></div>
+        <div class="col"><i class="in" style="--h:.7"></i><i class="out" style="--h:.48"></i></div>
+        <div class="col"><i class="in" style="--h:.9"></i><i class="out" style="--h:.46"></i></div>
+        <div class="col"><i class="in" style="--h:.64"></i><i class="out" style="--h:.52"></i></div>
+        <div class="col"><i class="in" style="--h:.8"></i><i class="out" style="--h:.5"></i></div>
+        <div class="col"><i class="in" style="--h:.72"></i><i class="out" style="--h:.45"></i></div>
+        <div class="col"><i class="in" style="--h:.95"></i><i class="out" style="--h:.55"></i></div>
+        <div class="col"><i class="in" style="--h:.85"></i><i class="out" style="--h:.49"></i></div>
+        <div class="col"><i class="in" style="--h:1"></i><i class="out" style="--h:.47"></i></div>
+      </div>
+      <div class="xl"><span>jan</span><span>fev</span><span>mar</span><span>abr</span><span>mai</span><span>jun</span><span>jul</span><span>ago</span><span>set</span><span>out</span><span>nov</span><span>dez</span></div>
+    </div>
+
+    <!-- onde foi o dinheiro -->
+    <div class="card g5 anim" style="--i:6">
+      <div class="chead"><h3>Onde foi o dinheiro</h3><span class="more">Ano</span></div>
+      <div class="alloc">
+        <svg width="128" height="128" viewBox="0 0 42 42">
+          <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--track)" stroke-width="6"/>
+          <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--accent)" stroke-width="6" stroke-dasharray="30 70" stroke-dashoffset="25" transform="rotate(-90 21 21)"/>
+          <circle cx="21" cy="21" r="15.9" fill="none" stroke="#0a84ff" stroke-width="6" stroke-dasharray="22 78" stroke-dashoffset="-5" transform="rotate(-90 21 21)"/>
+          <circle cx="21" cy="21" r="15.9" fill="none" stroke="#ff9f0a" stroke-width="6" stroke-dasharray="16 84" stroke-dashoffset="-27" transform="rotate(-90 21 21)"/>
+          <circle cx="21" cy="21" r="15.9" fill="none" stroke="#bf5af2" stroke-width="6" stroke-dasharray="14 86" stroke-dashoffset="-43" transform="rotate(-90 21 21)"/>
+          <circle cx="21" cy="21" r="15.9" fill="none" stroke="#ff6b61" stroke-width="6" stroke-dasharray="18 82" stroke-dashoffset="-57" transform="rotate(-90 21 21)"/>
+        </svg>
+        <div class="leg">
+          <div class="it"><span class="dot" style="background:var(--accent)"></span><span class="nm">Moradia</span><span class="pc">30%</span></div>
+          <div class="it"><span class="dot" style="background:#0a84ff"></span><span class="nm">Mercado</span><span class="pc">22%</span></div>
+          <div class="it"><span class="dot" style="background:#ff9f0a"></span><span class="nm">Cartão</span><span class="pc">16%</span></div>
+          <div class="it"><span class="dot" style="background:#bf5af2"></span><span class="nm">Alimentação</span><span class="pc">14%</span></div>
+          <div class="it"><span class="dot" style="background:#ff6b61"></span><span class="nm">Outros</span><span class="pc">18%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- histórico anual -->
+    <div class="card g7 anim" style="--i:7">
+      <div class="chead"><h3>Patrimônio por ano</h3><span class="more">desde 2021</span></div>
+      <div class="years">
+        <div class="y"><i style="--h:.28"></i><div class="yv">412k</div><div class="yl">2021</div></div>
+        <div class="y"><i style="--h:.42"></i><div class="yv">561k</div><div class="yl">2022</div></div>
+        <div class="y"><i style="--h:.55"></i><div class="yv">724k</div><div class="yl">2023</div></div>
+        <div class="y"><i style="--h:.7"></i><div class="yv">918k</div><div class="yl">2024</div></div>
+        <div class="y"><i style="--h:.84"></i><div class="yv">998k</div><div class="yl">2025</div></div>
+        <div class="y cur"><i style="--h:1"></i><div class="yv">1,28M</div><div class="yl">2026</div></div>
+      </div>
+    </div>
+
+    <!-- meta -->
+    <div class="card g5 anim" style="--i:8">
+      <div class="chead"><h3>Meta de dividendos</h3><span class="more">2035</span></div>
+      <div class="note">R$ 65,5k de <b>R$ 1 milhão</b>/ano</div>
+      <div class="goalbar"><i style="--g:.065"></i></div>
+      <div class="note">No ritmo atual: <b class="pos">dentro do plano</b></div>
+    </div>
+  </div>
+</div>
+
+<div class="tabbar"><button><span data-icon="arrowDown"></span></button><button><span data-icon="arrowUpRight"></span></button><button class="on"><span data-icon="pie"></span> Resumo</button><button><span data-icon="target"></span></button><button><span data-icon="settings"></span></button></div>
+</div>
+
+<script>
+  // Ícones SVG (estilo Lucide) — nada de emoji.
+  const SVG = p => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';
+  const ICONS = {
+    arrowDown: SVG('<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>'),
+    arrowUpRight: SVG('<path d="M7 7h10v10"/><path d="M7 17 17 7"/>'),
+    pie: SVG('<path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>'),
+    target: SVG('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>'),
+    settings: SVG('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'),
+    sun: SVG('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/>'),
+    moon: SVG('<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>'),
+    monitor: SVG('<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>'),
+    smartphone: SVG('<rect width="14" height="20" x="5" y="2" rx="2"/><line x1="12" x2="12" y1="18" y2="18"/>'),
+  };
+  document.querySelectorAll('[data-icon]').forEach(e => { e.innerHTML = ICONS[e.getAttribute('data-icon')] || ''; });
+
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const stage = document.getElementById('stage');
+  // count-up % + ring
+  const rateEl = document.getElementById('rate'), ring = document.getElementById('ring'), target = 43;
+  function fill(){
+    if (reduce){ rateEl.textContent='43%'; ring.style.strokeDashoffset=String(100-target); return; }
+    let t0=null; const dur=1100, ease=x=>1-Math.pow(1-x,3);
+    (function step(ts){ if(!t0)t0=ts; const p=Math.min(1,(ts-t0)/dur);
+      rateEl.textContent=Math.round(target*ease(p))+'%'; ring.style.strokeDashoffset=String(100-target*ease(p));
+      if(p<1) requestAnimationFrame(step); })(performance.now());
+    setTimeout(()=>{rateEl.textContent='43%';ring.style.strokeDashoffset=String(100-target);},1500);
+  }
+  function growBars(){
+    document.querySelectorAll('.gbars .col i,.years .y i,.goalbar i').forEach((b,i)=>{
+      const axis = b.closest('.goalbar')?'X':'Y';
+      const v = axis==='X'? (b.style.getPropertyValue('--g')||1) : (b.style.getPropertyValue('--h')||0);
+      b.style.transform='scale'+axis+'(0)'; setTimeout(()=>b.style.transform='scale'+axis+'('+v+')',60+i*16);
+    });
+  }
+  function play(){ ring.style.strokeDashoffset='100'; fill(); if(!reduce) requestAnimationFrame(()=>requestAnimationFrame(growBars)); }
+  play();
+  // theme toggle
+  function theme(t){ stage.setAttribute('data-theme',t);
+    document.getElementById('tLinen').classList.toggle('on',t==='linen');
+    document.getElementById('tObs').classList.toggle('on',t==='obsidian'); }
+  document.getElementById('tLinen').onclick=()=>theme('linen');
+  document.getElementById('tObs').onclick=()=>theme('obsidian');
+  // desktop/mobile
+  document.getElementById('vMob').onclick=e=>{stage.classList.add('mobile');e.target.classList.add('on');document.getElementById('vDesk').classList.remove('on');scrollTo({top:0});};
+  document.getElementById('vDesk').onclick=e=>{stage.classList.remove('mobile');e.target.classList.add('on');document.getElementById('vMob').classList.remove('on');};
+</script>
+</body>
+</html>
