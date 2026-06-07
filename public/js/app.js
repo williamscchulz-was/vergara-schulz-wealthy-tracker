@@ -370,12 +370,12 @@ window.addEventListener('error', e => { if (e && e.error) showErrorPopup('Erro n
 // ---- Versão do app + popup de novidades (minimal) ----
 // Bump APP_VERSION quando lançar algo visível: quem já usou vê o popup 1× com
 // a lista APP_CHANGES; a versão aparece no header (clicável reabre o popup).
-const APP_VERSION = '8.17';
+const APP_VERSION = '8.18';
 const APP_CHANGES = [
-  'Card "Por categoria" enxuto: mostra as 5 maiores + "Ver todas".',
-  'Despesas mais limpo: saíram o "ritmo diário" e os "recentes".',
+  'Correção: a tabela de despesas voltou a abrir (erro no totalizador).',
+  'Card "Por categoria" enxuto: as 5 maiores + "Ver todas".',
   'Total dos lançamentos no topo da tabela.',
-  'Categorias em ordem alfabética; supermercado já vai pra Mercado.',
+  'Despesas mais limpo + categorias em ordem alfabética.',
 ];
 function showUpdatePopup() {
   let bg = document.getElementById('updPopup');
@@ -1126,7 +1126,7 @@ function renderExpenseTable(entries) {
     if (result.length) {
       const tot = result.reduce((s, e) => s + (+e.value || 0), 0);
       _tb.hidden = false;
-      _tb.innerHTML = `<span class="exp-total-lbl">${result.length} ${result.length === 1 ? 'lançamento' : 'lançamentos'}</span><span class="exp-total-val">${fmtBRL2(tot)}</span>`;
+      _tb.innerHTML = `<span class="exp-total-lbl">${result.length} ${result.length === 1 ? 'lançamento' : 'lançamentos'}</span><span class="exp-total-val">${fmtBRL(tot)}</span>`;
     } else { _tb.hidden = true; }
   }
 
