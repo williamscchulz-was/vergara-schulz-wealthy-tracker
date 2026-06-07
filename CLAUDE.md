@@ -275,13 +275,13 @@ A API interna do I10 é **não oficial** — mapeada por engenharia reversa do l
   - Estado `over-budget` pinta barra/valores de vermelho
   - Footer "Gasto / orçamento" com progresso agregado
   - Editor via botão "Orçamento" no card → `#budgetModal`
-- Lista de "recentes" (6 últimas, clicáveis) + tabela completa do mês (clique na linha edita; `notes` aparece como segunda linha)
+- Tabela completa do mês (clique na linha edita; `notes` aparece como segunda linha). **Só DESPESAS por padrão** (ganhos só com o filtro "Ganho"). **Totalizador** acima da tabela (`#expTotalBar`): nº de lançamentos + soma do que está à vista. _(v8.16: card "Lançamentos recentes" removido.)_
+- **Categorias em ordem alfabética** em todo seletor — helper `catsAZ()` (filtro, modal de despesa, revisão do import, orçamento).
 - Navegação por mês (`state.currentViewMonth`)
 - CRUD via modal (`#expenseModal` com liquid border)
 - Delete via modal custom `#confirmModal` (substituiu `confirm()` nativo)
 - i18n completo: todas as strings estáticas/dinâmicas passam por `t()`; PT/EN
-- **Analytics (Fase C)**:
-  - **Sparkline diário** (`#expDailyChart`): linha de gasto acumulado do mês + linha tracejada de "ritmo esperado" (total/dias × dia), faixas sutis de fim de semana, marcador pro dia de hoje, footer comparando "Hoje: R$ X" vs pace (↑ vermelho acima, ↓ verde abaixo)
+- **Analytics**: _(v8.16: "Sparkline diário" / `renderDailyChart` removido — chamada tirada; a função segue inerte no código.)_
   - **Tendência 12m** (`#expTrendChart`): barras empilhadas por categoria dos últimos 12 meses, legenda auto-gerada, mês corrente destacado
   - **Top recorrentes** (`#expRecList`): groupBy descrição YTD (case-insensitive), ranking de gasto, mostra os 6 com count ≥ 2
   - **Over-budget badge no hero**: quando qualquer categoria ultrapassou seu limite mensal, pill animado substitui o sub line

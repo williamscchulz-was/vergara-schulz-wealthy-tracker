@@ -178,7 +178,6 @@ setTimeout(hide,3500);})();
         </div>
         <div class="exp-add-group">
           <button class="btn-ghost btn-clear-imp" id="btnUndoImport" data-i18n="imp.undo" title="Desfazer o último import (sem mexer nos anteriores)" hidden>Desfazer último</button>
-          <button class="btn-ghost btn-clear-imp" id="btnClearImports" data-i18n="imp.clear" title="Apagar todos os lançamentos importados (cartão + conta)">Limpar importados</button>
           <button class="btn-ghost" id="btnImportStatement" data-i18n="imp.btn" data-i18n-title="imp.title" title="Importar fatura do cartão (PDF)">Importar fatura</button>
           <button class="btn-ghost btn-add-income" id="btnAddIncome" data-i18n="exp.new.income" title="Novo ganho">+ Ganho</button>
           <button class="btn-primary" id="btnAddExpense" data-i18n="exp.new">+ Nova despesa</button>
@@ -237,48 +236,25 @@ setTimeout(hide,3500);})();
 
       <div class="inv-sec">Este mês</div>
       <!-- Daily spending sparkline (Fase C) -->
-      <div class="card animate-in exp-daily-card">
+      <div class="card animate-in">
         <div class="card-head">
           <div>
-            <h3 data-i18n="exp.daily.title">Ritmo diário</h3>
-            <div class="meta" id="expDailyMeta" data-i18n="exp.daily.sub">Gasto acumulado do mês</div>
+            <h3 data-i18n="exp.card.bycat">Por categoria</h3>
+            <div class="meta" data-i18n="exp.card.bycat.sub">Distribuição do mês</div>
           </div>
-          <div class="exp-daily-legend">
-            <span class="exp-legend-swatch exp-legend-spent"></span><span data-i18n="exp.daily.legend.spent">Acumulado</span>
-            <span class="exp-legend-swatch exp-legend-pace"></span><span data-i18n="exp.daily.legend.pace">Ritmo esperado</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-ghost btn-budget" id="btnEditCats" title="Gerenciar categorias" data-i18n-title="cat.btn.title">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7l11 11-7 7L3 10z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>
+              <span data-i18n="cat.btn">Categorias</span>
+            </button>
+            <button class="btn-ghost btn-budget" id="btnEditBudgets" title="Orçamento" data-i18n-title="exp.budget.btn">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h18"/><circle cx="8" cy="6" r="2" fill="currentColor"/><circle cx="16" cy="12" r="2" fill="currentColor"/><circle cx="10" cy="18" r="2" fill="currentColor"/></svg>
+              <span data-i18n="exp.budget.btn">Orçamento</span>
+            </button>
           </div>
         </div>
-        <div class="exp-daily-chart">
-          <svg id="expDailyChart" viewBox="0 0 700 180" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;aspect-ratio:700/180;display:block"></svg>
-        </div>
-        <div class="exp-daily-footer" id="expDailyFooter"></div>
-      </div>
-
-      <div class="grid-2" style="margin-top:0">
-        <div class="card animate-in">
-          <div class="card-head">
-            <div>
-              <h3 data-i18n="exp.card.bycat">Por categoria</h3>
-              <div class="meta" data-i18n="exp.card.bycat.sub">Distribuição do mês</div>
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button class="btn-ghost btn-budget" id="btnEditCats" title="Gerenciar categorias" data-i18n-title="cat.btn.title">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7l11 11-7 7L3 10z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>
-                <span data-i18n="cat.btn">Categorias</span>
-              </button>
-              <button class="btn-ghost btn-budget" id="btnEditBudgets" title="Orçamento" data-i18n-title="exp.budget.btn">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h18"/><circle cx="8" cy="6" r="2" fill="currentColor"/><circle cx="16" cy="12" r="2" fill="currentColor"/><circle cx="10" cy="18" r="2" fill="currentColor"/></svg>
-                <span data-i18n="exp.budget.btn">Orçamento</span>
-              </button>
-            </div>
-          </div>
-          <div class="cat-list" id="catList"></div>
-          <div class="exp-budget-total" id="expBudgetTotal" hidden></div>
-        </div>
-        <div class="card animate-in">
-          <div class="card-head"><h3 data-i18n="exp.card.recent">Lançamentos recentes</h3><div class="meta" id="recentMeta">Últimas 6 despesas</div></div>
-          <div id="recentList"></div>
-        </div>
+        <div class="cat-list" id="catList"></div>
+        <div class="exp-budget-total" id="expBudgetTotal" hidden></div>
       </div>
 
       <div class="card animate-in" style="margin-top:20px">
@@ -313,6 +289,7 @@ setTimeout(hide,3500);})();
             </button>
           </div>
         </div>
+        <div class="exp-total-bar" id="expTotalBar" hidden></div>
         <div class="table-wrap">
           <table class="exp-table">
             <thead><tr><th class="exp-th-sort" data-sort="date" data-i18n="exp.th.date">Data</th><th class="exp-th-sort" data-sort="desc" data-i18n="exp.th.desc">Descrição</th><th class="exp-th-sort" data-sort="category" data-i18n="exp.th.cat">Categoria</th><th class="exp-th-amt exp-th-sort" data-sort="value" data-i18n="exp.th.amount">Valor</th></tr></thead>

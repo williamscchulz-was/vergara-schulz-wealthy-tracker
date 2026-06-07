@@ -85,12 +85,14 @@ function applyCategoryConfig(cfg) {
     CATEGORIES[k] = { label: v.label || k, color: v.color || '#8e8e93', icon: ICONS[ik], iconKey: ik, custom: true };
   });
 }
+// Categorias em ordem ALFABÉTICA (por label) — usado em todo seletor de categoria do app.
+const catsAZ = () => Object.entries(CATEGORIES).sort((a, b) => String(a[1].label).localeCompare(String(b[1].label), 'pt', { sensitivity: 'base' }));
 // Repovoa o <select> de categoria do modal de despesa a partir do CATEGORIES vivo.
 function populateCategorySelect() {
   const sel = $('expCategory');
   if (!sel) return;
   const cur = sel.value;
-  sel.innerHTML = Object.entries(CATEGORIES).map(([k, c]) => `<option value="${k}">${esc(c.label)}</option>`).join('');
+  sel.innerHTML = catsAZ().map(([k, c]) => `<option value="${k}">${esc(c.label)}</option>`).join('');
   if (cur && CATEGORIES[cur]) sel.value = cur;
 }
 // Income sources (labels resolved via i18n at render time)
@@ -368,12 +370,12 @@ window.addEventListener('error', e => { if (e && e.error) showErrorPopup('Erro n
 // ---- Versão do app + popup de novidades (minimal) ----
 // Bump APP_VERSION quando lançar algo visível: quem já usou vê o popup 1× com
 // a lista APP_CHANGES; a versão aparece no header (clicável reabre o popup).
-const APP_VERSION = '8.15';
+const APP_VERSION = '8.16';
 const APP_CHANGES = [
-  'Import bem mais rápido: grava tudo de uma vez (acabou o "carregando por trás").',
-  'A lista de despesas mostra só despesas — ganhos não aparecem mais misturados.',
-  'Import à prova de erro: se algo falhar, suas escolhas da revisão não se perdem.',
-  'Proventos do I10 entram sozinhos nos Ganhos — sem clicar.',
+  'Tela de despesas mais limpa: saíram o "ritmo diário" e os "recentes".',
+  'Total dos lançamentos agora aparece no topo da tabela.',
+  'Filtro de categorias em ordem alfabética (no app todo).',
+  'Supermercado / mercado já caem na categoria Mercado no import.',
 ];
 function showUpdatePopup() {
   let bg = document.getElementById('updPopup');
@@ -919,15 +921,12 @@ function renderExpenses() {
   // Expense-only surfaces (category breakdown, daily chart, trend, recurring, budgets)
   const allExpHistory = (state.expenses || []).filter(e => isExpense(e) && !e.provisioned);
   renderCategoryBreakdown(monthExp, total);
-  renderDailyChart(monthExp, viewDate);
   renderTrend12m(allExpHistory, viewDate);
   renderTopRecurring(allExpHistory, viewDate);
   updateHeroOverBudgetBadge(monthExp);
 
-  // A lista de despesas é só DESPESAS (recentes + tabela). Ganhos não entram
-  // aqui (a tabela tem o filtro "Ganho" pra quem quiser ver). `all` ainda vai
-  // pra tabela porque o filtro "ganho" precisa dos ganhos no conjunto.
-  renderRecentList(all.filter(e => isExpense(e)));
+  // Tabela = só DESPESAS por padrão; `all` ainda entra porque o filtro "Ganho"
+  // precisa dos ganhos no conjunto. (Card "recentes" e "ritmo diário" removidos.)
   renderExpenseTable(all);
 
   renderExpensesNetWorthPill();
@@ -1060,7 +1059,7 @@ let _expFilters = { cat: '', owner: '', nature: '' };
 function populateExpFilterCat() {
   const sel = $('expFilterCat'); if (!sel) return;
   const cur = sel.value;
-  sel.innerHTML = `<option value="">${esc(t('exp.filter.cat.all'))}</option>` + Object.entries(CATEGORIES).map(([k, c]) => `<option value="${k}">${esc(c.label)}</option>`).join('');
+  sel.innerHTML = `<option value="">${esc(t('exp.filter.cat.all'))}</option>` + catsAZ().map(([k, c]) => `<option value="${k}">${esc(c.label)}</option>`).join('');
   if (cur && CATEGORIES[cur]) sel.value = cur;
   sel.classList.toggle('on', !!sel.value);
 }
@@ -1109,6 +1108,16 @@ function renderExpenseTable(entries) {
   else {
     result = result.filter(e => !isIncome(e));
     if (ft === 'fixa' || ft === 'variavel') result = result.filter(e => (e.nature || 'variavel') === ft);
+  }
+
+  // Totalizador (acima da coluna Valor): nº de lançamentos + soma do que está à vista.
+  const _tb = $('expTotalBar');
+  if (_tb) {
+    if (result.length) {
+      const tot = result.reduce((s, e) => s + (+e.value || 0), 0);
+      _tb.hidden = false;
+      _tb.innerHTML = `<span class="exp-total-lbl">${result.length} ${result.length === 1 ? 'lançamento' : 'lançamentos'}</span><span class="exp-total-val">${fmtBRL2(tot)}</span>`;
+    } else { _tb.hidden = true; }
   }
 
   if (result.length === 0) {
@@ -3440,7 +3449,7 @@ function openBudgetModal() {
   const list = $('budgetList');
   if (!list) return;
   const budgets = state.budgets || {};
-  list.innerHTML = Object.entries(CATEGORIES).map(([key, cat]) => {
+  list.innerHTML = catsAZ().map(([key, cat]) => {
     const current = +budgets[key] || 0;
     const value = current > 0 ? fmtBRLInput(current) : '';
     return `<div class="budget-row" style="--cat-color:${cat.color}">
@@ -3669,7 +3678,7 @@ async function extractPdfLines(file) {
 // Regras: [categoria, exatos (peso 10), prefixos (peso 7), substrings (peso 4)].
 // Token EXATO evita pegar palavra-dentro-de-palavra (Garcia/Koch/Azul não casam mais por acaso).
 const IMP_CATS = [
-  ['mercado', ['carrefour','assai','atacadao','tenda','makro','sams','extra','mambo','zaffari','condor','muffato','angeloni','bistek','comper','supernosso','verdemar','festval','mateus','sendas','epa','cooper','koch','giassi','hippo','imperatriz','prezunic','guanabara','mundial','sonda','savegnago','roldao','nagumo','hirota','bahamas','carone','semar','bramil','fort','enxuto'], ['supermerc','superm','hortifrut','acoug','mercear','quitand','sacolao','atacad','minimerc'], ['pao de acucar','fort atacad','mercado garcia','natural da terra','sao vicente','oba horti']],
+  ['mercado', ['carrefour','assai','atacadao','tenda','makro','sams','extra','mambo','zaffari','condor','muffato','angeloni','bistek','comper','supernosso','verdemar','festval','mateus','sendas','epa','cooper','koch','giassi','hippo','imperatriz','prezunic','guanabara','mundial','sonda','savegnago','roldao','nagumo','hirota','bahamas','carone','semar','bramil','fort','enxuto'], ['mercad','supermerc','superm','hortifrut','acoug','mercear','quitand','sacolao','atacad','minimerc'], ['pao de acucar','fort atacad','mercado garcia','natural da terra','sao vicente','oba horti']],
   ['alimentacao', ['ifood','rappi','aiqfome','mcdonalds','subway','bobs','habibs','outback','spoleto','starbucks','madero','dominos','giraffas','kfc','popeyes','vivenda','gendai','jeronimo','patroni','montana','abbraccio','sodie','sterna','kopenhagen','chiquinho','ragazzo','vezpa','restaurante','padaria','lanchonete','cantina','bar','boteco','cafe','cafeteria','confeitaria','doceria','acai','adega','pizzaria','temaki','sushi','churrascaria','hamburgueria','sorveteria','pastelaria','rotisseria','marmitaria'], ['restaur','padar','panific','lanch','hamburg','cervej','sorvet','pizz','marmit','gastro','bistr','confeit','doceri','churrasc','cafeter','pastel'], ['coco bambu','divino fogao','china in box','cacau show','brasil cacau','ze delivery','burger king','fogo de chao','pizza hut','bob s','mc donalds','baby beef','dunkin donuts']],
   ['transporte', ['uber','99','indrive','cabify','localiza','movida','unidas','ipiranga','shell','petrobras','texaco','veloe','conectcar','metro','cptm','blablacar','taxi','sptrans','supervia','ecovias','arteris','raizen','alesat','gasbar','riocard','autopass'], ['posto','combust','estacion','pedagi','gasolin','rodoviar','uber','locadora','transport'], ['99app','rek park','sem parar','auto re','bilhete unico','br distribuidora']],
   ['viagem', ['latam','decolar','booking','airbnb','trivago','hostel','pousada','resort','hotel','cvc','hurb','expedia','smiles','maxmilhas','jetsmart','clickbus','buser','passaredo'], ['hosped','pousad','turismo'], ['azul linhas','gol linhas','voe gol','tam linhas','hoteis com','booking com','123 milhas','latam air','azul viagens']],
@@ -3689,6 +3698,11 @@ function impScoreCat(toks) {
     for (const k of (pre || [])) if (toks.some(t => t.startsWith(k))) s += 7;
     for (const k of (sub || [])) if (joined.includes(' ' + k + ' ') || joined.includes(k)) s += 4;
     if (s) sc[cat] = s;
+  }
+  // "Mercado Livre / Pago" é e-commerce/fintech, NÃO supermercado — desfaz o
+  // falso positivo do prefixo 'mercad' e joga pra compras.
+  if (toks.includes('mercadolivre') || /\bmercado (livre|pago|pag)\b/.test(joined)) {
+    delete sc.mercado; sc.compras = (sc.compras || 0) + 10;
   }
   return sc;
 }
@@ -4113,7 +4127,7 @@ function impRecurrence(tx) {
 }
 function renderImportReview() {
   const ownerOpts = OWNERS.map(o => `<option value="${o}">${esc(t('exp.owner.' + o))}</option>`).join('');
-  const catOpts = Object.keys(CATEGORIES).map(k => `<option value="${k}">${esc(CATEGORIES[k].label)}</option>`).join('');
+  const catOpts = catsAZ().map(([k, c]) => `<option value="${k}">${esc(c.label)}</option>`).join('');
   let lowN = 0;
   const built = _importTxns.map((tx, i) => {
     const rule = (state.importRules || {})[impRuleKey(tx.desc)];
@@ -4362,7 +4376,8 @@ document.querySelectorAll('#importTypeModal .imp-type-opt').forEach(b => b.addEv
 $('impFile')?.addEventListener('change', (e) => { const files = e.target.files; const f = e.target; handleImportFiles(files).finally(() => { f.value = ''; }); });
 $('importCancel')?.addEventListener('click', () => $('importModal').classList.remove('show'));
 $('importConfirm')?.addEventListener('click', doImport);
-$('btnClearImports')?.addEventListener('click', clearImportedExpenses);
+// "Limpar importados" removido da UI (risco). Função clearImportedExpenses mantida
+// inerte; o botão "Desfazer último" cobre o caso seguro de reverter o último import.
 $('btnUndoImport')?.addEventListener('click', undoLastImport);
 // Escape de emergência: clicar no overlay (ou Esc) fecha, caso algo trave.
 $('importOverlay')?.addEventListener('click', () => {

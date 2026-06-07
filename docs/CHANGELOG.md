@@ -5,6 +5,22 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v8.16 — Despesas mais enxuto + totalizador + categorias A-Z (2026-06-06)
+- **Removidos:** card "Ritmo diário" (gráfico) e card "Lançamentos recentes"
+  (chamadas `renderDailyChart`/`renderRecentList` tiradas; "Por categoria" virou
+  card full-width). Botão **"Limpar importados"** removido da UI (risco) — o
+  listener saiu; sobra só "Desfazer último".
+- **Totalizador** acima da tabela "Todas as despesas" (`#expTotalBar`): nº de
+  lançamentos + soma do que está à vista (respeita busca/filtros), alinhado à
+  coluna Valor. Atualizado em `renderExpenseTable`.
+- **Categorias em ordem alfabética** em TODO seletor (helper `catsAZ()`):
+  filtro da tabela, select do modal de despesa, revisão do import, orçamento.
+- **Import:** `mercad` virou prefixo da categoria Mercado → "super mercado",
+  "mercado garcia", "mercadinho", "açougue" caem em Mercado. Guard:
+  "Mercado Livre/Pago" continua e-commerce (vai pra Compras), sem falso
+  positivo (Mercedes/Shell não casam).
+- Pendente (a definir com o dono): deixar o card "Por categoria" mais minimal.
+
 ### v8.15 — Import em lote (rápido) + lista de despesas sem ganhos (2026-06-06)
 - **Velocidade:** `doImport` agora grava com `writeBatch` (lotes de 450, limite
   Firestore 500) em vez de N `addDoc` soltos. Era 1 ida ao servidor + 1

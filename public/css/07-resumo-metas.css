@@ -469,6 +469,10 @@
 .exp-table th.exp-th-sort::after { content: '↕'; margin-left: 5px; font-size: 9px; opacity: .35; }
 .exp-table th.exp-th-sort.is-sorted-asc::after { content: '↑'; opacity: 1; color: var(--purple); }
 .exp-table th.exp-th-sort.is-sorted-desc::after { content: '↓'; opacity: 1; color: var(--purple); }
+/* Totalizador acima da tabela — soma alinhada à direita (coluna Valor) */
+.exp-total-bar { display: flex; align-items: baseline; gap: 12px; padding: 2px 14px 12px; }
+.exp-total-bar .exp-total-lbl { font-size: 11px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; }
+.exp-total-bar .exp-total-val { margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 17px; font-weight: 700; color: var(--ink); }
 .exp-table td { padding: 13px 14px; border-bottom: 1px solid var(--border); color: var(--ink-2); vertical-align: middle; }
 .exp-table tr[data-id] { cursor: pointer; position: relative; transition: background 0.15s var(--ease-out); }
 .exp-table tr[data-id]::after {
