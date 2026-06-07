@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ledger — Mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#f5f5f7;--card:#fff;--ink:#1d1d1f;--ink2:#6e6e73;--ink3:#a1a1a6;--line:#e6e6ea;
+    --accent:#16a34a;--shadow:0 1px 2px rgba(0,0,0,.04),0 12px 26px -14px rgba(20,20,40,.14)}
+  @media(prefers-color-scheme:dark){:root{--bg:#0a0a0c;--card:#16161a;--ink:#f4f4f6;--ink2:#a0a0aa;--ink3:#6b6b76;--line:rgba(255,255,255,.08);--accent:#34e08a}}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Inter",system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .wrap{max-width:980px;margin:0 auto;padding:44px clamp(18px,5vw,40px) 80px}
+  .logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--accent),#22c55e);display:grid;place-items:center;color:#fff;font-weight:800;font-size:20px;box-shadow:var(--shadow)}
+  h1{font-size:30px;font-weight:800;letter-spacing:-.03em;margin:18px 0 6px}
+  .lead{color:var(--ink2);font-size:16px;max-width:60ch;line-height:1.5}
+  h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin:38px 0 14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+  a.card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);
+    border-radius:18px;padding:20px;box-shadow:var(--shadow);transition:transform .15s,box-shadow .15s}
+  a.card:hover{transform:translateY(-3px);box-shadow:0 1px 2px rgba(0,0,0,.05),0 22px 40px -18px rgba(20,20,40,.28)}
+  .card .badge{display:inline-block;font-size:11px;font-weight:700;color:var(--accent);background:color-mix(in oklab,var(--accent) 14%,transparent);padding:3px 9px;border-radius:999px;margin-bottom:11px}
+  .card h3{font-size:17px;font-weight:700;letter-spacing:-.01em}
+  .card p{color:var(--ink2);font-size:13.5px;margin-top:5px;line-height:1.45}
+  .card .go{color:var(--accent);font-weight:700;font-size:13px;margin-top:12px;display:inline-block}
+  .star{display:inline-block;margin-left:6px;font-size:12px;color:var(--ink3)}
+  .old a.card{opacity:.92}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">L</div>
+  <h1>Ledger — Mockups</h1>
+  <p class="lead">Protótipos visuais pra escolher a cara do app. Os de cima são o redesign novo (2025); abaixo, os mockups anteriores. Toque pra abrir.</p>
+
+  <h2>★ Redesign 2025 — escolha a direção</h2>
+  <div class="grid">
+    <a class="card" href="redesign-mockup.html" target="_blank">
+      <span class="badge">3 estilos · toggle</span>
+      <h3>Comparador <span class="star">recomendado</span></h3>
+      <p>Os 3 estilos na mesma tela, com botão pra alternar e comparar lado a lado.</p>
+      <span class="go">Abrir →</span>
+    </a>
+    <a class="card" href="redesign-mockup.html?skin=aurora" target="_blank">
+      <span class="badge">☀️ claro</span><h3>Aurora</h3>
+      <p>Apple claro — branco, sombras suaves, calmo e premium. Vibe iOS/Apple Wallet.</p>
+      <span class="go">Abrir →</span>
+    </a>
+    <a class="card" href="redesign-mockup.html?skin=obsidian" target="_blank">
+      <span class="badge">🌑 escuro</span><h3>Obsidian</h3>
+      <p>Dark premium — preto profundo, cartões glass, brilho no verde. Vibe Revolut/Arc.</p>
+      <span class="go">Abrir →</span>
+    </a>
+    <a class="card" href="redesign-mockup.html?skin=linen" target="_blank">
+      <span class="badge">🌾 warm</span><h3>Linen</h3>
+      <p>Warm minimal — creme, arredondado, acolhedor. Vibe Copilot Money/Monarch.</p>
+      <span class="go">Abrir →</span>
+    </a>
+  </div>
+
+  <h2 class="old-h">Mockups anteriores</h2>
+  <div class="grid old">
+    <a class="card" href="invest-mockup.html" target="_blank"><h3>Investimentos</h3><p>Mockup da tela de investimentos (versão anterior).</p><span class="go">Abrir →</span></a>
+    <a class="card" href="invest-mockup-dark.html" target="_blank"><h3>Investimentos · dark</h3><p>Variação escura do mockup de investimentos.</p><span class="go">Abrir →</span></a>
+    <a class="card" href="ledger-rebuild.html" target="_blank"><h3>Rebuild geral</h3><p>Rebuild que originou o layout atual (full-width, hero verde).</p><span class="go">Abrir →</span></a>
+    <a class="card" href="screens-rebuild.html" target="_blank"><h3>Telas (rebuild)</h3><p>Despesas + Resumo no estilo do rebuild.</p><span class="go">Abrir →</span></a>
+    <a class="card" href="metas-mockup.html" target="_blank"><h3>Meta de dividendos</h3><p>Mockup do card de projeção da meta.</p><span class="go">Abrir →</span></a>
+    <a class="card" href="aevo-brand.html" target="_blank"><h3>Brand kit</h3><p>Cores, tipografia e componentes (referência de marca).</p><span class="go">Abrir →</span></a>
+    <a class="card" href="import-anim-preview.html" target="_blank"><h3>Animação de import</h3><p>Preview da animação de importação de fatura.</p><span class="go">Abrir →</span></a>
+  </div>
+</div>
+</body>
+</html>

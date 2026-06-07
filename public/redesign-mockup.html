@@ -242,11 +242,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);transition:ba
 
 <script>
   const body = document.body;
-  document.querySelectorAll('.skin-btn').forEach(b => b.addEventListener('click', () => {
-    document.querySelectorAll('.skin-btn').forEach(x => x.classList.toggle('on', x === b));
-    body.setAttribute('data-skin', b.dataset.s);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }));
+  function setSkin(s, push){
+    if(!['aurora','obsidian','linen'].includes(s)) s='aurora';
+    document.querySelectorAll('.skin-btn').forEach(x => x.classList.toggle('on', x.dataset.s===s));
+    body.setAttribute('data-skin', s);
+    if(push){ try{ history.replaceState(null,'','?skin='+s); }catch(e){} }
+  }
+  document.querySelectorAll('.skin-btn').forEach(b => b.addEventListener('click', () => { setSkin(b.dataset.s, true); window.scrollTo({top:0,behavior:'smooth'}); }));
+  setSkin(new URLSearchParams(location.search).get('skin') || 'aurora', false);
 </script>
 </body>
 </html>
