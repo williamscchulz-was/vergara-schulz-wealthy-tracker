@@ -368,12 +368,12 @@ window.addEventListener('error', e => { if (e && e.error) showErrorPopup('Erro n
 // ---- Versão do app + popup de novidades (minimal) ----
 // Bump APP_VERSION quando lançar algo visível: quem já usou vê o popup 1× com
 // a lista APP_CHANGES; a versão aparece no header (clicável reabre o popup).
-const APP_VERSION = '8.13';
+const APP_VERSION = '8.14';
 const APP_CHANGES = [
-  'Correção: lançamento com descrição só de número/símbolo travava o import — resolvido.',
+  'Import à prova de erro: se algo falhar, suas escolhas da revisão NÃO se perdem mais.',
+  'O import lembra suas correções (categoria / de-quem) pra próxima fatura vir pronta.',
   'Import inteligente: bebê / baby / kids / infantil já vão pra Louise.',
   'Proventos do I10 entram sozinhos nos Ganhos — sem clicar.',
-  'Tabela de despesas: clique no cabeçalho pra ordenar.',
 ];
 function showUpdatePopup() {
   let bg = document.getElementById('updPopup');
@@ -4278,26 +4278,30 @@ async function doImport() {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const ov = $('importOverlay');
   $('importConfirm').disabled = true; $('importCancel').disabled = true;
-  // TUDO dentro do try → o finally SEMPRE reabilita o botão e fecha o modal,
-  // mesmo se a animação/preview lançar erro. (Antes, um throw aqui deixava o
-  // botão "Importar" travado em disabled.)
+  // GRAVA PRIMEIRO; só fecha o modal DEPOIS de gravar. Se algo falhar ANTES de
+  // gravar, o modal fica ABERTO com as escolhas dela intactas → ela NUNCA perde
+  // o trabalho da revisão. A animação é só cosmética (best-effort, pós-gravação).
+  let imported = false;
   try {
-    // Linhas reais (até 5) do lote — a animação "mostra o trabalho".
+    batch.forEach(d => {
+      try { addDoc(colExpenses(), d).catch(err => console.error('[import] doc falhou', err)); }
+      catch (err) { console.error('[import] doc inválido (pulado)', err, d); }   // 1 doc ruim não derruba o lote
+    });
+    setDoc(docImportMeta, { lastBatchId: batchId, lastCount: batch.length, lastSource: (_importKind === 'cc' ? 'conta' : 'cartao'), lastAt: serverTimestamp() }, { merge: true }).catch(() => {});
+    imported = true;
+    $('importModal').classList.remove('show');   // sucesso → fecha (já gravou; trabalho preservado)
+    // Animação "mostra o trabalho" — DEPOIS de gravar; se falhar, dados já estão salvos.
     const previewRows = batch.slice(0, 5).map(d => {
       const c = CATEGORIES[d.category] || CATEGORIES.outros;
       return { date: formatDateBR(d.date), desc: d.description || '—', cat: c.label, col: c.color, val: fmtBRL0(+d.value || 0) };
     });
-    if (ov && !reduce) runImportAnimation(ov, previewRows, batch.length, provCount);
-    // Dispara TODAS as gravações sem esperar a rede — nunca trava.
-    batch.forEach(d => addDoc(colExpenses(), d).catch(err => console.error('[import] doc falhou', err)));
-    setDoc(docImportMeta, { lastBatchId: batchId, lastCount: batch.length, lastSource: (_importKind === 'cc' ? 'conta' : 'cartao'), lastAt: serverTimestamp() }, { merge: true }).catch(() => {});
-    if (ov && !reduce) await new Promise(r => setTimeout(r, 4250));   // duração total da animação
+    if (ov && !reduce) { runImportAnimation(ov, previewRows, batch.length, provCount); await new Promise(r => setTimeout(r, 4250)); }
     else showToast(t('imp.done').replace('{n}', batch.length));
   } catch (e) {
     console.error('[import] commit falhou', e);
-    showErrorPopup('Falha ao importar', e, { extra: 'Lote de ' + batch.length + ' lançamento(s).' });
+    // Não gravou → modal continua ABERTO (escolhas dela mantidas). Só avisa.
+    showErrorPopup(imported ? 'Importado — só a animação falhou (dados salvos)' : 'Não consegui importar — suas escolhas foram mantidas, tente de novo', e, { extra: 'Lote de ' + batch.length + ' lançamento(s).' });
   } finally {
-    $('importModal').classList.remove('show');
     if (ov) { ov.hidden = true; ov.classList.remove('done', 'out', 'reading', 'scanning'); }
     $('importConfirm').disabled = false; $('importCancel').disabled = false;
   }

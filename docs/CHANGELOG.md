@@ -5,6 +5,15 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v8.14 — Import nunca perde o trabalho da revisão (2026-06-06)
+- `doImport` reestruturado: **grava primeiro**, fecha o modal **só depois** de
+  gravar; a animação virou cosmética (pós-gravação, best-effort). Se algo falhar
+  **antes** de gravar, o modal fica **aberto com as escolhas intactas** — a
+  pessoa não perde os 10 min de revisão. `finally` não fecha mais o modal.
+- Cada `addDoc` num try próprio: 1 lançamento ruim não derruba o lote inteiro.
+- Combinado com o fix v8.13 (que abortava o import), as **correções agora são
+  de fato salvas** em `importRules` → a próxima fatura vem mais pronta.
+
 ### v8.13 — Fix: descrição vazia travava o import (2026-06-06)
 - Bug real (achado pelo popup de erro): um lançamento cuja descrição normaliza
   pra vazio (só número/símbolo, ex.: `—`, `1234`) fazia `impRuleKey` retornar
