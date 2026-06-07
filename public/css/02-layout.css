@@ -34,16 +34,16 @@
   .exp-table td { padding: 10px 14px; }
   #moduleExpenses.active { max-width: none; }
 }
-/* HERO em destaque verde — âncora de hierarquia (texto claro sobre o verde) */
-#moduleInvestments .hero-card { background: linear-gradient(145deg, #1d8f49, #0e4d27) !important; border-color: transparent !important; color: #eafff1; }
+/* HERO patrimônio — igual mockup: Obsidian escuro / Linen verde (texto claro sobre os dois) */
+#moduleInvestments .hero-card { background: var(--hero-bg) !important; border-color: var(--border) !important; color: var(--hero-ink); }
 #moduleInvestments .hero-card::after { display: none !important; }
-.hero-card .hero-eyebrow .label, .hero-card .applied-text, .hero-card .hero-amount .cur, .hero-card .hero-usd .usd-sym, .hero-card .louise-chip { color: #cdeed8 !important; }
-.hero-card .hero-usd { color: #cfe9da !important; }      /* valor US$ — legível no verde (era --ink-3) */
-.hero-card .updated { color: #aacdb7 !important; }       /* timestamp "atualizado … via I10" — legível (era --ink-muted) */
-.hero-card .hero-amount .num { color: #f6fff9 !important; }
-.hero-card .applied-text b { color: #ffffff !important; }
-.hero-card .return-pill { background: rgba(199,247,62,.20) !important; color: #d8fa72 !important; }
-.hero-card .btn-ghost { color: #eafff1 !important; border-color: rgba(255,255,255,.22) !important; background: rgba(255,255,255,.07) !important; }
+.hero-card .hero-eyebrow .label, .hero-card .applied-text, .hero-card .hero-amount .cur, .hero-card .hero-usd .usd-sym, .hero-card .louise-chip { color: var(--hero-label) !important; }
+.hero-card .hero-usd { color: var(--hero-label) !important; }
+.hero-card .updated { color: var(--hero-label) !important; }
+.hero-card .hero-amount .num { color: var(--hero-ink) !important; }
+.hero-card .applied-text b { color: var(--hero-ink) !important; }
+.hero-card .return-pill { background: rgba(255,255,255,.12) !important; color: var(--hero-ink) !important; }
+.hero-card .btn-ghost { color: var(--hero-ink) !important; border-color: rgba(255,255,255,.18) !important; background: rgba(255,255,255,.07) !important; }
 .hero-card .btn-ghost.primary { background: var(--purple) !important; color: var(--on-accent) !important; border-color: transparent !important; }
 /* rótulos de seção — separam os blocos (hierarquia) */
 .inv-sec { display: flex; align-items: center; gap: 12px; margin: 6px 2px -4px; font-size: 11px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-3); }
