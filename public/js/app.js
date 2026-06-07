@@ -368,12 +368,12 @@ window.addEventListener('error', e => { if (e && e.error) showErrorPopup('Erro n
 // ---- Versão do app + popup de novidades (minimal) ----
 // Bump APP_VERSION quando lançar algo visível: quem já usou vê o popup 1× com
 // a lista APP_CHANGES; a versão aparece no header (clicável reabre o popup).
-const APP_VERSION = '8.12';
+const APP_VERSION = '8.13';
 const APP_CHANGES = [
+  'Correção: lançamento com descrição só de número/símbolo travava o import — resolvido.',
   'Import inteligente: bebê / baby / kids / infantil já vão pra Louise.',
   'Proventos do I10 entram sozinhos nos Ganhos — sem clicar.',
   'Tabela de despesas: clique no cabeçalho pra ordenar.',
-  'Desktop usa a tela toda; percentuais maiores e legíveis.',
 ];
 function showUpdatePopup() {
   let bg = document.getElementById('updPopup');
@@ -4235,8 +4235,10 @@ async function doImport() {
     // Memória esperta: só aprende quando o usuário CORRIGIU o palpite ou confirmou
     // algo de alta confiança — não decora palpites incertos deixados como vieram.
     const _g = impGuessCat(tx.desc);
-    if (category !== _g.cat || owner !== impPersonGuess(tx) || _g.conf === 'alta') {
-      learned[impRuleKey(tx.desc)] = { category, owner, nature: nat };
+    const rk = impRuleKey(tx.desc);   // chave da regra; pode ser '' (desc só com nº/símbolos)
+    // rk vazio NÃO pode virar campo do Firestore (rejeita nome de campo vazio → quebrava o import).
+    if (rk && (category !== _g.cat || owner !== impPersonGuess(tx) || _g.conf === 'alta')) {
+      learned[rk] = { category, owner, nature: nat };
     }
     const cardNote = tx.holder ? ('cartão: ' + tx.holder.split(' ')[0]) : '';
     const base = { type: 'expense', description: tx.desc, value: tx.value, category, owner, nature: nat, source: 'import:' + (tx._src === 'cc' ? 'conta' : 'cartao'), batchId, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import' };
@@ -4265,7 +4267,13 @@ async function doImport() {
   }
   if (!batch.length) { showToast(t('imp.alldup')); return; }
   // memória que aprende: guarda as escolhas (estabelecimento → categoria/de-quem) pro próximo import
-  if (Object.keys(learned).length) setDoc(docImportRules, { rules: learned, updatedAt: serverTimestamp() }, { merge: true }).catch(e => console.warn('[import] rules save', e));
+  // Defesa extra: nunca mandar chave vazia (o setDoc VALIDA síncrono e LANÇA na
+  // hora — não rejeita — então sem o try um dado inválido abortaria o import).
+  delete learned[''];
+  if (Object.keys(learned).length) {
+    try { setDoc(docImportRules, { rules: learned, updatedAt: serverTimestamp() }, { merge: true }).catch(e => console.warn('[import] rules save', e)); }
+    catch (e) { console.warn('[import] rules save (sync)', e); }
+  }
 
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const ov = $('importOverlay');

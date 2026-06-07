@@ -34,6 +34,11 @@ test('impTokens — remove stopwords e tokens curtos', () => {
 test('impRuleKey — normaliza, sem espaço, no máx 24 chars', () => {
   assert.equal(impRuleKey('Restaurante do Joao'), 'restaurantedojoao');
   assert.ok(impRuleKey('a'.repeat(50)).length <= 24);
+  // desc só com número/símbolo → normaliza pra VAZIO. doImport tem que pular
+  // (chave de campo vazia quebra o setDoc das regras no Firestore). Bug v8.13.
+  assert.equal(impRuleKey('—'), '');
+  assert.equal(impRuleKey('1234'), '');
+  assert.equal(impRuleKey('*** ###'), '');
 });
 
 test('impToISO — ano explícito, 2 dígitos, baseYear, fallback', () => {

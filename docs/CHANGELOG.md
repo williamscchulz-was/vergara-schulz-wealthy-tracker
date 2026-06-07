@@ -5,6 +5,15 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v8.13 — Fix: descrição vazia travava o import (2026-06-06)
+- Bug real (achado pelo popup de erro): um lançamento cuja descrição normaliza
+  pra vazio (só número/símbolo, ex.: `—`, `1234`) fazia `impRuleKey` retornar
+  `''`. O `setDoc` de `config/importRules` então gravava um campo de nome vazio
+  (`rules.``), que o Firestore **rejeita lançando síncrono** → abortava o import
+  inteiro. Fix: (1) não adicionar chave vazia ao `learned` (`if (rk && …)`),
+  (2) `delete learned['']` + `try` em volta do `setDoc` (nunca mais aborta).
+- Teste de regressão: `impRuleKey('—'|'1234'|'*** ###') === ''`.
+
 ### v8.12 — Import: termos de bebê/infantil → Louise (2026-06-06)
 - `IMP_KIDS` ganhou `bebe`, `bebes`, `baby`, `kids`, `infantil` → o palpite de
   "de quem é o gasto" (`impPersonGuess`) marca esses lançamentos como **Louise**.
