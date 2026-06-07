@@ -2,81 +2,85 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ledger — Mockups</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  :root{--bg:#f5f5f7;--card:#fff;--ink:#1d1d1f;--ink2:#6e6e73;--ink3:#a1a1a6;--line:#e6e6ea;
-    --accent:#16a34a;--shadow:0 1px 2px rgba(0,0,0,.04),0 12px 26px -14px rgba(20,20,40,.14)}
-  @media(prefers-color-scheme:dark){:root{--bg:#0a0a0c;--card:#16161a;--ink:#f4f4f6;--ink2:#a0a0aa;--ink3:#6b6b76;--line:rgba(255,255,255,.08);--accent:#34e08a}}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Inter",system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;min-height:100vh}
-  .wrap{max-width:980px;margin:0 auto;padding:44px clamp(18px,5vw,40px) 80px}
-  .logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--accent),#22c55e);display:grid;place-items:center;color:#fff;font-weight:800;font-size:20px;box-shadow:var(--shadow)}
-  h1{font-size:30px;font-weight:800;letter-spacing:-.03em;margin:18px 0 6px}
-  .lead{color:var(--ink2);font-size:16px;max-width:60ch;line-height:1.5}
-  h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin:38px 0 14px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
-  a.card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);
-    border-radius:18px;padding:20px;box-shadow:var(--shadow);transition:transform .15s,box-shadow .15s}
-  a.card:hover{transform:translateY(-3px);box-shadow:0 1px 2px rgba(0,0,0,.05),0 22px 40px -18px rgba(20,20,40,.28)}
-  .card .badge{display:inline-block;font-size:11px;font-weight:700;color:var(--accent);background:color-mix(in oklab,var(--accent) 14%,transparent);padding:3px 9px;border-radius:999px;margin-bottom:11px}
-  .card h3{font-size:17px;font-weight:700;letter-spacing:-.01em}
-  .card p{color:var(--ink2);font-size:13.5px;margin-top:5px;line-height:1.45}
-  .card .go{color:var(--accent);font-weight:700;font-size:13px;margin-top:12px;display:inline-block}
-  .star{display:inline-block;margin-left:6px;font-size:12px;color:var(--ink3)}
-  .old a.card{opacity:.92}
+  :root{--bg:#0a0c08;--bar:#11140d;--ink:#f3f6ec;--ink2:#9aa088;--line:rgba(255,255,255,.08);
+    --lime:#bdf63f;--on-lime:#101604}
+  html,body{height:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Inter",system-ui,sans-serif;background:var(--bg);color:var(--ink);
+    display:flex;flex-direction:column;height:100dvh;-webkit-font-smoothing:antialiased;overflow:hidden}
+  header{flex:0 0 auto;background:var(--bar);border-bottom:1px solid var(--line)}
+  .row1{display:flex;align-items:center;gap:11px;padding:11px clamp(12px,3vw,22px) 0}
+  .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--lime),#9fd62e);
+    display:grid;place-items:center;color:var(--on-lime);font-weight:800;font-size:16px}
+  .ttl{font-weight:800;font-size:16px;letter-spacing:-.01em}
+  .ttl small{display:block;font-weight:500;font-size:11px;color:var(--ink2)}
+  .open{margin-left:auto;font-size:12px;font-weight:700;color:var(--lime);text-decoration:none;border:1px solid var(--line);
+    padding:7px 12px;border-radius:999px;white-space:nowrap}
+  .chips{display:flex;gap:8px;overflow-x:auto;padding:12px clamp(12px,3vw,22px);scrollbar-width:thin}
+  .chips::-webkit-scrollbar{height:5px}.chips::-webkit-scrollbar-thumb{background:var(--line);border-radius:9px}
+  .chip{flex:0 0 auto;font:600 13px inherit;color:var(--ink2);background:#171b10;border:1px solid var(--line);
+    padding:8px 14px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:.18s}
+  .chip:hover{color:var(--ink)}
+  .chip.on{background:var(--lime);color:var(--on-lime);border-color:transparent;box-shadow:0 6px 16px -8px rgba(189,246,63,.5)}
+  .chip.sep{pointer-events:none;opacity:.5;color:var(--ink2);background:transparent;border:0;padding:8px 2px}
+  .frameWrap{flex:1 1 auto;position:relative;background:var(--bg)}
+  iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--bg)}
+  .load{position:absolute;inset:0;display:grid;place-items:center;color:var(--ink2);font-size:13px;pointer-events:none;opacity:0;transition:.2s}
+  .frameWrap.loading .load{opacity:1}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="logo">L</div>
-  <h1>Ledger — Mockups</h1>
-  <p class="lead">Protótipos visuais pra escolher a cara do app. Os de cima são o redesign novo (2025); abaixo, os mockups anteriores. Toque pra abrir.</p>
-
-  <h2>★ Redesign 2025 — escolha a direção</h2>
-  <div class="grid">
-    <a class="card" href="despesas-mockup.html" target="_blank">
-      <span class="badge">🆕 completo · animado</span>
-      <h3>Despesas (novo) <span class="star">enviar p/ Flávia</span></h3>
-      <p>Aba Despesas redesenhada — dark + lima, bento, sparklines, animações. Botão Desktop/Mobile no topo.</p>
-      <span class="go">Abrir →</span>
-    </a>
-    <a class="card" href="redesign-mockup.html" target="_blank">
-      <span class="badge">3 estilos · toggle</span>
-      <h3>Comparador <span class="star">recomendado</span></h3>
-      <p>Os 3 estilos na mesma tela, com botão pra alternar e comparar lado a lado.</p>
-      <span class="go">Abrir →</span>
-    </a>
-    <a class="card" href="redesign-mockup.html?skin=aurora" target="_blank">
-      <span class="badge">☀️ claro</span><h3>Aurora</h3>
-      <p>Apple claro — branco, sombras suaves, calmo e premium. Vibe iOS/Apple Wallet.</p>
-      <span class="go">Abrir →</span>
-    </a>
-    <a class="card" href="redesign-mockup.html?skin=obsidian" target="_blank">
-      <span class="badge">🌑 escuro</span><h3>Obsidian</h3>
-      <p>Dark premium — preto profundo, cartões glass, brilho no verde. Vibe Revolut/Arc.</p>
-      <span class="go">Abrir →</span>
-    </a>
-    <a class="card" href="redesign-mockup.html?skin=linen" target="_blank">
-      <span class="badge">🌾 warm</span><h3>Linen</h3>
-      <p>Warm minimal — creme, arredondado, acolhedor. Vibe Copilot Money/Monarch.</p>
-      <span class="go">Abrir →</span>
-    </a>
+  <header>
+    <div class="row1">
+      <div class="logo">L</div>
+      <div class="ttl">Ledger · Mockups <small>toque numa aba — tudo abre aqui dentro</small></div>
+      <a class="open" id="openNew" href="#" target="_blank">Abrir em tela cheia ↗</a>
+    </div>
+    <div class="chips" id="chips">
+      <button class="chip on" data-src="despesas-mockup.html">🆕 Despesas (novo)</button>
+      <button class="chip" data-src="redesign-mockup.html?skin=aurora">☀️ Aurora</button>
+      <button class="chip" data-src="redesign-mockup.html?skin=obsidian">🌑 Obsidian</button>
+      <button class="chip" data-src="redesign-mockup.html?skin=linen">🌾 Linen</button>
+      <button class="chip" data-src="redesign-mockup.html">⊞ Comparador</button>
+      <span class="chip sep">·</span>
+      <button class="chip" data-src="invest-mockup.html">Investimentos</button>
+      <button class="chip" data-src="invest-mockup-dark.html">Invest · dark</button>
+      <button class="chip" data-src="ledger-rebuild.html">Rebuild</button>
+      <button class="chip" data-src="screens-rebuild.html">Telas</button>
+      <button class="chip" data-src="metas-mockup.html">Metas</button>
+      <button class="chip" data-src="aevo-brand.html">Brand kit</button>
+      <button class="chip" data-src="import-anim-preview.html">Anim. import</button>
+    </div>
+  </header>
+  <div class="frameWrap loading" id="wrap">
+    <div class="load">carregando…</div>
+    <iframe id="frame" title="mockup"></iframe>
   </div>
 
-  <h2 class="old-h">Mockups anteriores</h2>
-  <div class="grid old">
-    <a class="card" href="invest-mockup.html" target="_blank"><h3>Investimentos</h3><p>Mockup da tela de investimentos (versão anterior).</p><span class="go">Abrir →</span></a>
-    <a class="card" href="invest-mockup-dark.html" target="_blank"><h3>Investimentos · dark</h3><p>Variação escura do mockup de investimentos.</p><span class="go">Abrir →</span></a>
-    <a class="card" href="ledger-rebuild.html" target="_blank"><h3>Rebuild geral</h3><p>Rebuild que originou o layout atual (full-width, hero verde).</p><span class="go">Abrir →</span></a>
-    <a class="card" href="screens-rebuild.html" target="_blank"><h3>Telas (rebuild)</h3><p>Despesas + Resumo no estilo do rebuild.</p><span class="go">Abrir →</span></a>
-    <a class="card" href="metas-mockup.html" target="_blank"><h3>Meta de dividendos</h3><p>Mockup do card de projeção da meta.</p><span class="go">Abrir →</span></a>
-    <a class="card" href="aevo-brand.html" target="_blank"><h3>Brand kit</h3><p>Cores, tipografia e componentes (referência de marca).</p><span class="go">Abrir →</span></a>
-    <a class="card" href="import-anim-preview.html" target="_blank"><h3>Animação de import</h3><p>Preview da animação de importação de fatura.</p><span class="go">Abrir →</span></a>
-  </div>
-</div>
+<script>
+  const chips = [...document.querySelectorAll('.chip[data-src]')];
+  const frame = document.getElementById('frame');
+  const wrap = document.getElementById('wrap');
+  const openNew = document.getElementById('openNew');
+  frame.addEventListener('load', () => wrap.classList.remove('loading'));
+  function show(src, push){
+    chips.forEach(c => c.classList.toggle('on', c.dataset.src === src));
+    wrap.classList.add('loading');
+    frame.src = src;
+    openNew.href = src;
+    if (push){ const m = src.replace(/\.html.*$/,'').replace('redesign-mockup','redesign'); try{ history.replaceState(null,'','?m='+encodeURIComponent(src)); }catch(e){} }
+  }
+  chips.forEach(c => c.addEventListener('click', () => show(c.dataset.src, true)));
+  // deep-link opcional: ?m=<arquivo>
+  const want = new URLSearchParams(location.search).get('m');
+  const initial = (want && chips.some(c => c.dataset.src === want)) ? want : 'despesas-mockup.html';
+  show(initial, false);
+</script>
 </body>
 </html>
