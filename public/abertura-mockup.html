@@ -73,16 +73,14 @@
   .logo .arrow{transform-box:fill-box;transform-origin:center;will-change:transform,opacity;}
 
   /* Arrows start below + faded; JS-driven via .play on parent */
-  .arrow-1,.arrow-2{
+  .arrow{
     opacity:0;
     transform:translateY(120px);
   }
-  /* v9 Turno 1 — tightened timeline: arrows rise & decelerate, wordmark overlaps the tail */
-  .play .arrow-1{
-    animation:arrowRise .92s var(--ease) .12s both;
-  }
-  .play .arrow-2{
-    animation:arrowRise .92s var(--ease) .22s both;
+  /* v9 Turno 2 — 7 flechas finas sobem em cascata (stagger por --i, de baixo p/ cima) */
+  .play .arrow{
+    animation:arrowRise .9s var(--ease) both;
+    animation-delay:calc(.1s + var(--i) * .07s);
   }
   @keyframes arrowRise{
     0%{opacity:0;transform:translateY(120px) scale(.92);}
@@ -95,7 +93,7 @@
     background:radial-gradient(circle,var(--glow) 0%,transparent 60%);
     opacity:0;pointer-events:none;
   }
-  .play .logo::after{animation:lockPulse 1.1s var(--ease) .92s 1;}
+  .play .logo::after{animation:lockPulse 1.1s var(--ease) 1.5s 1;}
   @keyframes lockPulse{
     0%{opacity:0;transform:scale(.6);}
     30%{opacity:.9;transform:scale(1);}
@@ -124,7 +122,7 @@
   }
   /* v9 Turno 1 — wordmark reveal overlaps tail of arrow rise (~.95s) for a faster path to login */
   .play .wordmark h1{
-    animation:wordReveal .95s var(--ease) .95s both, wordSettle .9s var(--ease) 1.8s both;
+    animation:wordReveal .95s var(--ease) 1.5s both, wordSettle .9s var(--ease) 2.35s both;
   }
   @keyframes wordReveal{
     0%{opacity:0;transform:translateY(100%);filter:blur(14px);clip-path:inset(100% 0 0 0);letter-spacing:.42em;}
@@ -141,7 +139,7 @@
     background:linear-gradient(90deg,transparent,var(--lime),transparent);
     transform-origin:center;opacity:0;
   }
-  .play .wordmark .underglow{animation:underglow 1.0s var(--ease) 1.25s both;}
+  .play .wordmark .underglow{animation:underglow 1.0s var(--ease) 1.85s both;}
   @keyframes underglow{
     0%{opacity:0;transform:translateX(-50%) scaleX(0);}
     100%{opacity:.7;transform:translateX(-50%) scaleX(1);}
@@ -171,7 +169,7 @@
     will-change:transform,opacity;
   }
   /* v9 Turno 1 — btnIn ~300ms earlier; pointer-events re-enabled only once visible */
-  .play .btn-google{animation:btnIn .85s var(--ease) 1.85s both;pointer-events:auto;}
+  .play .btn-google{animation:btnIn .85s var(--ease) 2.45s both;pointer-events:auto;}
   @keyframes btnIn{0%{opacity:0;transform:translateY(16px);}100%{opacity:1;transform:translateY(0);}}
   .btn-google:hover{
     border-color:rgba(189,246,63,.4);
@@ -323,13 +321,13 @@
 
   /* ===== REDUCED MOTION ===== */
   @media (prefers-reduced-motion:reduce){
-    .play .arrow-1,.play .arrow-2,
+    .play .arrow,
     .play .wordmark h1,.play .wordmark .underglow,
     .play .btn-google,
     .play .logo::after{
       animation:none !important;
     }
-    .arrow-1,.arrow-2{opacity:1 !important;transform:none !important;}
+    .arrow{opacity:1 !important;transform:none !important;}
     .wordmark h1{opacity:1 !important;transform:none !important;filter:none !important;clip-path:none !important;letter-spacing:.18em !important;}
     .wordmark .underglow{opacity:.6 !important;transform:translateX(-50%) scaleX(1) !important;}
     .btn-google{opacity:1 !important;transform:none !important;pointer-events:auto !important;}
@@ -349,9 +347,14 @@
   <div class="splash" id="splash">
     <div class="brand">
       <div class="logo" aria-hidden="true">
-        <svg viewBox="0 0 48 48" fill="currentColor">
-          <path class="arrow arrow-1" d="M24 6 L43 25 L35.5 25 L24 13.5 L12.5 25 L5 25 Z"/>
-          <path class="arrow arrow-2" d="M24 20.5 L43 39.5 L35.5 39.5 L24 28 L12.5 39.5 L5 39.5 Z"/>
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path class="arrow" style="--i:6" d="M7 13 L24 5 L41 13"/>
+          <path class="arrow" style="--i:5" d="M7 18 L24 10 L41 18"/>
+          <path class="arrow" style="--i:4" d="M7 23 L24 15 L41 23"/>
+          <path class="arrow" style="--i:3" d="M7 28 L24 20 L41 28"/>
+          <path class="arrow" style="--i:2" d="M7 33 L24 25 L41 33"/>
+          <path class="arrow" style="--i:1" d="M7 38 L24 30 L41 38"/>
+          <path class="arrow" style="--i:0" d="M7 43 L24 35 L41 43"/>
         </svg>
       </div>
 
@@ -378,18 +381,16 @@
   <div class="app" id="app" aria-hidden="true" tabindex="-1" role="main" aria-label="Painel Ledger">
     <!-- v9 Turno 1 — transient center chevron that rises out the top on reveal -->
     <div class="center-rise" aria-hidden="true">
-      <svg viewBox="0 0 48 48" fill="currentColor">
-        <path d="M24 6 L43 25 L35.5 25 L24 13.5 L12.5 25 L5 25 Z"/>
-        <path d="M24 20.5 L43 39.5 L35.5 39.5 L24 28 L12.5 39.5 L5 39.5 Z"/>
+      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 13 L24 5 L41 13 M7 18 L24 10 L41 18 M7 23 L24 15 L41 23 M7 28 L24 20 L41 28 M7 33 L24 25 L41 33 M7 38 L24 30 L41 38 M7 43 L24 35 L41 43"/>
       </svg>
     </div>
 
     <div class="app-inner">
       <div class="app-head">
         <div class="mark">
-          <svg viewBox="0 0 48 48" fill="currentColor" aria-hidden="true">
-            <path d="M24 6 L43 25 L35.5 25 L24 13.5 L12.5 25 L5 25 Z"/>
-            <path d="M24 20.5 L43 39.5 L35.5 39.5 L24 28 L12.5 39.5 L5 39.5 Z"/>
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M7 13 L24 5 L41 13 M7 18 L24 10 L41 18 M7 23 L24 15 L41 23 M7 28 L24 20 L41 28 M7 33 L24 25 L41 33 M7 38 L24 30 L41 38 M7 43 L24 35 L41 43"/>
           </svg>
           <span>Ledger</span>
         </div>
