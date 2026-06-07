@@ -6,7 +6,7 @@
 .login-card { background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 44px 38px; max-width: 400px; width: 100%; text-align: center; box-shadow: var(--shadow-lg), 0 0 60px rgba(199,247,62,0.15); animation: fadeUp 0.6s var(--ease-back); }
 .login-card .logo-big { width: 56px; height: 56px; margin: 0 auto 24px; border-radius: 16px; background: linear-gradient(135deg, var(--purple), var(--purple-deep)); display: grid; place-items: center; box-shadow: 0 8px 24px var(--purple-glow); }
 .login-card .logo-big svg { width: 44px; height: 44px; }
-.login-card h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 8px; color: var(--ink); }
+.login-card h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 26px; color: var(--ink); }
 .login-card p { font-size: 13px; color: var(--ink-3); margin: 0 0 28px; line-height: 1.6; }
 .btn-google { display: inline-flex; align-items: center; gap: 12px; padding: 13px 22px; border: 1px solid var(--border-2); border-radius: var(--radius); background: var(--bg-elevated-2); color: var(--ink); font-size: 14px; font-weight: 500; width: 100%; justify-content: center; cursor: pointer; transition: all 0.2s var(--ease-out); font-family: inherit; }
 .btn-google:hover { background: var(--bg-elevated-3); border-color: var(--border-strong); transform: translateY(-1px); }

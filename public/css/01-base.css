@@ -11,11 +11,11 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 
 :root {
   /* AEVO — dark: grafite quase-preto + acento lime */
-  --bg:            #131410;
-  --bg-deep:       #0e0f0b;
-  --bg-elevated:   #1c1d16;
-  --bg-elevated-2: #24251c;
-  --bg-elevated-3: #2a2b21;
+  --bg:            #0a0c08;   /* Obsidian: preto profundo (era #131410) */
+  --bg-deep:       #060805;
+  --bg-elevated:   #14180f;   /* surface dos cards (mock) */
+  --bg-elevated-2: #1a1f14;
+  --bg-elevated-3: #20261a;
 
   --border:        rgba(255,255,255,0.07);
   --border-2:      rgba(255,255,255,0.11);
@@ -352,19 +352,19 @@ body {
 /* LIGHT MODE OVERRIDES */
 :root[data-theme="light"] {
   /* AEVO — light: off-white levemente esverdeado, cards brancos, acento verde esmeralda */
-  --bg:            #f4f6f0;
-  --bg-deep:       #ebeee4;
-  --bg-elevated:   #ffffff;
-  --bg-elevated-2: #eef3e7;
-  --bg-elevated-3: #fafbf6;
-  --border:        #e4e9da;
-  --border-2:      #eef1e7;
+  --bg:            #f3efe7;   /* Linen: creme quente (era #f4f6f0 esverdeado) */
+  --bg-deep:       #ece4d6;
+  --bg-elevated:   #fffdf9;   /* cards quase-branco quentes */
+  --bg-elevated-2: #f4eee2;
+  --bg-elevated-3: #faf6ee;
+  --border:        #e7ddcb;
+  --border-2:      #efe7d8;
   --border-strong: rgba(47,174,95,0.28);
   --border-glow:   rgba(47,174,95,0.40);
-  --ink:           #15211a;
-  --ink-2:         #53604f;
-  --ink-3:         #8a9482;
-  --ink-muted:     #7e876f;   /* era #aab09f — claro demais no branco */
+  --ink:           #2a2620;   /* marrom-escuro quente (era verde-acinzentado) */
+  --ink-2:         #6b6256;
+  --ink-3:         #8c8170;
+  --ink-muted:     #a99d8b;
   --purple:        #2fae5f;
   --purple-light:  #5fd08a;
   --purple-deep:   #1f8f4a;
