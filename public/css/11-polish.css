@@ -202,3 +202,23 @@
   #moduleExpenses.active.view-lancamentos > .exp-g-table { grid-column: 1 / -1 !important; }
 }
 #expCategorias .cat-view-foot { display: flex; justify-content: flex-end; margin-top: 16px; }
+
+/* ===== Bento da aba Investimentos (≥900px) — hero patrimônio + KPIs 2×2 lado a lado ===== */
+@media (min-width: 900px) {
+  #moduleInvestments.active {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+  #moduleInvestments.active > * { grid-column: 1 / -1; margin: 0; }   /* tudo full-width por padrão */
+  #moduleInvestments.active > .hero-card { grid-column: span 7; align-self: stretch; }
+  #moduleInvestments.active > .inv-kpis {
+    grid-column: span 5;
+    align-self: stretch;
+    display: grid;
+    grid-template-columns: 1fr 1fr;   /* KPIs 2×2 ao lado do hero */
+    gap: 14px;
+    align-content: stretch;
+  }
+}
