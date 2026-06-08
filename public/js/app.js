@@ -1008,7 +1008,7 @@ function renderCategoryBreakdown(monthExp, total) {
       ? `${fmtBRL0(val)} <span class="exp-cat-of">${t('exp.budget.of').replace('{limit}', fmtBRL0(limit))}</span>`
       : fmtBRL0(val);
 
-    return `<div class="exp-cat-row${idx >= 5 ? ' exp-cat-extra' : ''}${overBudget ? ' over-budget' : ''}${limit > 0 ? ' has-budget' : ''}" style="--cat-color:${cat.color};--cat-delay:${0.05 + idx * 0.04}s">
+    return `<div class="exp-cat-row${idx >= 8 ? ' exp-cat-extra' : ''}${overBudget ? ' over-budget' : ''}${limit > 0 ? ' has-budget' : ''}" style="--cat-color:${cat.color};--cat-delay:${0.05 + idx * 0.04}s">
       <div class="exp-cat-icon">${cat.icon}</div>
       <div class="exp-cat-meta">
         <div class="exp-cat-name">${cat.label}</div>
@@ -1020,16 +1020,13 @@ function renderCategoryBreakdown(monthExp, total) {
       </div>
     </div>`;
   }).join('');
-  // Top 5 visíveis; o resto fica escondido atrás de "Ver todas" (card minimal).
-  const _extra = sorted.length - 5;
+  // Mostra as 8 maiores no painel; "Ver todas" leva pra sub-aba Categorias (gerenciar todas).
+  const _extra = sorted.length - 8;
   const _moreLbl = `Ver todas (${sorted.length})`;
   wrap.innerHTML = catRowsHtml + (_extra > 0 ? `<button class="exp-cat-more" type="button">${_moreLbl}</button>` : '');
   wrap.classList.remove('show-all');
   const _mb = wrap.querySelector('.exp-cat-more');
-  if (_mb) _mb.addEventListener('click', () => {
-    const open = wrap.classList.toggle('show-all');
-    _mb.textContent = open ? 'Ver menos' : _moreLbl;
-  });
+  if (_mb) _mb.addEventListener('click', () => setExpSub('categorias'));
 
   // Footer: total spent vs total budgeted (across categories that have a limit)
   if (totalEl) {

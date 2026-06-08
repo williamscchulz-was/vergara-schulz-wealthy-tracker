@@ -142,12 +142,9 @@
     align-content: start;
   }
   /* linha 2: categoria (5) + tabela (7) */
-  #moduleExpenses.active > .exp-g-cat   { grid-column: span 5; margin: 0; align-self: stretch; }
-  #moduleExpenses.active > .exp-g-table { grid-column: span 7; margin: 0; align-self: stretch; }
-  /* card de categoria estica até a altura da tabela e ancora o "Ver todas" no rodapé */
-  #moduleExpenses.active > .exp-g-cat { display: flex; flex-direction: column; }
-  #moduleExpenses.active > .exp-g-cat .cat-list { flex: 1 1 auto; display: flex; flex-direction: column; }
-  #moduleExpenses.active > .exp-g-cat .exp-cat-more { margin-top: auto; }
+  /* altura natural — 8 categorias ≈ 6 linhas da tabela ficam ~do mesmo tamanho e cheios (sem vão) */
+  #moduleExpenses.active > .exp-g-cat   { grid-column: span 5; margin: 0; }
+  #moduleExpenses.active > .exp-g-table { grid-column: span 7; margin: 0; }
 }
 
 /* "Ver todas (N)" da tabela de despesas — mostra as primeiras, expande o resto */
