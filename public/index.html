@@ -197,9 +197,9 @@
       </div>
 
       <div class="exp-subnav" role="tablist">
-        <button data-subview="painel" class="on" type="button">Painel</button>
-        <button data-subview="lancamentos" type="button">Lançamentos</button>
-        <button data-subview="categorias" type="button">Categorias</button>
+        <button data-subview="painel" class="on" type="button" data-i18n="exp.sub.painel">Painel</button>
+        <button data-subview="lancamentos" type="button" data-i18n="exp.sub.lancamentos">Lançamentos</button>
+        <button data-subview="categorias" type="button" data-i18n="exp.sub.categorias">Categorias</button>
       </div>
 
       <!-- Live household net worth pill (clickable → Investments tab) -->
@@ -270,10 +270,6 @@
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7l11 11-7 7L3 10z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>
               <span data-i18n="cat.btn">Categorias</span>
             </button>
-            <button class="btn-ghost btn-budget" id="btnEditBudgets" title="Orçamento" data-i18n-title="exp.budget.btn">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h18"/><circle cx="8" cy="6" r="2" fill="currentColor"/><circle cx="16" cy="12" r="2" fill="currentColor"/><circle cx="10" cy="18" r="2" fill="currentColor"/></svg>
-              <span data-i18n="exp.budget.btn">Orçamento</span>
-            </button>
           </div>
         </div>
         <div class="cat-list" id="catList"></div>
@@ -285,6 +281,11 @@
           <div>
             <h3 data-i18n="exp.card.all">Todas as despesas do mês</h3>
             <div class="meta" data-i18n="exp.card.all.sub">Clique em uma linha para editar</div>
+          </div>
+          <div class="exp-lanc-nav">
+            <button id="lancPrev" type="button" aria-label="Mês anterior">‹</button>
+            <span class="current" id="lancMonthLabel">—</span>
+            <button id="lancNext" type="button" aria-label="Próximo mês">›</button>
           </div>
           <div class="exp-table-tools">
             <label class="exp-search">
@@ -399,6 +400,26 @@
         <div class="card ikpi tile"><div class="ikpi-k">Dólar (holdings)</div><div class="ikpi-v" id="heroUsd">US$ 0</div><div class="ikpi-sub" id="heroUsdSub"></div></div>
       </div>
 
+      <!-- DIVIDENDOS YTD / TOTAL ALL-TIME — subido pro início (logo após os tiles) -->
+      <div class="card animate-in inv-ytd">
+        <div class="card-body">
+          <div class="ytd-grid">
+            <div class="ytd-block">
+              <div class="ytd-lbl">dividendos YTD <span id="i10Year">2026</span></div>
+              <div class="ytd-num"><span class="cur">R$</span><span class="v" id="i10Dividends">0</span></div>
+              <div class="ytd-sub" id="i10DivSub" data-i18n="ytd.received">dividends received this year</div>
+              <div class="ytd-progress"><i id="ytdProgressBar" style="width:0%"></i></div>
+            </div>
+            <div class="ytd-block">
+              <div class="ytd-lbl">total recebido all-time</div>
+              <div class="ytd-num"><span class="cur">R$</span><span class="v" id="divAllTime">0</span></div>
+              <div class="ytd-sub" id="divAllTimeSub">desde o primeiro ano</div>
+              <div class="ytd-progress"><i id="allTimeProgressBar" style="width:0%;background:linear-gradient(90deg,var(--gain),var(--purple-light))"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="inv-sec">Carteira</div>
       <!-- Diversificação (donut) + Maiores posições — igual mockup -->
       <div class="inv-diversif">
@@ -409,12 +430,20 @@
             <div class="inv-leg" id="invDonutLeg"></div>
           </div>
         </div>
-        <div class="card animate-in" id="invTopCard">
-          <div class="card-head"><div><h3>Maiores posições</h3></div></div>
-          <div id="invTopList"></div>
+        <div class="card animate-in inv-carteira">
+          <div class="card-body">
+            <div class="card-head">
+              <div>
+                <div class="eyebrow" data-i18n="card.portfolio">minha carteira</div>
+                <div class="meta" id="i10AssetsCount" data-i18n="loading">carregando…</div>
+              </div>
+              <div class="eyebrow-mono" data-i18n="via.i10">VIA I10</div>
+            </div>
+            <div class="cat-list" id="i10AssetsList"></div>
+          </div>
         </div>
       </div>
-      <!-- REGIÃO PRINCIPAL: carteira detalhada (largura total) + Metas | dividendos -->
+      <div class="inv-sec">Metas</div>
       <div class="inv-main">
       <div class="inv-side">
       <!-- METAS — barras de progresso (substitui o simulador de meta) -->
@@ -480,40 +509,7 @@
         </details>
       </div>
 
-      <!-- YTD DUAL CARD -->
-      <div class="card animate-in">
-        <div class="card-body">
-          <div class="ytd-grid">
-            <div class="ytd-block">
-              <div class="ytd-lbl">dividendos YTD <span id="i10Year">2026</span></div>
-              <div class="ytd-num"><span class="cur">R$</span><span class="v" id="i10Dividends">0</span></div>
-              <div class="ytd-sub" id="i10DivSub" data-i18n="ytd.received">dividends received this year</div>
-              <div class="ytd-progress"><i id="ytdProgressBar" style="width:0%"></i></div>
-            </div>
-            <div class="ytd-block">
-              <div class="ytd-lbl">total recebido all-time</div>
-              <div class="ytd-num"><span class="cur">R$</span><span class="v" id="divAllTime">0</span></div>
-              <div class="ytd-sub" id="divAllTimeSub">desde o primeiro ano</div>
-              <div class="ytd-progress"><i id="allTimeProgressBar" style="width:0%;background:linear-gradient(90deg,var(--gain),var(--purple-light))"></i></div>
-            </div>
-          </div>
-        </div>
-      </div>
       </div><!-- /inv-side -->
-
-      <!-- CARTEIRA AGRUPADA (vai pra ESQUERDA via order no desktop) -->
-      <div class="card animate-in">
-        <div class="card-body">
-          <div class="card-head">
-            <div>
-              <div class="eyebrow" data-i18n="card.portfolio">my portfolio</div>
-              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px" id="i10AssetsCount" data-i18n="loading">loading...</div>
-            </div>
-            <div class="eyebrow-mono" data-i18n="via.i10">VIA I10</div>
-          </div>
-          <div class="cat-list" id="i10AssetsList"></div>
-        </div>
-      </div>
 
       </div><!-- /inv-main -->
 

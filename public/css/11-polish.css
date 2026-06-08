@@ -232,6 +232,20 @@
 /* Metas | Dividendos lado a lado: altura natural (sem esticar branco) */
 @media (min-width: 1000px) { #moduleInvestments .inv-side { align-items: start; } }
 
+/* ===== Investimentos: carteira pareada c/ donut, dividendos no topo, Análise igual ===== */
+/* carteira detalhada (span 7) ao lado do donut → 1 coluna */
+.inv-carteira #i10AssetsList { column-count: 1 !important; }
+/* donut + carteira da mesma altura, sem o margin que inflava */
+.inv-diversif > .card { margin: 0 !important; }
+@media (min-width: 1000px) {
+  /* inv-side agora só tem Metas → full-width */
+  #moduleInvestments .inv-side { grid-template-columns: 1fr; }
+  /* Análise: cards 2×2 todos da MESMA altura, sem vão (o .card tinha margin-bottom:14px) */
+  #moduleInvestments .inv-charts { align-items: stretch; grid-auto-rows: 1fr; }
+  #moduleInvestments .inv-charts > .card { margin: 0 !important; display: flex; flex-direction: column; }
+  #moduleInvestments .inv-charts > .card > .card-body { flex: 1 1 auto; display: flex; flex-direction: column; }
+}
+
 /* ===== Diversificação (donut) + Maiores posições — igual mockup ===== */
 .inv-diversif { display: grid; grid-template-columns: 1fr; gap: 18px; }
 @media (min-width: 1000px) { .inv-diversif { grid-template-columns: 5fr 7fr; align-items: stretch; } }
@@ -342,3 +356,30 @@
 .rz-goalbar { height: 10px; border-radius: 999px; background: var(--bg-elevated-2); overflow: hidden; margin: 13px 0 9px; }
 .rz-goalbar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--purple-light), var(--purple)); }
 .rz-empty { color: var(--ink-3); font-size: 13px; padding: 14px 2px; }
+
+/* ===========================================================
+   ESCALA TIPOGRÁFICA CANÔNICA (DS v9) — padroniza os tipos
+   recorrentes pra acabar com as quase-duplicatas (12/12.5/13…).
+   =========================================================== */
+/* título de card (H4) — 15px / 700 em TODA aba */
+.card-head h3, .rz-card-h, #invDonutCard h3, .mt-h-title {
+  font-size: var(--fs-title) !important; font-weight: 700 !important; letter-spacing: -.01em !important;
+}
+/* micro-labels / eyebrows (UPPERCASE) — 11px / .08em */
+.inv-sec, .ikpi-k, .klabel, .stat .lbl, .rz-kpi-l, .eyebrow, .eyebrow-mono,
+.exp-hero-eyebrow .label, .hero-eyebrow .label, .rz-bal-eye, .exp-nw-eyebrow,
+.ytd-lbl, .hero-eyebrow .label {
+  font-size: var(--fs-micro) !important; letter-spacing: .08em !important;
+}
+/* meta / captions / subs — 12px */
+.card-head .meta, .meta, .ikpi-sub, .ikpi.tile .ikpi-sub, .rz-kpi2-s, .stat .sub,
+.inv-asset-q, .rz-bal-eye + *, .exp-cat-pct {
+  font-size: var(--fs-caption) !important;
+}
+
+/* ===== Nav de meses na sub-aba Lançamentos ===== */
+.exp-lanc-nav { display: none; align-items: center; gap: 5px; }
+#moduleExpenses.view-lancamentos .exp-g-table .exp-lanc-nav { display: inline-flex; }
+.exp-lanc-nav button { width: 30px; height: 30px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--ink-2); cursor: pointer; font-size: 16px; line-height: 1; transition: color .15s, border-color .15s; }
+.exp-lanc-nav button:hover { color: var(--purple); border-color: var(--purple); }
+.exp-lanc-nav .current { min-width: 116px; text-align: center; font-weight: 700; font-size: var(--fs-body-lg); color: var(--ink); }

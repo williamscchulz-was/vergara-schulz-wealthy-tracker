@@ -374,11 +374,12 @@ window.addEventListener('error', e => { if (e && e.error) showErrorPopup('Erro n
 // ---- Versão do app + popup de novidades (minimal) ----
 // Bump APP_VERSION quando lançar algo visível: quem já usou vê o popup 1× com
 // a lista APP_CHANGES; a versão aparece no header (clicável reabre o popup).
-const APP_VERSION = '9.0';
+const APP_VERSION = '9.1';
 const APP_CHANGES = [
-  'Visual novo (v9): logo de 7 flechas, tema Obsidian (escuro) e Linen (claro) mais refinados.',
-  'Tela de login minimalista — só a marca e o "Entrar com Google".',
-  'Redesign chegando aba por aba (Despesas, Investimentos, Resumo).',
+  'Investimentos: dividendos no topo, carteira ao lado do donut de diversificação, gráficos com números maiores e cards da Análise do mesmo tamanho.',
+  'Resumo: gauge de poupança, patrimônio por ano com crescimento (e 2026).',
+  'Despesas: sub-aba Lançamentos com navegação de meses; categorias com ícones neutros e sem o "X" nas padrão.',
+  'Padrão de fontes unificado (escala tipográfica) e textos traduzindo certo.',
 ];
 function showUpdatePopup() {
   let bg = document.getElementById('updPopup');
@@ -881,6 +882,7 @@ function renderExpenses() {
 
   // Hero: "Saldo do mês" = ganhos − saídas
   $('currentMonthLabel').textContent = monthLabel(viewDate);
+  if ($('lancMonthLabel')) $('lancMonthLabel').textContent = monthLabel(viewDate);
   const incomeTotal = monthIncome.reduce((s, e) => s + (+e.value || 0), 0);
   const saldo = incomeTotal - total;
   const heroAmtEl = $('expHeroAmt');
@@ -2272,11 +2274,11 @@ function buildBarChart(years, values, opts = {}) {
   const padR = isMobile ? 16 : 24;
   const padT = isMobile ? 50 : 42;
   const padB = isMobile ? 44 : 38;
-  const fsAxis = isMobile ? 16 : 10;       // y-axis labels
-  const fsYear = isMobile ? 17 : 10;       // year labels under bars
-  const fsValue = isMobile ? 15 : 9;       // value labels above bars
-  const fsPill = isMobile ? 13 : 9;        // YoY pill text
-  const pillH = isMobile ? 22 : 14;
+  const fsAxis = isMobile ? 16 : 13;       // y-axis labels (maior — pedido do usuário)
+  const fsYear = isMobile ? 17 : 14;       // year labels under bars
+  const fsValue = isMobile ? 15 : 14;      // value labels above bars
+  const fsPill = isMobile ? 13 : 12.5;     // YoY pill text
+  const pillH = isMobile ? 22 : 19;
   const innerW = W - padL - padR;
   const innerH = H - padT - padB;
   if (!years.length) {
@@ -2381,7 +2383,7 @@ function buildBarChart(years, values, opts = {}) {
         // Pill centered on midpoint of the connector, opaque fill
         const midX = (prev.cx + cur.cx) / 2;
         const midY = (prev.top + cur.top) / 2;
-        const pillW = txt.length * (isMobile ? 8 : 6) + (isMobile ? 14 : 10);
+        const pillW = txt.length * (isMobile ? 8 : 8) + (isMobile ? 14 : 13);
         const pillTop = midY - pillH / 2;
         svg += '<g><rect x="' + (midX - pillW/2) + '" y="' + pillTop + '" width="' + pillW + '" height="' + pillH + '" rx="' + (pillH/2) + '" fill="' + bg + '" stroke="' + strokeCol + '" stroke-width="1"/>';
         svg += '<text x="' + midX + '" y="' + (pillTop + pillH * 0.72) + '" text-anchor="middle" fill="#1a181d" font-family="Geist Mono, monospace" font-size="' + fsPill + '" font-weight="700">' + txt + '</text></g>';
@@ -2870,8 +2872,8 @@ function renderMonthlyReturns() {
     const valLabelY = pct >= 0 ? (y - 4) : (y + h + 10);
     const valText = (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%';
     return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(1, h).toFixed(1)}" fill="${color}" opacity="0.85" rx="2"><title>${monthChar}/${String(r.year).slice(-2)}: ${valText}</title></rect>
-      <text x="${(x + barW/2).toFixed(1)}" y="${valLabelY.toFixed(1)}" text-anchor="middle" fill="${color}" font-size="9.5" font-family="Geist Mono, monospace" font-weight="600" opacity="0.85">${valText}</text>
-      <text x="${(x + barW/2).toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" fill="var(--ink-muted)" font-size="10" font-family="Geist Mono, monospace">${monthChar}</text>`;
+      <text x="${(x + barW/2).toFixed(1)}" y="${valLabelY.toFixed(1)}" text-anchor="middle" fill="${color}" font-size="13" font-family="Geist Mono, monospace" font-weight="700" opacity="0.92">${valText}</text>
+      <text x="${(x + barW/2).toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" fill="var(--ink-muted)" font-size="12" font-family="Geist Mono, monospace">${monthChar}</text>`;
   }).join('');
 
   // Zero baseline
@@ -3610,6 +3612,9 @@ $('btnNextMonth').addEventListener('click', () => {
   state.currentViewMonth = new Date(d.getFullYear(), d.getMonth() + 1, 1);
   renderExpenses();
 });
+// Nav de meses da sub-aba Lançamentos (reusa a lógica do hero)
+$('lancPrev')?.addEventListener('click', () => $('btnPrevMonth')?.click());
+$('lancNext')?.addEventListener('click', () => $('btnNextMonth')?.click());
 
 // ============================================================
 //                 EXPENSES - BUDGET EDITOR
@@ -3668,7 +3673,7 @@ function catRowHtml(key, label, color, iconSvg, iconKey, isDefault) {
     <button type="button" class="cat-edit-ic" ${isDefault ? 'tabindex="-1"' : 'title="' + esc(t('cat.icon.hint')) + '"'}>${iconSvg}</button>
     <input class="cat-edit-nm" type="text" value="${esc(label)}" maxlength="22" autocomplete="off" spellcheck="false" />
     <input class="cat-edit-co" type="color" value="${color}" title="${esc(t('cat.color.hint'))}" />
-    <button type="button" class="cat-edit-del" ${isDefault ? 'hidden' : ''} title="${esc(t('cat.del.hint'))}" aria-label="${esc(t('a11y.delete'))}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    ${isDefault ? '<span class="cat-edit-del-ph" aria-hidden="true"></span>' : '<button type="button" class="cat-edit-del" title="' + esc(t('cat.del.hint')) + '" aria-label="' + esc(t('a11y.delete')) + '"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>'}
   </div>`;
 }
 function wireCatRow(row) {
