@@ -1146,7 +1146,8 @@ function renderExpenseTable(entries) {
   }
 
   const sorted = [...result].sort(expCompare);
-  tbody.innerHTML = sorted.map(e => {
+  const TLIMIT = 8;   // mostra as primeiras N linhas; o resto fica atrás de "Ver todas"
+  tbody.innerHTML = sorted.map((e, i) => {
     const meta = entryMeta(e);
     const isIn = isIncome(e);
     const notes = (e.notes || '').trim();
@@ -1160,15 +1161,20 @@ function renderExpenseTable(entries) {
     const pillLabel = isIn ? t('exp.income.pill') : meta.label;
     const isV = e._virtual;
     const fixaBadge = isV ? `<span class="exp-fixa-badge">${e._future ? 'fixa · prevista' : 'fixa'}</span>` : '';
-    return `<tr ${isV ? `data-recurring-id="${esc(e.recurringId)}"` : `data-id="${e.id}"`} class="${isIn ? 'is-income' : ''}${isV ? ' is-recurring' : ''}" style="--cat-color:${meta.color}">
+    const extraCls = (!state._expTableAll && sorted.length > TLIMIT && i >= TLIMIT) ? ' exp-row-extra' : '';
+    return `<tr ${isV ? `data-recurring-id="${esc(e.recurringId)}"` : `data-id="${e.id}"`} class="${isIn ? 'is-income' : ''}${isV ? ' is-recurring' : ''}${extraCls}" style="--cat-color:${meta.color}">
       <td class="mono exp-row-date">${formatDateBR(e.date)}</td>
       <td class="exp-row-desc-cell">${descHtml}${fixaBadge}</td>
       <td><span class="exp-cat-pill ${isIn ? 'is-income' : ''}" style="--cat-color:${meta.color}"><span class="exp-cat-pill-icon">${meta.icon}</span>${pillLabel}</span></td>
       <td class="mono exp-row-amt">${amtText}</td>
     </tr>`;
-  }).join('');
+  }).join('') + (sorted.length > TLIMIT
+    ? `<tr class="exp-row-more-tr"><td colspan="4"><button class="exp-row-more" type="button">${state._expTableAll ? 'Ver menos' : ('Ver todas (' + sorted.length + ')')}</button></td></tr>`
+    : '');
   tbody.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => openExpenseModal(tr.dataset.id)));
   tbody.querySelectorAll('tr[data-recurring-id]').forEach(tr => tr.addEventListener('click', () => openRecurringEditor(tr.dataset.recurringId)));
+  const _moreBtn = tbody.querySelector('.exp-row-more');
+  if (_moreBtn) _moreBtn.addEventListener('click', () => { state._expTableAll = !state._expTableAll; renderExpenseTable(entries); });
 }
 
 // CSV export of the currently viewed month (ignores search filter — users
