@@ -249,7 +249,7 @@
    =========================================================== */
 .rz-grid12 { display: grid; grid-template-columns: 1fr; gap: 16px; }
 @media (min-width: 900px) {
-  .rz-grid12 { grid-template-columns: repeat(12, minmax(0, 1fr)); align-items: start; }
+  .rz-grid12 { grid-template-columns: repeat(12, minmax(0, 1fr)); align-items: stretch; }
   .rz-bal { grid-column: span 7; }
   .rz-kpis2 { grid-column: span 5; }
   .rz-gvs { grid-column: span 7; }
@@ -257,6 +257,13 @@
   .rz-anos { grid-column: span 7; }
   .rz-meta { grid-column: span 5; }
 }
+/* PREENCHER a altura da linha (acaba com o branco): gráficos crescem, donut/meta centram */
+.rz-grid12 .card { margin: 0 !important; }   /* o .card tem margin-bottom:14px (02-layout) que inflava as linhas do grid */
+.rz-gvs, .rz-onde, .rz-anos, .rz-meta { display: flex; flex-direction: column; }
+.rz-gvs .rz-gbars, .rz-anos .rz-years { flex: 1 1 auto; height: auto; min-height: 150px; }
+.rz-onde .rz-alloc { flex: 1 1 auto; }
+.rz-meta > .rz-note:first-of-type { margin-top: auto; }
+.rz-meta > .rz-note:last-of-type { margin-bottom: auto; }
 /* hero balanço com gauge */
 .rz-bal { background: var(--hero-bg); color: var(--hero-ink); border: 1px solid var(--border); border-radius: 26px; padding: 26px 28px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 30px; }
 @media (max-width: 560px) { .rz-bal { flex-direction: column; align-items: flex-start; gap: 20px; } }
@@ -275,7 +282,7 @@
 .rz-bal .rz-hero-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--hero-num); box-shadow: 0 0 9px var(--hero-num); display: inline-block; }
 /* KPIs 2×2 */
 .rz-kpis2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.rz-kpi2 { padding: 16px 18px; }
+.rz-kpi2 { padding: 16px 18px; display: flex; flex-direction: column; justify-content: center; }
 .rz-kpi2-v { font-size: 22px; font-weight: 800; letter-spacing: -.02em; margin-top: 9px; color: var(--ink); }
 .rz-kpi2-s { font-size: 12px; margin-top: 5px; font-weight: 600; color: var(--ink-2); min-height: 14px; }
 .rz-kpi2-s.pos { color: var(--gain); }
