@@ -1186,20 +1186,21 @@ function renderExpenseTable(entries) {
     const pillLabel = isIn ? t('exp.income.pill') : meta.label;
     const isV = e._virtual;
     const fixaBadge = isV ? `<span class="exp-fixa-badge">${e._future ? 'fixa · prevista' : 'fixa'}</span>` : '';
-    const extraCls = (!state._expTableAll && sorted.length > TLIMIT && i >= TLIMIT) ? ' exp-row-extra' : '';
+    const _showAll = state._expTableAll || state.expSub === 'lancamentos';   // Lançamentos mostra TODAS
+    const extraCls = (!_showAll && sorted.length > TLIMIT && i >= TLIMIT) ? ' exp-row-extra' : '';
     return `<tr ${isV ? `data-recurring-id="${esc(e.recurringId)}"` : `data-id="${e.id}"`} class="${isIn ? 'is-income' : ''}${isV ? ' is-recurring' : ''}${extraCls}" style="--cat-color:${meta.color}">
       <td class="mono exp-row-date">${formatDateBR(e.date)}</td>
       <td class="exp-row-desc-cell">${descHtml}${fixaBadge}</td>
       <td><span class="exp-cat-pill ${isIn ? 'is-income' : ''}" style="--cat-color:${meta.color}"><span class="exp-cat-pill-icon">${meta.icon}</span>${pillLabel}</span></td>
       <td class="mono exp-row-amt">${amtText}</td>
     </tr>`;
-  }).join('') + (sorted.length > TLIMIT
-    ? `<tr class="exp-row-more-tr"><td colspan="4"><button class="exp-row-more" type="button">${state._expTableAll ? 'Ver menos' : ('Ver todas (' + sorted.length + ')')}</button></td></tr>`
+  }).join('') + ((sorted.length > TLIMIT && state.expSub !== 'lancamentos')
+    ? `<tr class="exp-row-more-tr"><td colspan="4"><button class="exp-row-more" type="button">Ver todas (${sorted.length})</button></td></tr>`
     : '');
   tbody.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => openExpenseModal(tr.dataset.id)));
   tbody.querySelectorAll('tr[data-recurring-id]').forEach(tr => tr.addEventListener('click', () => openRecurringEditor(tr.dataset.recurringId)));
   const _moreBtn = tbody.querySelector('.exp-row-more');
-  if (_moreBtn) _moreBtn.addEventListener('click', () => { state._expTableAll = !state._expTableAll; renderExpenseTable(entries); });
+  if (_moreBtn) _moreBtn.addEventListener('click', () => setExpSub('lancamentos'));   // abre a sub-aba Lançamentos
 }
 
 // CSV export of the currently viewed month (ignores search filter — users
@@ -3630,7 +3631,7 @@ function wireCatRow(row) {
     del?.addEventListener('click', () => { row.style.transition = 'opacity .18s, transform .18s'; row.style.opacity = '0'; row.style.transform = 'translateX(10px)'; setTimeout(() => row.remove(), 170); });
   }
 }
-function openCatModal() {
+function renderCatEditor() {
   const list = $('catEditList');
   if (!list) return;
   const custom = (state.catConfig && state.catConfig.custom) || {};
@@ -3641,9 +3642,23 @@ function openCatModal() {
   }).join('');
   list.innerHTML = html;
   list.querySelectorAll('.cat-edit-row').forEach(wireCatRow);
-  $('catModal').classList.add('show');
 }
-function closeCatModal() { $('catModal')?.classList.remove('show'); }
+// Sub-abas de Despesas: Painel | Lançamentos | Categorias (alterna views por classe no módulo)
+function setExpSub(view) {
+  state.expSub = view;
+  const mod = $('moduleExpenses');
+  if (mod) {
+    mod.classList.remove('view-lancamentos', 'view-categorias');
+    if (view === 'lancamentos') mod.classList.add('view-lancamentos');
+    else if (view === 'categorias') mod.classList.add('view-categorias');
+  }
+  document.querySelectorAll('.exp-subnav button').forEach(b => b.classList.toggle('on', b.dataset.subview === view));
+  if (view === 'categorias') renderCatEditor();
+  else renderExpenseTable(_lastMonthExp || []);   // painel = tabela com limite; lançamentos = todas as linhas
+  try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (_) {}
+}
+function openCatModal() { setExpSub('categorias'); }
+function closeCatModal() { setExpSub('painel'); }
 function catAddRow() {
   const list = $('catEditList');
   if (!list) return;
@@ -3741,12 +3756,11 @@ $('budgetCancel')?.addEventListener('click', closeBudgetModal);
 $('budgetSave')?.addEventListener('click', saveBudgets);
 $('budgetModal')?.addEventListener('click', e => { if (e.target.id === 'budgetModal') closeBudgetModal(); });
 
-// Category manager modal
-$('btnEditCats')?.addEventListener('click', openCatModal);
-$('catCancel')?.addEventListener('click', closeCatModal);
+// Sub-abas de Despesas (Painel | Lançamentos | Categorias) + editor de categorias (sub-aba)
+document.querySelectorAll('.exp-subnav button').forEach(b => b.addEventListener('click', () => setExpSub(b.dataset.subview)));
+$('btnEditCats')?.addEventListener('click', openCatModal);   // → sub-aba Categorias
 $('catSave')?.addEventListener('click', saveCategories);
 $('catAddBtn')?.addEventListener('click', catAddRow);
-$('catModal')?.addEventListener('click', e => { if (e.target.id === 'catModal') closeCatModal(); });
 
 // Expense modal
 // ============================================================

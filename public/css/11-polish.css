@@ -173,3 +173,32 @@
 .exp-hero-area { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 52%; z-index: 0; pointer-events: none; overflow: visible; }
 .exp-hero-area .spk-line { stroke: var(--hero-num); stroke-width: 2.5; opacity: .95; }
 .exp-hero-area .spk-fill { fill: var(--hero-num); opacity: .16; }
+
+/* ===== Sub-abas de Despesas (Painel | Lançamentos | Categorias) ===== */
+.exp-subnav { display: inline-flex; gap: 4px; padding: 5px; margin-bottom: 18px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 999px; }
+.exp-subnav button { border: 0; background: transparent; color: var(--ink-2); font: 600 13px Inter, system-ui, sans-serif; padding: 8px 18px; border-radius: 999px; cursor: pointer; transition: color .2s, background .2s; }
+.exp-subnav button:hover { color: var(--ink); }
+.exp-subnav button.on { background: var(--purple); color: var(--on-accent); box-shadow: 0 6px 16px -8px var(--purple-glow); }
+
+/* editor de categorias só na sub-aba Categorias */
+#moduleExpenses > #expCategorias { display: none; }
+/* Lançamentos: só a tabela */
+#moduleExpenses.view-lancamentos > .exp-nw-pill,
+#moduleExpenses.view-lancamentos > .exp-hero,
+#moduleExpenses.view-lancamentos > .stats,
+#moduleExpenses.view-lancamentos > .inv-sec,
+#moduleExpenses.view-lancamentos > .exp-g-cat,
+#moduleExpenses.view-lancamentos > .grid-2 { display: none !important; }
+/* Categorias: só o editor */
+#moduleExpenses.view-categorias > .exp-nw-pill,
+#moduleExpenses.view-categorias > .exp-hero,
+#moduleExpenses.view-categorias > .stats,
+#moduleExpenses.view-categorias > .inv-sec,
+#moduleExpenses.view-categorias > .exp-g-cat,
+#moduleExpenses.view-categorias > .exp-g-table,
+#moduleExpenses.view-categorias > .grid-2 { display: none !important; }
+#moduleExpenses.view-categorias > #expCategorias { display: block !important; }
+@media (min-width: 900px) {
+  #moduleExpenses.active.view-lancamentos > .exp-g-table { grid-column: 1 / -1 !important; }
+}
+#expCategorias .cat-view-foot { display: flex; justify-content: flex-end; margin-top: 16px; }

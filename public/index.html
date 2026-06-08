@@ -196,6 +196,12 @@
         <input type="file" id="impFile" accept="application/pdf,.pdf,text/csv,.csv" multiple hidden>
       </div>
 
+      <div class="exp-subnav" role="tablist">
+        <button data-subview="painel" class="on" type="button">Painel</button>
+        <button data-subview="lancamentos" type="button">Lançamentos</button>
+        <button data-subview="categorias" type="button">Categorias</button>
+      </div>
+
       <!-- Live household net worth pill (clickable → Investments tab) -->
       <button type="button" class="exp-nw-pill animate-in" id="expNwPill" hidden>
         <span class="exp-nw-eyebrow">
@@ -312,6 +318,18 @@
             <thead><tr><th class="exp-th-sort" data-sort="date" data-i18n="exp.th.date">Data</th><th class="exp-th-sort" data-sort="desc" data-i18n="exp.th.desc">Descrição</th><th class="exp-th-sort" data-sort="category" data-i18n="exp.th.cat">Categoria</th><th class="exp-th-amt exp-th-sort" data-sort="value" data-i18n="exp.th.amount">Valor</th></tr></thead>
             <tbody id="expBody"></tbody>
           </table>
+        </div>
+      </div>
+
+      <div id="expCategorias">
+        <div class="card">
+          <div class="card-head"><div><h3 data-i18n="cat.title">Categorias</h3><div class="meta" data-i18n="cat.sub">Edite nome e cor, ou crie novas. As padrão não podem ser apagadas.</div></div></div>
+          <div class="cat-edit-list" id="catEditList"></div>
+          <button class="btn-ghost cat-add-btn" id="catAddBtn" type="button">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span data-i18n="cat.add">Nova categoria</span>
+          </button>
+          <div class="cat-view-foot"><button class="btn-primary" id="catSave" type="button" data-i18n="cat.save">Salvar categorias</button></div>
         </div>
       </div>
 
@@ -660,20 +678,6 @@
 </div></div>
 
 <!-- Gerenciar categorias -->
-<div class="modal-bg" id="catModal"><div class="modal liquid cat-modal">
-  <h3 data-i18n="cat.title">Categorias</h3>
-  <p class="sub" data-i18n="cat.sub">Edite o nome e a cor, ou crie novas. As categorias padrão não podem ser apagadas.</p>
-  <div class="cat-edit-list" id="catEditList"></div>
-  <button class="btn-ghost cat-add-btn" id="catAddBtn" type="button">
-    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    <span data-i18n="cat.add">Nova categoria</span>
-  </button>
-  <div class="modal-foot">
-    <div class="spacer"></div>
-    <button class="btn-secondary" id="catCancel" data-i18n="exp.btn.cancel">Cancelar</button>
-    <button class="btn-primary" id="catSave" data-i18n="exp.btn.save">Salvar</button>
-  </div>
-</div></div>
 
 <!-- Escolher origem do import: cartão (PDF) ou conta corrente (CSV) -->
 <div class="modal-bg" id="importTypeModal"><div class="modal liquid imp-type-modal">
