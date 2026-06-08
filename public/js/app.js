@@ -2658,6 +2658,42 @@ const CATEGORY_DISPLAY = {
 
 let _expandedCats = new Set(['Acoes']); // Acoes expanded by default
 
+// Donut de diversificação (igual mockup) — segmentos por categoria.
+const INV_DONUT_PALETTE = ['#0a84ff', '#c7f73e', '#ff9f0a', '#bf5af2', '#64d2ff', '#ff6b61', '#4fdd8a', '#ffd60a', '#5e5ce6'];
+function renderInvDonut(sortedKeys, groups, assetsTotal) {
+  const svg = $('invDonut'), leg = $('invDonutLeg');
+  if (!svg || !leg) return;
+  if (!assetsTotal || !sortedKeys.length) { svg.innerHTML = ''; leg.innerHTML = ''; return; }
+  let cum = 0;
+  let segs = '<circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--bg-elevated-2)" stroke-width="5"/>';
+  let legHtml = '';
+  sortedKeys.forEach((key, i) => {
+    const pct = (groups[key].value / assetsTotal) * 100;
+    if (pct <= 0) return;
+    const color = INV_DONUT_PALETTE[i % INV_DONUT_PALETTE.length];
+    segs += '<circle cx="21" cy="21" r="15.9" fill="none" stroke="' + color + '" stroke-width="5" stroke-dasharray="' + pct.toFixed(1) + ' ' + (100 - pct).toFixed(1) + '" stroke-dashoffset="' + (25 - cum).toFixed(1) + '" transform="rotate(-90 21 21)"/>';
+    cum += pct;
+    const _ic = t('inv.cat.' + key); const label = (_ic !== 'inv.cat.' + key) ? _ic : (CATEGORY_DISPLAY[key] || key);
+    legHtml += '<div class="it"><span class="dot" style="background:' + color + '"></span><span class="nm">' + esc(label) + '</span><span class="pc">' + pct.toFixed(0) + '%</span></div>';
+  });
+  svg.innerHTML = segs;
+  leg.innerHTML = legHtml;
+}
+// Maiores posições (igual mockup) — top 6 ativos por patrimônio.
+function renderInvTopAssets(assets) {
+  const list = $('invTopList');
+  if (!list) return;
+  const top = [...(assets || [])].sort((a, b) => (+b.equity || 0) - (+a.equity || 0)).slice(0, 6);
+  if (!top.length) { list.innerHTML = '<div style="padding:18px 4px;color:var(--ink-3);font-size:13px">Sincronize a carteira pra ver as posições.</div>'; return; }
+  list.innerHTML = top.map(a => {
+    const appr = +a.appreciation || 0;
+    const cls = appr >= 0 ? 'pos' : 'neg';
+    const tk = esc(String(a.ticker || '—').slice(0, 4));
+    const qty = +a.quantity || 0, pm = +a.avgPrice || 0;
+    const q = qty ? (qty.toLocaleString('pt-BR') + ' · PM ' + pm.toFixed(2).replace('.', ',')) : '';
+    return '<div class="inv-asset"><div class="inv-tk">' + tk + '</div><div class="inv-asset-mid"><div class="inv-asset-nm">' + esc(a.ticker || '—') + '</div><div class="inv-asset-q">' + q + '</div></div><div class="inv-asset-rt"><div class="inv-asset-val">' + fmtBRL0(+a.equity || 0) + '</div><div class="inv-asset-chg ' + cls + '">' + (appr >= 0 ? '+' : '') + appr.toFixed(1) + '%</div></div></div>';
+  }).join('');
+}
 function renderI10Assets() {
   const wrap = $('i10AssetsList');
   if (!wrap) return;
@@ -2724,6 +2760,10 @@ function renderI10Assets() {
   }).join('');
 
   wrap.innerHTML = html;
+
+  // Diversificação (donut) + Maiores posições — porte do mockup
+  renderInvDonut(sortedKeys, groups, assetsTotal);
+  renderInvTopAssets(assets);
 
   // v8 Turno 8 — append USD row to portfolio list
   const usd = +state.fx.usd || 0;

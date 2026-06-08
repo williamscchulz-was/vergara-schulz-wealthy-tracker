@@ -425,7 +425,21 @@
       </div>
 
       <div class="inv-sec">Carteira</div>
-      <!-- REGIÃO PRINCIPAL: carteira (largura total) + Metas | dividendos -->
+      <!-- Diversificação (donut) + Maiores posições — igual mockup -->
+      <div class="inv-diversif">
+        <div class="card animate-in" id="invDonutCard">
+          <div class="card-head"><div><h3>Diversificação</h3></div></div>
+          <div class="inv-alloc">
+            <svg class="inv-donut" id="invDonut" width="128" height="128" viewBox="0 0 42 42" aria-hidden="true"></svg>
+            <div class="inv-leg" id="invDonutLeg"></div>
+          </div>
+        </div>
+        <div class="card animate-in" id="invTopCard">
+          <div class="card-head"><div><h3>Maiores posições</h3></div></div>
+          <div id="invTopList"></div>
+        </div>
+      </div>
+      <!-- REGIÃO PRINCIPAL: carteira detalhada (largura total) + Metas | dividendos -->
       <div class="inv-main">
       <div class="inv-side">
       <!-- METAS — barras de progresso (substitui o simulador de meta) -->

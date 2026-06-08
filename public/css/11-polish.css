@@ -220,3 +220,25 @@
 .ikpi.tile .ikpi-v.neg { color: var(--loss) !important; }
 /* Metas | Dividendos lado a lado: altura natural (sem esticar branco) */
 @media (min-width: 1000px) { #moduleInvestments .inv-side { align-items: start; } }
+
+/* ===== Diversificação (donut) + Maiores posições — igual mockup ===== */
+.inv-diversif { display: grid; grid-template-columns: 1fr; gap: 18px; }
+@media (min-width: 1000px) { .inv-diversif { grid-template-columns: 5fr 7fr; align-items: start; } }
+.inv-alloc { display: flex; align-items: center; gap: 24px; }
+.inv-donut { flex-shrink: 0; }
+.inv-leg { display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 0; }
+.inv-leg .it { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.inv-leg .dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.inv-leg .nm { color: var(--ink); font-weight: 600; }
+.inv-leg .pc { margin-left: auto; font-family: 'Geist Mono', monospace; font-weight: 600; color: var(--ink-2); }
+.inv-asset { display: flex; align-items: center; gap: 13px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.inv-asset:last-child { border-bottom: 0; }
+.inv-tk { width: 40px; height: 40px; flex-shrink: 0; border-radius: 11px; background: var(--bg-elevated-2); border: 1px solid var(--border); display: grid; place-items: center; font: 700 11px 'Geist Mono', monospace; color: var(--ink-2); }
+.inv-asset-mid { flex: 1; min-width: 0; }
+.inv-asset-nm { font-weight: 700; font-size: 14.5px; color: var(--ink); }
+.inv-asset-q { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+.inv-asset-rt { text-align: right; }
+.inv-asset-val { font-family: 'Geist Mono', monospace; font-weight: 700; font-size: 14.5px; color: var(--ink); }
+.inv-asset-chg { font-family: 'Geist Mono', monospace; font-weight: 600; font-size: 12.5px; margin-top: 2px; }
+.inv-asset-chg.pos { color: var(--gain); }
+.inv-asset-chg.neg { color: var(--loss); }
