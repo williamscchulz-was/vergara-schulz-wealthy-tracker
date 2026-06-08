@@ -1171,7 +1171,7 @@ function renderExpenseTable(entries) {
   }
 
   const sorted = [...result].sort(expCompare);
-  const TLIMIT = 8;   // mostra as primeiras N linhas; o resto fica atrás de "Ver todas"
+  const TLIMIT = 6;   // mostra as primeiras N linhas; o resto fica atrás de "Ver todas" (alinha a altura com o card de categoria)
   tbody.innerHTML = sorted.map((e, i) => {
     const meta = entryMeta(e);
     const isIn = isIncome(e);
