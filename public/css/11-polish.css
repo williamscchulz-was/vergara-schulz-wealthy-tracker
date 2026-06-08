@@ -46,6 +46,11 @@
 .ikpi-v, .stat .val, .rz-kpi-v {
   font-weight: 800 !important; letter-spacing: -.03em !important;
 }
+/* PADRÃO inegociável: todo valor numérico em Geist Mono (consistência no app inteiro) */
+.ikpi-v, .stat .val, .rz-kpi-v, .rz-kpi2-v, .ytd-num .v, .inv-asset-val, .ticker-val,
+.cat-value, .exp-cat-amt, .rz-yr-v, .rz-bal-stats .v, .louise-chip-val {
+  font-family: 'Geist Mono', monospace !important;
+}
 .hero-amount .cur, .exp-hero .amt .cur { font-weight: 700; opacity: .82; }
 /* títulos de card */
 .card-head h3, .rz-card-h { font-weight: 700 !important; letter-spacing: -.01em !important; }

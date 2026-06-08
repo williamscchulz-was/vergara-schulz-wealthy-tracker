@@ -337,7 +337,8 @@ A API interna do I10 é **não oficial** — mapeada por engenharia reversa do l
 
 Marcadores `v8 Turno N` visíveis no código indicam iterações recentes:
 
-- **v7** — "Linear meets Apple". Paleta `#29262B` / `#3C3541` / `#AC5FDB` / `#E3A2EE`. Inter + Geist Mono. Fundação.
+- **v7** — "Linear meets Apple". Fundação. Inter + Geist Mono. (Acento original roxo `#AC5FDB`; o app **migrou pra lime** `#bdf63f` nos temas Obsidian/Linen — o token CSS continua `--purple` por legado, mas renderiza **verde-limão**, não roxo.)
+- **v9** — Port fiel dos mockups Apple (Obsidian/Linen). CSS dividido em `public/css/01..11`. Bento por aba (cards lado a lado, mesma altura), sparklines, donuts, gauge de poupança no Resumo. **Regras de consistência:** acento lime; números SEMPRE em Geist Mono; ícones neutros (`--ink-2`), cor só em donut/ganho-perda; títulos de card em Inter 700.
 - **v8 Turno 2** — Keyframes/animations globais (breathing, pulse, drift).
 - **v8 Turno 3** — Inputs numéricos do goal-projection convertidos pra text format (R$ 24.000, 10,0%/yr), parse via helper compartilhado, fire on `change` (blur).
 - **v8 Turno 4** — Compact values (64,2K / 1,34M), YoY sanitizado (>1000% → —), hatched area + classed paths pra engajar keyframes, stroke-dashoffset trace one-shot.
@@ -360,7 +361,7 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 4. **Sem over-engineering, mas sem arquivo gigante.** O CSS foi extraído do `index.html` pra `public/css/` (9 arquivos por seção, ligados por `<link>` **na ordem** — a cascata depende disso). O JS começou a modularizar em **ES modules nativos** (sem build): `firebase.js` e `i18n.js` saíram do `app.js` (que importa os dois). O núcleo de render/lógica segue junto no `app.js` (~5100 linhas) **de propósito** — é muito interligado (state + helpers + renderers chamando uns aos outros), e fatiar isso traz risco alto de quebra com pouco ganho. Sempre nativo: nada de bundler/npm. Extrações futuras só de blocos **auto-contidos** (sem referência de volta ao app.js → sem ciclo), em fases verificadas.
 5. **Firestore como fonte da verdade compartilhada.** Tudo que os dois usuários precisam ver em tempo real passa por Firestore + `onSnapshot`. Estado local é cache do Firestore, não fonte.
 6. **Worker fica simples.** Proxy GET-only, whitelist, cache, pronto. Se precisar de lógica complexa, ela vai no cliente — não no worker.
-7. **Estética importa.** Tokens de design (`v7`/`v8`), micro-interações, spring easings, liquid glass — isso é parte do produto, não enfeite. Mudanças visuais precisam preservar a linguagem atual (roxo, denso, mono pra números).
+7. **Estética importa.** Tokens de design (`v7`/`v8`/`v9`), micro-interações, spring easings, liquid glass — isso é parte do produto, não enfeite. Mudanças visuais precisam preservar a linguagem atual: **acento lime** (não roxo — o token `--purple` é legado), denso, **números SEMPRE em Geist Mono**, **ícones neutros** (`--ink-2`; cor só em donut/ganho-perda), títulos de card Inter 700, cards de uma mesma linha do bento na **mesma altura**.
 8. **Português na UI, inglês no código.** Strings visíveis ao usuário em `I18N.pt` / `I18N.en`. Identificadores, commits, comentários técnicos em inglês.
 9. **Privacidade por default.** Os walletIds identificam uma carteira pública, mas não são "secretos" no sentido legal — mesmo assim, não os publique em logs públicos, issues, screenshots compartilhados fora do casal.
 
