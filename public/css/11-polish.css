@@ -1,0 +1,101 @@
+/* ===========================================================
+   11 · POLISH "toque de nobreza" (estilo Apple) — camada por cima.
+   Material com profundidade real, barras refinadas com glow na cor,
+   tiles elegantes, hierarquia tipográfica e respiro. Subtil > pesado.
+   =========================================================== */
+
+/* ---------- 1. MATERIAL DOS CARDS — profundidade + luz no topo ---------- */
+.card,
+.card.ikpi,
+.stat,
+.rz-card,
+.rz-kpi {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0) 42%),
+    var(--bg-elevated) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 20px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.07),
+    0 1px 2px rgba(0,0,0,.22),
+    0 28px 54px -30px rgba(0,0,0,.74) !important;
+}
+:root[data-theme="light"] .card,
+:root[data-theme="light"] .card.ikpi,
+:root[data-theme="light"] .stat,
+:root[data-theme="light"] .rz-card,
+:root[data-theme="light"] .rz-kpi {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.75), rgba(255,255,255,0) 44%),
+    var(--bg-elevated) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.95),
+    0 1px 2px rgba(120,100,70,.05),
+    0 24px 46px -32px rgba(90,80,60,.24) !important;
+}
+
+/* ---------- 2. HEROES: raio generoso + brilho de borda ---------- */
+.hero-card, .exp-hero, .rz-hero {
+  border-radius: 26px !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), var(--shadow) !important;
+}
+
+/* ---------- 3. TIPOGRAFIA — números apertados, hierarquia clara ---------- */
+.hero-amount .num,
+.exp-hero .amt #expHeroAmt,
+.rz-hero-amt,
+.ikpi-v, .stat .val, .rz-kpi-v {
+  letter-spacing: -.035em;
+}
+.hero-amount .cur, .exp-hero .amt .cur { font-weight: 600; opacity: .8; }
+.stat .val, .ikpi-v { font-size: 23px; }
+/* micro-labels uppercase respiram mais */
+.inv-sec, .card-head .meta, .stat .lbl, .ikpi-k,
+.exp-hero-eyebrow .label, .hero-eyebrow .label {
+  letter-spacing: .14em;
+}
+.card-head h3, .rz-card-h { letter-spacing: -.01em; }
+
+/* ---------- 4. BARRAS refinadas — trilho discreto, preenchimento
+   arredondado com glow sutil na própria cor ---------- */
+.exp-cat-bar, .rz-bar {
+  height: 5px !important;
+  border-radius: 999px !important;
+  background: rgba(127,127,127,.12) !important;
+  overflow: visible !important;
+}
+.exp-cat-bar i, .rz-bar i {
+  border-radius: 999px !important;
+  box-shadow: 0 0 10px -2px var(--cat-color, var(--purple));
+}
+.rz-bar i { box-shadow: 0 0 10px -2px currentColor; }
+
+/* ---------- 5. TILES de ícone (categoria) — mais elegantes ---------- */
+.exp-cat-icon, .rz-kpi-ic {
+  border-radius: 11px !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+}
+
+/* ---------- 6. RESPIRO — padding e ritmo um tico mais generosos ---------- */
+.card { padding: 22px 24px; }
+.rz-card { padding: 20px 22px; }
+.inv-sec { margin-top: 26px !important; }
+.cat-list .exp-cat-row { padding: 11px 0 !important; }
+
+/* ---------- 7. HOVER tátil — o card respira pra cima ---------- */
+@media (hover: hover) and (pointer: fine) {
+  .card, .card.ikpi, .rz-kpi {
+    transition: transform .4s cubic-bezier(.2,.8,.2,1), box-shadow .4s cubic-bezier(.2,.8,.2,1), border-color .4s ease;
+  }
+  .card:hover, .card.ikpi:hover, .rz-kpi:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-2) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.09),
+      0 2px 4px rgba(0,0,0,.22),
+      0 40px 72px -32px rgba(0,0,0,.85) !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card:hover, .card.ikpi:hover, .rz-kpi:hover { transform: none; }
+}
