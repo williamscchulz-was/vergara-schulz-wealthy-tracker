@@ -597,107 +597,95 @@ function resumoNav(dir) {
     : new Date(d.getFullYear(), d.getMonth() + dir, 1);
   renderResumo();
 }
+// Resumo — PORTE DO MOCKUP: gauge de poupança + 4 KPIs + ganhos×saídas +
+// "onde foi o dinheiro" (donut) + patrimônio por ano + meta de dividendos.
 function renderResumo() {
   const body = $('resumoBody'); if (!body) return;
   const m = (typeof fmtBRL0 === 'function') ? fmtBRL0 : (n => 'R$ ' + Math.round(+n || 0).toLocaleString('pt-BR'));
+  // compacto estilo mockup: R$ 312,4k · R$ 1,28M
+  const mc = n => { n = +n || 0; const a = Math.abs(n); const sg = n < 0 ? '-' : ''; if (a >= 1e6) return 'R$ ' + sg + (a / 1e6).toFixed(2).replace('.', ',') + 'M'; if (a >= 1000) return 'R$ ' + sg + (a / 1000).toFixed(1).replace('.', ',') + 'k'; return m(n); };
+  const mk = n => { n = +n || 0; const a = Math.abs(n); if (a >= 1e6) return (a / 1e6).toFixed(2).replace('.', ',') + 'M'; if (a >= 1000) return Math.round(a / 1000) + 'k'; return Math.round(a).toString(); };
   const vd = state.currentViewMonth || new Date();
   const annual = _resumoView === 'anual';
   const year = vd.getFullYear();
   const prefix = annual ? (year + '-') : (year + '-' + String(vd.getMonth() + 1).padStart(2, '0'));
   const MN = getLang() === 'en' ? MONTH_NAMES_EN : MONTH_NAMES_PT;
   const periodLabel = annual ? String(year) : (MN[vd.getMonth()] + ' ' + year);
+  const periodWord = annual ? t('rz.inyear') : t('rz.inmonth');
+  const startsWith = (e, p) => (e.competencia || e.date || '').startsWith(p);
 
-  // Agrupa pela competência (mês da fatura) quando existe; senão pela data real.
-  const items = (state.expenses || []).filter(e => (e.competencia || e.date || '').startsWith(prefix));
+  // Período corrente (mensal ou anual) — hero/KPIs/donut
+  const items = (state.expenses || []).filter(e => startsWith(e, prefix));
   const exp = items.filter(e => e.type !== 'income');
   const inc = items.filter(e => e.type === 'income');
   const sum = arr => arr.reduce((s, e) => s + (+e.value || 0), 0);
   const ganhos = sum(inc), despesas = sum(exp);
-  const economias = (typeof reservesTotal === 'function' ? reservesTotal() : 0);
-  const _tYM = new Date().toISOString().slice(0, 7);
-  let dividas = 0, dividasCount = 0;  // comprometido à frente: parcelas provisionadas em meses futuros
-  for (const e of (state.expenses || [])) { if (e.provisioned && String(e.date || '').slice(0, 7) > _tYM) { dividas += (+e.value || 0); dividasCount++; } }
   const saldo = ganhos - despesas;
-  // Sub-linhas de contexto dos KPIs (matam o vazio dos cards e dão significado)
-  const subIncome = ganhos > 0 ? (inc.length + ' ' + t(inc.length === 1 ? 'rz.in1' : 'rz.inN')) : t('rz.in0');
-  const subExpense = exp.length + ' ' + t(exp.length === 1 ? 'rz.it1' : 'rz.itN');
-  const subDebt = dividas > 0 ? t('rz.due') : t('rz.due0');
-  const subBalance = t('rz.bform');
+  const rate = ganhos > 0 ? Math.round((saldo / ganhos) * 100) : 0;
+  const ringPct = Math.max(0, Math.min(100, rate));
 
-  let fixas = 0, variaveis = 0;
-  for (const e of exp) { if (e.nature === 'fixa') fixas += (+e.value || 0); else variaveis += (+e.value || 0); }
+  // Período anterior (p/ "vs") — ano-1 (anual) ou mês-1 (mensal)
+  const prevDate = annual ? new Date(year - 1, 0, 1) : new Date(vd.getFullYear(), vd.getMonth() - 1, 1);
+  const prevPrefix = annual ? ((year - 1) + '-') : (prevDate.getFullYear() + '-' + String(prevDate.getMonth() + 1).padStart(2, '0'));
+  const prevLabel = annual ? String(year - 1) : MN[prevDate.getMonth()];
+  const prevItems = (state.expenses || []).filter(e => startsWith(e, prevPrefix));
+  const prevGanhos = sum(prevItems.filter(e => e.type === 'income'));
+  const prevDespesas = sum(prevItems.filter(e => e.type !== 'income'));
+  const ganhosVs = prevGanhos > 0 ? Math.round((ganhos - prevGanhos) / prevGanhos * 100) : null;
+  const despesasVs = prevDespesas > 0 ? Math.round((despesas - prevDespesas) / prevDespesas * 100) : null;
+
+  // Dividendos + média mensal · Patrimônio (= net worth) + variação no ano
+  const divs = +state.i10.dividends || 0;
+  const monthsSoFar = (year === new Date().getFullYear()) ? (new Date().getMonth() + 1) : 12;
+  const divAvg = divs / (monthsSoFar || 12);
+  const patrimonio = (+state.i10.equity || 0) + (+state.fx.usd || 0) * (+state.fx.rateUSD || 0) + reservesTotal() + pensionTotal();
+  const nwYears = [...(state.yearly || [])].filter(y => y.equity != null && +y.equity > 0).sort((a, b) => a.year - b.year);
+  const prevNW = nwYears.length ? +nwYears[nwYears.length - 1].equity : 0;
+  const nwDelta = prevNW > 0 ? (patrimonio - prevNW) : 0;
+
+  // Categorias do período (donut "onde foi o dinheiro")
   const byCat = {};
   for (const e of exp) { const c = e.category || 'outros'; byCat[c] = (byCat[c] || 0) + (+e.value || 0); }
   const catArr = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
-  const byPerson = {};
-  for (const o of OWNERS) byPerson[o] = { out: 0, inc: 0 };
-  for (const e of exp) { const o = normOwner(e.owner) || 'familia'; if (!byPerson[o]) byPerson[o] = { out: 0, inc: 0 }; byPerson[o].out += (+e.value || 0); }
-  for (const e of inc) { const o = normOwner(e.owner) || 'familia'; if (!byPerson[o]) byPerson[o] = { out: 0, inc: 0 }; byPerson[o].inc += (+e.value || 0); }
-
-  const R = 66, CIRC = 2 * Math.PI * R, total = despesas || 1;
-  const GAP = catArr.length > 1 ? 3 : 0;   // respiro entre fatias → anel "segmentado", não um borrão
-  let acc = 0;
-  const segs = catArr.map(([c, v]) => {
-    const len = (v / total) * CIRC;
-    const draw = Math.max(len - GAP, 0.6);
+  const dTotal = despesas || 1;
+  let dcum = 0;
+  let dSegs = '<circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--bg-elevated-2)" stroke-width="6"/>';
+  let dLeg = '';
+  catArr.slice(0, 6).forEach(([c, v]) => {
+    const pct = v / dTotal * 100; if (pct <= 0) return;
     const col = (CATEGORIES[c] && CATEGORIES[c].color) || '#8e8e93';
-    const s = `<circle cx="86" cy="86" r="${R}" fill="none" stroke="${col}" stroke-width="17" stroke-dasharray="${draw.toFixed(2)} ${(CIRC - draw).toFixed(2)}" stroke-dashoffset="${(-acc).toFixed(2)}" transform="rotate(-90 86 86)"/>`;
-    acc += len; return s;
-  }).join('');
-  const fxPct = despesas > 0 ? Math.round(fixas / despesas * 100) : 0;
-  const vrPct = despesas > 0 ? (100 - fxPct) : 0;
-
-  const catMax = catArr.length ? catArr[0][1] : 1;   // barra relativa à maior categoria → contraste visual
-  const catRows = catArr.map(([c, v]) => {
-    const col = (CATEGORIES[c] && CATEGORIES[c].color) || '#8e8e93';
+    dSegs += '<circle cx="21" cy="21" r="15.9" fill="none" stroke="' + col + '" stroke-width="6" stroke-dasharray="' + pct.toFixed(1) + ' ' + (100 - pct).toFixed(1) + '" stroke-dashoffset="' + (25 - dcum).toFixed(1) + '" transform="rotate(-90 21 21)"/>';
+    dcum += pct;
     const label = (CATEGORIES[c] && CATEGORIES[c].label) || c;
-    const pct = despesas > 0 ? Math.round(v / despesas * 100) : 0;
-    const w = Math.max(2, Math.round(v / catMax * 100));
-    return `<div class="rz-cat"><div class="rz-cat-top"><span class="rz-cat-dot" style="background:${col}"></span><span class="rz-cat-nm">${esc(label)}</span><span class="rz-cat-v">${m(v)}</span><span class="rz-cat-pct">${pct}%</span></div><div class="rz-bar"><i style="width:${w}%;background:${col}"></i></div></div>`;
-  }).join('') || `<div class="rz-empty">${esc(t('rz.empty'))}</div>`;
+    dLeg += '<div class="it"><span class="dot" style="background:' + col + '"></span><span class="nm">' + esc(label) + '</span><span class="pc">' + Math.round(pct) + '%</span></div>';
+  });
+  if (!catArr.length) dLeg = '<div class="rz-empty">' + esc(t('rz.empty')) + '</div>';
 
-  const personRows = OWNERS.map(o => {
-    const p = byPerson[o] || { out: 0, inc: 0 };
-    const [nm, col, ini] = RZ_PERSON[o];
-    const share = despesas > 0 ? Math.round(p.out / despesas * 100) : 0;
-    const inNote = p.inc > 0 ? `<span class="rz-person-in">+ ${m(p.inc)}</span>` : '';
-    return `<div class="rz-person"><div class="rz-av" style="background:${col}">${ini}</div><div class="rz-person-main"><div class="rz-person-top"><span class="rz-person-nm">${esc(nm)}</span><span class="rz-person-out">${m(p.out)}</span></div><div class="rz-pbar"><i style="width:${Math.max(p.out > 0 ? 3 : 0, share)}%;background:${col}"></i></div><div class="rz-person-sub"><span>${share}% ${esc(t('rz.share'))}</span>${inNote}</div></div></div>`;
-  }).join('');
-
-  // Maiores despesas individuais do período → preenche a coluna direita e dá uma leitura útil.
-  const topExp = exp.slice().sort((a, b) => (+b.value || 0) - (+a.value || 0)).slice(0, 5);
-  const topRows = topExp.map(e => {
-    const c = CATEGORIES[e.category] || CATEGORIES.outros || { label: e.category, color: '#8e8e93' };
-    const who = RZ_PERSON[normOwner(e.owner) || 'familia'];
-    return `<div class="rz-top"><span class="rz-top-dot" style="background:${c.color}"></span><div class="rz-top-main"><span class="rz-top-nm">${esc(e.description || c.label)}</span><span class="rz-top-meta">${esc(c.label)}${who ? ' · ' + esc(who[0]) : ''}</span></div><span class="rz-top-v">${m(+e.value || 0)}</span></div>`;
-  }).join('') || `<div class="rz-empty">${esc(t('rz.empty'))}</div>`;
-
-  // ---- Anual: gráfico de 12 meses (receitas × despesas) + visões do ano ----
-  let chartHtml = '', visoesHtml = '';
-  if (annual) {
-    const MS = (getLang() === 'en' ? MONTH_NAMES_SHORT_EN : MONTH_NAMES_SHORT).map(m => m.toUpperCase());
-    const mo = Array.from({ length: 12 }, () => ({ rec: 0, desp: 0 }));
-    for (const e of items) {
-      const i = +String(e.date || '').slice(5, 7) - 1;
-      if (i < 0 || i > 11) continue;
-      if (e.type === 'income') mo[i].rec += (+e.value || 0); else mo[i].desp += (+e.value || 0);
-    }
-    const maxV = Math.max(1, ...mo.map(x => Math.max(x.rec, x.desp)));
-    const bars = mo.map((x, i) => `<div class="rz-mcol"><div class="rz-mbars"><i class="rz-rec" style="height:${(x.rec / maxV * 100).toFixed(1)}%" title="${m(x.rec)}"></i><i class="rz-desp" style="height:${(x.desp / maxV * 100).toFixed(1)}%" title="${m(x.desp)}"></i></div><span class="rz-mlabel">${MS[i]}</span></div>`).join('');
-    chartHtml = `<div class="rz-card"><div class="rz-card-h">${esc(t('rz.recVsExp'))}<span class="rz-legend"><span class="lg"><i class="rz-rec"></i>${esc(t('rz.income'))}</span><span class="lg"><i class="rz-desp"></i>${esc(t('rz.expenses'))}</span></span></div><div class="rz-chart">${bars}</div></div>`;
-    const monthsData = mo.filter(x => x.desp > 0).length || 1;
-    const topCat = catArr[0];
-    const topCatLabel = topCat ? ((CATEGORIES[topCat[0]] && CATEGORIES[topCat[0]].label) || topCat[0]) : '—';
-    const topCatPct = topCat && despesas > 0 ? Math.round(topCat[1] / despesas * 100) : 0;
-    let topP = null;
-    for (const o of OWNERS) { const p = byPerson[o]; if (p && (!topP || p.out > topP.out)) topP = { o, out: p.out }; }
-    visoesHtml = `<div class="rz-card"><div class="rz-card-h">${esc(t('rz.visions'))} ${year}</div>
-      <div class="rz-vis"><span class="rz-vis-k">${esc(t('rz.topCat'))}</span><span class="rz-vis-v">${esc(topCatLabel)} · ${m(topCat ? topCat[1] : 0)} (${topCatPct}%)</span></div>
-      <div class="rz-vis"><span class="rz-vis-k">${esc(t('rz.topSpender'))}</span><span class="rz-vis-v">${esc(topP ? RZ_PERSON[topP.o][0] : '—')} · ${m(topP ? topP.out : 0)}</span></div>
-      <div class="rz-vis"><span class="rz-vis-k">${esc(t('rz.yearExp'))}</span><span class="rz-vis-v">${m(despesas)} · ${esc(t('rz.avgMonth'))} ${m(despesas / monthsData)}</span></div></div>`;
+  // Ganhos vs Saídas — 12 meses do ano (sempre anual, dá contexto)
+  const MS = (getLang() === 'en' ? MONTH_NAMES_SHORT_EN : MONTH_NAMES_SHORT).map(s => String(s).toLowerCase());
+  const mo = Array.from({ length: 12 }, () => ({ rec: 0, desp: 0 }));
+  for (const e of (state.expenses || []).filter(e => startsWith(e, year + '-'))) {
+    const i = +String(e.competencia || e.date || '').slice(5, 7) - 1;
+    if (i < 0 || i > 11) continue;
+    if (e.type === 'income') mo[i].rec += (+e.value || 0); else mo[i].desp += (+e.value || 0);
   }
+  const maxMo = Math.max(1, ...mo.map(x => Math.max(x.rec, x.desp)));
+  const gbars = mo.map((x, i) => '<div class="rz-gcol"><div class="rz-gpair"><i class="in" style="height:' + (x.rec / maxMo * 100).toFixed(1) + '%" title="' + m(x.rec) + '"></i><i class="out" style="height:' + (x.desp / maxMo * 100).toFixed(1) + '%" title="' + m(x.desp) + '"></i></div><span class="rz-gx">' + MS[i] + '</span></div>').join('');
 
-  const savingsRate = ganhos > 0 ? Math.round((saldo / ganhos) * 100) : 0;
+  // Patrimônio por ano
+  const nwMax = Math.max(1, ...nwYears.map(y => +y.equity || 0));
+  const yearsHtml = nwYears.length
+    ? nwYears.map((y, i) => '<div class="rz-yr' + (i === nwYears.length - 1 ? ' cur' : '') + '"><i style="height:' + ((+y.equity || 0) / nwMax * 100).toFixed(1) + '%"></i><div class="rz-yr-v">' + mk(+y.equity || 0) + '</div><div class="rz-yr-l">' + y.year + '</div></div>').join('')
+    : '<div class="rz-empty">' + esc(t('rz.empty')) + '</div>';
+
+  // Meta de dividendos
+  const goal = +state.dividendsYearlyGoal || 1e6;
+  const goalYear = state.dividendsYearlyGoalYear || 2035;
+  const goalPct = goal > 0 ? Math.min(100, divs / goal * 100) : 0;
+  const falta = Math.max(0, goal - divs);
+
+  const vsTxt = (v, lbl) => v == null ? '' : (v >= 0 ? '↑' : '↓') + ' ' + Math.abs(v) + '% vs ' + lbl;
+
   body.innerHTML = `
     <div class="rz-head">
       <div class="rz-seg">
@@ -706,48 +694,50 @@ function renderResumo() {
       </div>
       <div class="rz-nav"><button data-rznav="-1" aria-label="${esc(t('a11y.prev'))}">‹</button><span class="rz-period">${esc(periodLabel)}</span><button data-rznav="1" aria-label="${esc(t('a11y.next'))}">›</button></div>
     </div>
-    <div class="rz-hero ${saldo < 0 ? 'is-neg' : ''}">
-      <div class="rz-hero-l">
-        <div class="rz-hero-eyebrow"><span class="rz-hero-dot"></span>${esc(t('rz.balance'))}</div>
-        <div class="rz-hero-amt">${m(saldo)}</div>
-        <div class="rz-hero-sub">${esc(periodLabel)}${subBalance ? ' · ' + esc(subBalance) : ''}</div>
-      </div>
-      <div class="rz-hero-r">
-        <div class="rz-hero-rate-l">Taxa de poupança</div>
-        <div class="rz-hero-rate">${savingsRate}%</div>
-      </div>
-    </div>
-    <div class="rz-kpis">
-      <div class="rz-kpi rz-k-income"><span class="rz-kpi-ic">${RZ_KIC.income}</span><div class="rz-kpi-l">${esc(t('rz.income'))}</div><div class="rz-kpi-v">${m(ganhos)}</div><div class="rz-kpi-sub">${esc(subIncome)}</div></div>
-      <div class="rz-kpi rz-k-expense"><span class="rz-kpi-ic">${RZ_KIC.expense}</span><div class="rz-kpi-l">${esc(t('rz.expenses'))}</div><div class="rz-kpi-v">${m(despesas)}</div><div class="rz-kpi-sub">${esc(subExpense)}</div></div>
-      <div class="rz-kpi rz-k-debt"><span class="rz-kpi-ic">${RZ_KIC.debt}</span><div class="rz-kpi-l">${esc(t('rz.debts'))}</div><div class="rz-kpi-v ${dividas > 0 ? 'rz-neg' : ''}">${m(dividas)}</div><div class="rz-kpi-sub">${esc(subDebt)}</div></div>
-    </div>
-    <div class="inv-sec">Distribuição</div>
-    <div class="rz-grid">
-      <div class="rz-card">
-        <div class="rz-card-h">${esc(t('rz.byCat'))}</div>
-        <div class="rz-donut-wrap"><div class="rz-donut">
-          <svg width="172" height="172" viewBox="0 0 172 172"><circle cx="86" cy="86" r="${R}" fill="none" stroke="rgba(130,130,130,.14)" stroke-width="17"/>${segs}</svg>
-          <div class="rz-donut-c"><span class="rz-dc-b">${m(despesas)}</span><span class="rz-dc-a">${esc(periodLabel)}</span></div>
-        </div></div>
-        <div class="rz-split">
-          <div class="rz-split-bar"><i class="vv" style="width:${vrPct}%"></i><i class="ff" style="width:${fxPct}%"></i></div>
-          <div class="rz-split-leg"><span class="rz-sl"><b class="vv"></b>${esc(t('rz.variable'))} · ${vrPct}% · ${m(variaveis)}</span><span class="rz-sl"><b class="ff"></b>${esc(t('rz.fixed'))} · ${fxPct}% · ${m(fixas)}</span></div>
+    <div class="rz-grid12">
+      <div class="rz-bal ${saldo < 0 ? 'is-neg' : ''}">
+        <div class="rz-gauge">
+          <svg width="138" height="138" viewBox="0 0 42 42" style="transform:rotate(-90deg)">
+            <circle cx="21" cy="21" r="15.9" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="4.5"/>
+            <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--hero-num)" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="100 100" stroke-dashoffset="${(100 - ringPct).toFixed(1)}"/>
+          </svg>
+          <div class="rz-gauge-c"><b>${rate}%</b><span>${esc(t('rz.poupanca'))}</span></div>
         </div>
-        <div class="rz-cats">${catRows}</div>
-      </div>
-      <div class="rz-col">
-        <div class="rz-card">
-          <div class="rz-card-h">${esc(t('rz.byPerson'))}</div>
-          <div class="rz-people">${personRows}</div>
-        </div>
-        <div class="rz-card">
-          <div class="rz-card-h">${esc(t('rz.topExpenses'))}</div>
-          <div class="rz-tops">${topRows}</div>
+        <div class="rz-bal-info">
+          <div class="rz-bal-eye"><span class="rz-hero-dot"></span>${esc(t('rz.balanceof'))} ${esc(periodLabel)}</div>
+          <h2>${t('rz.yousaved').replace('{r}', '<span class="rz-hl">' + rate + '%</span>')}</h2>
+          <div class="rz-bal-stats">
+            <div><div class="k">${esc(t('rz.income'))}</div><div class="v">${mc(ganhos)}</div></div>
+            <div><div class="k">${esc(t('rz.expenses'))}</div><div class="v">${mc(despesas)}</div></div>
+            <div><div class="k">${esc(t('rz.saved'))}</div><div class="v">${mc(saldo)}</div></div>
+          </div>
         </div>
       </div>
-    </div>
-    ${annual ? '<div class="inv-sec">Histórico</div>' + chartHtml + visoesHtml : ''}`;
+      <div class="rz-kpis2">
+        <div class="card rz-kpi2"><div class="klabel">${esc(t('rz.income'))} ${esc(periodWord)}</div><div class="rz-kpi2-v mono">${mc(ganhos)}</div><div class="rz-kpi2-s ${ganhosVs >= 0 ? 'pos' : 'neg'}">${esc(vsTxt(ganhosVs, prevLabel))}</div></div>
+        <div class="card rz-kpi2"><div class="klabel">${esc(t('rz.expenses'))} ${esc(periodWord)}</div><div class="rz-kpi2-v mono">${mc(despesas)}</div><div class="rz-kpi2-s ${despesasVs <= 0 ? 'pos' : 'neg'}">${esc(vsTxt(despesasVs, prevLabel))}</div></div>
+        <div class="card rz-kpi2"><div class="klabel">${esc(t('rz.dividends'))}</div><div class="rz-kpi2-v mono">${mc(divs)}</div><div class="rz-kpi2-s">${divs > 0 ? esc(t('rz.avgmonth')) + ' ' + mc(divAvg) + '/' + esc(t('rz.mo')) : ''}</div></div>
+        <div class="card rz-kpi2"><div class="klabel">${esc(t('rz.networth'))}</div><div class="rz-kpi2-v mono">${mc(patrimonio)}</div><div class="rz-kpi2-s ${nwDelta >= 0 ? 'pos' : 'neg'}">${nwDelta ? (nwDelta >= 0 ? '↑ ' : '↓ ') + mc(Math.abs(nwDelta)) + ' ' + esc(t('rz.inyear')) : ''}</div></div>
+      </div>
+      <div class="card rz-gvs">
+        <div class="rz-card-h">${esc(t('rz.recVsExp'))}<span class="rz-legend"><span class="lg"><i class="rz-rec"></i>${esc(t('rz.income'))}</span><span class="lg"><i class="rz-desp"></i>${esc(t('rz.expenses'))}</span></span></div>
+        <div class="rz-gbars">${gbars}</div>
+      </div>
+      <div class="card rz-onde">
+        <div class="rz-card-h">${esc(t('rz.wheremoney'))}<span class="more">${esc(periodLabel)}</span></div>
+        <div class="rz-alloc"><svg class="rz-odonut" width="128" height="128" viewBox="0 0 42 42">${dSegs}</svg><div class="rz-leg">${dLeg}</div></div>
+      </div>
+      <div class="card rz-anos">
+        <div class="rz-card-h">${esc(t('rz.networthyear'))}${nwYears.length ? '<span class="more">' + nwYears[0].year + '–' + nwYears[nwYears.length - 1].year + '</span>' : ''}</div>
+        <div class="rz-years">${yearsHtml}</div>
+      </div>
+      <div class="card rz-meta">
+        <div class="rz-card-h">${esc(t('rz.divgoal'))}<span class="more">${goalYear}</span></div>
+        <div class="rz-note">${mc(divs)} ${esc(t('rz.of'))} <b>${mc(goal)}</b>/${esc(t('rz.year'))}</div>
+        <div class="rz-goalbar"><i style="width:${goalPct.toFixed(1)}%"></i></div>
+        <div class="rz-note">${esc(t('rz.atpace'))} <b class="pos">${esc(t('rz.onplan'))}</b> · ${esc(t('rz.missing'))} ${mc(falta)}</div>
+      </div>
+    </div>`;
   body.querySelectorAll('[data-rzview]').forEach(b => b.addEventListener('click', () => setResumoView(b.dataset.rzview)));
   body.querySelectorAll('[data-rznav]').forEach(b => b.addEventListener('click', () => resumoNav(+b.dataset.rznav)));
 }

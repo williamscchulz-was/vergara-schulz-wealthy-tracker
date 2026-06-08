@@ -242,3 +242,76 @@
 .inv-asset-chg { font-family: 'Geist Mono', monospace; font-weight: 600; font-size: 12.5px; margin-top: 2px; }
 .inv-asset-chg.pos { color: var(--gain); }
 .inv-asset-chg.neg { color: var(--loss); }
+
+/* ===========================================================
+   RESUMO — PORTE DO MOCKUP: gauge + 4 KPIs + ganhos×saídas +
+   onde foi o dinheiro (donut) + patrimônio/ano + meta.
+   =========================================================== */
+.rz-grid12 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 900px) {
+  .rz-grid12 { grid-template-columns: repeat(12, minmax(0, 1fr)); align-items: start; }
+  .rz-bal { grid-column: span 7; }
+  .rz-kpis2 { grid-column: span 5; }
+  .rz-gvs { grid-column: span 7; }
+  .rz-onde { grid-column: span 5; }
+  .rz-anos { grid-column: span 7; }
+  .rz-meta { grid-column: span 5; }
+}
+/* hero balanço com gauge */
+.rz-bal { background: var(--hero-bg); color: var(--hero-ink); border: 1px solid var(--border); border-radius: 26px; padding: 26px 28px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 30px; }
+@media (max-width: 560px) { .rz-bal { flex-direction: column; align-items: flex-start; gap: 20px; } }
+.rz-gauge { flex-shrink: 0; display: grid; place-items: center; position: relative; }
+.rz-gauge svg { display: block; }
+.rz-gauge-c { position: absolute; text-align: center; }
+.rz-gauge-c b { display: block; font-size: 30px; font-weight: 900; letter-spacing: -.03em; color: var(--hero-num); line-height: 1; }
+.rz-gauge-c span { font-size: 10px; color: var(--hero-label); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.rz-bal-info { flex: 1; min-width: 0; }
+.rz-bal-eye { color: var(--hero-label); font-size: 12.5px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+.rz-bal-info h2 { font-size: clamp(20px, 3.2vw, 27px); font-weight: 800; letter-spacing: -.02em; line-height: 1.18; color: var(--hero-ink); margin: 0; }
+.rz-bal-info h2 .rz-hl { color: var(--hero-num); }
+.rz-bal-stats { display: flex; gap: 26px; margin-top: 17px; flex-wrap: wrap; }
+.rz-bal-stats .k { font-size: 11px; color: var(--hero-label); font-weight: 600; }
+.rz-bal-stats .v { font-size: 18px; font-weight: 800; font-family: 'Geist Mono', monospace; margin-top: 3px; color: var(--hero-ink); }
+.rz-bal .rz-hero-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--hero-num); box-shadow: 0 0 9px var(--hero-num); display: inline-block; }
+/* KPIs 2×2 */
+.rz-kpis2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.rz-kpi2 { padding: 16px 18px; }
+.rz-kpi2-v { font-size: 22px; font-weight: 800; letter-spacing: -.02em; margin-top: 9px; color: var(--ink); }
+.rz-kpi2-s { font-size: 12px; margin-top: 5px; font-weight: 600; color: var(--ink-2); min-height: 14px; }
+.rz-kpi2-s.pos { color: var(--gain); }
+.rz-kpi2-s.neg { color: var(--loss); }
+/* cabeçalho dos cards */
+.rz-card-h { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; font-size: 14.5px; font-weight: 700; letter-spacing: -.01em; color: var(--ink); }
+.rz-card-h .more { font-size: 12.5px; color: var(--purple); font-weight: 700; }
+/* ganhos vs saídas */
+.rz-gbars { display: flex; align-items: flex-end; gap: 8px; height: 150px; }
+.rz-gcol { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; }
+.rz-gpair { flex: 1; display: flex; align-items: flex-end; justify-content: center; gap: 3px; width: 100%; min-height: 0; }
+.rz-gpair i { width: 42%; border-radius: 4px 4px 2px 2px; min-height: 3px; transition: height .6s var(--ease-out, ease); }
+.rz-gpair .in { background: linear-gradient(var(--purple-light), var(--purple)); }
+.rz-gpair .out { background: var(--bg-elevated-3, var(--border)); }
+.rz-gx { font-size: 9.5px; color: var(--ink-3); margin-top: 7px; }
+.rz-legend { display: flex; gap: 14px; font-size: 12px; color: var(--ink-2); font-weight: 600; }
+.rz-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: middle; }
+.rz-legend .rz-rec { background: var(--purple); }
+.rz-legend .rz-desp { background: var(--bg-elevated-3, var(--border)); }
+/* onde foi o dinheiro (donut) */
+.rz-alloc { display: flex; align-items: center; gap: 20px; }
+.rz-odonut { flex-shrink: 0; }
+.rz-onde .rz-leg { display: flex; flex-direction: column; gap: 11px; flex: 1; min-width: 0; }
+.rz-onde .rz-leg .it { display: flex; align-items: center; gap: 9px; font-size: 13.5px; }
+.rz-onde .rz-leg .dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.rz-onde .rz-leg .nm { color: var(--ink-2); font-weight: 500; }
+.rz-onde .rz-leg .pc { margin-left: auto; font-weight: 700; font-family: 'Geist Mono', monospace; color: var(--ink); }
+/* patrimônio por ano */
+.rz-years { display: flex; align-items: flex-end; gap: 12px; height: 140px; }
+.rz-yr { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px; height: 100%; justify-content: flex-end; }
+.rz-yr i { width: 100%; max-width: 44px; border-radius: 7px 7px 3px 3px; background: linear-gradient(var(--purple-deep), var(--purple)); min-height: 5px; transition: height .7s var(--ease-out, ease); }
+.rz-yr.cur i { background: linear-gradient(var(--purple), var(--purple-light)); box-shadow: 0 0 16px -2px var(--purple-glow); }
+.rz-yr-v { font-size: 11px; font-family: 'Geist Mono', monospace; font-weight: 700; color: var(--ink-2); }
+.rz-yr-l { font-size: 11px; color: var(--ink-3); font-weight: 600; }
+/* meta */
+.rz-note { font-size: 13px; color: var(--ink-2); }
+.rz-goalbar { height: 10px; border-radius: 999px; background: var(--bg-elevated-2); overflow: hidden; margin: 13px 0 9px; }
+.rz-goalbar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--purple-light), var(--purple)); }
+.rz-empty { color: var(--ink-3); font-size: 13px; padding: 14px 2px; }
