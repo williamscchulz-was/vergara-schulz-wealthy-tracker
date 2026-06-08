@@ -214,8 +214,12 @@
     grid-column: span 5;
     align-self: stretch;
     display: grid;
-    grid-template-columns: 1fr 1fr;   /* KPIs 2×2 ao lado do hero */
+    grid-template-columns: 1fr;   /* 4 KPIs empilhados → preenchem a altura do hero (sem branco) */
     gap: 14px;
     align-content: stretch;
   }
+}
+/* Metas | Dividendos lado a lado: altura natural (o card de dividendos não estica/vaza branco) */
+@media (min-width: 1000px) {
+  #moduleInvestments .inv-side { align-items: start; }
 }
