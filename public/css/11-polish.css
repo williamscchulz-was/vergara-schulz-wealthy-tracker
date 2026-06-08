@@ -129,10 +129,14 @@
   /* por padrão tudo é full-width (blinda contra filhos não previstos) */
   #moduleExpenses.active > * { grid-column: 1 / -1; margin: 0; }
   /* linha 1: hero (7) + stats (5, empilhados) */
-  #moduleExpenses.active > .exp-hero { grid-column: span 7; margin: 0; }
-  #moduleExpenses.active > .stats.three {
+  #moduleExpenses.active > .exp-hero {
+    grid-column: span 7; margin: 0;
+    align-self: stretch; align-items: flex-start;   /* estica e joga o conteúdo pro topo; a sparkline preenche embaixo */
+  }
+  #moduleExpenses.active > .stats.four {
     grid-column: span 5;
-    grid-template-columns: 1fr;   /* 3 stats empilhados ao lado do hero */
+    display: grid;
+    grid-template-columns: 1fr 1fr;   /* 2×2 ao lado do hero (igual mockup) */
     gap: 14px;
     margin: 0;
     align-content: start;
@@ -152,3 +156,16 @@
   transition: color .15s;
 }
 .exp-row-more:hover { color: var(--purple); }
+
+/* ===== Stats 4 (2×2) + sparklines + hero com área (igual mockup) ===== */
+.stats.four { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.exp-stat-fixas { display: flex; flex-direction: column; }
+.exp-fixas-spark { display: block; width: 100%; height: 24px; margin-top: 10px; overflow: visible; }
+.spk-line { stroke: var(--purple); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.spk-fill { fill: var(--purple); opacity: .10; }
+/* hero: a sparkline preenche o fundo (acaba com o espaço vazio) */
+.exp-hero { position: relative; overflow: hidden; }
+.exp-hero > .left, .exp-hero > .month-nav { position: relative; z-index: 1; }
+.exp-hero-area { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 52%; z-index: 0; pointer-events: none; overflow: visible; }
+.exp-hero-area .spk-line { stroke: var(--hero-num); stroke-width: 2.5; opacity: .95; }
+.exp-hero-area .spk-fill { fill: var(--hero-num); opacity: .16; }

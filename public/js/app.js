@@ -846,6 +846,19 @@ function updateExpSortHeaders() {
     th.classList.toggle('is-sorted-desc', th.dataset.sort === _expSort.key && _expSort.dir === 'desc');
   });
 }
+// Desenha uma sparkline (linha + área opcional) num <svg> a partir de uma série.
+function sparkPath(svgEl, values, W, H, fill) {
+  if (!svgEl) return;
+  const v = (values && values.length > 1) ? values : [0, 0, 0];
+  const max = Math.max(...v), min = Math.min(...v), rng = (max - min) || 1, n = v.length;
+  const X = i => (i / (n - 1)) * W;
+  const Y = val => H - 3 - ((val - min) / rng) * (H - 6);
+  const line = 'M' + v.map((val, i) => X(i).toFixed(1) + ' ' + Y(val).toFixed(1)).join(' L');
+  let html = '';
+  if (fill) html += '<path class="spk-fill" d="' + line + ' L' + W + ' ' + H + ' L0 ' + H + ' Z"/>';
+  html += '<path class="spk-line" vector-effect="non-scaling-stroke" fill="none" d="' + line + '"/>';
+  svgEl.innerHTML = html;
+}
 function renderExpenses() {
   updateExpSortHeaders();   // indicador de ordenação sempre reflete _expSort (mesmo c/ tabela vazia)
   const viewDate = state.currentViewMonth;
@@ -900,8 +913,20 @@ function renderExpenses() {
     heroLabelEl.textContent = t('exp.hero.balance');
   }
 
-  // Stats (expense-centric)
-  $('expCount').textContent = monthExp.length;
+  // Stats 2×2 (igual mockup): Gastos do mês (valor + nº), Despesas fixas (+sparkline)
+  $('expTotal').textContent = fmtBRL0(total);
+  $('expTotalSub').textContent = monthExp.length + (monthExp.length === 1 ? ' lançamento' : ' lançamentos');
+  const fixasTotal = monthExp.filter(e => e.nature === 'fixa' || e.recurring).reduce((s, e) => s + (+e.value || 0), 0);
+  $('expFixas').textContent = fmtBRL0(fixasTotal);
+  {
+    const dim = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
+    const byDay = {}, fxDay = {};
+    for (const e of monthExp) { const d = +String(e.date || '').slice(8, 10) || 1; byDay[d] = (byDay[d] || 0) + (+e.value || 0); if (e.nature === 'fixa' || e.recurring) fxDay[d] = (fxDay[d] || 0) + (+e.value || 0); }
+    let c = 0, fc = 0; const cum = [], fcum = [];
+    for (let d = 1; d <= dim; d++) { c += (byDay[d] || 0); fc += (fxDay[d] || 0); cum.push(c); fcum.push(fc); }
+    sparkPath($('expHeroArea'), cum, 600, 120, true);
+    sparkPath($('expFixasSpark'), fcum, 120, 32, false);
+  }
 
   if (prevTotal > 0) {
     const diff = total - prevTotal;
@@ -2017,6 +2042,7 @@ function wireCardCollapse() {
   document.querySelectorAll('#moduleInvestments .card, #moduleExpenses .card').forEach(function (card) {
     const head = card.querySelector(':scope > .card-body > .card-head') || card.querySelector(':scope > .card-head');
     if (!head) return;                                 // sem header → não recolhível (ikpi, ytd, etc.)
+    if (card.classList.contains('exp-g-cat') || card.classList.contains('exp-g-table')) return;  // conteúdo do bento — nunca colapsa (some no layout)
     if (head.querySelector('.card-collapse')) return;  // já tem botão
     const titleEl = head.querySelector('.eyebrow, h3, h2');
     const key = 'cc:' + (((titleEl && titleEl.textContent) || head.textContent || '').trim().slice(0, 28));

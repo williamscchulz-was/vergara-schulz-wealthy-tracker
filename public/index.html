@@ -225,23 +225,29 @@
           <span class="current" id="currentMonthLabel">Abril 2026</span>
           <button id="btnNextMonth" title="Próximo mês">›</button>
         </div>
+        <svg class="exp-hero-area" id="expHeroArea" viewBox="0 0 600 120" preserveAspectRatio="none" aria-hidden="true"></svg>
       </div>
 
-      <div class="stats three">
+      <div class="stats four">
         <div class="stat animate-in">
-          <div class="lbl" data-i18n="exp.stat.count">Despesas este mês</div>
-          <div class="val" id="expCount">0</div>
-          <div class="sub" data-i18n="exp.stat.count.sub">Lançamentos registrados</div>
-        </div>
-        <div class="stat animate-in">
-          <div class="lbl" data-i18n="exp.stat.vs">vs mês anterior</div>
-          <div class="val" id="expVsPrev">—</div>
-          <div class="sub" id="expVsPrevSub" data-i18n="exp.stat.vs.empty">Sem dados do mês anterior</div>
+          <div class="lbl">Gastos do mês</div>
+          <div class="val" id="expTotal">R$ 0</div>
+          <div class="sub" id="expTotalSub">0 lançamentos</div>
         </div>
         <div class="stat animate-in">
           <div class="lbl" data-i18n="exp.stat.biggest">Maior despesa</div>
           <div class="val" id="expBiggest">—</div>
           <div class="sub" id="expBiggestSub">—</div>
+        </div>
+        <div class="stat animate-in exp-stat-fixas">
+          <div class="lbl">Despesas fixas</div>
+          <div class="val" id="expFixas">R$ 0</div>
+          <svg class="exp-fixas-spark" id="expFixasSpark" viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true"></svg>
+        </div>
+        <div class="stat animate-in">
+          <div class="lbl">vs mês passado</div>
+          <div class="val" id="expVsPrev">—</div>
+          <div class="sub" id="expVsPrevSub">Sem dados do mês anterior</div>
         </div>
       </div>
 
