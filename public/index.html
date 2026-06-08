@@ -196,10 +196,18 @@
         <input type="file" id="impFile" accept="application/pdf,.pdf,text/csv,.csv" multiple hidden>
       </div>
 
-      <div class="exp-subnav" role="tablist">
-        <button data-subview="painel" class="on" type="button" data-i18n="exp.sub.painel">Painel</button>
-        <button data-subview="lancamentos" type="button" data-i18n="exp.sub.lancamentos">Lançamentos</button>
-        <button data-subview="categorias" type="button" data-i18n="exp.sub.categorias">Categorias</button>
+      <div class="exp-subnav-row">
+        <div class="exp-subnav" role="tablist">
+          <button data-subview="painel" class="on" type="button" data-i18n="exp.sub.painel">Painel</button>
+          <button data-subview="lancamentos" type="button" data-i18n="exp.sub.lancamentos">Lançamentos</button>
+          <button data-subview="ganhos" type="button" data-i18n="exp.sub.ganhos">Ganhos</button>
+          <button data-subview="categorias" type="button" data-i18n="exp.sub.categorias">Categorias</button>
+        </div>
+        <div class="exp-monthnav">
+          <button id="btnPrevMonth" title="Mês anterior" aria-label="Mês anterior">‹</button>
+          <span class="current" id="currentMonthLabel">Junho 2026</span>
+          <button id="btnNextMonth" title="Próximo mês" aria-label="Próximo mês">›</button>
+        </div>
       </div>
 
       <!-- Live household net worth pill (clickable → Investments tab) -->
@@ -225,11 +233,6 @@
           <div class="amt"><span class="cur">R$</span><span id="expHeroAmt">0</span></div>
           <div class="amt-sub" id="expHeroSub" data-i18n="exp.hero.empty">Nenhuma despesa registrada ainda</div>
           <div class="exp-hero-alert" id="expHeroAlert" hidden></div>
-        </div>
-        <div class="month-nav">
-          <button id="btnPrevMonth" title="Mês anterior">‹</button>
-          <span class="current" id="currentMonthLabel">Abril 2026</span>
-          <button id="btnNextMonth" title="Próximo mês">›</button>
         </div>
         <svg class="exp-hero-area" id="expHeroArea" viewBox="0 0 600 120" preserveAspectRatio="none" aria-hidden="true"></svg>
       </div>
@@ -281,11 +284,6 @@
           <div>
             <h3 data-i18n="exp.card.all">Todas as despesas do mês</h3>
             <div class="meta" data-i18n="exp.card.all.sub">Clique em uma linha para editar</div>
-          </div>
-          <div class="exp-lanc-nav">
-            <button id="lancPrev" type="button" aria-label="Mês anterior">‹</button>
-            <span class="current" id="lancMonthLabel">—</span>
-            <button id="lancNext" type="button" aria-label="Próximo mês">›</button>
           </div>
           <div class="exp-table-tools">
             <label class="exp-search">

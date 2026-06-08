@@ -187,12 +187,12 @@
 /* editor de categorias só na sub-aba Categorias */
 #moduleExpenses > #expCategorias { display: none; }
 /* Lançamentos: só a tabela */
-#moduleExpenses.view-lancamentos > .exp-nw-pill,
-#moduleExpenses.view-lancamentos > .exp-hero,
-#moduleExpenses.view-lancamentos > .stats,
-#moduleExpenses.view-lancamentos > .inv-sec,
-#moduleExpenses.view-lancamentos > .exp-g-cat,
-#moduleExpenses.view-lancamentos > .grid-2 { display: none !important; }
+#moduleExpenses:is(.view-lancamentos, .view-ganhos) > .exp-nw-pill,
+#moduleExpenses:is(.view-lancamentos, .view-ganhos) > .exp-hero,
+#moduleExpenses:is(.view-lancamentos, .view-ganhos) > .stats,
+#moduleExpenses:is(.view-lancamentos, .view-ganhos) > .inv-sec,
+#moduleExpenses:is(.view-lancamentos, .view-ganhos) > .exp-g-cat,
+#moduleExpenses:is(.view-lancamentos, .view-ganhos) > .grid-2 { display: none !important; }
 /* Categorias: só o editor */
 #moduleExpenses.view-categorias > .exp-nw-pill,
 #moduleExpenses.view-categorias > .exp-hero,
@@ -203,7 +203,7 @@
 #moduleExpenses.view-categorias > .grid-2 { display: none !important; }
 #moduleExpenses.view-categorias > #expCategorias { display: block !important; }
 @media (min-width: 900px) {
-  #moduleExpenses.active.view-lancamentos > .exp-g-table { grid-column: 1 / -1 !important; }
+  #moduleExpenses.active:is(.view-lancamentos, .view-ganhos) > .exp-g-table { grid-column: 1 / -1 !important; }
 }
 #expCategorias .cat-view-foot { display: flex; justify-content: flex-end; margin-top: 16px; }
 /* sub-aba é tela cheia: expande tudo, sem barra de rolagem interna */
@@ -378,8 +378,10 @@
 }
 
 /* ===== Nav de meses na sub-aba Lançamentos ===== */
-.exp-lanc-nav { display: none; align-items: center; gap: 5px; }
-#moduleExpenses.view-lancamentos .exp-g-table .exp-lanc-nav { display: inline-flex; }
-.exp-lanc-nav button { width: 30px; height: 30px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--ink-2); cursor: pointer; font-size: 16px; line-height: 1; transition: color .15s, border-color .15s; }
-.exp-lanc-nav button:hover { color: var(--purple); border-color: var(--purple); }
-.exp-lanc-nav .current { min-width: 116px; text-align: center; font-weight: 700; font-size: var(--fs-body-lg); color: var(--ink); }
+/* barra: sub-abas + navegação de mês (prominente e FIXA em todas as sub-abas) */
+.exp-subnav-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.exp-subnav-row .exp-subnav { margin-bottom: 0; }
+.exp-monthnav { display: inline-flex; align-items: center; gap: 4px; background: var(--bg-elevated); border: 1px solid var(--border-2); border-radius: 999px; padding: 5px; box-shadow: var(--shadow-sm); }
+.exp-monthnav button { width: 34px; height: 34px; border-radius: 999px; border: 0; background: transparent; color: var(--ink-2); cursor: pointer; font-size: 18px; line-height: 1; transition: color .15s, background .15s; }
+.exp-monthnav button:hover { color: var(--on-accent); background: var(--purple); }
+.exp-monthnav .current { min-width: 130px; text-align: center; font-weight: 700; font-size: var(--fs-body-lg); color: var(--ink); font-family: 'Geist Mono', monospace; letter-spacing: .01em; }
