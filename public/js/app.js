@@ -672,10 +672,22 @@ function renderResumo() {
   const maxMo = Math.max(1, ...mo.map(x => Math.max(x.rec, x.desp)));
   const gbars = mo.map((x, i) => '<div class="rz-gcol"><div class="rz-gpair"><i class="in" style="height:' + (x.rec / maxMo * 100).toFixed(1) + '%" title="' + m(x.rec) + '"></i><i class="out" style="height:' + (x.desp / maxMo * 100).toFixed(1) + '%" title="' + m(x.desp) + '"></i></div><span class="rz-gx">' + MS[i] + '</span></div>').join('');
 
-  // Patrimônio por ano
-  const nwMax = Math.max(1, ...nwYears.map(y => +y.equity || 0));
-  const yearsHtml = nwYears.length
-    ? nwYears.map((y, i) => '<div class="rz-yr' + (i === nwYears.length - 1 ? ' cur' : '') + '"><i style="height:' + ((+y.equity || 0) / nwMax * 100).toFixed(1) + '%"></i><div class="rz-yr-v">' + mk(+y.equity || 0) + '</div><div class="rz-yr-l">' + y.year + '</div></div>').join('')
+  // Patrimônio por ano — inclui o ano atual (patrimônio ao vivo) + % de crescimento ano a ano
+  const _cy = new Date().getFullYear();
+  const nwChart = nwYears.some(y => +y.year === _cy)
+    ? nwYears.slice()
+    : (patrimonio > 0 ? nwYears.concat([{ year: _cy, equity: patrimonio }]) : nwYears.slice());
+  const nwMax = Math.max(1, ...nwChart.map(y => +y.equity || 0));
+  const yearsHtml = nwChart.length
+    ? nwChart.map((y, i) => {
+        const eq = +y.equity || 0;
+        const prev = i > 0 ? (+nwChart[i - 1].equity || 0) : 0;
+        const grow = (i > 0 && prev > 0) ? Math.round((eq - prev) / prev * 100) : null;
+        const gChip = grow != null
+          ? '<div class="rz-yr-g ' + (grow >= 0 ? 'pos' : 'neg') + '">' + (grow >= 0 ? '+' : '') + grow + '%</div>'
+          : '<div class="rz-yr-g">&nbsp;</div>';
+        return '<div class="rz-yr' + (i === nwChart.length - 1 ? ' cur' : '') + '"><i style="height:' + (eq / nwMax * 100).toFixed(1) + '%"></i><div class="rz-yr-v">' + mk(eq) + '</div>' + gChip + '<div class="rz-yr-l">' + y.year + '</div></div>';
+      }).join('')
     : '<div class="rz-empty">' + esc(t('rz.empty')) + '</div>';
 
   // Meta de dividendos
@@ -697,15 +709,14 @@ function renderResumo() {
     <div class="rz-grid12">
       <div class="rz-bal ${saldo < 0 ? 'is-neg' : ''}">
         <div class="rz-gauge">
-          <svg width="138" height="138" viewBox="0 0 42 42" style="transform:rotate(-90deg)">
-            <circle cx="21" cy="21" r="15.9" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="4.5"/>
-            <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--hero-num)" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="100 100" stroke-dashoffset="${(100 - ringPct).toFixed(1)}"/>
+          <svg width="152" height="152" viewBox="0 0 42 42" style="transform:rotate(-90deg)">
+            <circle cx="21" cy="21" r="15.9" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="4"/>
+            <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--hero-num)" stroke-width="4" stroke-linecap="round" stroke-dasharray="100 100" stroke-dashoffset="${(100 - ringPct).toFixed(1)}"/>
           </svg>
           <div class="rz-gauge-c"><b>${rate}%</b><span>${esc(t('rz.poupanca'))}</span></div>
         </div>
         <div class="rz-bal-info">
           <div class="rz-bal-eye"><span class="rz-hero-dot"></span>${esc(t('rz.balanceof'))} ${esc(periodLabel)}</div>
-          <h2>${t('rz.yousaved').replace('{r}', '<span class="rz-hl">' + rate + '%</span>')}</h2>
           <div class="rz-bal-stats">
             <div><div class="k">${esc(t('rz.income'))}</div><div class="v">${mc(ganhos)}</div></div>
             <div><div class="k">${esc(t('rz.expenses'))}</div><div class="v">${mc(despesas)}</div></div>
@@ -728,7 +739,7 @@ function renderResumo() {
         <div class="rz-alloc"><svg class="rz-odonut" width="128" height="128" viewBox="0 0 42 42">${dSegs}</svg><div class="rz-leg">${dLeg}</div></div>
       </div>
       <div class="card rz-anos">
-        <div class="rz-card-h">${esc(t('rz.networthyear'))}${nwYears.length ? '<span class="more">' + nwYears[0].year + '–' + nwYears[nwYears.length - 1].year + '</span>' : ''}</div>
+        <div class="rz-card-h">${esc(t('rz.networthyear'))}${nwChart.length ? '<span class="more">' + nwChart[0].year + '–' + nwChart[nwChart.length - 1].year + '</span>' : ''}</div>
         <div class="rz-years">${yearsHtml}</div>
       </div>
       <div class="card rz-meta">
