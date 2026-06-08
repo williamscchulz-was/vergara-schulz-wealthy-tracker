@@ -59,18 +59,8 @@
   100% { opacity: 1; transform: translateY(0); }
 }
 
-/* dica discreta de "toque pra pular" */
-.splash-skip {
-  position: absolute; bottom: calc(26px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
-  z-index: 1; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600;
-  color: var(--ink-3); opacity: 0;
-}
-.splash.play .splash-skip { animation: sp-skip .4s var(--ease-out) 1.9s forwards; }
-@keyframes sp-skip { to { opacity: .65; } }
-
 @media (prefers-reduced-motion: reduce) {
   .sp-arrow { animation: none !important; opacity: 1 !important; transform: none !important; }
-  .splash-word h1 { animation: none !important; opacity: 1 !important; transform: none !important; filter: none !important; clip-path: none !important; letter-spacing: .18em !important; }
-  .splash-skip { animation: none !important; opacity: .6 !important; }
+  .splash-word h1 { animation: none !important; opacity: 1 !important; transform: none !important; letter-spacing: .18em !important; }
   .splash { transition: opacity .2s linear; }
 }
