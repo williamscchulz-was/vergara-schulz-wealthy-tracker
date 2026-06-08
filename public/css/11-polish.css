@@ -142,9 +142,11 @@
     align-content: start;
   }
   /* linha 2: categoria (5) + tabela (7) */
-  /* altura natural — 8 categorias ≈ 6 linhas da tabela ficam ~do mesmo tamanho e cheios (sem vão) */
-  #moduleExpenses.active > .exp-g-cat   { grid-column: span 5; margin: 0; }
-  #moduleExpenses.active > .exp-g-table { grid-column: span 7; margin: 0; }
+  /* mesmos tamanhos: estica os dois; categoria enche e ancora "Ver todas" no rodapé */
+  #moduleExpenses.active > .exp-g-cat   { grid-column: span 5; margin: 0; align-self: stretch; display: flex; flex-direction: column; }
+  #moduleExpenses.active > .exp-g-table { grid-column: span 7; margin: 0; align-self: stretch; }
+  #moduleExpenses.active > .exp-g-cat .cat-list { flex: 1 1 auto; display: flex; flex-direction: column; }
+  #moduleExpenses.active > .exp-g-cat .exp-cat-more { margin-top: auto; }
 }
 
 /* "Ver todas (N)" da tabela de despesas — mostra as primeiras, expande o resto */
@@ -199,6 +201,10 @@
   #moduleExpenses.active.view-lancamentos > .exp-g-table { grid-column: 1 / -1 !important; }
 }
 #expCategorias .cat-view-foot { display: flex; justify-content: flex-end; margin-top: 16px; }
+/* sub-aba é tela cheia: expande tudo, sem barra de rolagem interna */
+#expCategorias .cat-edit-list { max-height: none !important; overflow: visible !important; padding-right: 0; gap: 9px; }
+/* ícones neutros (padrão da contenção) — a cor fica no seletor de cor à direita */
+.cat-edit-ic { color: var(--ink-2); }
 
 /* ===== Aba Investimentos — PORTE DO HERO DO MOCKUP =====
    hero full-width com 5 mini-KPIs DENTRO (Lucro TWR · Dividendos · Reservas ·
@@ -223,7 +229,9 @@
 
 /* ===== Diversificação (donut) + Maiores posições — igual mockup ===== */
 .inv-diversif { display: grid; grid-template-columns: 1fr; gap: 18px; }
-@media (min-width: 1000px) { .inv-diversif { grid-template-columns: 5fr 7fr; align-items: start; } }
+@media (min-width: 1000px) { .inv-diversif { grid-template-columns: 5fr 7fr; align-items: stretch; } }
+#invDonutCard { display: flex; flex-direction: column; }
+#invDonutCard .inv-alloc { flex: 1 1 auto; }
 .inv-alloc { display: flex; align-items: center; gap: 24px; }
 .inv-donut { flex-shrink: 0; }
 .inv-leg { display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 0; }

@@ -3665,7 +3665,7 @@ async function saveBudgets() {
 // --- Gerenciar categorias (config/categories) -----------------------------
 function catRowHtml(key, label, color, iconSvg, iconKey, isDefault) {
   return `<div class="cat-edit-row" data-key="${esc(key)}" data-icon="${esc(iconKey)}" data-default="${isDefault ? '1' : '0'}">
-    <button type="button" class="cat-edit-ic" style="color:${color}" ${isDefault ? 'tabindex="-1"' : 'title="' + esc(t('cat.icon.hint')) + '"'}>${iconSvg}</button>
+    <button type="button" class="cat-edit-ic" ${isDefault ? 'tabindex="-1"' : 'title="' + esc(t('cat.icon.hint')) + '"'}>${iconSvg}</button>
     <input class="cat-edit-nm" type="text" value="${esc(label)}" maxlength="22" autocomplete="off" spellcheck="false" />
     <input class="cat-edit-co" type="color" value="${color}" title="${esc(t('cat.color.hint'))}" />
     <button type="button" class="cat-edit-del" ${isDefault ? 'hidden' : ''} title="${esc(t('cat.del.hint'))}" aria-label="${esc(t('a11y.delete'))}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
