@@ -2113,6 +2113,20 @@ function renderInvestments() {
     }
   }
 
+  // Hero mini-KPIs + 3 tiles (porte do mockup): Lucro TWR · Dividendos · Variação · Dólar
+  const _twr = +state.i10.profitTwr || 0;
+  if ($('heroTwr')) $('heroTwr').textContent = (_twr >= 0 ? '+' : '') + _twr.toFixed(1).replace('.', ',') + '%';
+  if ($('heroDiv')) $('heroDiv').textContent = fmtBRL0(+state.i10.dividends || 0);
+  if ($('heroDivYear')) $('heroDivYear').textContent = currentYear;
+  const _varPct = +state.i10.variation || 0;
+  const _varTxt = (_varPct >= 0 ? '+' : '') + _varPct.toFixed(1).replace('.', ',') + '%';
+  if ($('heroVar')) { $('heroVar').textContent = _varTxt; $('heroVar').className = 'ikpi-v ' + (_varPct >= 0 ? 'pos' : 'neg'); }
+  const _pill = $('heroMonthPill');
+  if (_pill) { if (_varPct) { _pill.hidden = false; _pill.textContent = _varTxt + ' no mês'; } else _pill.hidden = true; }
+  if ($('heroUsd')) $('heroUsd').textContent = 'US$ ' + (+state.fx.usd || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  if ($('heroUsdSub')) $('heroUsdSub').textContent = (+state.fx.usd > 0) ? (fmtBRL0(_usdBRL) + ' · cotação ' + (+state.fx.rateUSD || 0).toFixed(2).replace('.', ',')) : '';
+  if ($('heroSpark')) sparkPath($('heroSpark'), [12, 18, 15, 24, 30, 28, 36, 42, 46, 54, 60, 66], 400, 150, true);
+
   // Secondary cards
   $('i10Year').textContent = currentYear;
   $('i10Dividends').textContent = (state.i10.dividends || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });

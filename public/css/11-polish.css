@@ -200,26 +200,23 @@
 }
 #expCategorias .cat-view-foot { display: flex; justify-content: flex-end; margin-top: 16px; }
 
-/* ===== Bento da aba Investimentos (≥900px) — hero patrimônio + KPIs 2×2 lado a lado ===== */
-@media (min-width: 900px) {
-  #moduleInvestments.active {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: 16px;
-    align-items: start;
-  }
-  #moduleInvestments.active > * { grid-column: 1 / -1; margin: 0; }   /* tudo full-width por padrão */
-  #moduleInvestments.active > .hero-card { grid-column: span 7; align-self: stretch; }
-  #moduleInvestments.active > .inv-kpis {
-    grid-column: span 5;
-    align-self: stretch;
-    display: grid;
-    grid-template-columns: 1fr;   /* 4 KPIs empilhados → preenchem a altura do hero (sem branco) */
-    gap: 14px;
-    align-content: stretch;
-  }
-}
-/* Metas | Dividendos lado a lado: altura natural (o card de dividendos não estica/vaza branco) */
-@media (min-width: 1000px) {
-  #moduleInvestments .inv-side { align-items: start; }
-}
+/* ===== Aba Investimentos — PORTE DO HERO DO MOCKUP =====
+   hero full-width com 5 mini-KPIs DENTRO (Lucro TWR · Dividendos · Reservas ·
+   Previdência · Aportes) + sparkline à direita + pill "no mês"; abaixo 3 tiles
+   (Variação · Aplicado · Dólar). Volta ao flex-column do 02-layout (sem grid). */
+.inv-kpis.three { grid-template-columns: repeat(3, 1fr) !important; }
+.hero-mini-kpis { display: flex; gap: 30px; flex-wrap: wrap; margin-top: 20px; position: relative; z-index: 1; }
+.hero-mini-kpis .k { font-size: 12px; color: var(--hero-label); font-weight: 600; }
+.hero-mini-kpis .v { font-size: 18px; font-weight: 700; font-family: 'Geist Mono', monospace; margin-top: 3px; color: var(--hero-ink); }
+.hero-card { position: relative; overflow: hidden; }
+.hero-card > :not(.hero-spark):not(.hero-pill) { position: relative; z-index: 1; }
+.hero-spark { position: absolute; right: 0; bottom: 0; width: 56%; height: 70%; opacity: .5; z-index: 0; pointer-events: none; }
+.hero-spark .spk-line { stroke: var(--hero-ink) !important; stroke-width: 2.5; opacity: .8; }
+.hero-spark .spk-fill { fill: var(--hero-ink) !important; opacity: .09; }
+.hero-pill { position: absolute; top: 24px; right: 26px; z-index: 2; background: rgba(255,255,255,.16); color: var(--hero-ink); backdrop-filter: blur(8px); font-weight: 700; font-size: 13px; padding: 6px 12px; border-radius: 999px; }
+.ikpi.tile .ikpi-sub { font-size: 12.5px; color: var(--ink-2); margin-top: 7px; font-weight: 500; min-height: 1px; }
+.ikpi.tile .ikpi-v { font-size: 28px; }
+.ikpi.tile .ikpi-v.pos { color: var(--gain) !important; }
+.ikpi.tile .ikpi-v.neg { color: var(--loss) !important; }
+/* Metas | Dividendos lado a lado: altura natural (sem esticar branco) */
+@media (min-width: 1000px) { #moduleInvestments .inv-side { align-items: start; } }

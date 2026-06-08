@@ -382,6 +382,13 @@
         <div class="hero-meta-row" id="i10EquitySub">
           <div class="applied-text" data-i18n="hero.manual">Manual update</div>
         </div>
+        <div class="hero-mini-kpis">
+          <div><div class="k">Lucro (TWR)</div><div class="v" id="heroTwr">—</div></div>
+          <div><div class="k">Dividendos <span id="heroDivYear"></span></div><div class="v" id="heroDiv">R$ 0</div></div>
+          <div><div class="k" data-i18n="kpi.reserves">Reservas</div><div class="v" id="kpiReserves">R$ 0</div></div>
+          <div><div class="k" data-i18n="kpi.pension">Previdência</div><div class="v" id="kpiPension">R$ 0</div></div>
+          <div><div class="k" id="kpiContribLbl">Aportes</div><div class="v" id="kpiContrib">R$ 0</div></div>
+        </div>
         <div class="louise-chip" id="louiseChip" style="display:none" title="Carteira da Louise (filha) — acompanhada separadamente, não soma no patrimônio da casa" data-i18n-title="louise.title">
           <span class="louise-chip-heart"><svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
           <span class="louise-chip-name">Louise</span>
@@ -406,14 +413,15 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           </button>
         </div>
+        <div class="hero-pill" id="heroMonthPill" hidden></div>
+        <svg class="hero-spark" id="heroSpark" viewBox="0 0 400 150" preserveAspectRatio="none" aria-hidden="true"></svg>
       </div>
 
-      <!-- FILEIRA DE KPIs -->
-      <div class="inv-kpis">
-        <div class="card ikpi"><div class="ikpi-k">Reservas</div><div class="ikpi-v" id="kpiReserves">R$ 0</div></div>
-        <div class="card ikpi"><div class="ikpi-k">Previdência</div><div class="ikpi-v" id="kpiPension">R$ 0</div></div>
-        <div class="card ikpi"><div class="ikpi-k" id="kpiContribLbl">Aportes no ano</div><div class="ikpi-v" id="kpiContrib">R$ 0</div></div>
-        <div class="card ikpi"><div class="ikpi-k">Aplicado</div><div class="ikpi-v" id="kpiApplied">R$ 0</div></div>
+      <!-- 3 tiles abaixo do hero: Variação · Aplicado · Dólar (igual mockup) -->
+      <div class="inv-kpis three">
+        <div class="card ikpi tile"><div class="ikpi-k">Variação no mês</div><div class="ikpi-v" id="heroVar">—</div><div class="ikpi-sub" id="heroVarSub"></div></div>
+        <div class="card ikpi tile"><div class="ikpi-k">Aplicado</div><div class="ikpi-v" id="kpiApplied">R$ 0</div><div class="ikpi-sub" id="kpiAppliedSub"></div></div>
+        <div class="card ikpi tile"><div class="ikpi-k">Dólar (holdings)</div><div class="ikpi-v" id="heroUsd">US$ 0</div><div class="ikpi-sub" id="heroUsdSub"></div></div>
       </div>
 
       <div class="inv-sec">Carteira</div>
