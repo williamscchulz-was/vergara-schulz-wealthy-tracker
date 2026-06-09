@@ -1167,7 +1167,7 @@ function renderExpenseTable(entries) {
   }
 
   const sorted = [...result].sort(expCompare);
-  const TLIMIT = 6;   // mostra as primeiras N linhas; o resto fica atrás de "Ver todas" (alinha a altura com o card de categoria)
+  const TLIMIT = 8;   // mostra as primeiras N linhas; o resto fica atrás de "Ver todas" (enche o card até a altura do de categoria)
   tbody.innerHTML = sorted.map((e, i) => {
     const meta = entryMeta(e);
     const isIn = isIncome(e);
@@ -4757,12 +4757,15 @@ function subscribeAll() {
     const data = snap.data() || {};
     if (typeof data.dividendsYearlyGoal === 'number') state.dividendsYearlyGoal = data.dividendsYearlyGoal;
     if (typeof data.dividendsYearlyGoalYear === 'number') state.dividendsYearlyGoalYear = data.dividendsYearlyGoalYear;
-    // Sync theme from Firestore (cross-device)
-    if (data.theme === 'light' || data.theme === 'dark') {
+    // Tema POR USUÁRIO (cada um — W e F — tem o seu; não compartilha mais). Cross-device
+    // do MESMO usuário via themeByUser[uid]. Sem entrada = mantém a escolha local (não força).
+    const _uid = state.user && state.user.uid;
+    const _ut = (_uid && data.themeByUser && data.themeByUser[_uid]) || null;
+    if (_ut === 'light' || _ut === 'dark') {
       const current = document.documentElement.getAttribute('data-theme');
-      if (current !== data.theme) {
-        document.documentElement.setAttribute('data-theme', data.theme);
-        try { localStorage.setItem('ledger-theme', data.theme); } catch(e) {}
+      if (current !== _ut) {
+        document.documentElement.setAttribute('data-theme', _ut);
+        try { localStorage.setItem('ledger-theme', _ut); } catch(e) {}
       }
     }
     // Sync lang from Firestore
@@ -4967,9 +4970,9 @@ function toggleTheme() {
   const current = document.documentElement.getAttribute('data-theme') || 'dark';
   const next = current === 'dark' ? 'light' : 'dark';
   applyTheme(next);
-  // Persist to Firestore for cross-device sync
-  if (state.user) {
-    setDoc(docConfig, { theme: next, updatedAt: serverTimestamp() }, { merge: true }).catch(e => console.warn('theme save failed', e));
+  // Persiste POR USUÁRIO (cross-device do mesmo usuário; não afeta o tema do outro).
+  if (state.user && state.user.uid) {
+    setDoc(docConfig, { themeByUser: { [state.user.uid]: next }, updatedAt: serverTimestamp() }, { merge: true }).catch(e => console.warn('theme save failed', e));
   }
 }
 document.getElementById('btnThemeToggle')?.addEventListener('click', toggleTheme);
