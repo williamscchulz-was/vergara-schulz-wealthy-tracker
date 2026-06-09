@@ -3,7 +3,10 @@
    =========================================================== */
 .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(12px) saturate(140%); -webkit-backdrop-filter: blur(12px) saturate(140%); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
 .modal-bg.show { display: flex; animation: fadeIn 0.2s var(--ease-out); }
-.modal { background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 22px 24px; max-width: 440px; width: 100%; box-shadow: var(--shadow-lg), 0 0 60px rgba(199,247,62,0.20); animation: modalUp 0.3s var(--ease-back); max-height: 94vh; overflow-x: hidden; overflow-y: auto; position: relative; }
+.modal { background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 20px 24px; max-width: 440px; width: 100%; box-shadow: var(--shadow-lg), 0 0 60px rgba(199,247,62,0.20); animation: modalUp 0.3s var(--ease-back); max-height: 96vh; overflow-x: hidden; overflow-y: auto; position: relative; }
+/* modal de editar/nova despesa: subtítulo é redundante (o título já diz) → esconde p/ caber sem scroll em telas curtas */
+#expenseModal .sub { display: none; }
+#expenseModal .exp-type-seg { margin-bottom: 12px !important; }
 
 /* Liquid glass variant — the spinning ring + ambient glow */
 .modal.liquid::before {
@@ -33,7 +36,7 @@
 @keyframes modalUp { from { opacity: 0; transform: translateY(16px) scale(0.97); } to { opacity: 1; transform: none; } }
 .modal h3 { font-size: 18px; font-weight: 700; color: var(--ink); margin: 0 0 6px; letter-spacing: -0.01em; }
 .modal .sub { font-size: 12px; color: var(--ink-muted); margin: 0 0 14px; }
-.modal .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+.modal .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
 .modal .field { display: flex; flex-direction: column; min-width: 0; }
 .modal .field.full { grid-column: 1 / -1; }
 .modal .field[hidden] { display: none !important; }   /* o display:flex acima sobrescrevia o atributo hidden */
