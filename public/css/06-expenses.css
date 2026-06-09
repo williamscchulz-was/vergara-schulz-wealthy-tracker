@@ -556,6 +556,14 @@
 /* Abas por competência (Jan/26, Fev/26…) quando o import junta várias faturas */
 .imp-tabs { display: flex; gap: 6px; overflow-x: auto; margin: 0 0 12px; padding-bottom: 4px; scrollbar-width: thin; }
 .imp-tabs[hidden] { display: none; }
+/* Seletor do mês de pagamento da fatura (revisão de import) */
+.imp-monthsel { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0 0 12px; padding: 9px 12px; background: var(--bg-elevated); border: 1px solid var(--border-2); border-radius: 12px; }
+.imp-monthsel[hidden] { display: none; }
+.imp-monthsel-lbl { font-size: 12px; color: var(--ink-2); font-weight: 600; }
+.imp-monthsel-nav { display: inline-flex; align-items: center; gap: 4px; }
+.imp-monthsel-nav button { width: 30px; height: 30px; border-radius: 999px; border: 0; background: transparent; color: var(--ink-2); cursor: pointer; font-size: 17px; line-height: 1; transition: color .15s, background .15s; }
+.imp-monthsel-nav button:hover { color: var(--on-accent); background: var(--purple); }
+.imp-monthsel-val { min-width: 116px; text-align: center; font-weight: 700; font-size: var(--fs-body-lg); color: var(--ink); font-family: 'Geist Mono', monospace; }
 .imp-tab { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--ink-2); font-size: 12px; font-weight: 600; cursor: pointer; transition: border-color .15s var(--ease-out), color .15s var(--ease-out), background .15s var(--ease-out); white-space: nowrap; }
 .imp-tab:hover { border-color: var(--purple); color: var(--ink); }
 .imp-tab.act { background: color-mix(in oklab, var(--purple) 18%, transparent); border-color: var(--purple); color: var(--ink); }

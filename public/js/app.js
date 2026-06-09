@@ -4240,6 +4240,7 @@ async function autoSyncProventos() {
 
 let _importTxns = [];
 let _importKind = null;   // 'card' (PDF) | 'cc' (CSV) | 'i10prov' (proventos I10 ao vivo)
+let _importComp = null;   // competência (YYYY-MM) escolhida na revisão quando a fatura é de 1 mês só
 async function handleImportFiles(fileList) {
   const files = [...(fileList || [])].filter(Boolean);
   if (!files.length) return;
@@ -4260,11 +4261,20 @@ async function handleImportFiles(fileList) {
   try {
     for (const file of files) {
       const isCsv = _importKind ? (_importKind === 'cc') : (/\.csv$/i.test(file.name || '') || file.type === 'text/csv');
-      const txns = isCsv ? parseCheckingCSV(await file.text()) : parseStatement(await extractPdfLines(file));
-      // Competência por ARQUIVO (cartão): cada fatura cai no seu mês, não no mês mais recente do lote.
+      const lines = isCsv ? null : await extractPdfLines(file);
+      const txns = isCsv ? parseCheckingCSV(await file.text()) : parseStatement(lines);
+      // Competência por ARQUIVO (cartão) = MÊS DE PAGAMENTO da fatura (vencimento), não o mês
+      // da compra. A despesa do cartão pesa no orçamento quando a fatura é paga.
       if (!isCsv && txns.length && !txns[0]._compY) {   // parser do site já marca a competência; só completa se faltar
         let ym = null;
-        for (const tx of txns) { const mo = impToISO(tx.date).slice(0, 7); if (!ym || mo > ym) ym = mo; }
+        // 1) data de vencimento explícita na fatura → mês de pagamento real
+        for (const L of (lines || [])) { const v = String(L).match(/vencimento\D*(\d{2})\/(\d{2})\/(\d{4})/i); if (v) { ym = `${v[3]}-${v[2]}`; break; } }
+        // 2) fatura em aberto (sem vencimento): mês da última compra + 1 (paga no mês seguinte)
+        if (!ym) {
+          let mx = null;
+          for (const tx of txns) { const mo = impToISO(tx.date).slice(0, 7); if (!mx || mo > mx) mx = mo; }
+          if (mx) { const yy = +mx.slice(0, 4), mm = +mx.slice(5, 7); const t0 = yy * 12 + (mm - 1) + 1; ym = `${Math.floor(t0 / 12)}-${String((t0 % 12) + 1).padStart(2, '0')}`; }
+        }
         if (ym) txns.forEach(tx => { tx._compY = +ym.slice(0, 4); tx._compM = +ym.slice(5, 7); });
       }
       all.push(...txns);
@@ -4358,6 +4368,18 @@ function renderImportReview() {
   const rows = built.sort((a, b) => (compRank(a.comp) - compRank(b.comp)) || ((a.low ? 0 : 1) - (b.low ? 0 : 1)) || (a.order - b.order)).map(o => o.html).join('');
   $('importList').innerHTML = rows;
   renderImportTabs(built, comps);
+  // Seletor de mês de pagamento: aparece quando a fatura é de UM mês só (caso comum),
+  // pra confirmar/ajustar a competência (o mês em que a fatura será paga).
+  const msel = $('impMonthSel');
+  if (msel) {
+    if (comps.length === 1) {
+      _importComp = comps[0];
+      const [yy, mm] = _importComp.split('-');
+      const mn = getLang() === 'en' ? MONTH_NAMES_EN : MONTH_NAMES_PT;
+      if ($('impMonthLabel')) $('impMonthLabel').textContent = `${mn[+mm - 1]} ${yy}`;
+      msel.hidden = false;
+    } else { _importComp = null; msel.hidden = true; }
+  }
   $('importCount').textContent = _importTxns.length;
   const note = $('importLowNote');
   if (note) { if (lowN > 0) { note.textContent = ' · ' + t('imp.uncertain').replace('{n}', lowN); note.hidden = false; } else note.hidden = true; }
@@ -4394,6 +4416,19 @@ function impSetActiveMonth(comp) {
   const list = $('importList'); if (list) list.scrollTop = 0;
   impUpdateConfirm();   // atualiza o "selecionar todos" pro mês ativo
 }
+// Seletor de mês de pagamento (revisão de fatura de 1 mês): joga TODOS os lançamentos
+// pro mês escolhido — pra corrigir quando o palpite de vencimento não bate.
+function shiftImportMonth(delta) {
+  if (!_importComp) return;
+  const [yy, mm] = _importComp.split('-').map(Number);
+  const t0 = yy * 12 + (mm - 1) + delta;
+  if (t0 < 0) return;
+  const ny = Math.floor(t0 / 12), nm = (t0 % 12) + 1;
+  _importTxns.forEach(tx => { tx._compY = ny; tx._compM = nm; });
+  renderImportReview();
+}
+$('impMonthPrev')?.addEventListener('click', () => shiftImportMonth(-1));
+$('impMonthNext')?.addEventListener('click', () => shiftImportMonth(1));
 async function doImport() {
   // Segurança: sem o snapshot de despesas, o dedup não tem com o que comparar →
   // poderia duplicar. Bloqueia até carregar (na prática já carregou ao abrir o modal).
