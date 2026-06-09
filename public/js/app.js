@@ -4504,10 +4504,22 @@ async function doImport() {
       for (const d of batch.slice(i, i + 450)) wb.set(doc(colExpenses()), d);
       await wb.commit();
     }
+    // Navega a aba Despesas pro mês (competência) dos lançamentos importados — senão
+    // parece que "não subiu nada" quando a fatura é de um mês diferente do que está aberto.
+    try {
+      const comps = batch.filter(d => !d.provisioned && d.competencia).map(d => d.competencia);
+      if (comps.length) {
+        const cnt = {}; comps.forEach(c => { cnt[c] = (cnt[c] || 0) + 1; });
+        const tgt = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0];   // mês mais comum entre os lançamentos reais
+        const [yy, mm] = tgt.split('-').map(Number);
+        if (yy && mm) state.currentViewMonth = new Date(yy, mm - 1, 1);
+      }
+    } catch (_) {}
     setDoc(docImportMeta, { lastBatchId: batchId, lastCount: batch.length, lastSource: (_importKind === 'cc' ? 'conta' : 'cartao'), lastAt: serverTimestamp() }, { merge: true }).catch(() => {});
     $('importModal').classList.remove('show');   // sucesso → fecha (sob o overlay da animação)
     if (ov && !reduce) await new Promise(r => setTimeout(r, 4250));   // deixa a animação completar
     else showToast(t('imp.done').replace('{n}', batch.length));
+    if (typeof renderExpenses === 'function') try { renderExpenses(); } catch (_) {}   // já mostra o mês importado
   } catch (e) {
     console.error('[import] commit falhou', e);
     if (ov) { ov.hidden = true; ov.classList.remove('done', 'out', 'reading', 'scanning'); }   // tira a animação → revela o modal (aberto, intacto)
