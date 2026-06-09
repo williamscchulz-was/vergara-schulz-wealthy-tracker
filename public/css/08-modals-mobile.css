@@ -3,7 +3,7 @@
    =========================================================== */
 .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(12px) saturate(140%); -webkit-backdrop-filter: blur(12px) saturate(140%); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
 .modal-bg.show { display: flex; animation: fadeIn 0.2s var(--ease-out); }
-.modal { background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 28px 26px; max-width: 440px; width: 100%; box-shadow: var(--shadow-lg), 0 0 60px rgba(199,247,62,0.20); animation: modalUp 0.3s var(--ease-back); max-height: 90vh; overflow-y: auto; position: relative; }
+.modal { background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 22px 24px; max-width: 440px; width: 100%; box-shadow: var(--shadow-lg), 0 0 60px rgba(199,247,62,0.20); animation: modalUp 0.3s var(--ease-back); max-height: 94vh; overflow-x: hidden; overflow-y: auto; position: relative; }
 
 /* Liquid glass variant — the spinning ring + ambient glow */
 .modal.liquid::before {
@@ -32,17 +32,17 @@
 }
 @keyframes modalUp { from { opacity: 0; transform: translateY(16px) scale(0.97); } to { opacity: 1; transform: none; } }
 .modal h3 { font-size: 18px; font-weight: 700; color: var(--ink); margin: 0 0 6px; letter-spacing: -0.01em; }
-.modal .sub { font-size: 12px; color: var(--ink-muted); margin: 0 0 20px; }
-.modal .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.modal .field { display: flex; flex-direction: column; }
+.modal .sub { font-size: 12px; color: var(--ink-muted); margin: 0 0 14px; }
+.modal .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+.modal .field { display: flex; flex-direction: column; min-width: 0; }
 .modal .field.full { grid-column: 1 / -1; }
 .modal .field[hidden] { display: none !important; }   /* o display:flex acima sobrescrevia o atributo hidden */
-.modal .field label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin-bottom: 6px; }
-.modal input, .modal select, .modal textarea { width: 100%; padding: 11px 13px; background: var(--bg-elevated-2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--ink); font-family: 'Inter', sans-serif; font-size: 13px; transition: all 0.2s var(--ease-out); }
+.modal .field label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin-bottom: 4px; }
+.modal input, .modal select, .modal textarea { width: 100%; padding: 9px 12px; background: var(--bg-elevated-2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--ink); font-family: 'Inter', sans-serif; font-size: 13px; transition: all 0.2s var(--ease-out); }
 .modal input:focus, .modal select:focus, .modal textarea:focus { outline: none; border-color: var(--purple); background: var(--bg-elevated-3); box-shadow: 0 0 0 3px var(--purple-soft); }
 .modal select option { background: var(--bg-elevated-2); color: var(--ink); }
 .modal textarea { font-family: inherit; resize: vertical; }
-.modal .modal-foot { display: flex; align-items: center; gap: 10px; margin-top: 22px; }
+.modal .modal-foot { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
 .modal .spacer { flex: 1; }
 .btn-primary { padding: 11px 20px; background: linear-gradient(135deg, var(--purple), var(--purple-deep)); color: var(--on-accent); border: none; border-radius: var(--radius); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 14px var(--purple-glow); transition: all 0.2s var(--ease-out); letter-spacing: -0.005em; }
 .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 24px var(--purple-glow); }

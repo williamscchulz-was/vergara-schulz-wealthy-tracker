@@ -871,11 +871,11 @@ function renderExpenses() {
   // Inerte se não há templates (state.recurring vazio → [] → `all` intacto).
   const virtuals = projectRecurring(state.recurring, realThisMonth, monthKey(viewDate), monthKey(new Date()));
   const all = virtuals.length ? realThisMonth.concat(virtuals) : realThisMonth;
-  const monthExp = all.filter(e => isExpense(e) && !e.provisioned);   // provisão (parcela futura) NÃO é gasto realizado
-  const monthProv = all.filter(e => isExpense(e) && e.provisioned);   // compromisso futuro — mostrado à parte
+  // Provisão (parcela do mês) CONTA como gasto do mês — é parte da fatura paga nesse mês.
+  const monthExp = all.filter(e => isExpense(e));
   const monthIncome = all.filter(isIncome);
   const prevDate = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1);
-  const prevMonthExp = filterExpensesByMonth(prevDate).filter(e => isExpense(e) && !e.provisioned);
+  const prevMonthExp = filterExpensesByMonth(prevDate).filter(e => isExpense(e));
 
   const total = monthExp.reduce((s,e) => s + (+e.value||0), 0);
   const prevTotal = prevMonthExp.reduce((s,e) => s + (+e.value||0), 0);
@@ -898,16 +898,12 @@ function renderExpenses() {
   if (heroCurEl) heroCurEl.textContent = saldo < 0 ? '− R$' : 'R$';
   // Subline: "↑ 46k entraram · ↓ 82k saíram" — or empty state
   const heroSub = $('expHeroSub');
-  const provTotal = monthProv.reduce((s, e) => s + (+e.value || 0), 0);
   if (monthExp.length === 0 && monthIncome.length === 0) {
-    if (provTotal > 0) heroSub.innerHTML = t('exp.hero.committedonly').replace('{v}', fmtBRL0(provTotal)).replace('{n}', monthProv.length);
-    else heroSub.textContent = t('exp.hero.empty');
+    heroSub.textContent = t('exp.hero.empty');
   } else {
-    let sub = t('exp.hero.balance.sub')
+    heroSub.innerHTML = t('exp.hero.balance.sub')
       .replace('{in}', `<span class="pos">↑ ${fmtBRL0(incomeTotal)}</span>`)
       .replace('{out}', `<span class="neg">↓ ${fmtBRL0(total)}</span>`);
-    if (provTotal > 0) sub += t('exp.hero.committed').replace('{v}', fmtBRL0(provTotal));
-    heroSub.innerHTML = sub;
   }
   // Label swap "TOTAL DO MÊS" → "SALDO DO MÊS" (also honored by data-i18n)
   const heroLabelEl = document.querySelector('.exp-hero-eyebrow .label');
@@ -1175,7 +1171,7 @@ function renderExpenseTable(entries) {
   tbody.innerHTML = sorted.map((e, i) => {
     const meta = entryMeta(e);
     const isIn = isIncome(e);
-    const notes = (e.notes || '').trim();
+    const notes = (e.notes || '').replace(/\s*·\s*provis[aã]o\b/i, '').trim();   // provisão conta como gasto → sem o selo "provisão"
     const ownerChip = ownerChipHtml(e);
     const descMain = `<div class="exp-row-desc">${esc(e.description) || '—'}${ownerChip}</div>`;
     const descHtml = notes
@@ -1525,14 +1521,10 @@ function setModalNature(nat) {
     b.classList.toggle('active', on);
     b.setAttribute('aria-checked', String(on));
   });
-  // "Repetir todo mês" só aparece em despesa FIXA
+  // Fixa ⇒ repete todo mês automaticamente (sem checkbox). Mostra só o "até quando" opcional.
   const rf = $('expRepeatField');
-  if (rf) {
-    rf.hidden = _modalNature !== 'fixa';
-    if (_modalNature !== 'fixa') { const c = $('expRepeat'); if (c) c.checked = false; const w = $('expRepeatUntilWrap'); if (w) w.hidden = true; }
-  }
+  if (rf) rf.hidden = _modalNature !== 'fixa';
 }
-$('expRepeat')?.addEventListener('change', (e) => { const w = $('expRepeatUntilWrap'); if (w) w.hidden = !e.target.checked; });
 
 // Toggle the modal's internal state between expense and income. Swaps
 // title/subtitle copy and which of {category, source} fields is visible.
@@ -1670,7 +1662,7 @@ async function saveExpense() {
     // Despesa FIXA + "repetir todo mês" → cria o template de recorrência e linka o
     // lançamento (recurringId) pra ele não duplicar com a projeção deste mês.
     const editing = editingExpenseId ? (state.expenses || []).find(x => x.id === editingExpenseId) : null;
-    if (type === 'expense' && _modalNature === 'fixa' && $('expRepeat')?.checked && !(editing && editing.recurringId)) {
+    if (type === 'expense' && _modalNature === 'fixa' && !(editing && editing.recurringId)) {   // Fixa ⇒ recorrente automático
       const [yy, mm, dd] = date.split('-');
       const isCard = !!(editing && /cart|import/i.test(editing.source || ''));   // cartão herda a chave p/ casar com a fatura
       const tplRef = await addDoc(colRecurring(), {
