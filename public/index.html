@@ -188,7 +188,7 @@
           <div class="meta" data-i18n="exp.section.meta">Lançamentos e orçamento do mês</div>
         </div>
         <div class="exp-add-group">
-          <button class="btn-ghost btn-clear-imp" id="btnUndoImport" data-i18n="imp.undo" title="Desfazer o último import (sem mexer nos anteriores)" hidden>Desfazer último</button>
+          <button class="btn-ghost btn-imports" id="btnImports" data-i18n="imports.btn" title="Histórico de importações — desfaça qualquer lote" hidden>Importações</button>
           <button class="btn-ghost" id="btnImportStatement" data-i18n="imp.btn" data-i18n-title="imp.title" title="Importar fatura do cartão (PDF)">Importar fatura</button>
           <button class="btn-ghost btn-add-income" id="btnAddIncome" data-i18n="exp.new.income" title="Novo ganho">+ Ganho</button>
           <button class="btn-primary" id="btnAddExpense" data-i18n="exp.new">+ Nova despesa</button>
@@ -965,6 +965,14 @@
     </div>
   </div>
 </div>
+
+<!-- Aba/modal Importações: histórico com desfazer por lote específico -->
+<div class="modal-bg" id="importsModal"><div class="modal">
+  <h3 data-i18n="imports.title">Importações</h3>
+  <p class="sub" data-i18n="imports.sub">Histórico — desfaça qualquer lote sem mexer nos outros.</p>
+  <div class="imports-list" id="importsList"></div>
+  <div class="modal-foot"><div class="spacer"></div><button class="btn-secondary" id="importsClose" data-i18n="imports.close">Fechar</button></div>
+</div></div>
 
 <!-- Overlay de progresso/sucesso da importação -->
 <div class="imp-overlay" id="importOverlay" hidden>

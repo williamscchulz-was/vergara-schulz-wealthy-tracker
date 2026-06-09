@@ -502,13 +502,13 @@
 .exp-owner-chip {
   display: inline-flex; align-items: center; justify-content: center;
   margin-left: 8px;
-  padding: 1px 7px;
+  padding: 2px 8px;
   font-family: 'Geist Mono', monospace;
   font-size: 9.5px; font-weight: 700;
   letter-spacing: 0.04em;
-  border-radius: var(--radius-pill);
+  border-radius: 7px;
   vertical-align: middle;
-  border: 1px solid var(--border);
+  border: 0;   /* opção A: soft tinted, sem borda */
   color: var(--ink-3);
   background: var(--bg-elevated-2);
 }

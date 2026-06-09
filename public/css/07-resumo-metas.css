@@ -493,15 +493,17 @@
 .exp-row-desc { font-size: 12.5px; font-weight: 600; color: var(--ink); letter-spacing: -0.005em; }
 .exp-row-notes { margin-top: 3px; font-size: 10.5px; color: var(--ink-muted); font-family: 'Geist Mono', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 360px; }
 .exp-row-amt { text-align: right; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* Tags estilo Apple (opção A — soft tinted): fundo bem suave na cor da categoria,
+   texto/ícone na cor, sem borda, cantos macios. */
 .exp-cat-pill {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 4px 10px 4px 7px;
-  border-radius: var(--radius-pill);
-  font-size: 10.5px; font-weight: 600;
-  letter-spacing: 0.01em;
-  color: color-mix(in oklab, var(--cat-color) 85%, var(--ink));
-  background: color-mix(in oklab, var(--cat-color) 14%, transparent);
-  border: 1px solid color-mix(in oklab, var(--cat-color) 28%, transparent);
+  padding: 4px 11px 4px 9px;
+  border-radius: 8px;
+  font-size: 11.5px; font-weight: 600;
+  letter-spacing: 0.005em;
+  color: color-mix(in oklab, var(--cat-color) 90%, var(--ink));
+  background: color-mix(in oklab, var(--cat-color) 15%, transparent);
+  border: 0;
   white-space: nowrap;
 }
 .exp-cat-pill-icon { display: inline-flex; align-items: center; color: var(--cat-color); }

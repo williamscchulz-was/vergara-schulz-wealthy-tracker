@@ -361,6 +361,20 @@
    (mesmo z-index 100 + vinha antes no DOM). Sobe ele pra cima de tudo. */
 #confirmModal.modal-bg { z-index: 160 !important; }
 
+/* Aba/modal Importações — histórico com desfazer por lote */
+.imports-list { display: flex; flex-direction: column; gap: 9px; margin: 4px 0 8px; max-height: 56vh; overflow-y: auto; }
+.imports-empty { color: var(--ink-3); font-size: 13px; text-align: center; padding: 30px 10px; }
+.imports-item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-elevated-2); }
+.imports-item.is-gone { opacity: .55; }
+.imports-emoji { width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,.05); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.imports-info { flex: 1; min-width: 0; }
+.imports-t { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+.imports-m { font-size: 11.5px; color: var(--ink-3); margin-top: 1px; }
+.imports-m b { color: var(--ink-2); font-weight: 600; }
+.imports-undo { flex-shrink: 0; font: 600 12px Inter, system-ui, sans-serif; border: 1px solid color-mix(in oklab, var(--loss) 38%, transparent); color: var(--loss); background: transparent; border-radius: 9px; padding: 7px 14px; cursor: pointer; transition: background .15s, color .15s; }
+.imports-undo:hover:not([disabled]) { background: var(--loss); color: #fff; }
+.imports-undo[disabled] { opacity: .5; cursor: default; border-color: var(--border); color: var(--ink-3); }
+
 /* ===========================================================
    ESCALA TIPOGRÁFICA CANÔNICA (DS v9) — padroniza os tipos
    recorrentes pra acabar com as quase-duplicatas (12/12.5/13…).

@@ -963,7 +963,7 @@ function renderExpenses() {
   renderExpenseTable(all);
 
   renderExpensesNetWorthPill();
-  updateUndoBtn();
+  updateImportsBtn();
 }
 
 function renderCategoryBreakdown(monthExp, total) {
@@ -4130,6 +4130,67 @@ async function undoLastImport() {
 }
 
 // ============================================================
+//  ABA IMPORTAÇÕES — histórico dos imports + desfazer por lote específico
+// ============================================================
+function updateImportsBtn() {
+  const btn = $('btnImports'); if (!btn) return;
+  const m = state.importMeta || {};
+  btn.hidden = !((m.history && m.history.length) || m.lastBatchId);   // legado: mostra se há lastBatchId
+}
+function fmtImpDate(at) {
+  const ms = typeof at === 'number' ? at : (at && at.toMillis ? at.toMillis() : (at && at.seconds ? at.seconds * 1000 : 0));
+  if (!ms) return '';
+  const d = new Date(ms), p = n => String(n).padStart(2, '0');
+  return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function renderImportsList() {
+  const list = $('importsList'); if (!list) return;
+  const m = state.importMeta || {};
+  let hist = [...((m.history) || [])];
+  if (!hist.length && m.lastBatchId) hist = [{ batchId: m.lastBatchId, count: m.lastCount || 0, source: m.lastSource || 'cartao', at: m.lastAt, total: 0 }];   // legado
+  hist.reverse();   // mais recente primeiro
+  if (!hist.length) { list.innerHTML = `<div class="imports-empty">${t('imports.empty')}</div>`; return; }
+  list.innerHTML = hist.map(h => {
+    const n = (state.expenses || []).filter(e => e.batchId === h.batchId).length;
+    const isConta = h.source === 'conta', gone = n === 0;
+    const meta = `${n} ${n === 1 ? t('imports.entry') : t('imports.entries')} · ${fmtImpDate(h.at)}` + (h.total ? ` · <b class="mono">${fmtBRL(h.total)}</b>` : '');
+    return `<div class="imports-item${gone ? ' is-gone' : ''}">
+      <div class="imports-emoji">${isConta ? '🏦' : '💳'}</div>
+      <div class="imports-info"><div class="imports-t">${t(isConta ? 'imports.src.conta' : 'imports.src.cartao')}</div><div class="imports-m">${meta}</div></div>
+      <button class="imports-undo" data-batch="${esc(h.batchId)}"${gone ? ' disabled' : ''}>${gone ? t('imports.gone') : t('imports.undo')}</button>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.imports-undo[data-batch]:not([disabled])').forEach(b => b.addEventListener('click', () => confirmUndoImport(b.dataset.batch)));
+}
+function openImportsModal() { renderImportsList(); $('importsModal')?.classList.add('show'); }
+function closeImportsModal() { $('importsModal')?.classList.remove('show'); }
+function confirmUndoImport(batchId) {
+  const docs = (state.expenses || []).filter(e => e.batchId === batchId);
+  if (!docs.length) return;
+  openConfirmModal({
+    title: t('imports.undo.title'), sub: t('imports.undo.sub').replace('{n}', docs.length),
+    confirmLabel: t('imports.undo.confirm'), cancelLabel: t('exp.btn.cancel'), danger: true,
+    onConfirm: () => undoImport(batchId),
+  });
+}
+async function undoImport(batchId) {
+  const docs = (state.expenses || []).filter(e => e.batchId === batchId);
+  if (!docs.length) return;
+  try {
+    await Promise.allSettled(docs.map(e => deleteDoc(docExpense(e.id))));
+    const meta = state.importMeta || {};
+    const patch = { history: ((meta.history) || []).filter(h => h.batchId !== batchId) };
+    if (meta.lastBatchId === batchId) patch.lastBatchId = null;
+    setDoc(docImportMeta, patch, { merge: true }).catch(() => {});
+    showToast(t('imports.undo.done').replace('{n}', docs.length));
+    setTimeout(renderImportsList, 350);
+  } catch (e) { console.error('[undoImport]', e); showToast(t('toast.error.save')); }
+}
+$('btnImports')?.addEventListener('click', openImportsModal);
+$('importsClose')?.addEventListener('click', closeImportsModal);
+$('importsModal')?.addEventListener('click', e => { if (e.target.id === 'importsModal') closeImportsModal(); });
+
+// ============================================================
 //  PROVENTOS DO I10 → GANHOS (ao vivo, sem arquivo).
 //  Puxa /i10/earnings-list/<wallet> (lista detalhada), filtra os JÁ PAGOS
 //  (data de pagamento <= hoje), usa o valor LÍQUIDO (net_total_original, que
@@ -4542,7 +4603,12 @@ async function doImport() {
         if (yy && mm) state.currentViewMonth = new Date(yy, mm - 1, 1);
       }
     } catch (_) {}
-    setDoc(docImportMeta, { lastBatchId: batchId, lastCount: batch.length, lastSource: (_importKind === 'cc' ? 'conta' : 'cartao'), lastAt: serverTimestamp() }, { merge: true }).catch(() => {});
+    // Histórico de imports (últimos 15) — alimenta a aba "Importações" com undo por lote.
+    const _impSrc = (_importKind === 'cc' ? 'conta' : 'cartao');
+    const _impTotal = batch.reduce((s, d) => s + (+d.value || 0), 0);
+    const _impEntry = { batchId, count: batch.length, source: _impSrc, at: Date.now(), total: _impTotal };
+    const _impHist = [...((state.importMeta && state.importMeta.history) || []), _impEntry].slice(-15);
+    setDoc(docImportMeta, { lastBatchId: batchId, lastCount: batch.length, lastSource: _impSrc, lastAt: serverTimestamp(), history: _impHist }, { merge: true }).catch(() => {});
     $('importModal').classList.remove('show');   // sucesso → fecha (sob o overlay da animação)
     if (ov && !reduce) await new Promise(r => setTimeout(r, 4250));   // deixa a animação completar
     else showToast(t('imp.done').replace('{n}', batch.length));
@@ -4905,7 +4971,8 @@ function subscribeAll() {
   });
   unsub.importMeta = onSnapshot(docImportMeta, (snap) => {
     state.importMeta = snap.exists() ? (snap.data() || {}) : {};
-    updateUndoBtn();
+    updateImportsBtn();
+    if ($('importsModal')?.classList.contains('show')) renderImportsList();
   });
   unsub.categories = onSnapshot(docCategories, (snap) => {
     state.catConfig = snap.exists() ? (snap.data() || {}) : {};
