@@ -357,6 +357,10 @@
 .rz-goalbar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--purple-light), var(--purple)); }
 .rz-empty { color: var(--ink-3); font-size: 13px; padding: 14px 2px; }
 
+/* BUG FIX: o modal de confirmação (excluir) abria ATRÁS do modal de despesa
+   (mesmo z-index 100 + vinha antes no DOM). Sobe ele pra cima de tudo. */
+#confirmModal.modal-bg { z-index: 160 !important; }
+
 /* ===========================================================
    ESCALA TIPOGRÁFICA CANÔNICA (DS v9) — padroniza os tipos
    recorrentes pra acabar com as quase-duplicatas (12/12.5/13…).

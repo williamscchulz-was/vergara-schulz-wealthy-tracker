@@ -369,6 +369,12 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 
 ## 9. Workflow de entrega
 
+> ⚠️ **REGRA CRÍTICA — MÚLTIPLAS MÁQUINAS.** Este projeto é editado pelo dono (William) usando Claude Code em **MAIS DE UM computador**. Portanto, em TODA sessão:
+> - **SEMPRE** assuma que o repositório pode ter mudanças feitas em outra máquina.
+> - **ANTES de começar a trabalhar:** `git fetch` + `git pull`. Se houver divergência, **avise o dono antes de mesclar**.
+> - **DEPOIS de qualquer mudança relevante:** `git add` + `git commit` + `git push origin main`. O trabalho só está salvo de verdade **quando está no GitHub**.
+> - `firebase deploy` publica o site mas **NÃO** envia o código pro GitHub. **Deploy ≠ push.** Nunca confie só no deploy pra preservar o código-fonte.
+
 1. **Conversa → plano.** Tarefas não-triviais começam com a gente alinhando escopo em texto antes de qualquer edit. Se for mudança UI, descrever o comportamento esperado e validar.
 2. **Sempre no `main`, direto.** O projeto tem uma única branch ativa — `main`. Nada de worktrees isoladas, nada de branch `claude/<task>`, nada de PR com merge imediato. Commits pequenos, `git add` + `git commit` + `git push origin main`. Se houver um `.claude/worktrees/` no repo, é estado residual do início do projeto — ignorar, não operar ali. Quem está editando são os dois donos do repo; a única pessoa que o review protegeria é si mesmo, e o custo da cerimônia não compensa.
 3. **Commits pequenos e descritivos.** Mensagem em inglês, 1-2 sentenças, foco no "porquê". Co-author do Claude incluído quando a task foi de fato assistida (formato padrão do `/commit`).
