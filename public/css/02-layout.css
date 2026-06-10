@@ -10,7 +10,7 @@
 .inv-main, .inv-charts { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
 .inv-main > .card { order: -1; }   /* carteira sempre primeiro (mobile e desktop) */
 .inv-side { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-.inv-kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.inv-kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-3); }
 .ikpi { padding: 15px 17px; }
 .ikpi-k { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); font-weight: 700; }
 .ikpi-v { font-family: 'Geist Mono', monospace; font-size: 21px; font-weight: 600; letter-spacing: -.02em; color: var(--ink); margin-top: 10px; }
@@ -46,7 +46,7 @@
 .hero-card .btn-ghost { color: var(--hero-ink) !important; border-color: rgba(255,255,255,.18) !important; background: rgba(255,255,255,.07) !important; }
 .hero-card .btn-ghost.primary { background: var(--purple) !important; color: var(--on-accent) !important; border-color: transparent !important; }
 /* rótulos de seção — separam os blocos (hierarquia) */
-.inv-sec { display: flex; align-items: center; gap: 12px; margin: 6px 2px -4px; font-size: var(--fs-micro); font-weight: 700; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-3); }
+.inv-sec { display: flex; align-items: center; gap: var(--sp-3); margin: 6px 2px -4px; font-size: var(--fs-micro); font-weight: 700; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-3); }
 .inv-sec::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
 /* ===========================================================
@@ -59,7 +59,7 @@
   margin-bottom: 24px;
   animation: fadeIn 0.5s var(--ease-out);
 }
-.brand { display: flex; align-items: center; gap: 12px; }
+.brand { display: flex; align-items: center; gap: var(--sp-3); }
 .brand-mark {
   width: 36px; height: 36px;
   border-radius: 10px;
@@ -102,12 +102,12 @@
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
-  padding: 4px;
+  padding: var(--sp-1);
   margin-bottom: 24px;
   position: relative;
 }
 .mode-switch button {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: var(--sp-2);
   padding: 8px 18px;
   background: transparent;
   border: none;

@@ -13,7 +13,7 @@
 .card:hover { border-color: var(--border-strong); transform: translateY(-1px); box-shadow: var(--shadow-lg); }
 
 .card-head {
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-4);
   margin-bottom: 18px;
 }
 .eyebrow {
@@ -76,7 +76,7 @@
 .hero-eyebrow .label { font-size: var(--fs-micro); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); }
 
 .hero-amount {
-  display: flex; align-items: baseline; gap: 8px;
+  display: flex; align-items: baseline; gap: var(--sp-2);
   font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 1;
@@ -96,7 +96,7 @@
   display: flex;
   align-items: baseline;
   gap: 6px;
-  letter-spacing: 0.3px;
+  letter-spacing: .03em;
   position: relative;
   z-index: 1;
 }
@@ -119,7 +119,7 @@
 .applied-text b { color: var(--ink-2); font-weight: 600; }
 
 .hero-actions {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap;
   padding-top: 18px;
   border-top: 1px solid var(--border);
   position: relative; z-index: 1;
@@ -155,7 +155,7 @@
 .btn-ghost:active { transform: scale(0.97); }
 .btn-ghost svg { width: 13px; height: 13px; transition: transform 0.3s var(--ease-back); }
 .btn-ghost:hover svg { transform: scale(1.1); }
-.btn-ghost.icon { padding: 8px; }
+.btn-ghost.icon { padding: var(--sp-2); }
 .btn-ghost.primary { background: linear-gradient(135deg, var(--purple), var(--purple-deep)); border-color: transparent; color: var(--on-accent); box-shadow: 0 4px 14px var(--purple-glow); }
 .btn-ghost.primary:hover { box-shadow: 0 8px 24px var(--purple-glow); transform: translateY(-1px); }
 .btn-ghost:disabled { opacity: 0.5; cursor: wait; }
@@ -163,7 +163,7 @@
 /* ===========================================================
    YTD DUAL
    =========================================================== */
-.ytd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.ytd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-6); }
 .ytd-block { padding: 4px 0; }
 .ytd-lbl { font-size: var(--fs-micro); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin-bottom: 12px; }
 .ytd-num { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }

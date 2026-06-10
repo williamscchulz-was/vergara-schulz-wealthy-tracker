@@ -1,7 +1,7 @@
 /* ===========================================================
    CARTEIRA AGRUPADA (categorias)
    =========================================================== */
-.cat-list { display: flex; flex-direction: column; gap: 4px; }
+.cat-list { display: flex; flex-direction: column; gap: var(--sp-1); }
 .cat-row {
   display: grid;
   grid-template-columns: 36px 1fr auto auto 18px;

@@ -89,23 +89,23 @@
 .status-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
 .g-sliders { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 22px; }
 .g-sl { display: flex; flex-direction: column; gap: 6px; }
-.g-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.g-top { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-2); }
 .g-name { font-size: var(--fs-micro); color: var(--ink-3); font-weight: 500; }
 .g-val { font-family: 'Geist Mono', monospace; font-size: var(--fs-caption); font-weight: 700; color: var(--purple-light); }
 .g-sl input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: var(--bg-elevated-3); border-radius: 2px; outline: none; cursor: pointer; }
 .g-sl input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: var(--purple-light); border: 2px solid var(--bg-elevated); border-radius: 50%; cursor: pointer; box-shadow: 0 0 0 1px var(--purple), 0 4px 8px var(--purple-glow); transition: transform 0.2s var(--ease-back); }
 .g-sl input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 .g-sl input[type=range]::-moz-range-thumb { width: 16px; height: 16px; background: var(--purple-light); border: 2px solid var(--bg-elevated); border-radius: 50%; cursor: pointer; box-shadow: 0 0 0 1px var(--purple), 0 4px 8px var(--purple-glow); }
-@media (max-width: 600px) { .g-sliders { grid-template-columns: 1fr; gap: 16px; } }
+@media (max-width: 480px) { .g-sliders { grid-template-columns: 1fr; gap: var(--sp-4); } }
 
 /* ========== GOAL CARD — Option C (compact list) ========== */
-.goal-c-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+.goal-c-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--sp-4); margin-bottom: 18px; }
 .goal-c-title { font-size: var(--fs-value-lg); font-weight: 700; letter-spacing: -0.5px; line-height: 1.1; margin-top: 6px; color: var(--ink); }
 .goal-c-title-sub { font-size: var(--fs-body); color: var(--ink-3); font-weight: 400; margin-left: 8px; }
 .goal-c-list { display: flex; flex-direction: column; }
-.goal-c-row { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--border); gap: 16px; }
+.goal-c-row { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--border); gap: var(--sp-4); }
 .goal-c-row:last-child { border-bottom: none; }
-.goal-c-row .k { font-size: var(--fs-micro); color: var(--ink-muted); letter-spacing: 1.4px; text-transform: uppercase; font-weight: 600; font-family: 'Geist Mono', monospace; flex-shrink: 0; }
+.goal-c-row .k { font-size: var(--fs-micro); color: var(--ink-muted); letter-spacing: .09em; text-transform: uppercase; font-weight: 600; font-family: 'Geist Mono', monospace; flex-shrink: 0; }
 .goal-c-row .v { font-size: 16px; font-weight: 600; color: var(--ink); font-family: 'Geist Mono', monospace; text-align: right; }
 .goal-c-row .v small { font-size: var(--fs-micro); color: var(--ink-3); font-weight: 400; margin-left: 6px; font-family: 'Inter', sans-serif; }
 .goal-c-acc { border-top: 1px solid var(--border); margin-top: 4px; }
@@ -145,7 +145,7 @@
 .g-sl {
   display: flex !important;
   flex-direction: column !important;
-  gap: 4px !important;
+  gap: var(--sp-1) !important;
   background: var(--bg-elevated) !important;
   padding: 14px 16px !important;
   border: none !important;
@@ -163,7 +163,7 @@
 }
 .g-sl .g-name {
   font-size: 10px !important;
-  letter-spacing: 1px !important;
+  letter-spacing: .09em !important;
   text-transform: uppercase !important;
   color: var(--text-faint) !important;
   order: 1;
@@ -215,7 +215,7 @@
 }
 .stats-c-primary .lbl {
   font-size: 9px;
-  letter-spacing: 1.5px;
+  letter-spacing: .09em;
   text-transform: uppercase;
   color: var(--purple-light);
   opacity: .8;
@@ -255,7 +255,7 @@
 }
 .stats-c-cell .lbl {
   font-size: 8.5px;
-  letter-spacing: 1.2px;
+  letter-spacing: .09em;
   text-transform: uppercase;
   color: var(--text-faint);
   margin-bottom: 4px;
@@ -375,7 +375,7 @@
 .yearly-table tbody tr {
   display: grid !important;
   grid-template-columns: 44px 1fr 1fr 48px 62px;
-  gap: 8px;
+  gap: var(--sp-2);
   align-items: center;
   padding: 13px 0 !important;
   border-bottom: 1px solid var(--border);
@@ -384,7 +384,7 @@
 }
 .yearly-table thead tr {
   font-size: 9px;
-  letter-spacing: 1px;
+  letter-spacing: .09em;
   text-transform: uppercase;
   color: var(--ink-muted);
 }
@@ -403,7 +403,7 @@
 
 /* v8 Turno 6 — range toggle for bar charts */
 .range-toggle {
-  display: flex; gap: 4px;
+  display: flex; gap: var(--sp-1);
   background: rgba(0,0,0,.2); padding: 3px; border-radius: 999px;
   border: 1px solid var(--border-soft);
   flex-shrink: 0;
@@ -413,7 +413,7 @@
   font-size: 10px; font-weight: 600; padding: 4px 10px;
   border-radius: 999px; cursor: pointer;
   font-family: 'Geist Mono', monospace;
-  letter-spacing: .5px;
+  letter-spacing: .04em;
   transition: all .2s ease;
 }
 .range-toggle button.active { background: var(--purple); color: var(--on-accent); }
@@ -430,13 +430,13 @@
   margin-top: 10px;
   font-family: 'Geist Mono', monospace;
   font-size: var(--fs-micro); color: var(--pink-light);
-  letter-spacing: .2px;
+  letter-spacing: .02em;
   max-width: 100%; white-space: nowrap; overflow: hidden;
   text-overflow: ellipsis;
   align-self: flex-start;
 }
 .louise-chip-heart { color: var(--pink); font-size: var(--fs-micro); flex-shrink: 0; }
-.louise-chip-name { font-weight: 700; letter-spacing: 1px; text-transform: uppercase; font-size: 10px; }
+.louise-chip-name { font-weight: 700; letter-spacing: .09em; text-transform: uppercase; font-size: 10px; }
 .louise-chip-sep { color: var(--text-faint); opacity: .6; }
 .louise-chip-val { color: var(--pink-light); font-weight: 600; }
 .louise-chip-var { font-weight: 700; }

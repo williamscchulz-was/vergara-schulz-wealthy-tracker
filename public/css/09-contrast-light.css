@@ -29,17 +29,17 @@
 .cat-icon.reserve-icon { background: color-mix(in oklab, var(--purple) 15%, transparent) !important; color: var(--purple-light) !important; }
 .cat-row.reserve-row .cat-chevron { transition: transform 0.25s var(--ease-out); color: var(--ink-muted); }
 .cat-row.reserve-row.expanded .cat-chevron { transform: rotate(180deg); color: var(--purple-light); }
-.reserve-expanded { display: none; padding: 8px 0 10px 56px; flex-direction: column; gap: 8px; }
+.reserve-expanded { display: none; padding: 8px 0 10px 56px; flex-direction: column; gap: var(--sp-2); }
 .reserve-expanded.open { display: flex; }
 .res-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-elevated-2); border: 1px solid var(--border); border-radius: 10px; transition: all 0.18s var(--ease-out); }
 .res-item:hover { border-color: color-mix(in oklab, var(--purple) 30%, transparent); }
 .res-name { font-size: var(--fs-body); color: var(--ink-2); font-weight: 500; }
 .res-val { font-family: 'Geist Mono', monospace; font-size: var(--fs-body); font-weight: 600; color: var(--ink); }
 .res-val.empty { color: var(--ink-muted); font-weight: 400; font-style: italic; }
-.res-actions { display: flex; gap: 8px; align-items: center; }
+.res-actions { display: flex; gap: var(--sp-2); align-items: center; }
 .res-edit { width: 26px; height: 26px; border-radius: 7px; background: transparent; border: 1px solid var(--border-2); color: var(--ink-3); cursor: pointer; display: grid; place-items: center; transition: all 0.18s var(--ease-out); }
 .res-edit:hover { border-color: color-mix(in oklab, var(--purple) 45%, transparent); color: var(--purple-light); }
-.res-add { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: transparent; border: 1px dashed var(--border-2); color: var(--ink-3); border-radius: 10px; font-size: var(--fs-caption); cursor: pointer; justify-content: center; font-family: inherit; transition: all 0.18s var(--ease-out); }
+.res-add { display: flex; align-items: center; gap: var(--sp-2); padding: 10px 14px; background: transparent; border: 1px dashed var(--border-2); color: var(--ink-3); border-radius: 10px; font-size: var(--fs-caption); cursor: pointer; justify-content: center; font-family: inherit; transition: all 0.18s var(--ease-out); }
 .res-add:hover { border-color: color-mix(in oklab, var(--purple) 45%, transparent); color: var(--purple-light); }
 
 /* Private pension — same expandable pattern + same palette as reserves now */
@@ -51,12 +51,12 @@
 .fx-extra {
   font-family: 'Geist Mono', monospace;
   font-size: 10px; color: var(--usd); margin-top: 4px;
-  display: flex; gap: 8px; align-items: center;
+  display: flex; gap: var(--sp-2); align-items: center;
 }
 .fx-rate-chip {
   font-size: 8.5px; padding: 2px 6px; border-radius: 6px;
   background: var(--usd-bg); border: 1px solid var(--usd-strong);
-  letter-spacing: .3px;
+  letter-spacing: .03em;
 }
 .fx-edit-btn {
   width: 30px; height: 30px; border-radius: 8px;
@@ -70,7 +70,7 @@
 .fx-add-hint {
   display: block; width: 100%;
   background: transparent; border: 1px dashed var(--usd-strong);
-  color: var(--usd); font-size: var(--fs-caption); padding: 12px;
+  color: var(--usd); font-size: var(--fs-caption); padding: var(--sp-3);
   border-radius: 12px; margin-top: 10px; cursor: pointer;
   font-family: 'Inter', sans-serif; font-weight: 500;
   transition: all .15s ease;
@@ -83,4 +83,4 @@
   border: 1px solid var(--usd-strong); border-radius: 10px;
 }
 .fx-modal-rate b { color: var(--usd); font-weight: 700; }
-.fx-modal-rate-date { display: block; font-size: 9px; color: var(--text-faint); margin-top: 3px; letter-spacing: .3px; }
+.fx-modal-rate-date { display: block; font-size: 9px; color: var(--text-faint); margin-top: 3px; letter-spacing: .03em; }

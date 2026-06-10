@@ -1,7 +1,7 @@
 /* ===========================================================
    EXPENSES MODULE
    =========================================================== */
-.section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); flex-wrap: wrap; margin-bottom: 20px; }
 .section-head h2 { font-size: var(--fs-value-lg); font-weight: 700; letter-spacing: -0.02em; color: var(--ink); margin: 0; }
 .section-head .meta { font-size: var(--fs-caption); color: var(--ink-muted); }
 .exp-hero {
@@ -32,7 +32,7 @@
 .exp-hero-eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
 .exp-hero-eyebrow .live-dot { background: var(--purple-light); box-shadow: 0 0 12px var(--purple-glow); }
 .exp-hero .label { font-size: var(--fs-micro); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); }
-.exp-hero .amt { display: flex; align-items: baseline; gap: 8px; font-weight: 700; color: var(--ink); letter-spacing: -0.03em; line-height: 1; margin-bottom: 8px; }
+.exp-hero .amt { display: flex; align-items: baseline; gap: var(--sp-2); font-weight: 700; color: var(--ink); letter-spacing: -0.03em; line-height: 1; margin-bottom: 8px; }
 .exp-hero .amt .cur { font-size: 20px; color: var(--ink-3); font-weight: 600; }
 .exp-hero .amt #expHeroAmt { font-size: clamp(36px, 4.8vw, 56px); font-variant-numeric: tabular-nums; font-family: 'Geist Mono', monospace; }
 .exp-hero .amt-sub { font-size: var(--fs-micro); color: var(--ink-muted); font-family: 'Geist Mono', monospace; letter-spacing: 0.02em; }
@@ -75,13 +75,13 @@
 .exp-empty h4 { font-size: var(--fs-body); font-weight: 600; color: var(--ink-2); margin: 0 0 6px; letter-spacing: -0.01em; }
 .exp-empty p { font-size: var(--fs-micro); margin: 0; font-family: 'Geist Mono', monospace; color: var(--ink-muted); }
 .month-nav {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: var(--sp-2);
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-pill);
-  padding: 4px;
+  padding: var(--sp-1);
   box-shadow: inset 0 1px 0 var(--glass-highlight);
 }
 .month-nav button { width: 34px; height: 34px; border-radius: 50%; background: transparent; border: none; color: var(--ink-2); font-size: var(--fs-value); cursor: pointer; display: grid; place-items: center; font-family: inherit; transition: all 0.2s var(--ease-out); }
@@ -115,7 +115,7 @@
 .stat .val .pos, .stat .val span.pos { color: var(--gain); }
 .stat .val .neg, .stat .val span.neg { color: var(--loss); }
 .stat .sub { font-size: 10px; color: var(--ink-muted); margin-top: 8px; font-family: 'Geist Mono', monospace; letter-spacing: 0.02em; }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); margin-bottom: 16px; }
 
 /* ---- Category breakdown (v8) ---- */
 #catList { display: flex; flex-direction: column; gap: 14px; }
@@ -126,7 +126,7 @@
 /* Despesa fixa (recorrente) projetada: badge + linha levemente distinta */
 .exp-fixa-badge { display: inline-block; margin-left: 6px; font: 600 9px Inter, sans-serif; text-transform: uppercase; letter-spacing: .05em; color: var(--purple); background: var(--purple-soft); border: 1px solid var(--purple); border-radius: 5px; padding: 1px 5px; vertical-align: middle; white-space: nowrap; }
 .exp-table tr.is-recurring { opacity: .9; }
-.exp-repeat-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: var(--fs-body); color: var(--ink-2); user-select: none; }
+.exp-repeat-toggle { display: flex; align-items: center; gap: var(--sp-2); cursor: pointer; font-size: var(--fs-body); color: var(--ink-2); user-select: none; }
 .exp-repeat-toggle input { width: 15px; height: 15px; accent-color: var(--purple); margin: 0; }
 .exp-cat-row {
   display: grid;
@@ -208,7 +208,7 @@
   margin-top: 18px;
   padding-top: 16px;
   border-top: 1px dashed var(--border);
-  display: flex; flex-direction: column; gap: 8px;
+  display: flex; flex-direction: column; gap: var(--sp-2);
 }
 .exp-budget-total[hidden] { display: none; }
 .exp-budget-total-head {
@@ -239,16 +239,16 @@
 .exp-budget-total.over .exp-budget-total-head .v { color: var(--loss); }
 
 /* Card head needs to align budget btn */
-.card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3); }
 
 /* Budget edit modal */
 .budget-modal { max-width: 520px; }
-.budget-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; max-height: 52vh; overflow-y: auto; padding-right: 4px; }
+.budget-list { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: 10px; max-height: 52vh; overflow-y: auto; padding-right: 4px; }
 .budget-row {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 12px;
+  gap: var(--sp-3);
   padding: 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -318,7 +318,7 @@
 .exp-daily-chart { margin: 14px 0 8px; }
 .exp-daily-footer {
   display: flex; align-items: baseline; justify-content: space-between;
-  gap: 12px;
+  gap: var(--sp-3);
   padding-top: 12px;
   border-top: 1px dashed var(--border);
   font-family: 'Geist Mono', monospace;
@@ -362,7 +362,7 @@
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 12px;
+  gap: var(--sp-3);
   padding: 12px 10px;
   border-bottom: 1px solid var(--border);
   border-radius: 8px;
@@ -403,8 +403,8 @@
 /* Income/expense toggle at the top of the expense modal */
 .exp-type-toggle {
   display: inline-flex;
-  gap: 4px;
-  padding: 4px;
+  gap: var(--sp-1);
+  padding: var(--sp-1);
   margin-bottom: 16px;
   background: var(--bg-elevated-2);
   border: 1px solid var(--border);
@@ -436,7 +436,7 @@
 }
 
 /* Header group: + Ganho (secondary) next to + Nova despesa (primary) */
-.exp-add-group { display: inline-flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.exp-add-group { display: inline-flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; }
 .btn-ghost.btn-add-income {
   display: inline-flex; align-items: center; gap: 2px;
   padding: 9px 15px;
@@ -460,8 +460,8 @@
 .exp-owner-seg {
   display: inline-grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 4px;
-  padding: 4px;
+  gap: var(--sp-1);
+  padding: var(--sp-1);
   background: var(--bg-elevated-2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -493,7 +493,7 @@
 .exp-owner-opt[data-owner="louise"].active  { color: #7ee29a; background: color-mix(in oklab, #30d158 14%, transparent); border-color: color-mix(in oklab, #30d158 32%, transparent); }
 .exp-owner-opt[data-owner="familia"].active { color: var(--purple-light); background: var(--purple-soft); border: 1px solid color-mix(in oklab, var(--purple) 32%, transparent); }
 /* Fixa × Variável picker (mesmo visual do owner) */
-.exp-nat-seg { display: inline-grid; grid-template-columns: repeat(2, 1fr); gap: 4px; padding: 4px; background: var(--bg-elevated-2); border: 1px solid var(--border); border-radius: var(--radius); width: 100%; }
+.exp-nat-seg { display: inline-grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-1); padding: var(--sp-1); background: var(--bg-elevated-2); border: 1px solid var(--border); border-radius: var(--radius); width: 100%; }
 .exp-nat-opt { padding: 9px 10px; background: transparent; border: none; color: var(--ink-3); font-family: inherit; font-size: var(--fs-caption); font-weight: 600; border-radius: calc(var(--radius) - 6px); cursor: pointer; transition: all 0.18s var(--ease-out); }
 .exp-nat-opt:hover { color: var(--ink-2); background: var(--bg-elevated-3); }
 .exp-nat-opt.active { color: var(--purple-light); background: var(--purple-soft); border: 1px solid color-mix(in oklab, var(--purple) 32%, transparent); }
@@ -525,7 +525,7 @@
 .btn-clear-imp.danger-armed { color: #fff; background: var(--loss); border-color: var(--loss); }
 /* Gerenciar categorias */
 .cat-modal { max-width: min(560px, 94vw); }
-.cat-edit-list { display: flex; flex-direction: column; gap: 8px; max-height: 52vh; overflow-y: auto; margin: 6px 0 12px; padding-right: 4px; }
+.cat-edit-list { display: flex; flex-direction: column; gap: var(--sp-2); max-height: 52vh; overflow-y: auto; margin: 6px 0 12px; padding-right: 4px; }
 .cat-edit-row { display: grid; grid-template-columns: 38px 1fr 38px 32px; gap: 10px; align-items: center; }
 .cat-edit-ic { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 11px; border: 1px solid var(--border); background: var(--bg-elevated); cursor: default; padding: 0; transition: border-color .15s, transform .15s; }
 .cat-edit-row[data-default="0"] .cat-edit-ic { cursor: pointer; }
@@ -539,10 +539,10 @@
 .cat-edit-co::-moz-color-swatch { border: none; border-radius: 8px; }
 .cat-edit-del { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 9px; border: 1px solid transparent; background: transparent; color: var(--ink-3); cursor: pointer; transition: color .15s, background .15s; }
 .cat-edit-del:hover { color: var(--loss); background: color-mix(in oklab, var(--loss) 12%, transparent); }
-.cat-add-btn { width: 100%; justify-content: center; gap: 8px; border-style: dashed; margin-bottom: 4px; }
+.cat-add-btn { width: 100%; justify-content: center; gap: var(--sp-2); border-style: dashed; margin-bottom: 4px; }
 /* Seletor de origem do import */
 .imp-type-modal { max-width: min(440px, 94vw); }
-.imp-type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 10px 0 4px; }
+.imp-type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); margin: 10px 0 4px; }
 @media (max-width: 480px) { .imp-type-grid { grid-template-columns: 1fr; } }
 .imp-type-opt { display: flex; flex-direction: column; align-items: center; gap: 9px; padding: 24px 14px; border-radius: 16px; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--ink-2); cursor: pointer; transition: .18s var(--ease-out); }
 .imp-type-opt:hover { border-color: var(--purple); color: var(--ink); transform: translateY(-2px); box-shadow: 0 14px 30px -18px color-mix(in oklab, var(--purple) 60%, transparent); }
@@ -557,10 +557,10 @@
 .imp-tabs { display: flex; gap: 6px; overflow-x: auto; margin: 0 0 12px; padding-bottom: 4px; scrollbar-width: thin; }
 .imp-tabs[hidden] { display: none; }
 /* Seletor do mês de pagamento da fatura (revisão de import) */
-.imp-monthsel { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0 0 12px; padding: 9px 12px; background: var(--bg-elevated); border: 1px solid var(--border-2); border-radius: 12px; }
+.imp-monthsel { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; margin: 0 0 12px; padding: 9px 12px; background: var(--bg-elevated); border: 1px solid var(--border-2); border-radius: 12px; }
 .imp-monthsel[hidden] { display: none; }
 .imp-monthsel-lbl { font-size: var(--fs-caption); color: var(--ink-2); font-weight: 600; }
-.imp-monthsel-nav { display: inline-flex; align-items: center; gap: 4px; }
+.imp-monthsel-nav { display: inline-flex; align-items: center; gap: var(--sp-1); }
 .imp-monthsel-nav button { width: 30px; height: 30px; border-radius: 999px; border: 0; background: transparent; color: var(--ink-2); cursor: pointer; font-size: 17px; line-height: 1; transition: color .15s, background .15s; }
 .imp-monthsel-nav button:hover { color: var(--on-accent); background: var(--purple); }
 .imp-monthsel-val { min-width: 116px; text-align: center; font-weight: 700; font-size: var(--fs-body-lg); color: var(--ink); font-family: 'Geist Mono', monospace; }
