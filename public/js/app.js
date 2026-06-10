@@ -1105,7 +1105,14 @@ function renderRecentList(entries) {
 // on the same dataset without re-querying state.
 let _lastMonthExp = [];
 let _expSearchQuery = '';
-let _expFilters = { cat: '', owner: '', nature: '' };
+let _expFilters = { cat: '', owner: '', nature: '', src: '' };
+// Origem do lançamento (filtro Cartão × Pix/Conta × Manual, pedido do dono)
+function entrySourceKind(e) {
+  const s = String(e.source || '');
+  if (/cartao/.test(s)) return 'cartao';
+  if (/conta|i10/.test(s)) return 'conta';
+  return 'manual';
+}
 // Repovoa o dropdown de Categoria do filtro a partir do CATEGORIES vivo.
 function populateExpFilterCat() {
   const sel = $('expFilterCat'); if (!sel) return;
@@ -1149,11 +1156,12 @@ function renderExpenseTable(entries) {
       })
     : entries;
 
-  // Filtros (categoria / pessoa / tipo) — combinam com a busca de texto
-  const fc = _expFilters.cat, fo = _expFilters.owner, ft = _expFilters.nature;
+  // Filtros (categoria / pessoa / tipo / origem) — combinam com a busca de texto
+  const fc = _expFilters.cat, fo = _expFilters.owner, ft = _expFilters.nature, fsrc = _expFilters.src;
   let result = filtered;
   if (fc) result = result.filter(e => (e.category || 'outros') === fc);
   if (fo) result = result.filter(e => (e.owner === 'joint' ? 'familia' : (e.owner || 'familia')) === fo);
+  if (fsrc) result = result.filter(e => entrySourceKind(e) === fsrc);
   // Sub-aba Ganhos = só ganhos; senão DESPESAS por padrão (ganhos via filtro "Ganho").
   if (state.expSub === 'ganhos' || ft === 'ganho') result = result.filter(e => isIncome(e));
   else {
@@ -3905,11 +3913,12 @@ document.addEventListener('keydown', (e) => {
   if (s && s.offsetParent) { e.preventDefault(); s.focus(); }
 });
 // Filtros da listagem (categoria / pessoa / tipo)
-['expFilterCat', 'expFilterOwner'].forEach(id => {
+['expFilterCat', 'expFilterOwner', 'expFilterSource'].forEach(id => {
   $(id)?.addEventListener('change', e => {
     const v = e.target.value;
     if (id === 'expFilterCat') _expFilters.cat = v;
-    else _expFilters.owner = v;
+    else if (id === 'expFilterOwner') _expFilters.owner = v;
+    else _expFilters.src = v;
     e.target.classList.toggle('on', !!v);
     renderExpenseTable(_lastMonthExp);
   });
@@ -4122,13 +4131,38 @@ function parseStatementFlat(lines) {
   // conversão de moeda estrangeira (linha própria — duplicaria a compra), cashback/ajuste/rotativo.
   const SKIP = /(SALDO ANTERIOR|SALDO ATUAL|PAGAMENTO|PAGTO|\bTOTAL\b|ENCARGOS|\bJUROS\b|ANUIDADE|\bIOF\b|MULTA|LIMITE|SEGURO|TARIFA|MENSALIDAD|CASHBACK|AJUSTE|DOLAR|D[OÓ]LAR|CONVERS|COTACAO|REPASSE|PROTEC|ASSIST|ROTATIV)/i;
   const moneyAll = (s) => s.match(/-?\d{1,3}(?:\.\d{3})*,\d{2}/g) || [];
-  for (const L of lines) {
+  const clean = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+  // Linha "órfã" = continuação de descrição que o PDF quebrou ("MULH 2/12", "1/2",
+  // "AMOBELEZA *AMOBELEZA"): curta, sem data, sem titular, sem ruído e sem valor.
+  const isOrphan = (s) => !!s && s.length <= 42 && !DATE.test(s) && !HOLDER.test(s) && !SKIP.test(s) && moneyAll(s).length === 0 && /[A-Za-zÀ-ÿ0-9]/.test(s);
+  const used = new Set();   // índices já anexados a outra linha
+  const extractInst = (d) => {
+    const pm = d.match(/(?:\bPARC(?:ELA)?\.?\s*)?\b(\d{1,2})\s*(?:\/|\s+DE\s+)\s*(\d{1,2})\s*$/i)
+            || d.match(/\bPARC(?:ELA)?\.?\s*(\d{1,2})\s*(?:\/|\s+DE\s+)\s*(\d{1,2})\b/i);
+    if (!pm) return null;
+    const k = +pm[1], tot = +pm[2];
+    if (k >= 1 && tot >= 2 && k <= tot && tot <= 72) return { inst: k + '/' + tot, rest: d.replace(pm[0], ' ').replace(/[()]/g, ' ').replace(/\s+/g, ' ').trim() };
+    return null;
+  };
+  for (let i = 0; i < lines.length; i++) {
+    if (used.has(i)) continue;
+    const L = lines[i];
     const h = L.match(HOLDER);
-    if (h) { holder = h[1].replace(/\s+/g, ' ').trim().toUpperCase(); continue; }
+    if (h) { holder = clean(h[1]).toUpperCase(); continue; }
     const m = L.match(DATE);
     if (!m) continue;
-    let rest = m[2].replace(/\s+/g, ' ').trim();
+    let rest = clean(m[2]);
     if (!rest || SKIP.test(rest)) continue;
+    // BUGFIX (dono, jun/2026): o PDF quebra descrições compridas em 2+ linhas —
+    // a linha datada ficava sem valor (ou sem descrição → "—") e a parcela sumia.
+    // (a) sem valor na linha da data → anexa as linhas seguintes até achar o valor
+    let j = i;
+    while (moneyAll(rest).length === 0 && j + 1 < lines.length) {
+      const nx = clean(lines[j + 1]);
+      if (!nx || DATE.test(nx) || HOLDER.test(nx) || SKIP.test(nx)) break;
+      rest += ' ' + nx; used.add(j + 1); j++;
+      if (moneyAll(nx).length) break;
+    }
     const monies = moneyAll(rest);
     if (!monies.length) continue;                         // linha sem valor → não é lançamento
     let value = parseFloat(monies[monies.length - 1].replace(/\./g, '').replace(',', '.'));  // último valor = BRL (mesmo em compra USD)
@@ -4141,17 +4175,25 @@ function parseStatementFlat(lines) {
     desc = desc.replace(/\b(USD|US\$|EUR|GBP|D[OÓ]LAR(?:ES)?)\b/gi, ' ').replace(/[()]/g, ' ').replace(/\s+/g, ' ').trim();
     // Parcela: só formato canônico no FIM ("03/10" ou "03 DE 10") ou prefixado por PARC; valida 1<=k<=tot<=72.
     let inst = null;
-    const pm = desc.match(/(?:\bPARC(?:ELA)?\.?\s*)?\b(\d{1,2})\s*(?:\/|\s+DE\s+)\s*(\d{1,2})\s*$/i)
-            || desc.match(/\bPARC(?:ELA)?\.?\s*(\d{1,2})\s*(?:\/|\s+DE\s+)\s*(\d{1,2})\b/i);
-    if (pm) {
-      const k = +pm[1], tot = +pm[2];
-      if (k >= 1 && tot >= 2 && k <= tot && tot <= 72) {
-        inst = k + '/' + tot;
-        desc = desc.replace(pm[0], ' ').replace(/[()]/g, ' ').replace(/\s+/g, ' ').trim();
+    const got1 = extractInst(desc);
+    if (got1) { inst = got1.inst; desc = got1.rest; }
+    // (b) descrição ficou vazia (ela inteira foi pra outra linha) → resgata a órfã
+    //     vizinha: a anterior tem prioridade (pdftotext costuma soltá-la antes).
+    if (!desc) {
+      for (const k of [i - 1, j + 1]) {
+        if (k < 0 || k >= lines.length || used.has(k)) continue;
+        const cand = clean(lines[k]);
+        if (isOrphan(cand)) {
+          used.add(k);
+          const got2 = extractInst(cand);
+          if (got2) { inst = inst || got2.inst; desc = got2.rest; } else { desc = cand; }
+          break;
+        }
       }
     }
     if (!desc) desc = '—';
     out.push({ date: m[1], desc, inst, value, holder, refund });
+    i = j;   // consome as linhas anexadas
   }
   return out;
 }
@@ -4652,6 +4694,9 @@ async function doImport() {
   const checks = [...document.querySelectorAll('#importList .imp-row input[type="checkbox"]:checked')];
   const batchId = 'b' + Date.now().toString(36);   // marca o lote pra permitir desfazer só este import
   const batch = []; let provCount = 0; const learned = {};
+  // Pedido do dono (jun/2026): fixas detectadas no import criam a REGRA de recorrência
+  // → entram sozinhas todo mês (projeção), e a fatura futura reconcilia via ruleKey.
+  const recTemplates = []; const _recSeen = new Set();
   for (const cb of checks) {
     const tx = _importTxns[+cb.dataset.idx];
     if (!tx) continue;
@@ -4679,6 +4724,21 @@ async function doImport() {
     const base = { type: 'expense', description: tx.desc, value: tx.value, category, owner, nature: nat, source: 'import:' + (tx._src === 'cc' ? 'conta' : 'cartao'), batchId, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import' };
     const realDate = impToISO(tx.date, txBase(tx)[0]);  // data REAL (estável p/ o fingerprint; ano da competência do arquivo)
     const im = (tx.inst || '').match(/^(\d{1,2})\/(\d{1,2})$/);
+    // Fixa recorrente detectada (mesmo estabelecimento/valor em meses seguidos) e ainda
+    // SEM regra → prepara o template. Parcelado não conta (provisão já cobre).
+    if (!im && impRecurrence(tx)) {
+      const rk2 = impRuleKey(tx.desc);
+      if (rk2 && !_recSeen.has(rk2) && !(state.recurring || []).some(rr => rr.card && rr.ruleKey === rk2)) {
+        _recSeen.add(rk2);
+        const comp0 = compStr(tx, 0);
+        recTemplates.push({
+          desc: tx.desc, value: tx.value, category, owner, type: 'expense', nature: 'fixa',
+          dayOfMonth: +String(realDate).slice(8, 10) || 1, startYM: comp0, endYM: null,
+          card: true, ruleKey: rk2,
+          createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdBy: state.user?.displayName || 'import',
+        });
+      }
+    }
     if (im) {
       // PARCELADO: provisiona da parcela atual (X) até a última (Y), uma por mês à frente.
       const X = +im[1], Y = +im[2];
@@ -4746,6 +4806,12 @@ async function doImport() {
     const _impEntry = { batchId, count: batch.length, source: _impSrc, at: Date.now(), total: _impTotal };
     const _impHist = [...((state.importMeta && state.importMeta.history) || []), _impEntry].slice(-15);
     setDoc(docImportMeta, { lastBatchId: batchId, lastCount: batch.length, lastSource: _impSrc, lastAt: serverTimestamp(), history: _impHist }, { merge: true }).catch(() => {});
+    // Regras de recorrência das fixas detectadas — depois do lote (falha aqui não afeta o import).
+    if (recTemplates.length) {
+      Promise.allSettled(recTemplates.map(tp => addDoc(colRecurring(), tp)))
+        .then(() => console.info('[import] regras de recorrência criadas:', recTemplates.length))
+        .catch(() => {});
+    }
     $('importModal').classList.remove('show');   // sucesso → fecha (sob o overlay da animação)
     if (ov && !reduce) await new Promise(r => setTimeout(r, 4250));   // deixa a animação completar
     else showToast(t('imp.done').replace('{n}', batch.length));

@@ -300,6 +300,13 @@
               <option value="louise">Louise</option>
               <option value="familia" data-i18n="exp.owner.familia">Família</option>
             </select>
+            <!-- pedido do dono: separar o que veio do cartão de crédito do que é pix/conta -->
+            <select id="expFilterSource" class="exp-filter" aria-label="Origem">
+              <option value="" data-i18n="exp.filter.src.all">Origem</option>
+              <option value="cartao" data-i18n="exp.filter.src.card">Cartão</option>
+              <option value="conta" data-i18n="exp.filter.src.pix">Pix/Conta</option>
+              <option value="manual" data-i18n="exp.filter.src.manual">Manual</option>
+            </select>
             <!-- pedido da Flávia: separar fixas/variáveis num clique (substitui o select "Tipo";
                  "Ganhos" tem sub-aba própria e "Saídas" é o default da tabela) -->
             <div class="exp-nat-filter" role="radiogroup" aria-label="Fixas ou variáveis" id="expNatFilter">
