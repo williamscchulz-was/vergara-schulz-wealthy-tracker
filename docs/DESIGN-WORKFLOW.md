@@ -22,13 +22,13 @@ Importações, publicado pra escolha, implementado após o "A" + "aprovado", del
    **2–3 variantes lado a lado** (como A/B/C das tags) e pedir a escolha.
 4. **Aprovação explícita do dono** — uma letra/um "ok" basta. Sem aprovação, não implementa.
 5. **Blueprint de implementação** — ver §4.
-6. **Implementação + verificação técnica** (node --check, greps, harness com o CSS real
-   se preciso) + commit + push + deploy.
+6. **Implementação + verificação técnica** (node --check, greps, leitura de código)
+   + commit + push + deploy.
 7. **Entrega = página HTML publicada (human taste).** A validação estética final é do
    dono, no aparelho dele: publicar uma página de entrega (before/after do que foi
    aplicado, checklist de status item a item, decisões pendentes com opções A/B) e
-   mandar o link. **Preview interno do Claude Code não vale como prova pro dono** —
-   é só checagem técnica minha. (Pedido explícito dele, jun/2026.)
+   mandar o link. **O preview interno do Claude Code é PROIBIDO** — não usar nem pra
+   demonstrar, nem como prova, nem pra validação (regra explícita do dono, jun/2026).
 8. **Limpeza** — páginas de mockup saem do repo após implementadas (`git rm`).
 
 ## 2. Como mockar (neste projeto)

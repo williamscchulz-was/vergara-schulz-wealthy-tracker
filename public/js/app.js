@@ -2669,7 +2669,7 @@ const CATEGORY_DISPLAY = {
   'Outros': 'Outros',
 };
 
-let _expandedCats = new Set(['Acoes']); // Acoes expanded by default
+let _expandedCats = new Set(); // pedido do dono: TODAS as categorias começam recolhidas (inclusive Ações)
 
 // Donut de diversificação (igual mockup) — segmentos por categoria.
 const INV_DONUT_PALETTE = ['#0a84ff', '#c7f73e', '#ff9f0a', '#bf5af2', '#64d2ff', '#ff6b61', '#4fdd8a', '#ffd60a', '#5e5ce6'];
@@ -2877,7 +2877,16 @@ function renderMonthlyReturns() {
   if (empty) empty.hidden = true;
 
   // --- Chart ---
-  const W = 700, H = 200, PAD_X = 28, PAD_BOTTOM = 28, PAD_TOP = 16;
+  // Altura DINÂMICA: a grade da Análise estica o card pra altura da linha; o viewBox
+  // fixo de 200 deixava um vão morto embaixo. Mede o espaço REAL do wrap e desenha o
+  // gráfico exatamente nele (com o aspect-ratio ajustado, o svg preenche sem distorcer).
+  const _box = wrap.getBoundingClientRect();
+  const W = 700, PAD_X = 28, PAD_BOTTOM = 28, PAD_TOP = 16;
+  const H = (_box.width > 100 && _box.height > 120)
+    ? Math.max(180, Math.min(400, Math.round(W * _box.height / _box.width)))
+    : 200;
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.style.aspectRatio = W + ' / ' + H;
   const slot = (W - PAD_X * 2) / rows.length;
   const barW = Math.max(10, slot - 8);
   // Escala ASSIMÉTRICA: cada lado (positivo/negativo) usa só o espaço de que precisa.

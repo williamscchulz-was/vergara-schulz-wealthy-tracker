@@ -391,6 +391,7 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
    
    Motivação: o CLAUDE.md é o contexto carregado em toda sessão futura. Se ficar desatualizado, sessões novas tomam decisões baseadas em informação errada (já aconteceu — "Fernanda" ficou propagando meses porque ninguém corrigiu o doc). **Regra operacional:** antes de `git commit`, revisar se o diff do commit toca schema/feature/padrão; se tocar, o diff TEM que incluir o `.md` correspondente.
 9. **🎨 Design = mockup-first (obrigatório).** Nenhuma melhoria de design/UX entra só descrita em texto. Fluxo: **Análise → Relatório → Mockup HTML (página standalone em `public/`, publicada) → Aprovação do dono → Blueprint → Implementação → remover o mockup**. Decisão com múltiplos caminhos → mockar 2–3 variantes lado a lado (caso `propostas.html`, tags A/B/C). Estados (hover/loading/empty/error/sucesso) e motion (gatilho · duração · easing) exemplificados visualmente, nunca só descritos. Processo completo: `docs/DESIGN-WORKFLOW.md`.
+10. **🚫 NUNCA usar o preview interno do Claude Code.** Regra explícita do dono (jun/2026): nada de painel de preview — nem pra demonstrar, nem como "prova", nem pra validação. **Todo trabalho visual é entregue como página HTML publicada** (`firebase deploy`) que o dono abre no aparelho dele e julga (human taste). Verificação técnica = `node --check`, greps e leitura de código.
 
 ---
 
