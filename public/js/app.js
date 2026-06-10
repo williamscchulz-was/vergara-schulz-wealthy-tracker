@@ -2739,9 +2739,24 @@ function renderI10Assets() {
     return groups[kb].value - groups[ka].value;
   });
 
-  const html = sortedKeys.map(key => {
-    const g = groups[key];
-    const _ic = t('inv.cat.' + key); const label = (_ic !== 'inv.cat.' + key) ? _ic : (CATEGORY_DISPLAY[key] || key);
+  // Carteira A: categorias minúsculas (<1% cada) agrupadas numa linha só
+  // ("Outros + ETFs + Cripto"). O donut continua com as fatias reais — só a lista agrupa.
+  const labelFor = (key) => { const _ic = t('inv.cat.' + key); return (_ic !== 'inv.cat.' + key) ? _ic : (CATEGORY_DISPLAY[key] || key); };
+  const tailKeys = assetsTotal > 0 ? sortedKeys.filter(k => (groups[k].value / assetsTotal) * 100 < 1) : [];
+  const rowGroups = Object.assign({}, groups);
+  let rowKeys = sortedKeys;
+  if (tailKeys.length >= 2) {
+    rowGroups['_tail'] = {
+      value: tailKeys.reduce((s, k) => s + groups[k].value, 0),
+      items: tailKeys.flatMap(k => groups[k].items),
+      label: tailKeys.map(labelFor).join(' + '),
+    };
+    rowKeys = sortedKeys.filter(k => !tailKeys.includes(k)).concat('_tail');
+  }
+
+  const html = rowKeys.map(key => {
+    const g = rowGroups[key];
+    const label = g.label || labelFor(key);
     const icon = CATEGORY_ICONS[key] || CATEGORY_ICONS['Outros'] || '';
     const pct = assetsTotal > 0 ? (g.value / assetsTotal) * 100 : 0;
     const n = g.items.length;

@@ -300,18 +300,20 @@
   #moduleInvestments .inv-charts > .card > .card-body { flex: 1 1 auto; display: flex; flex-direction: column; }
 }
 
-/* ===== Diversificação (donut) + Maiores posições — igual mockup ===== */
+/* ===== Carteira A (escolha do dono): donut+legenda = CABEÇALHO do card da carteira ===== */
 .inv-diversif { display: grid; grid-template-columns: 1fr; gap: 18px; }
-@media (min-width: 1000px) { .inv-diversif { grid-template-columns: 5fr 7fr; align-items: stretch; } }
-#invDonutCard { display: flex; flex-direction: column; }
-#invDonutCard .inv-alloc { flex: 1 1 auto; }
-.inv-alloc { display: flex; align-items: center; gap: 24px; }
+.cart-alloc { display: flex; align-items: center; gap: 20px; padding: 6px 0 14px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
 .inv-donut { flex-shrink: 0; }
-.inv-leg { display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 0; }
-.inv-leg .it { display: flex; align-items: center; gap: 10px; font-size: var(--fs-body-lg); }
-.inv-leg .dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
-.inv-leg .nm { color: var(--ink); font-weight: 600; }
-.inv-leg .pc { margin-left: auto; font-family: 'Geist Mono', monospace; font-weight: 600; color: var(--ink-2); }
+.inv-leg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 26px; flex: 1; min-width: 0; }
+.inv-leg .it { display: flex; align-items: center; gap: 8px; font-size: var(--fs-caption); }
+.inv-leg .dot { width: 8px; height: 8px; border-radius: 3px; flex-shrink: 0; }
+.inv-leg .nm { color: var(--ink-2); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inv-leg .pc { margin-left: auto; font-family: 'Geist Mono', monospace; font-weight: 600; color: var(--ink-3); }
+@media (max-width: 540px) { .cart-alloc { gap: 14px; } .inv-leg { grid-template-columns: 1fr; } }
+/* linhas densas (mockup A: ~41px) — ícone 26, paddings curtos */
+.inv-carteira .cat-row { padding: 8px 0 !important; }
+.inv-carteira .cat-icon { width: 26px !important; height: 26px !important; border-radius: 8px !important; }
+.inv-carteira .cat-icon svg { width: 14px !important; height: 14px !important; }
 .inv-asset { display: flex; align-items: center; gap: 13px; padding: 11px 0; border-bottom: 1px solid var(--border); }
 .inv-asset:last-child { border-bottom: 0; }
 .inv-tk { width: 40px; height: 40px; flex-shrink: 0; border-radius: 11px; background: var(--bg-elevated-2); border: 1px solid var(--border); display: grid; place-items: center; font: 700 11px 'Geist Mono', monospace; color: var(--ink-2); }
@@ -434,7 +436,7 @@
    recorrentes pra acabar com as quase-duplicatas (12/12.5/13…).
    =========================================================== */
 /* título de card (H4) — 15px / 700 em TODA aba */
-.card-head h3, .rz-card-h, #invDonutCard h3, .mt-h-title {
+.card-head h3, .rz-card-h, .mt-h-title {
   font-size: var(--fs-title) !important; font-weight: 700 !important; letter-spacing: -.01em !important;
 }
 /* micro-labels / eyebrows (UPPERCASE) — 11px / .08em */
