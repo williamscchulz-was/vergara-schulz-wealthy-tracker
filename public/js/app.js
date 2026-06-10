@@ -3826,16 +3826,25 @@ $('expSearch')?.addEventListener('input', e => {
   renderExpenseTable(_lastMonthExp);
 });
 // Filtros da listagem (categoria / pessoa / tipo)
-['expFilterCat', 'expFilterOwner', 'expFilterType'].forEach(id => {
+['expFilterCat', 'expFilterOwner'].forEach(id => {
   $(id)?.addEventListener('change', e => {
     const v = e.target.value;
     if (id === 'expFilterCat') _expFilters.cat = v;
-    else if (id === 'expFilterOwner') _expFilters.owner = v;
-    else _expFilters.nature = v;
+    else _expFilters.owner = v;
     e.target.classList.toggle('on', !!v);
     renderExpenseTable(_lastMonthExp);
   });
 });
+// Pedido da Flávia: toggle Fixas/Variáveis num clique (substituiu o select "Tipo")
+document.querySelectorAll('#expNatFilter button').forEach(b => b.addEventListener('click', () => {
+  _expFilters.nature = b.dataset.nat || '';
+  document.querySelectorAll('#expNatFilter button').forEach(x => {
+    const on = x === b;
+    x.classList.toggle('on', on);
+    x.setAttribute('aria-checked', String(on));
+  });
+  renderExpenseTable(_lastMonthExp);
+}));
 
 // CSV export
 $('btnExportCsv')?.addEventListener('click', exportCurrentMonthCSV);
