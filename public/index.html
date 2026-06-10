@@ -92,7 +92,8 @@
       <path class="sp-arrow" style="--i:0" d="M7 43 L24 35 L41 43"/>
     </svg>
   </div>
-  <div class="splash-word"><h1>Ledger</h1></div>
+  <!-- abertura V2 (escolha do dono): "Ledger" entra letra por letra -->
+  <div class="splash-word" aria-hidden="true"><h1><b style="--l:0">L</b><b style="--l:1">e</b><b style="--l:2">d</b><b style="--l:3">g</b><b style="--l:4">e</b><b style="--l:5">r</b></h1></div>
 </div>
 <script>
 (function(){
@@ -103,7 +104,7 @@
   function play(){
     if (started) return; started = true;
     s.classList.add('play');                 // dispara a cascata só AGORA (main thread já livre → a animação é pintada)
-    setTimeout(hide, reduce ? 300 : 2400);   // tempo visível contado a partir do play (não da carga)
+    setTimeout(hide, reduce ? 300 : 3000);   // V2 (trace): traço ~1.4s + letras ~1.95s + pulso de glow → 3.0s
   }
   // Dispara quando a main thread fica OCIOSA (depois do bloco pesado do app.js/render).
   // requestIdleCallback garante uma janela livre p/ a animação pintar; timeout 1400ms é o teto.
