@@ -206,6 +206,14 @@
 .exp-subnav button { border: 0; background: transparent; color: var(--ink-2); font: 600 13px Inter, system-ui, sans-serif; padding: 8px 18px; border-radius: 999px; cursor: pointer; transition: color .2s, background .2s; }
 .exp-subnav button:hover { color: var(--ink); }
 .exp-subnav button.on { background: var(--purple); color: var(--on-accent); box-shadow: 0 6px 16px -8px var(--purple-glow); }
+/* DS audit QW-3 (escolha do dono: opção B) — no celular a pílula estourava (~380px) e
+   "Categorias" ficava clipada. Vira grade 2×2: tudo visível, alvo de toque grande. */
+@media (max-width: 480px) {
+  .exp-subnav { display: grid; grid-template-columns: 1fr 1fr; width: 100%; gap: 5px; border-radius: 16px; }
+  .exp-subnav button { padding: 10px 6px; border-radius: 11px; text-align: center; white-space: nowrap; }
+  .exp-subnav-row { gap: 10px; }
+  .exp-monthnav { width: 100%; justify-content: center; }
+}
 
 /* editor de categorias só na sub-aba Categorias */
 #moduleExpenses > #expCategorias { display: none; }
