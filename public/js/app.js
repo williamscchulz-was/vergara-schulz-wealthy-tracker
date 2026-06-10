@@ -3179,6 +3179,9 @@ async function syncFromI10() {
   const btn = $('btnSyncI10');
   const originalHTML = btn ? btn.innerHTML : '';
   if (btn) { btn.disabled = true; btn.innerHTML = t('hero.syncing'); }
+  // DS (aprovado no provador): skeleton shimmer nos números enquanto o I10 responde
+  const _skelIds = ['i10Equity', 'heroTwr', 'heroDiv', 'heroVar', 'kpiApplied', 'i10Dividends'];
+  _skelIds.forEach(id => $(id)?.classList.add('skel'));
 
   try {
     const year = new Date().getFullYear();
@@ -3316,6 +3319,7 @@ async function syncFromI10() {
   } finally {
     state.i10Syncing = false;
     if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
+    _skelIds.forEach(id => $(id)?.classList.remove('skel'));
   }
 }
 

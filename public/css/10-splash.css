@@ -8,7 +8,7 @@
   display: grid; place-content: center; justify-items: center;
   gap: clamp(18px, 4vh, 30px);
   background:
-    radial-gradient(120% 80% at 50% 16%, rgba(199,247,62,.10), transparent 55%),
+    radial-gradient(120% 80% at 50% 16%, color-mix(in oklab, var(--purple) 10%, transparent), transparent 55%),
     var(--bg);
   transition: opacity .55s var(--ease-out), visibility .55s;
   -webkit-tap-highlight-color: transparent;

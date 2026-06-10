@@ -89,11 +89,13 @@
   <tr><td>Pesos de fonte fantasma (550/650/900 não carregavam)<div class="d">0 restantes — agora 600/700/800 (pesos reais do Google Fonts)</div></td><td><span class="st done">APLICADO</span></td></tr>
   <tr><td>Colisão de breakpoints (720px e 900px min+max juntos)<div class="d">fronteiras desambiguadas (719.98 / 899.98)</div></td><td><span class="st done">APLICADO</span></td></tr>
   <tr><td>49 styles inline estáticos no app.js<div class="d">49 → 36: empty-states ×3, popup de erro, badge de contagem viraram classes; restantes na Fase 3</div></td><td><span class="st done">PARCIAL</span></td></tr>
-  <tr><td>Adoção real da escala --fs-* / --sp-* (5 e 0 usos hoje)<div class="d">migração arquivo a arquivo — é a maior alavanca das notas</div></td><td><span class="st next">FASE 3</span></td></tr>
+  <tr><td>Tooltip (TWR) + skeleton de loading no sync do I10<div class="d">aprovados no provador → componentes reais no app</div></td><td><span class="st done">APLICADO</span></td></tr>
+  <tr><td>Adoção da escala tipográfica --fs-*<div class="d">5 → 147 usos: todo font-size canônico migrou pra token (script, mesmo valor computado)</div></td><td><span class="st done">APLICADO</span></td></tr>
+  <tr><td>Lime cru (56 ocorrências) → color-mix(var(--purple))<div class="d">zero restante — o tema claro herda esmeralda automaticamente (paridade)</div></td><td><span class="st done">APLICADO</span></td></tr>
+  <tr><td>Alvos de toque ≥44px no mobile (navegação de mês, editar aporte)</td><td><span class="st done">APLICADO</span></td></tr>
+  <tr><td>Adoção da escala de espaçamento --sp-* (shorthands exigem revisão manual)</td><td><span class="st next">FASE 3</span></td></tr>
   <tr><td>Consolidar 7 breakpoints → 3 documentados (720/900/1000)</td><td><span class="st next">FASE 3</span></td></tr>
-  <tr><td>Lime cru (33 regras) no tema claro + alias --accent + token --info<div class="d">paridade light completa</div></td><td><span class="st next">FASE 3</span></td></tr>
   <tr><td>Hierarquia de headings (h2 20–27px / h3 15–18px entre abas)</td><td><span class="st next">FASE 3</span></td></tr>
-  <tr><td>Alvos de toque 44px no mobile (editar reserva/meta, mês)</td><td><span class="st next">FASE 3</span></td></tr>
   <tr><td>Whitespace morto no rodapé mobile (~200px)</td><td><span class="st next">FASE 3</span></td></tr>
   <tr><td>Letter-spacing harmonizado (px vs em misturados)</td><td><span class="st next">FASE 3</span></td></tr>
 </table>

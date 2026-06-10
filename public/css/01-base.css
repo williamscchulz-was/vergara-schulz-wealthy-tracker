@@ -19,8 +19,8 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 
   --border:        rgba(255,255,255,0.07);
   --border-2:      rgba(255,255,255,0.11);
-  --border-strong: rgba(199,247,62,0.30);
-  --border-glow:   rgba(199,247,62,0.45);
+  --border-strong: color-mix(in oklab, var(--purple) 30%, transparent);
+  --border-glow:   color-mix(in oklab, var(--purple) 45%, transparent);
 
   --ink:           #f3f4ee;
   --ink-2:         #b9bbae;
@@ -31,12 +31,12 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   --purple:        #c7f73e;
   --purple-light:  #d8fa72;
   --purple-deep:   #a6d22e;
-  --purple-soft:   rgba(199,247,62,0.12);
-  --purple-glow:   rgba(199,247,62,0.32);
+  --purple-soft:   color-mix(in oklab, var(--purple) 12%, transparent);
+  --purple-glow:   color-mix(in oklab, var(--purple) 32%, transparent);
   --on-accent:     #15170b;   /* texto escuro sobre o acento lime */
 
   /* hero do saldo (Despesas) — Obsidian: escuro + número lime (igual mockup) */
-  --hero-bg:    radial-gradient(90% 130% at 100% 0%, rgba(199,247,62,.13), transparent 55%), linear-gradient(180deg, #10140c, #0c0f09);
+  --hero-bg:    radial-gradient(90% 130% at 100% 0%, color-mix(in oklab, var(--purple) 13%, transparent), transparent 55%), linear-gradient(180deg, #10140c, #0c0f09);
   --hero-num:   var(--purple);
   --hero-ink:   #f3f6ec;
   --hero-label: #a7ad98;
@@ -73,12 +73,12 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   --shadow-sm:     0 1px 2px rgba(0,0,0,0.30);
   --shadow:        0 8px 24px -6px rgba(0,0,0,0.55), 0 2px 8px -2px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.2);
   --shadow-lg:     0 20px 50px -10px rgba(0,0,0,0.70), 0 10px 28px -8px rgba(120,200,50,0.18), inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(0,0,0,0.2);
-  --shadow-glow:   0 8px 32px rgba(199,247,62,0.22);
+  --shadow-glow:   0 8px 32px color-mix(in oklab, var(--purple) 22%, transparent);
 
   /* v8 LIQUID GLASS TOKENS (Part 1 §0) */
   --glass-bg:         rgba(26,27,20,0.55);
   --glass-bg-strong:  rgba(26,27,20,0.74);
-  --glass-border:     rgba(199,247,62,0.18);
+  --glass-border:     color-mix(in oklab, var(--purple) 18%, transparent);
   --glass-highlight:  rgba(255,255,255,0.08);
   --glass-blur:       blur(20px) saturate(1.5);
   --glass-blur-strong: blur(28px) saturate(1.6);
@@ -117,11 +117,11 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
     from var(--liquid-angle),
     transparent 0%,
     transparent 60%,
-    rgba(199,247,62,.4) 72%,
+    color-mix(in oklab, var(--purple) 40%, transparent) 72%,
     #d8fa72 82%,
     #fff 88%,
     #d8fa72 94%,
-    rgba(199,247,62,.4) 100%
+    color-mix(in oklab, var(--purple) 40%, transparent) 100%
   );
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
@@ -129,7 +129,7 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   -webkit-mask-composite: xor;
           mask-composite: exclude;
   animation: liquid-spin 3.5s linear infinite;
-  filter: drop-shadow(0 0 4px rgba(199,247,62,.6));
+  filter: drop-shadow(0 0 4px color-mix(in oklab, var(--purple) 60%, transparent));
   pointer-events: none;
   z-index: 2;
 }
@@ -161,8 +161,8 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   to { stroke-dashoffset: -20 }
 }
 @keyframes point-pulse {
-  0%,100% { r: 4; filter: drop-shadow(0 0 4px rgba(199,247,62,.6)) }
-  50%     { r: 6; filter: drop-shadow(0 0 12px rgba(199,247,62,.95)) }
+  0%,100% { r: 4; filter: drop-shadow(0 0 4px color-mix(in oklab, var(--purple) 60%, transparent)) }
+  50%     { r: 6; filter: drop-shadow(0 0 12px color-mix(in oklab, var(--purple) 95%, transparent)) }
 }
 @keyframes target-point-pulse {
   0%,100% { r: 5; opacity: .85 }
@@ -183,7 +183,7 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 }
 @keyframes sync-glow {
   0%,100% { box-shadow: 0 6px 18px var(--purple-glow), inset 0 1px 0 rgba(255,255,255,.4) }
-  50%     { box-shadow: 0 10px 28px rgba(199,247,62,.6), inset 0 1px 0 rgba(255,255,255,.5) }
+  50%     { box-shadow: 0 10px 28px color-mix(in oklab, var(--purple) 60%, transparent), inset 0 1px 0 rgba(255,255,255,.5) }
 }
 @keyframes island-float {
   0%,100% { transform: translateX(-50%) translateY(0) }
@@ -255,11 +255,11 @@ button#btnAddExpense::after {
     from var(--liquid-angle),
     transparent 0%,
     transparent 55%,
-    rgba(199,247,62,.5) 68%,
+    color-mix(in oklab, var(--purple) 50%, transparent) 68%,
     #d8fa72 78%,
     #ffffff 86%,
     #d8fa72 92%,
-    rgba(199,247,62,.5) 100%
+    color-mix(in oklab, var(--purple) 50%, transparent) 100%
   ) !important;
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
@@ -267,7 +267,7 @@ button#btnAddExpense::after {
   -webkit-mask-composite: xor !important;
           mask-composite: exclude !important;
   animation: liquid-spin 3.5s linear infinite !important;
-  filter: drop-shadow(0 0 6px rgba(199,247,62,.8)) !important;
+  filter: drop-shadow(0 0 6px color-mix(in oklab, var(--purple) 80%, transparent)) !important;
   pointer-events: none !important;
   z-index: 10 !important;
   transform: none !important;
@@ -310,12 +310,12 @@ button#btnAddExpense::after { display: none !important; content: none !important
   border: 1px solid var(--glass-border) !important;
   box-shadow:
     0 20px 50px rgba(0,0,0,.55),
-    0 0 40px rgba(199,247,62,.15),
+    0 0 40px color-mix(in oklab, var(--purple) 15%, transparent),
     inset 0 1px 0 var(--glass-highlight) !important;
   padding: 6px !important;
   z-index: 100;
 }
-.mode-switch button { padding: 10px 22px !important; font-size: 13px !important; font-weight: 600 !important; }
+.mode-switch button { padding: 10px 22px !important; font-size: var(--fs-body) !important; font-weight: 600 !important; }
 .mode-switch button.active {
   background: linear-gradient(135deg, var(--purple-light), var(--purple)) !important;
   color: #1a1420 !important;
@@ -460,7 +460,7 @@ body {
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-size: 14px;
+  font-size: var(--fs-body-lg);
   line-height: 1.5;
   min-height: 100vh;
   position: relative;

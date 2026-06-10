@@ -21,31 +21,31 @@
 :root[data-theme="light"] .cat-icon.pension-icon { color: var(--purple-deep) !important; }
 .cat-row.fx-row { align-items: flex-start; }
 .cat-icon.fx-icon { background: var(--usd-bg) !important; color: var(--usd) !important; }
-.cat-row.fx-row:hover .cat-icon.fx-icon { background: rgba(199,247,62,0.22) !important; }
+.cat-row.fx-row:hover .cat-icon.fx-icon { background: color-mix(in oklab, var(--purple) 22%, transparent) !important; }
 
 /* Emergency reserves — compact list under expandable category row */
-.cat-row.reserve-row { background: rgba(199,247,62,0.05); cursor: pointer; }
-.cat-row.reserve-row:hover { background: rgba(199,247,62,0.09); }
-.cat-icon.reserve-icon { background: rgba(199,247,62,0.15) !important; color: var(--purple-light) !important; }
+.cat-row.reserve-row { background: color-mix(in oklab, var(--purple) 5%, transparent); cursor: pointer; }
+.cat-row.reserve-row:hover { background: color-mix(in oklab, var(--purple) 9%, transparent); }
+.cat-icon.reserve-icon { background: color-mix(in oklab, var(--purple) 15%, transparent) !important; color: var(--purple-light) !important; }
 .cat-row.reserve-row .cat-chevron { transition: transform 0.25s var(--ease-out); color: var(--ink-muted); }
 .cat-row.reserve-row.expanded .cat-chevron { transform: rotate(180deg); color: var(--purple-light); }
 .reserve-expanded { display: none; padding: 8px 0 10px 56px; flex-direction: column; gap: 8px; }
 .reserve-expanded.open { display: flex; }
 .res-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-elevated-2); border: 1px solid var(--border); border-radius: 10px; transition: all 0.18s var(--ease-out); }
-.res-item:hover { border-color: rgba(199,247,62,0.3); }
-.res-name { font-size: 13px; color: var(--ink-2); font-weight: 500; }
-.res-val { font-family: 'Geist Mono', monospace; font-size: 13px; font-weight: 600; color: var(--ink); }
+.res-item:hover { border-color: color-mix(in oklab, var(--purple) 30%, transparent); }
+.res-name { font-size: var(--fs-body); color: var(--ink-2); font-weight: 500; }
+.res-val { font-family: 'Geist Mono', monospace; font-size: var(--fs-body); font-weight: 600; color: var(--ink); }
 .res-val.empty { color: var(--ink-muted); font-weight: 400; font-style: italic; }
 .res-actions { display: flex; gap: 8px; align-items: center; }
 .res-edit { width: 26px; height: 26px; border-radius: 7px; background: transparent; border: 1px solid var(--border-2); color: var(--ink-3); cursor: pointer; display: grid; place-items: center; transition: all 0.18s var(--ease-out); }
-.res-edit:hover { border-color: rgba(199,247,62,0.45); color: var(--purple-light); }
-.res-add { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: transparent; border: 1px dashed var(--border-2); color: var(--ink-3); border-radius: 10px; font-size: 12px; cursor: pointer; justify-content: center; font-family: inherit; transition: all 0.18s var(--ease-out); }
-.res-add:hover { border-color: rgba(199,247,62,0.45); color: var(--purple-light); }
+.res-edit:hover { border-color: color-mix(in oklab, var(--purple) 45%, transparent); color: var(--purple-light); }
+.res-add { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: transparent; border: 1px dashed var(--border-2); color: var(--ink-3); border-radius: 10px; font-size: var(--fs-caption); cursor: pointer; justify-content: center; font-family: inherit; transition: all 0.18s var(--ease-out); }
+.res-add:hover { border-color: color-mix(in oklab, var(--purple) 45%, transparent); color: var(--purple-light); }
 
 /* Private pension — same expandable pattern + same palette as reserves now */
-.cat-row.pension-row { background: rgba(199,247,62,0.05); cursor: pointer; }
-.cat-row.pension-row:hover { background: rgba(199,247,62,0.09); }
-.cat-icon.pension-icon { background: rgba(199,247,62,0.15) !important; color: var(--purple-light) !important; }
+.cat-row.pension-row { background: color-mix(in oklab, var(--purple) 5%, transparent); cursor: pointer; }
+.cat-row.pension-row:hover { background: color-mix(in oklab, var(--purple) 9%, transparent); }
+.cat-icon.pension-icon { background: color-mix(in oklab, var(--purple) 15%, transparent) !important; color: var(--purple-light) !important; }
 .cat-row.pension-row .cat-chevron { transition: transform 0.25s var(--ease-out); color: var(--ink-muted); }
 .cat-row.pension-row.expanded .cat-chevron { transform: rotate(180deg); color: var(--purple-light); }
 .fx-extra {
@@ -70,14 +70,14 @@
 .fx-add-hint {
   display: block; width: 100%;
   background: transparent; border: 1px dashed var(--usd-strong);
-  color: var(--usd); font-size: 12px; padding: 12px;
+  color: var(--usd); font-size: var(--fs-caption); padding: 12px;
   border-radius: 12px; margin-top: 10px; cursor: pointer;
   font-family: 'Inter', sans-serif; font-weight: 500;
   transition: all .15s ease;
 }
 .fx-add-hint:hover { background: var(--usd-bg); }
 .fx-modal-rate {
-  margin-top: 14px; font-size: 11px; color: var(--text-dim);
+  margin-top: 14px; font-size: var(--fs-micro); color: var(--text-dim);
   font-family: 'Geist Mono', monospace;
   padding: 10px 12px; background: var(--usd-bg);
   border: 1px solid var(--usd-strong); border-radius: 10px;

@@ -17,7 +17,7 @@
   margin-bottom: 18px;
 }
 .eyebrow {
-  font-size: 11px;
+  font-size: var(--fs-micro);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -30,14 +30,14 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
-.card-sub { font-size: 12px; color: var(--ink-muted); margin-top: 4px; }
+.card-sub { font-size: var(--fs-caption); color: var(--ink-muted); margin-top: 4px; }
 
 /* ===========================================================
    HERO PATRIMONIO
    =========================================================== */
 .hero-card {
   background:
-    linear-gradient(135deg, rgba(199,247,62,0.12), transparent 44%),
+    linear-gradient(135deg, color-mix(in oklab, var(--purple) 12%, transparent), transparent 44%),
     var(--bg-elevated);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
@@ -64,7 +64,7 @@
 /* Sweep de luz quando o sync completa (one-shot via classe .sweeping) */
 .hero-card.sweeping::before {
   content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: 2; pointer-events: none;
-  background: linear-gradient(100deg, transparent 38%, rgba(199,247,62,.30) 50%, transparent 62%);
+  background: linear-gradient(100deg, transparent 38%, color-mix(in oklab, var(--purple) 30%, transparent) 50%, transparent 62%);
   background-size: 240% 100%; background-repeat: no-repeat;
   animation: hero-sweep .9s var(--ease-out);
 }
@@ -73,7 +73,7 @@
 .hero-eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; position: relative; z-index: 1; }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gain); box-shadow: 0 0 12px var(--gain); animation: pulse 2s ease-in-out infinite; }
 @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.85); } }
-.hero-eyebrow .label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); }
+.hero-eyebrow .label { font-size: var(--fs-micro); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); }
 
 .hero-amount {
   display: flex; align-items: baseline; gap: 8px;
@@ -91,7 +91,7 @@
   margin-top: 8px;
   margin-bottom: 4px;
   font-family: 'Geist Mono', monospace;
-  font-size: 14px;
+  font-size: var(--fs-body-lg);
   color: var(--ink-3);
   display: flex;
   align-items: baseline;
@@ -109,13 +109,13 @@
   border: 1px solid rgba(52,225,122,0.25);
   border-radius: var(--radius-pill);
   font-family: 'Geist Mono', monospace;
-  font-size: 12px; font-weight: 600;
+  font-size: var(--fs-caption); font-weight: 600;
   color: var(--gain);
   transition: all 0.2s var(--ease-out);
 }
 .return-pill.neg { background: var(--loss-soft); border-color: rgba(255,94,87,0.25); color: var(--loss); }
 .return-pill svg { width: 11px; height: 11px; }
-.applied-text { font-size: 12px; color: var(--ink-muted); font-family: 'Geist Mono', monospace; }
+.applied-text { font-size: var(--fs-caption); color: var(--ink-muted); font-family: 'Geist Mono', monospace; }
 .applied-text b { color: var(--ink-2); font-weight: 600; }
 
 .hero-actions {
@@ -124,7 +124,7 @@
   border-top: 1px solid var(--border);
   position: relative; z-index: 1;
 }
-.updated { font-size: 11px; color: var(--ink-muted); font-family: 'Geist Mono', monospace; flex: 1; min-width: 140px; }
+.updated { font-size: var(--fs-micro); color: var(--ink-muted); font-family: 'Geist Mono', monospace; flex: 1; min-width: 140px; }
 
 /* ===========================================================
    BUTTONS
@@ -137,7 +137,7 @@
   border-radius: var(--radius);
   color: var(--ink-2);
   font-family: inherit;
-  font-size: 12px; font-weight: 500;
+  font-size: var(--fs-caption); font-weight: 500;
   cursor: pointer;
   text-decoration: none;
   transition: all 0.2s var(--ease-out);
@@ -165,11 +165,11 @@
    =========================================================== */
 .ytd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 .ytd-block { padding: 4px 0; }
-.ytd-lbl { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin-bottom: 12px; }
+.ytd-lbl { font-size: var(--fs-micro); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin-bottom: 12px; }
 .ytd-num { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }
-.ytd-num .cur { font-size: 14px; color: var(--ink-3); font-weight: 600; }
-.ytd-num .v { font-size: 28px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-.ytd-sub { font-size: 11px; color: var(--ink-muted); font-family: 'Geist Mono', monospace; margin-bottom: 12px; }
+.ytd-num .cur { font-size: var(--fs-body-lg); color: var(--ink-3); font-weight: 600; }
+.ytd-num .v { font-size: var(--fs-display); font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.ytd-sub { font-size: var(--fs-micro); color: var(--ink-muted); font-family: 'Geist Mono', monospace; margin-bottom: 12px; }
 .ytd-progress { height: 4px; background: var(--bg-elevated-3); border-radius: 2px; overflow: hidden; }
 .ytd-progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--purple), var(--purple-light)); border-radius: 2px; box-shadow: 0 0 8px var(--purple-glow); transition: width 1s var(--ease-out); }
 
