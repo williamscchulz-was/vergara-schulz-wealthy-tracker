@@ -44,17 +44,21 @@
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-.splash-word { position: relative; z-index: 1; overflow: hidden; padding: 2px 6px; }
+/* BUGFIX (dono, jun/2026): o "g" de Ledger era DECEPADO — line-height:1 + overflow
+   hidden da máscara de revelação cortavam o descendente. Padding em em (escala com a
+   fonte) dá respiro pro g; o margin-right negativo compensa o espaço fantasma que o
+   letter-spacing deixa depois do "r" (a palavra ficava descentralizada). */
+.splash-word { position: relative; z-index: 1; overflow: hidden; padding: .08em .3em .26em; }
 .splash-word h1 {
-  margin: 0; font-weight: 600; line-height: 1;
+  margin: 0 -.18em 0 0; font-weight: 600; line-height: 1.1;
   font-size: clamp(30px, 8vw, 48px); letter-spacing: .18em;
   color: var(--ink);
-  opacity: 0; transform: translateY(70%);
+  opacity: 0; transform: translateY(80%);
   will-change: transform, opacity;   /* só transform/opacity → roda no compositor */
 }
 .splash.play .splash-word h1 { animation: sp-word .9s var(--ease-out) 1.0s both; }
 @keyframes sp-word {
-  0%   { opacity: 0; transform: translateY(70%); }
+  0%   { opacity: 0; transform: translateY(80%); }
   60%  { opacity: 1; }
   100% { opacity: 1; transform: translateY(0); }
 }
