@@ -2045,10 +2045,13 @@ function wireCardCollapse() {
     btn.addEventListener('click', function (e) {
       e.stopPropagation();
       const on = card.classList.toggle('is-collapsed');
-      try { on ? localStorage.setItem(key, '1') : localStorage.removeItem(key); } catch (_) {}
+      try { localStorage.setItem(key, on ? '1' : '0'); } catch (_) {}   // '0' explícito: expandir também persiste
     });
-    let saved = false; try { saved = localStorage.getItem(key) === '1'; } catch (_) {}
-    if (saved) card.classList.add('is-collapsed');
+    let saved = null; try { saved = localStorage.getItem(key); } catch (_) {}
+    // Histórico anual começa RECOLHIDO por padrão (pedido do dono) — até a pessoa abrir.
+    const _t = (((titleEl && titleEl.textContent) || '')).trim().toLowerCase();
+    const defaultCollapsed = _t.startsWith('histórico anual') || _t.startsWith('historico anual') || _t.startsWith('annual history');
+    if (saved === '1' || (saved === null && defaultCollapsed)) card.classList.add('is-collapsed');
     head.appendChild(btn);
   });
 }
@@ -2113,11 +2116,24 @@ function renderInvestments() {
   if ($('heroTwr')) $('heroTwr').textContent = (_twr >= 0 ? '+' : '') + _twr.toFixed(1).replace('.', ',') + '%';
   if ($('heroDiv')) $('heroDiv').textContent = fmtBRL0(+state.i10.dividends || 0);
   if ($('heroDivYear')) $('heroDivYear').textContent = currentYear;
-  const _varPct = +state.i10.variation || 0;
-  const _varTxt = (_varPct >= 0 ? '+' : '') + _varPct.toFixed(1).replace('.', ',') + '%';
-  if ($('heroVar')) { $('heroVar').textContent = _varTxt; $('heroVar').className = 'ikpi-v ' + (_varPct >= 0 ? 'pos' : 'neg'); }
+  // AUDITORIA jun/2026: o "% no mês" vinha de i10.variation (métrica do I10 com período
+  // próprio, não-mensal) — dava "+4,0% no mês" num mês que o Dietz fechava -1,7%.
+  // Agora pill e tile usam a MESMA conta do card "rentabilidade mês a mês"
+  // (Dietz modificado + proventos) → os números batem em todo o app.
+  let _moPct = null;
+  try {
+    const _mr = computeMonthlyReturns((state.i10.monthly || []).slice(-3), state.contributions || [], state.yearly || []);
+    if (_mr.length) _moPct = +_mr[_mr.length - 1].returnPct || 0;
+  } catch (_) {}
+  const _moTxt = _moPct === null ? null : (_moPct >= 0 ? '+' : '') + _moPct.toFixed(1).replace('.', ',') + '%';
+  if ($('heroVar')) {
+    $('heroVar').textContent = _moTxt || '—';
+    $('heroVar').className = 'ikpi-v ' + ((_moPct || 0) >= 0 ? 'pos' : 'neg');
+  }
+  const _i10Var = +state.i10.variation || 0;   // métrica crua do I10 fica visível no sub, sem alegar período
+  if ($('heroVarSub')) $('heroVarSub').textContent = _i10Var ? ('variação I10: ' + (_i10Var >= 0 ? '+' : '') + _i10Var.toFixed(1).replace('.', ',') + '%') : '';
   const _pill = $('heroMonthPill');
-  if (_pill) { if (_varPct) { _pill.hidden = false; _pill.textContent = _varTxt + ' no mês'; } else _pill.hidden = true; }
+  if (_pill) { if (_moTxt) { _pill.hidden = false; _pill.textContent = _moTxt + ' no mês'; } else _pill.hidden = true; }
   if ($('heroUsd')) $('heroUsd').textContent = 'US$ ' + (+state.fx.usd || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
   if ($('heroUsdSub')) $('heroUsdSub').textContent = (+state.fx.usd > 0) ? (fmtBRL0(_usdBRL) + ' · cotação ' + (+state.fx.rateUSD || 0).toFixed(2).replace('.', ',')) : '';
   if ($('heroSpark')) sparkPath($('heroSpark'), [12, 18, 15, 24, 30, 28, 36, 42, 46, 54, 60, 66], 400, 150, true);

@@ -1,0 +1,93 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ledger · Carteira compacta — propostas</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0c08;--panel:#14180f;--panel2:#1a1f14;--ink:#f3f4ee;--ink2:#b9bbae;--ink3:#9a9c90;--border:rgba(255,255,255,.08);--lime:#c7f73e;--on:#15170b;--gain:#4fdd8a}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;padding:32px 24px 90px;line-height:1.5}
+  .mono{font-family:'Geist Mono',monospace}
+  h1{font-size:24px;margin:0 0 4px;letter-spacing:-.02em} .lead{color:var(--ink2);font-size:14px;margin:0 0 8px;max-width:780px}
+  h2{font-size:16px;margin:36px 0 10px;display:flex;gap:10px;align-items:center}
+  .rec{font:700 10px Inter;letter-spacing:.07em;padding:4px 10px;border-radius:999px;background:color-mix(in srgb,var(--lime) 22%,transparent);color:var(--lime)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:16px 18px;max-width:760px}
+  .eyebrow{font:700 10.5px Inter;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:2px}
+  .eyesub{font-size:12px;color:var(--ink2);font-weight:700;margin-bottom:12px}
+  /* ===== OPÇÃO A — card único fundido ===== */
+  .a-top{display:flex;align-items:center;gap:18px;padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:6px}
+  .donut{width:96px;height:96px;border-radius:50%;flex-shrink:0;background:conic-gradient(#5b9cf6 0 88%, #c7f73e 88% 96%, #b98cff 96% 98%, #f0bf4c 98% 99%, #ff6f91 99% 100%);-webkit-mask:radial-gradient(circle, transparent 56%, #000 57%);mask:radial-gradient(circle, transparent 56%, #000 57%)}
+  .a-leg{display:grid;grid-template-columns:1fr 1fr;gap:3px 22px;flex:1;font-size:12px}
+  .a-leg div{display:flex;justify-content:space-between;gap:10px;color:var(--ink2)}
+  .a-leg i{width:8px;height:8px;border-radius:3px;display:inline-block;margin-right:7px;vertical-align:0}
+  .a-leg b{font-family:'Geist Mono',monospace;color:var(--ink3);font-weight:600}
+  .row{display:grid;grid-template-columns:24px minmax(0,1fr) auto auto;gap:11px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+  .row:last-child{border-bottom:0}
+  .row .ic{width:24px;height:24px;border-radius:7px;background:var(--panel2);border:1px solid var(--border);display:grid;place-items:center;font-size:12px;color:var(--ink2)}
+  .row .nm{font-weight:600;color:var(--ink)} .row .nm small{display:block;font-size:10.5px;color:var(--ink3);font-weight:500;font-family:'Geist Mono',monospace}
+  .row .pc{font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink3);min-width:38px;text-align:right}
+  .row .vl{font-family:'Geist Mono',monospace;font-weight:600;min-width:104px;text-align:right}
+  .row.extra .nm{color:var(--gain)}
+  /* ===== OPÇÃO B — dois cards compactos ===== */
+  .b-wrap{display:grid;grid-template-columns:240px 1fr;gap:14px;max-width:760px}
+  @media(max-width:700px){.b-wrap{grid-template-columns:1fr}}
+  .b-div{display:flex;flex-direction:column;align-items:center;gap:12px}
+  .b-leg{width:100%;font-size:11.5px;display:flex;flex-direction:column;gap:2px}
+  .b-leg div{display:flex;justify-content:space-between;color:var(--ink2)}
+  .why{font-size:12px;color:var(--ink3);margin:10px 0 0;max-width:760px;padding-top:10px;border-top:1px dashed var(--border)} .why b{color:var(--ink2)}
+  .pick{margin-top:40px;background:var(--panel);border:1px solid color-mix(in srgb,var(--lime) 40%,transparent);border-radius:14px;padding:14px 16px;font-size:13.5px;max-width:760px}
+</style></head>
+<body>
+<h1>Carteira + Diversificação — compactar</h1>
+<p class="lead">Hoje são 2 cards: a Diversificação tem um vão enorme (donut pequeno + legenda espalhada) e a carteira tem linhas altas. Duas propostas:</p>
+
+<h2>OPÇÃO A — Fundir num card só <span class="rec">RECOMENDADA</span></h2>
+<div class="card">
+  <div class="eyebrow">Minha carteira <span style="float:right;font-weight:600;color:var(--ink3)">VIA I10</span></div>
+  <div class="eyesub">27 ativos · 7 categorias</div>
+  <div class="a-top">
+    <div class="donut"></div>
+    <div class="a-leg">
+      <div><span><i style="background:#5b9cf6"></i>Ações</span><b>88%</b></div>
+      <div><span><i style="background:#c7f73e"></i>Renda Fixa</span><b>8%</b></div>
+      <div><span><i style="background:#f0bf4c"></i>Tesouro</span><b>1%</b></div>
+      <div><span><i style="background:#b98cff"></i>Fundos</span><b>2%</b></div>
+      <div><span><i style="background:#64d2ff"></i>USD</span><b>4%</b></div>
+      <div><span><i style="background:#9aa0a6"></i>Outros</span><b>1%</b></div>
+    </div>
+  </div>
+  <div class="row"><span class="ic">📈</span><span class="nm">Ações<small>12 ativos</small></span><span class="pc">88%</span><b class="vl">R$ 1.385.306</b></div>
+  <div class="row"><span class="ic">🏦</span><span class="nm">Renda Fixa<small>8 ativos</small></span><span class="pc">8%</span><b class="vl">R$ 127.966</b></div>
+  <div class="row"><span class="ic">＄</span><span class="nm">USD<small>US$ 14.600 × 5,03</small></span><span class="pc">4%</span><b class="vl">R$ 73.385</b></div>
+  <div class="row"><span class="ic">🕐</span><span class="nm">Fundos de Invest.<small>1 ativo</small></span><span class="pc">2%</span><b class="vl">R$ 30.960</b></div>
+  <div class="row"><span class="ic">Φ</span><span class="nm">Tesouro Direto<small>2 ativos</small></span><span class="pc">1%</span><b class="vl">R$ 22.766</b></div>
+  <div class="row"><span class="ic">◎</span><span class="nm">Outros + ETFs + Cripto<small>4 ativos</small></span><span class="pc">1%</span><b class="vl">R$ 10.275</b></div>
+  <div class="row extra"><span class="ic">🛡</span><span class="nm">Reserva de emergência<small>3 contas</small></span><span class="pc">1%</span><b class="vl">R$ 12.890</b></div>
+  <div class="row extra"><span class="ic">🌱</span><span class="nm">Previdência privada<small>1 plano</small></span><span class="pc">0%</span><b class="vl">R$ 4.390</b></div>
+</div>
+<p class="why"><b>Por quê:</b> o donut + legenda viram o CABEÇALHO do card da carteira (96px, 2 colunas) — some o card separado e o vão. Linhas de ~41px (hoje ~66px): a tela inteira cai de ~780px para <b>~460px de altura (-40%)</b>. Caudas minúsculas (ETFs 0% + Cripto 0% + Outros 0%) agrupadas numa linha. Clicar numa linha continua expandindo os ativos.</p>
+
+<h2>OPÇÃO B — Manter 2 cards, só compactar</h2>
+<div class="b-wrap">
+  <div class="card b-div">
+    <div class="eyebrow" style="align-self:flex-start">Diversificação</div>
+    <div class="donut" style="width:120px;height:120px"></div>
+    <div class="b-leg">
+      <div><span><i style="background:#5b9cf6;width:7px;height:7px;border-radius:2px;display:inline-block;margin-right:6px"></i>Ações</span><b class="mono">88%</b></div>
+      <div><span><i style="background:#c7f73e;width:7px;height:7px;border-radius:2px;display:inline-block;margin-right:6px"></i>Renda Fixa</span><b class="mono">8%</b></div>
+      <div><span><i style="background:#b98cff;width:7px;height:7px;border-radius:2px;display:inline-block;margin-right:6px"></i>Fundos</span><b class="mono">2%</b></div>
+      <div><span><i style="background:#f0bf4c;width:7px;height:7px;border-radius:2px;display:inline-block;margin-right:6px"></i>Tesouro</span><b class="mono">1%</b></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="eyebrow">Minha carteira</div>
+    <div class="eyesub">27 ativos · 7 categorias</div>
+    <div class="row"><span class="ic">📈</span><span class="nm">Ações<small>12 ativos</small></span><span class="pc">88%</span><b class="vl">R$ 1.385.306</b></div>
+    <div class="row"><span class="ic">🏦</span><span class="nm">Renda Fixa<small>8 ativos</small></span><span class="pc">8%</span><b class="vl">R$ 127.966</b></div>
+    <div class="row"><span class="ic">＄</span><span class="nm">USD<small>US$ 14.600</small></span><span class="pc">4%</span><b class="vl">R$ 73.385</b></div>
+    <div class="row"><span class="ic">🕐</span><span class="nm">Fundos<small>1 ativo</small></span><span class="pc">2%</span><b class="vl">R$ 30.960</b></div>
+    <div class="row"><span class="ic">◎</span><span class="nm">Demais categorias<small>5 ativos</small></span><span class="pc">2%</span><b class="vl">R$ 33.041</b></div>
+  </div>
+</div>
+<p class="why"><b>Por quê:</b> donut centralizado com legenda colada (sem vão), carteira com as mesmas linhas densas. Mantém a separação visual de hoje, ganha ~30% de altura.</p>
+
+<div class="pick">→ me responde <b>"carteira A"</b> ou <b>"carteira B"</b> que eu implemento no app.</div>
+</body></html>
