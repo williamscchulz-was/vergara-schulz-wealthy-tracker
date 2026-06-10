@@ -299,6 +299,12 @@
   #moduleInvestments .inv-charts > .card { margin: 0 !important; display: flex; flex-direction: column; }
   #moduleInvestments .inv-charts > .card > .card-body { flex: 1 1 auto; display: flex; flex-direction: column; }
 }
+/* mr (rentabilidade mês a mês): o gráfico ABSORVE a altura sobrando do card —
+   a Análise estica os 4 cards à mesma altura e aqui ficava um vão morto embaixo.
+   O wrap vira flex:1 com o svg centralizado; o "Ver tabela" cola no rodapé. */
+#moduleInvestments .inv-charts .mr-chart-wrap { flex: 1 1 auto; display: flex; align-items: center; min-height: 0; }
+#moduleInvestments .inv-charts .mr-chart-wrap svg { flex: 1; min-width: 0; }
+#moduleInvestments .inv-charts .mr-table-details { margin-top: auto; }
 
 /* ===== Carteira A (escolha do dono): donut+legenda = CABEÇALHO do card da carteira ===== */
 .inv-diversif { display: grid; grid-template-columns: 1fr; gap: 18px; }

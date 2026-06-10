@@ -2877,13 +2877,20 @@ function renderMonthlyReturns() {
   if (empty) empty.hidden = true;
 
   // --- Chart ---
-  const W = 700, H = 200, PAD_X = 28, PAD_BOTTOM = 28, PAD_TOP = 14;
+  const W = 700, H = 200, PAD_X = 28, PAD_BOTTOM = 28, PAD_TOP = 16;
   const slot = (W - PAD_X * 2) / rows.length;
   const barW = Math.max(10, slot - 8);
-  const mid = H - PAD_BOTTOM - (H - PAD_BOTTOM - PAD_TOP) / 2; // vertical center = 0%
-  const maxAbs = Math.max(2, ...rows.map(r => Math.abs(r.returnPct))); // min 2% to avoid flat vis
-  const halfPlot = (H - PAD_BOTTOM - PAD_TOP) / 2;
-  const yAt = (pct) => mid - (pct / maxAbs) * halfPlot;
+  // Escala ASSIMÉTRICA: cada lado (positivo/negativo) usa só o espaço de que precisa.
+  // Antes era simétrico (±max) — com negativos pequenos, metade do plot virava faixa
+  // morta entre as barras vermelhas e os meses. Agora as barras enchem o card.
+  const plotH = H - PAD_BOTTOM - PAD_TOP;
+  const NEG_LBL = 16;   // respiro pro rótulo abaixo da barra negativa
+  const maxPos = Math.max(0.5, ...rows.map(r => Math.max(0, r.returnPct)));
+  const maxNeg = Math.max(0.5, ...rows.map(r => Math.max(0, -r.returnPct)));
+  const posH = (plotH - NEG_LBL) * (maxPos / (maxPos + maxNeg));
+  const negH = (plotH - NEG_LBL) - posH;
+  const mid = PAD_TOP + posH;   // linha do 0%
+  const yAt = (pct) => pct >= 0 ? mid - (pct / maxPos) * posH : mid + (-pct / maxNeg) * negH;
   const monthNames = getLang() === 'en' ? MONTH_NAMES_SHORT_EN : MONTH_NAMES_SHORT;
 
   const bars = rows.map((r, i) => {
