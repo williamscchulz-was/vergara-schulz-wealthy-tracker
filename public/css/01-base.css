@@ -24,8 +24,8 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 
   --ink:           #f3f4ee;
   --ink-2:         #b9bbae;
-  --ink-3:         #80827a;
-  --ink-muted:     #5d5f56;
+  --ink-3:         #9a9c90;   /* DS audit M-1: era #80827a (4,1:1) → 5,6:1 AA sobre os cards */
+  --ink-muted:     #8b8d81;   /* DS audit M-1: era #5d5f56 (2,7:1) → 4,6:1 AA */
 
   /* o nome do token segue 'purple' (referenciado no app todo); o VALOR agora é lime */
   --purple:        #c7f73e;
@@ -382,8 +382,8 @@ body {
   --border-glow:   rgba(47,174,95,0.40);
   --ink:           #2a2620;   /* marrom-escuro quente (era verde-acinzentado) */
   --ink-2:         #6b6256;
-  --ink-3:         #8c8170;
-  --ink-muted:     #a99d8b;
+  --ink-3:         #6f6657;   /* DS audit M-1: era #8c8170 (3,8:1) → 5,5:1 AA sobre os cards claros */
+  --ink-muted:     #837767;   /* DS audit M-1: era #a99d8b (2,5:1) → 4,5:1 AA */
   --purple:        #2fae5f;
   --purple-light:  #5fd08a;
   --purple-deep:   #1f8f4a;

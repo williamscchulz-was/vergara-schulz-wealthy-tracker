@@ -1,143 +1,101 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ledger · Auditoria de Design — propostas</title>
+<title>Ledger · Auditoria — status + decisões</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#0a0c08;--panel:#14180f;--panel2:#1d2014;--ink:#f3f4ee;--ink2:#b9bbae;--ink3:#80827a;--inkmut:#5d5f56;--border:rgba(255,255,255,.08);--lime:#c7f73e;--lime2:#a6d22e;--on:#15170b;--loss:#ff6b61;--gain:#4fdd8a}
+  :root{--bg:#0a0c08;--panel:#14180f;--panel2:#1d2014;--ink:#f3f4ee;--ink2:#b9bbae;--ink3:#9a9c90;--border:rgba(255,255,255,.08);--lime:#c7f73e;--lime2:#a6d22e;--on:#15170b;--loss:#ff6b61;--gain:#4fdd8a;--warn:#ffc24d}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;padding:32px 24px 90px;line-height:1.55}
   .mono{font-family:'Geist Mono',monospace}
-  h1{font-size:24px;margin:0 0 4px;letter-spacing:-.02em} .lead{color:var(--ink2);font-size:14px;margin:0 0 26px}
-  h2{font-size:17px;margin:44px 0 4px} .sub{color:var(--ink3);font-size:13px;margin:0 0 16px;max-width:760px}
-  .scores{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:18px 0 8px}
-  .sc{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px}
-  .sc .n{font:700 26px 'Geist Mono';color:var(--lime)} .sc .l{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-top:2px}
+  h1{font-size:24px;margin:0 0 4px;letter-spacing:-.02em} .lead{color:var(--ink2);font-size:14px;margin:0 0 26px;max-width:820px}
+  h2{font-size:17px;margin:44px 0 4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap} .sub{color:var(--ink3);font-size:13px;margin:0 0 16px;max-width:760px}
+  .st{font:700 10px Inter;letter-spacing:.07em;padding:4px 10px;border-radius:999px}
+  .st.done{background:color-mix(in srgb,var(--gain) 18%,transparent);color:var(--gain)}
+  .st.wait{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+  .st.next{background:rgba(255,255,255,.07);color:var(--ink3)}
   .ba{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0 8px}
   @media(max-width:760px){.ba{grid-template-columns:1fr}}
   .pane{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;overflow:hidden}
-  .pane.bad{border-color:color-mix(in srgb,var(--loss) 35%,transparent)} .pane.good{border-color:color-mix(in srgb,var(--lime) 45%,transparent)}
-  .tag{position:absolute;top:0;right:0;font:700 10px Inter;letter-spacing:.08em;padding:5px 12px;border-radius:0 14px 0 12px}
-  .bad .tag{background:color-mix(in srgb,var(--loss) 22%,transparent);color:var(--loss)} .good .tag{background:color-mix(in srgb,var(--lime) 24%,transparent);color:var(--lime)}
-  .why{font-size:12px;color:var(--ink3);margin-top:12px;padding-top:10px;border-top:1px dashed var(--border)}
-  .why b{color:var(--ink2)}
-  /* botões demo */
-  .b-prim-bad{padding:11px 20px;border:0;border-radius:12px;background:linear-gradient(180deg,#d8fa72,#a6d22e);color:#fff;font:600 13px Inter;box-shadow:0 8px 20px -6px rgba(107,33,168,.45)}
-  .b-prim-good{padding:11px 20px;border:0;border-radius:12px;background:linear-gradient(135deg,#c7f73e,#a6d22e);color:#15170b;font:600 13px Inter;box-shadow:0 4px 14px rgba(199,247,62,.25)}
-  .b-del-bad1{padding:10px 16px;border-radius:12px;background:transparent;border:1px solid rgba(255,94,87,.3);color:#ff5e57;font:600 13px Inter}
-  .b-del-bad2{padding:10px 16px;border-radius:12px;background:rgba(255,107,97,.12);border:1px solid rgba(255,94,87,.3);color:var(--loss);font:600 13px Inter}
-  .b-del-good{padding:10px 16px;border-radius:12px;background:transparent;border:1px solid color-mix(in srgb,var(--loss) 32%,transparent);color:var(--loss);font:600 13px Inter}
-  .b-del-good.solid{background:color-mix(in srgb,var(--loss) 14%,transparent);border:0}
-  /* pills demo */
-  .p-old1{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:8px;font:600 11.5px Inter;color:#b9a5ff;background:rgba(155,140,255,.15)}
-  .p-old2{display:inline-flex;padding:2px 8px;border-radius:7px;font:700 9.5px 'Geist Mono';color:#ffbce1;background:rgba(255,107,214,.12)}
-  .p-old3{display:inline-flex;padding:1px 5px;border-radius:5px;font:700 9px 'Geist Mono';color:#9bdcff;background:rgba(100,210,255,.14)}
-  .p-new{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:8px;font:600 11px 'Geist Mono';letter-spacing:.01em}
-  .p-new.cat{color:#b9a5ff;background:rgba(155,140,255,.14)} .p-new.own{color:#ffbce1;background:rgba(255,107,214,.12)} .p-new.badge{color:#9bdcff;background:rgba(100,210,255,.13)}
-  /* phone frames */
+  .pane.good{border-color:color-mix(in srgb,var(--lime) 45%,transparent)}
+  .tag{position:absolute;top:0;right:0;font:700 10px Inter;letter-spacing:.08em;padding:5px 12px;border-radius:0 14px 0 12px;background:rgba(255,255,255,.06);color:var(--ink3)}
+  .good .tag{background:color-mix(in srgb,var(--lime) 24%,transparent);color:var(--lime)}
+  .why{font-size:12px;color:var(--ink3);margin-top:12px;padding-top:10px;border-top:1px dashed var(--border)} .why b{color:var(--ink2)}
+  /* phones QW-3 */
   .phones{display:flex;gap:16px;flex-wrap:wrap}
-  .phone{width:330px;background:var(--bg);border:1px solid var(--border);border-radius:18px;padding:12px;overflow:hidden}
-  .subnav{display:inline-flex;gap:4px;padding:5px;background:var(--panel2);border:1px solid var(--border);border-radius:999px;white-space:nowrap}
-  .subnav button{border:0;background:transparent;color:var(--ink2);font:600 13px Inter;padding:8px 18px;border-radius:999px}
-  .subnav .on{background:var(--lime);color:var(--on)}
-  .clipped{overflow:hidden} .scrolly{overflow-x:auto;scrollbar-width:thin;padding-bottom:4px}
-  .scrolly .subnav button{padding:8px 12px}
-  /* import rows */
-  .irow-bad{display:grid;grid-template-columns:22px 66px 1fr 140px 150px 104px;gap:10px;align-items:center;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;font-size:12px;min-width:540px}
-  .irow-good{display:grid;grid-template-columns:22px 56px 1fr auto;grid-template-areas:'cb date desc val' 'cb sel sel sel';gap:6px 10px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;font-size:12px}
-  .irow-good .cb{grid-area:cb}.irow-good .date{grid-area:date}.irow-good .desc{grid-area:desc}.irow-good .val{grid-area:val}.irow-good .sels{grid-area:sel;display:flex;gap:8px}
-  .sel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:5px 9px;color:var(--ink2);font-size:11.5px}
-  /* bars */
-  .bars{display:flex;align-items:flex-end;gap:10px;height:110px;padding:8px 4px 0}
-  .bars div{width:34px;border-radius:6px 6px 2px 2px}
-  .blab{display:flex;gap:10px;padding:4px} .blab span{width:34px;text-align:center;font:600 10px 'Geist Mono';color:var(--ink3)}
-  /* contraste */
-  .ctr{display:flex;flex-direction:column;gap:8px;font-size:12.5px}
-  .ctr .r{display:flex;justify-content:space-between;gap:10px;background:var(--panel2);border-radius:9px;padding:9px 12px}
-  .pass{color:var(--gain);font:700 11px 'Geist Mono')} .fail{color:var(--loss);font:700 11px 'Geist Mono'}
-  /* focus demo */
+  .phone{width:340px;background:var(--bg);border:1px solid var(--border);border-radius:18px;padding:12px}
+  .phead{font:700 10px Inter;letter-spacing:.07em;margin-bottom:10px}
+  /* opção A: segmented full-width */
+  .segA{display:flex;width:100%;gap:3px;padding:4px;background:var(--panel2);border:1px solid var(--border);border-radius:999px}
+  .segA button{flex:1;border:0;background:transparent;color:var(--ink2);font:600 12px Inter;padding:9px 2px;border-radius:999px;white-space:nowrap}
+  .segA .on{background:var(--lime);color:var(--on);font-weight:700}
+  /* opção B: 2x2 */
+  .segB{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:5px;background:var(--panel2);border:1px solid var(--border);border-radius:16px}
+  .segB button{border:0;background:transparent;color:var(--ink2);font:600 13px Inter;padding:10px 6px;border-radius:11px}
+  .segB .on{background:var(--lime);color:var(--on);font-weight:700}
+  /* checklist */
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
+  th{font:700 10.5px Inter;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)}
+  td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+  td:first-child{color:var(--ink)} td .d{color:var(--ink3);font-size:11.5px;margin-top:1px}
+  .plan{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:20px;margin-top:14px;font-size:13.5px}
+  .plan b{color:var(--lime)}
+  .demo-btn{padding:11px 20px;border:0;border-radius:12px;background:linear-gradient(135deg,#c7f73e,#a6d22e);color:#15170b;font:600 13px Inter;box-shadow:0 4px 14px rgba(199,247,62,.25)}
+  .demo-del{padding:10px 16px;border-radius:12px;background:transparent;border:1px solid color-mix(in srgb,var(--loss) 32%,transparent);color:var(--loss);font:600 13px Inter}
+  .bars{display:flex;align-items:flex-end;gap:10px;height:90px;padding:8px 4px 0}
+  .bars div{width:32px;border-radius:6px 6px 2px 2px}
   .fbtn{padding:10px 18px;border-radius:10px;border:1px solid var(--border);background:var(--panel2);color:var(--ink2);font:600 13px Inter;cursor:pointer}
   .fbtn:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
-  .plan{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:20px;margin-top:14px;font-size:13.5px}
-  .plan b{color:var(--lime)} .plan ol{margin:8px 0 0;padding-left:20px} .plan li{margin-bottom:7px}
-  .ok{display:inline-block;background:var(--lime);color:var(--on);font:700 11px Inter;border-radius:999px;padding:3px 10px;letter-spacing:.05em;margin-left:8px}
 </style></head>
 <body>
-<h1>Auditoria de Design — propostas <span class="ok">PARA APROVAÇÃO</span></h1>
-<p class="lead">42 agentes auditaram o app real (arquivo + linha + trecho). Abaixo: score por dimensão e os <b>before/after</b> dos achados confirmados. Nada disso foi implementado ainda.</p>
+<h1>Auditoria de Design — status da execução</h1>
+<p class="lead"><b style="color:var(--gain)">Fases 1 + 2 aplicadas e no ar</b> (menos o QW-3, que você reprovou — novas opções abaixo pra você escolher). A tabela no fim mostra <b>cada item do prompt da auditoria</b> e o status real — nada escondido.</p>
 
-<div class="scores">
-  <div class="sc"><div class="n">5.5</div><div class="l">Tipografia</div></div>
-  <div class="sc"><div class="n">5.5</div><div class="l">Espaçamento</div></div>
-  <div class="sc"><div class="n">6.0</div><div class="l">Cor & Tokens</div></div>
-  <div class="sc"><div class="n">5.0</div><div class="l">Componentes</div></div>
-  <div class="sc"><div class="n">5.0</div><div class="l">Acessibilidade</div></div>
-  <div class="sc"><div class="n">6.0</div><div class="l">Responsivo</div></div>
-</div>
-
-<h2>QW-1 · Botão "Salvar" está com texto branco sobre lime (bug real)</h2>
-<p class="sub">Um bloco legado da era roxa redefine <span class="mono">.btn-primary</span> com <span class="mono">color:#fff</span> + sombra roxa — contraste ~1,3:1, quase ilegível. O fix: deletar o bloco morto, restaurando o texto escuro.</p>
-<div class="ba">
-  <div class="pane bad"><span class="tag">HOJE</span><button class="b-prim-bad">Salvar</button>&nbsp;&nbsp;<button class="b-prim-bad">+ Nova despesa</button><div class="why"><b>Branco sobre lime (1,3:1)</b> + sombra roxa pré-rebrand. Afeta todo Salvar/Confirmar/Nova despesa no tema dark.</div></div>
-  <div class="pane good"><span class="tag">PROPOSTO</span><button class="b-prim-good">Salvar</button>&nbsp;&nbsp;<button class="b-prim-good">+ Nova despesa</button><div class="why"><b>Texto escuro (--on-accent, 12,9:1)</b> + glow lime. 1 deleção de bloco no CSS.</div></div>
-</div>
-
-<h2>QW-2 · "Excluir" tem 3 visuais diferentes — e num vermelho antigo</h2>
-<p class="sub">Excluir reserva/previdência/meta usa outro estilo (e a cor #ff5e57, que nem é mais o token --loss). Proposta: um padrão único ghost-danger.</p>
-<div class="ba">
-  <div class="pane bad"><span class="tag">HOJE</span><button class="b-del-bad1">Excluir</button>&nbsp;&nbsp;<button class="b-del-bad2">Excluir</button><div class="why"><b>2+ implementações</b> (inline style copiado 3×) com vermelho desatualizado — no tema claro fica abaixo de AA.</div></div>
-  <div class="pane good"><span class="tag">PROPOSTO</span><button class="b-del-good">Excluir</button>&nbsp;&nbsp;<button class="b-del-good solid">Excluir</button><div class="why"><b>1 classe</b> (.btn-danger ghost/solid) usando var(--loss) — adapta aos 2 temas sozinha.</div></div>
-</div>
-
-<h2>QW-3 · Sub-abas de Despesas cortadas no celular estreito</h2>
-<p class="sub">Em ~380px a pílula Painel/Gastos/Ganhos/Categorias estoura e "Categorias" fica clipada (em inglês, some inteira). Proposta: rolagem horizontal suave + padding menor no mobile.</p>
+<h2>🔶 QW-3 (decisão sua) · Sub-abas no celular — 2 novas propostas <span class="st wait">AGUARDANDO ESCOLHA</span></h2>
+<p class="sub">Sem scroll (você reprovou). As duas cabem <b>sempre</b>, qualquer tela e idioma:</p>
 <div class="phones">
-  <div class="phone"><div style="font:700 10px Inter;color:var(--loss);letter-spacing:.07em;margin-bottom:8px">HOJE (380px) — CORTA</div><div class="clipped"><div class="subnav"><button class="on">Painel</button><button>Gastos</button><button>Ganhos</button><button>Categorias</button></div></div></div>
-  <div class="phone"><div style="font:700 10px Inter;color:var(--lime);letter-spacing:.07em;margin-bottom:8px">PROPOSTO — DESLIZA</div><div class="scrolly"><div class="subnav"><button class="on">Painel</button><button>Gastos</button><button>Ganhos</button><button>Categorias</button></div></div></div>
+  <div class="phone"><div class="phead" style="color:var(--lime)">OPÇÃO A — SEGMENTED FULL-WIDTH (estilo iOS, recomendada)</div>
+    <div class="segA"><button class="on">Painel</button><button>Gastos</button><button>Ganhos</button><button>Categorias</button></div>
+    <div class="why">A pílula ocupa <b>100% da largura</b> e divide em 4 partes iguais. Fonte 12px no mobile. Sempre cabe, visual de app nativo.</div>
+  </div>
+  <div class="phone"><div class="phead" style="color:var(--lime)">OPÇÃO B — GRADE 2×2</div>
+    <div class="segB"><button class="on">Painel</button><button>Gastos</button><button>Ganhos</button><button>Categorias</button></div>
+    <div class="why">Duas linhas, botões grandes (alvo de toque ótimo). Ocupa um pouco mais de altura.</div>
+  </div>
 </div>
+<p class="sub" style="margin-top:12px">→ me diz <b>"A"</b> ou <b>"B"</b> (só muda no mobile; desktop fica como está).</p>
 
-<h2>QW-4 · Revisão de fatura no celular: colunas inacessíveis</h2>
-<p class="sub">A linha da revisão tem grade fixa de ~556px num modal de ~300px — os selects de dono/categoria e o valor ficam <b>fora da tela, sem scroll</b> (não dá pra recategorizar no celular). Proposta: reorganizar em 2 linhas no mobile.</p>
+<h2>✅ Aplicado — confere o gosto <span class="st done">NO AR</span></h2>
+<p class="sub">Hard-refresh no app e olha com teu olho. Amostras do que mudou:</p>
 <div class="ba">
-  <div class="pane bad"><span class="tag">HOJE</span><div style="overflow:hidden"><div class="irow-bad"><input type="checkbox" checked><span class="mono">15/06</span><span>LATAM AIR*HIYLFO</span><span class="sel">Família ▾</span><span class="sel">Viagem ▾</span><b class="mono">R$ 1.039</b></div></div><div class="why">Clip duplo (overflow hidden) — <b>dono, categoria e valor invisíveis</b> no celular.</div></div>
-  <div class="pane good"><span class="tag">PROPOSTO</span><div class="irow-good"><input class="cb" type="checkbox" checked><span class="date mono">15/06</span><span class="desc">LATAM AIR*HIYLFO</span><b class="val mono">R$ 1.039</b><div class="sels"><span class="sel">Família ▾</span><span class="sel">Viagem ▾</span></div></div><div class="why"><b>2 linhas no mobile</b>: tudo visível e tocável; desktop continua igual.</div></div>
+  <div class="pane good"><span class="tag">APLICADO</span><button class="demo-btn">Salvar</button>&nbsp;&nbsp;<button class="demo-del">Excluir</button><div class="why"><b>QW-1:</b> Salvar voltou a ter texto escuro sobre lime (12,9:1 — o bloco morto que pintava de branco foi deletado). <b>QW-2:</b> Excluir agora é 1 padrão único (ghost-danger via token) em reserva/previdência/meta/recorrência.</div></div>
+  <div class="pane good"><span class="tag">APLICADO</span><div class="bars"><div style="height:35%;background:#5a6b39"></div><div style="height:55%;background:#8aae35"></div><div style="height:72%;background:#a6d22e"></div><div style="height:95%;background:#c7f73e;box-shadow:0 0 18px rgba(199,247,62,.35)"></div></div><div class="why"><b>QW-5:</b> gráficos anuais (dividendos + patrimônio) saíram do roxo pré-rebrand pra rampa lime via tokens — e como usam <span class="mono">var()</span>, o tema claro (esmeralda) já vem certo sozinho.</div></div>
+  <div class="pane good"><span class="tag">APLICADO</span><div style="font-size:12.5px;display:flex;flex-direction:column;gap:8px"><div style="display:flex;justify-content:space-between;background:var(--panel2);border-radius:9px;padding:9px 12px"><span style="color:#8b8d81">84 lançamentos · atualizado 14:32</span><b class="mono" style="color:var(--gain);font-size:11px">4,6:1 ✓</b></div><div style="display:flex;justify-content:space-between;background:var(--panel2);border-radius:9px;padding:9px 12px"><span style="color:#9a9c90">Clique em uma linha para editar</span><b class="mono" style="color:var(--gain);font-size:11px">5,6:1 ✓</b></div></div><div class="why"><b>M-1:</b> textos pequenos subiram pra AA nos DOIS temas (tokens --ink-3 e --ink-muted recalibrados).</div></div>
+  <div class="pane good"><span class="tag">APLICADO</span><button class="fbtn">Painel</button> <button class="fbtn">Gastos</button> <span style="font-size:12px;color:var(--ink3)">← aperte <b>Tab</b> aqui</span><div class="why"><b>M-3:</b> anel de foco lime via teclado no app inteiro (não existia NENHUM), modais com <span class="mono">role="dialog"</span>, e reduced-motion agora mata TODAS as 44 animações (antes cobria ~⅓).</div></div>
 </div>
 
-<h2>QW-5 · Gráficos anuais ainda na paleta roxa antiga</h2>
-<p class="sub">Os barcharts de dividendos/patrimônio usam #a855f7/#ec4899 (era roxa). Proposta: migrar pro lime + tokens semânticos.</p>
-<div class="ba">
-  <div class="pane bad"><span class="tag">HOJE</span><div class="bars"><div style="height:35%;background:#7d6e96"></div><div style="height:55%;background:#a855f7"></div><div style="height:70%;background:#a855f7"></div><div style="height:95%;background:#ec4899"></div></div><div class="blab"><span>23</span><span>24</span><span>25</span><span>26</span></div></div>
-  <div class="pane good"><span class="tag">PROPOSTO</span><div class="bars"><div style="height:35%;background:#5a6b39"></div><div style="height:55%;background:#8aae35"></div><div style="height:70%;background:#a6d22e"></div><div style="height:95%;background:#c7f73e;box-shadow:0 0 18px rgba(199,247,62,.35)"></div></div><div class="blab"><span>23</span><span>24</span><span>25</span><span>26</span></div></div>
-</div>
+<h2>📋 Checklist do prompt — item a item</h2>
+<table>
+  <tr><th>Item da auditoria</th><th style="width:130px">Status</th></tr>
+  <tr><td>QW-1 · Salvar branco-sobre-lime (bloco CSS morto)<div class="d">bloco deletado; 1 definição só de .btn-primary; texto --on-accent</div></td><td><span class="st done">APLICADO</span></td></tr>
+  <tr><td>QW-2 · 3 visuais de "Excluir" + vermelho antigo<div class="d">.btn-danger.ghost único; #ff5e57/rgba antigos → var(--loss) com color-mix</div></td><td><span class="st done">APLICADO</span></td></tr>
+  <tr><td>QW-3 · Sub-abas cortadas no mobile<div class="d">scroll reprovado → 2 novas opções acima</div></td><td><span class="st wait">SUA ESCOLHA</span></td></tr>
+  <tr><td>QW-4 · Revisão de fatura: colunas inacessíveis no celular<div class="d">linha reflui em 2 níveis ≤720px (selects embaixo, tudo tocável)</div></td><td><span class="st done">APLICADO</span></td></tr>
+  <tr><td>QW-5 · Barcharts na paleta roxa pré-rebrand<div class="d">0 cores roxas restantes; tudo via tokens (theme-aware)</div></td><td><span class="st done">APLICADO</span></td></tr>
+  <tr><td>QW-6 · Inputs de modal travados em 132px (.exp-filter)<div class="d">classe removida (expRepeatUntil, recEditVal/End); .modal input cobre</div></td><td><span class="st done">APLICADO</span></td></tr>
+  <tr><td>M-1 · Contraste AA dos textos pequenos<div class="d">--ink-3 e --ink-muted recalibrados nos 2 temas (2,7→4,6:1 / 4,1→5,6:1)</div></td><td><span class="st done">APLICADO</span></td></tr>
+  <tr><td>M-2 · Zoo de pills (6 variantes)<div class="d">geometria unificada: radius 8, escala micro; hero-pill em token. Cores mantidas</div></td><td><span class="st done">APLICADO</span></td></tr>
+  <tr><td>M-3 · Teclado/leitor de tela/motion<div class="d">:focus-visible global · 12 modais com role=dialog/alertdialog · reduced-motion total</div></td><td><span class="st done">APLICADO</span></td></tr>
+  <tr><td>Footers de modal inconsistentes<div class="d">import/fx/erro/recorrência alinhados no padrão [destrutivo]–espaço–Cancelar–Primário</div></td><td><span class="st done">APLICADO</span></td></tr>
+  <tr><td>Pesos de fonte fantasma (550/650/900 não carregavam)<div class="d">0 restantes — agora 600/700/800 (pesos reais do Google Fonts)</div></td><td><span class="st done">APLICADO</span></td></tr>
+  <tr><td>Colisão de breakpoints (720px e 900px min+max juntos)<div class="d">fronteiras desambiguadas (719.98 / 899.98)</div></td><td><span class="st done">APLICADO</span></td></tr>
+  <tr><td>49 styles inline estáticos no app.js<div class="d">49 → 36: empty-states ×3, popup de erro, badge de contagem viraram classes; restantes na Fase 3</div></td><td><span class="st done">PARCIAL</span></td></tr>
+  <tr><td>Adoção real da escala --fs-* / --sp-* (5 e 0 usos hoje)<div class="d">migração arquivo a arquivo — é a maior alavanca das notas</div></td><td><span class="st next">FASE 3</span></td></tr>
+  <tr><td>Consolidar 7 breakpoints → 3 documentados (720/900/1000)</td><td><span class="st next">FASE 3</span></td></tr>
+  <tr><td>Lime cru (33 regras) no tema claro + alias --accent + token --info<div class="d">paridade light completa</div></td><td><span class="st next">FASE 3</span></td></tr>
+  <tr><td>Hierarquia de headings (h2 20–27px / h3 15–18px entre abas)</td><td><span class="st next">FASE 3</span></td></tr>
+  <tr><td>Alvos de toque 44px no mobile (editar reserva/meta, mês)</td><td><span class="st next">FASE 3</span></td></tr>
+  <tr><td>Whitespace morto no rodapé mobile (~200px)</td><td><span class="st next">FASE 3</span></td></tr>
+  <tr><td>Letter-spacing harmonizado (px vs em misturados)</td><td><span class="st next">FASE 3</span></td></tr>
+</table>
 
-<h2>M-1 · Contraste dos textos pequenos (AA)</h2>
-<p class="sub">--ink-muted falha WCAG AA nos dois temas (2,7:1 dark / 2,5:1 light) justamente nos textos menores. Proposta: clarear o token e reservar o tom apagado só pra decorativo.</p>
-<div class="ba">
-  <div class="pane bad"><span class="tag">HOJE</span><div class="ctr"><div class="r"><span style="color:#5d5f56">84 lançamentos · atualizado 14:32</span><span class="fail">2,7:1 ✗</span></div><div class="r"><span style="color:#80827a">Clique em uma linha para editar</span><span class="fail">4,1:1 ✗</span></div></div></div>
-  <div class="pane good"><span class="tag">PROPOSTO</span><div class="ctr"><div class="r"><span style="color:#8b8d81">84 lançamentos · atualizado 14:32</span><span class="pass">4,6:1 ✓</span></div><div class="r"><span style="color:#9a9c90">Clique em uma linha para editar</span><span class="pass">5,6:1 ✓</span></div></div></div>
-</div>
-
-<h2>M-2 · Pills/badges: 6 variantes → 1 família</h2>
-<p class="sub">Hoje: raios 999/8/7/5px, fontes 9–13px, Inter e Mono misturados. Proposta: base única (.pill) — mesma altura, raio e tipografia, só a cor muda.</p>
-<div class="ba">
-  <div class="pane bad"><span class="tag">HOJE</span><span class="p-old1">✈ Viagem</span> <span class="p-old2">F</span> <span class="p-old3">2/4</span><div class="why">3 raios, 3 tamanhos, 2 fontes <b>na mesma tela</b>.</div></div>
-  <div class="pane good"><span class="tag">PROPOSTO</span><span class="p-new cat">✈ Viagem</span> <span class="p-new own">F</span> <span class="p-new badge">2/4</span><div class="why"><b>1 base</b>: radius 8, Geist Mono 11px, padding único — cor por modificador.</div></div>
-</div>
-
-<h2>M-3 · Teclado & leitores de tela (invisível mas importante)</h2>
-<p class="sub">Zero <span class="mono">:focus-visible</span> no app (Tab não mostra onde você está), modais sem <span class="mono">role="dialog"</span>, e o bloco reduced-motion não cobre todas as 44 animações. Proposta abaixo — <b>aperte Tab</b> pra sentir o anel de foco:</p>
-<div class="pane good" style="max-width:560px"><span class="tag">PROPOSTO</span><button class="fbtn">Painel</button> <button class="fbtn">Gastos</button> <button class="fbtn">Ganhos</button><div class="why"><b>Anel lime 2px</b> (outline-offset 2) só via teclado (:focus-visible) — não aparece no clique/touch. Motion: 0ms quando reduced-motion ativo.</div></div>
-
-<h2>📋 Plano de implementação (após teu OK)</h2>
-<div class="plan">
-  <b>Fase 1 — Quick wins (1 sessão):</b>
-  <ol>
-    <li>Deletar o bloco "BUTTON SYSTEM" morto → conserta o Salvar branco-sobre-lime (QW-1)</li>
-    <li>Classe única .btn-danger ghost p/ os 3 Excluir inline (QW-2)</li>
-    <li>Sub-abas: scroll horizontal ≤480px + padding 8/12 (QW-3)</li>
-    <li>Revisão de fatura: reflow 2 linhas ≤720px (QW-4)</li>
-    <li>buildBarChart → paleta lime/tokens (QW-5)</li>
-    <li>Inputs de modal: remover .exp-filter (largura travada em 132px)</li>
-  </ol>
-  <b>Fase 2 — Consistência:</b> base .pill unificada · classes pros ~30 styles inline estáticos do app.js · footers de modal num padrão único · contraste AA (M-1) · :focus-visible global + role=dialog + reduced-motion completo (M-3).
-  <br><br><b>Fase 3 — Sistema:</b> adoção real da escala --fs-*/--sp-* (migração arquivo a arquivo) · breakpoints 720/900/1000 documentados (hoje: 7 valores com colisão em 720px) · pesos de fonte 550/650/900 → 600/700/800 (os atuais nem carregam do Google Fonts).
-</div>
+<div class="plan"><b>Sobre as notas:</b> elas medem o estado de ANTES. As Fases 1+2 atacaram os bugs visíveis e a acessibilidade (estimo Componentes 5→7, A11y 5→7,5, Cor 6→7,5). O salto pra <b>~9</b> é a <b>Fase 3</b> — adoção em massa dos tokens de tipo/espaçamento, 3 breakpoints, paridade light total e o resto da tabela. É trabalho mecânico amplo (centenas de declarações): eu toco ela na próxima leva, em fatias verificáveis, sem precisar de mais decisão sua — só do teu OK pra começar.</div>
 </body></html>

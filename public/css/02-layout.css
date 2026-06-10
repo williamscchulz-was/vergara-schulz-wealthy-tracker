@@ -13,7 +13,7 @@
 .inv-kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .ikpi { padding: 15px 17px; }
 .ikpi-k { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); font-weight: 700; }
-.ikpi-v { font-family: 'Geist Mono', monospace; font-size: 21px; font-weight: 650; letter-spacing: -.02em; color: var(--ink); margin-top: 10px; }
+.ikpi-v { font-family: 'Geist Mono', monospace; font-size: 21px; font-weight: 600; letter-spacing: -.02em; color: var(--ink); margin-top: 10px; }
 
 @media (min-width: 1000px) {
   .inv-charts { grid-template-columns: 1fr 1fr; }

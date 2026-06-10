@@ -348,11 +348,11 @@ function showErrorPopup(title, err, opts = {}) {
     if (!bg) {
       bg = document.createElement('div');
       bg.id = 'errPopup'; bg.className = 'modal-bg';
-      bg.innerHTML = '<div class="modal" style="max-width:540px">'
+      bg.innerHTML = '<div class="modal" role="alertdialog" aria-modal="true" style="max-width:540px">'
         + '<h3 class="err-pop-title" style="color:var(--loss)"></h3>'
         + '<p class="sub" style="margin:-4px 0 10px">Detalhe técnico (toque em Copiar pra me mandar):</p>'
-        + '<pre class="err-pop-body" style="white-space:pre-wrap;word-break:break-word;font-family:\'Geist Mono\',monospace;font-size:11px;line-height:1.5;background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:10px;padding:12px;max-height:300px;overflow:auto;color:var(--ink-2);margin:0"></pre>'
-        + '<div class="modal-foot"><button class="btn-secondary err-pop-copy" type="button">Copiar</button><button class="btn-primary err-pop-close" type="button">Fechar</button></div>'
+        + '<pre class="err-pop-body"></pre>'
+        + '<div class="modal-foot"><div class="spacer"></div><button class="btn-secondary err-pop-copy" type="button">Copiar</button><button class="btn-primary err-pop-close" type="button">Fechar</button></div>'
         + '</div>';
       document.body.appendChild(bg);
       bg.querySelector('.err-pop-close').addEventListener('click', () => bg.classList.remove('show'));
@@ -1601,14 +1601,14 @@ function openRecurringEditor(id) {
   let bg = document.getElementById('recEditPopup');
   if (!bg) {
     bg = document.createElement('div'); bg.id = 'recEditPopup'; bg.className = 'modal-bg';
-    bg.innerHTML = '<div class="modal" style="max-width:420px">'
+    bg.innerHTML = '<div class="modal" role="dialog" aria-modal="true" style="max-width:420px">'
       + '<h3>Despesa fixa</h3>'
       + '<p class="sub" id="recEditDesc" style="margin:-4px 0 12px"></p>'
-      + '<div class="field full"><label>Valor</label><input type="text" id="recEditVal" inputmode="decimal" class="exp-filter" style="width:100%"></div>'
-      + '<div class="field full"><label>Repetir até</label><input type="month" id="recEditEnd" class="exp-filter" style="width:100%"><div class="meta">Em branco = indefinido</div></div>'
-      + '<div class="modal-foot" style="justify-content:space-between;align-items:center">'
-      + '<button class="btn-ghost" id="recEditDel" type="button" style="color:var(--loss)">Parar de repetir</button>'
-      + '<span style="display:flex;gap:8px"><button class="btn-secondary" id="recEditCancel" type="button">Cancelar</button><button class="btn-primary" id="recEditSave" type="button">Salvar</button></span>'
+      + '<div class="field full"><label>Valor</label><input type="text" id="recEditVal" inputmode="decimal"></div>'
+      + '<div class="field full"><label>Repetir até</label><input type="month" id="recEditEnd"><div class="meta">Em branco = indefinido</div></div>'
+      + '<div class="modal-foot">'
+      + '<button class="btn-danger ghost" id="recEditDel" type="button">Parar de repetir</button><div class="spacer"></div>'
+      + '<button class="btn-secondary" id="recEditCancel" type="button">Cancelar</button><button class="btn-primary" id="recEditSave" type="button">Salvar</button>'
       + '</div></div>';
     document.body.appendChild(bg);
     bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('show'); });
@@ -2274,7 +2274,7 @@ function buildBarChart(years, values, opts = {}) {
   const innerW = W - padL - padR;
   const innerH = H - padT - padB;
   if (!years.length) {
-    return '<div style="padding:40px 20px;text-align:center;color:var(--ink-muted);font-size:13px"><div style="font-size:15px;color:var(--ink-3);margin-bottom:6px">sem dados ainda</div>adicione anos no historico para ver o grafico</div>';
+    return '<div class="chart-empty"><b>sem dados ainda</b>adicione anos no historico para ver o grafico</div>';
   }
   const maxData = Math.max(...values, 0);
   const yMax = (maxData > 0 ? maxData * 1.18 : 1);
@@ -2290,12 +2290,14 @@ function buildBarChart(years, values, opts = {}) {
   let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" style="display:block;width:100%;height:auto;max-width:100%">';
   svg += '<defs>';
   svg += '<linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1">';
-  svg += '<stop offset="0%" stop-color="#a855f7" stop-opacity="0.95"/>';
-  svg += '<stop offset="100%" stop-color="#7c3aed" stop-opacity="0.65"/>';
+  // DS audit QW-5: paleta lime via tokens (era roxa pré-rebrand) — var() em SVG inline
+  // herda do tema, então o light (esmeralda) já vem certo de graça.
+  svg += '<stop offset="0%" stop-color="var(--purple-deep)" stop-opacity="0.80"/>';
+  svg += '<stop offset="100%" stop-color="var(--purple-deep)" stop-opacity="0.40"/>';
   svg += '</linearGradient>';
   svg += '<linearGradient id="' + gidC + '" x1="0" y1="0" x2="0" y2="1">';
-  svg += '<stop offset="0%" stop-color="#ec4899" stop-opacity="1"/>';
-  svg += '<stop offset="100%" stop-color="#a855f7" stop-opacity="0.7"/>';
+  svg += '<stop offset="0%" stop-color="var(--purple)" stop-opacity="1"/>';
+  svg += '<stop offset="100%" stop-color="var(--purple-deep)" stop-opacity="0.75"/>';
   svg += '</linearGradient>';
   svg += '<filter id="glowB' + uniqueId + '" x="-50%" y="-50%" width="200%" height="200%">';
   svg += '<feGaussianBlur stdDeviation="3" result="b"/>';
@@ -2306,9 +2308,9 @@ function buildBarChart(years, values, opts = {}) {
   // Grid horizontal
   for (let i = 0; i <= 4; i++) {
     const y = padT + (innerH * i / 4);
-    svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="2 4"/>';
+    svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="var(--border)" stroke-width="1" stroke-dasharray="2 4"/>';
     const val = yMax * (4 - i) / 4;
-    svg += '<text x="' + (padL - 10) + '" y="' + (y + 4) + '" text-anchor="end" fill="#7d6e96" font-family="Geist Mono, monospace" font-size="' + fsAxis + '" font-weight="600">' + shortMoney(val) + '</text>';
+    svg += '<text x="' + (padL - 10) + '" y="' + (y + 4) + '" text-anchor="end" fill="var(--ink-3)" font-family="Geist Mono, monospace" font-size="' + fsAxis + '" font-weight="600">' + shortMoney(val) + '</text>';
   }
 
   // Bars
@@ -2317,7 +2319,7 @@ function buildBarChart(years, values, opts = {}) {
     if (v <= 0) {
       // Empty year - draw label only
       const x = padL + barSlot * i + barSlot / 2;
-      svg += '<text x="' + x + '" y="' + (H - 14) + '" text-anchor="middle" fill="#4d4063" font-family="Geist Mono, monospace" font-size="' + fsYear + '" font-weight="600">' + y + '</text>';
+      svg += '<text x="' + x + '" y="' + (H - 14) + '" text-anchor="middle" fill="var(--ink-muted)" font-family="Geist Mono, monospace" font-size="' + fsYear + '" font-weight="600">' + y + '</text>';
       return;
     }
     const barH = (v / yMax) * innerH;
@@ -2325,13 +2327,13 @@ function buildBarChart(years, values, opts = {}) {
     const barY = padT + innerH - barH;
     const isCurrent = y === currentYearActual;
     const fillUrl = isCurrent ? 'url(#' + gidC + ')' : 'url(#' + gid + ')';
-    const yearColor = isCurrent ? '#c084fc' : '#7d6e96';
+    const yearColor = isCurrent ? 'var(--purple)' : 'var(--ink-3)';
     const yearWeight = isCurrent ? '700' : '600';
     const yearLabel = isCurrent ? y + '*' : String(y);
 
     svg += '<rect x="' + x + '" y="' + barY + '" width="' + barWidth + '" height="' + barH + '" rx="5" fill="' + fillUrl + '"' + (isCurrent ? ' filter="url(#glowB' + uniqueId + ')"' : '') + '><title>' + y + ': ' + fmtBRL0(v) + '</title></rect>';
     // Value label above bar
-    const valColor = isCurrent ? '#f472b6' : '#b8a8d4';
+    const valColor = isCurrent ? 'var(--ink)' : 'var(--ink-2)';
     svg += '<text x="' + (x + barWidth / 2) + '" y="' + (barY - (isMobile ? 10 : 6)) + '" text-anchor="middle" fill="' + valColor + '" font-family="Geist Mono, monospace" font-size="' + fsValue + '" font-weight="700">' + shortMoney(v) + '</text>';
     // Year label below
     svg += '<text x="' + (x + barWidth / 2) + '" y="' + (H - 14) + '" text-anchor="middle" fill="' + yearColor + '" font-family="Geist Mono, monospace" font-size="' + fsYear + '" font-weight="' + yearWeight + '">' + yearLabel + '</text>';
@@ -2365,9 +2367,9 @@ function buildBarChart(years, values, opts = {}) {
         const txt = sign + yoy.toFixed(0) + '%';
         // v8 color: green <100%, amber >100%, red negative
         let bg, strokeCol;
-        if (yoy < 0) { bg = '#ff5e57'; strokeCol = 'rgba(255,94,87,.3)'; }
-        else if (yoy > 100) { bg = '#e3b974'; strokeCol = 'rgba(227,185,116,.3)'; }
-        else { bg = '#34e17a'; strokeCol = 'rgba(52,225,122,.3)'; }
+        if (yoy < 0) { bg = 'var(--loss)'; strokeCol = 'var(--loss)'; }
+        else if (yoy > 100) { bg = 'var(--warn)'; strokeCol = 'var(--warn)'; }
+        else { bg = 'var(--gain)'; strokeCol = 'var(--gain)'; }
         // Dashed connector line between the two bar tops (from right edge of prev to left edge of cur)
         const prevRight = prev.cx + barWidth / 2;
         const curLeft = cur.cx - barWidth / 2;
@@ -2377,17 +2379,17 @@ function buildBarChart(years, values, opts = {}) {
         const midY = (prev.top + cur.top) / 2;
         const pillW = txt.length * (isMobile ? 8 : 8) + (isMobile ? 14 : 13);
         const pillTop = midY - pillH / 2;
-        svg += '<g><rect x="' + (midX - pillW/2) + '" y="' + pillTop + '" width="' + pillW + '" height="' + pillH + '" rx="' + (pillH/2) + '" fill="' + bg + '" stroke="' + strokeCol + '" stroke-width="1"/>';
-        svg += '<text x="' + midX + '" y="' + (pillTop + pillH * 0.72) + '" text-anchor="middle" fill="#1a181d" font-family="Geist Mono, monospace" font-size="' + fsPill + '" font-weight="700">' + txt + '</text></g>';
+        svg += '<g><rect x="' + (midX - pillW/2) + '" y="' + pillTop + '" width="' + pillW + '" height="' + pillH + '" rx="' + (pillH/2) + '" fill="' + bg + '" stroke="' + strokeCol + '" stroke-opacity="0.35" stroke-width="1"/>';
+        svg += '<text x="' + midX + '" y="' + (pillTop + pillH * 0.72) + '" text-anchor="middle" fill="var(--on-accent)" font-family="Geist Mono, monospace" font-size="' + fsPill + '" font-weight="700">' + txt + '</text></g>';
       }
     } else if (yoyMode === 'line') {
       // Connected polyline over bar tops + dots
       const valid = points.filter(p => p !== null);
       if (valid.length >= 2) {
         const linePts = valid.map(p => p.cx + ',' + p.top).join(' ');
-        svg += '<polyline points="' + linePts + '" fill="none" stroke="#d8fa72" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>';
+        svg += '<polyline points="' + linePts + '" fill="none" stroke="var(--purple-light)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>';
         for (const p of valid) {
-          svg += '<circle cx="' + p.cx + '" cy="' + p.top + '" r="4" fill="#d8fa72" stroke="#131410" stroke-width="2"/>';
+          svg += '<circle cx="' + p.cx + '" cy="' + p.top + '" r="4" fill="var(--purple-light)" stroke="var(--bg-elevated)" stroke-width="2"/>';
         }
         // Show YoY % only on top 3 highest growths to avoid clutter
         const yoys = [];
@@ -2399,7 +2401,7 @@ function buildBarChart(years, values, opts = {}) {
         const topYoys = yoys.slice(0, 3);
         for (const y of topYoys) {
           const sign = y.yoy >= 0 ? '+' : '';
-          const col = y.yoy >= 0 ? '#34e17a' : '#ff5e57';
+          const col = y.yoy >= 0 ? 'var(--gain)' : 'var(--loss)';
           svg += '<text x="' + y.p.cx + '" y="' + (y.p.top - 10) + '" text-anchor="middle" fill="' + col + '" font-family="Geist Mono, monospace" font-size="' + fsValue + '" font-weight="700">' + sign + y.yoy.toFixed(0) + '%</text>';
         }
       }
@@ -2430,7 +2432,7 @@ function renderDividendsChart() {
 
   // Need at least 1 year
   if (years.length === 0) {
-    wrap.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--ink-muted);font-size:13px"><div style="font-size:15px;color:var(--ink-3);margin-bottom:6px">sem historico ainda</div>sincronize com I10 ou adicione anos manualmente</div>';
+    wrap.innerHTML = '<div class="chart-empty"><b>sem historico ainda</b>sincronize com I10 ou adicione anos manualmente</div>';
     return;
   }
 
@@ -2492,7 +2494,7 @@ function renderPLChart() {
     .sort((a, b) => a.year - b.year);
 
   if (sortedYearly.length === 0 && (!state.i10.equity || state.i10.equity <= 0)) {
-    wrap.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--ink-muted);font-size:13px"><div style="font-size:15px;color:var(--ink-3);margin-bottom:6px">sem historico de PL</div>sincronize com I10 para ver a evolucao</div>';
+    wrap.innerHTML = '<div class="chart-empty"><b>sem historico de PL</b>sincronize com I10 para ver a evolucao</div>';
     return;
   }
 
@@ -2940,7 +2942,7 @@ function renderContributions() {
   wrap.innerHTML = sortedGroups.map(g => {
     const monthLbl = (getLang() === 'en' ? MONTH_NAMES_SHORT_EN : MONTH_NAMES_SHORT)[(g.month || 1) - 1] || '?';
     const countBadge = g.items.length > 1
-      ? `<span style="display:inline-block;padding:2px 7px;background:var(--purple-soft);color:var(--purple-light);border-radius:999px;font-size:9px;font-weight:700;margin-left:6px;font-family:'Geist Mono',monospace">${g.items.length}</span>`
+      ? `<span class="pill-count">${g.items.length}</span>`
       : '';
     // Single-contribution months show their note inline; multi-month rows
     // just show the count badge (notes visible in the detail modal).

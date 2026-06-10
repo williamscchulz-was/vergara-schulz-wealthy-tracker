@@ -504,9 +504,9 @@
   margin-left: 8px;
   padding: 2px 8px;
   font-family: 'Geist Mono', monospace;
-  font-size: 9.5px; font-weight: 700;
+  font-size: 10px; font-weight: 700;   /* DS audit M-2: alinhado à família pill (radius 8) */
   letter-spacing: 0.04em;
-  border-radius: 7px;
+  border-radius: 8px;
   vertical-align: middle;
   border: 0;   /* opção A: soft tinted, sem borda */
   color: var(--ink-3);
@@ -547,7 +547,7 @@
 .imp-type-opt { display: flex; flex-direction: column; align-items: center; gap: 9px; padding: 24px 14px; border-radius: 16px; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--ink-2); cursor: pointer; transition: .18s var(--ease-out); }
 .imp-type-opt:hover { border-color: var(--purple); color: var(--ink); transform: translateY(-2px); box-shadow: 0 14px 30px -18px rgba(199,247,62,.6); }
 .imp-type-opt svg { width: 30px; height: 30px; color: var(--purple-light); }
-.imp-type-nm { font-size: 13.5px; font-weight: 650; }
+.imp-type-nm { font-size: 13.5px; font-weight: 700; }
 .imp-type-ext { font-family: 'Geist Mono', monospace; font-size: 10px; color: var(--ink-3); background: var(--bg-elevated-2); padding: 2px 8px; border-radius: 6px; }
 .imp-meta { font-size: 12px; color: var(--ink-3); margin: 6px 0 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
 .imp-selall { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-weight: 600; color: var(--ink-2); user-select: none; }
@@ -581,7 +581,7 @@
 .imp-date { font-family: 'Geist Mono', monospace; color: var(--ink-3); font-size: 11px; white-space: nowrap; }
 .imp-desc { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
 .imp-card { font-size: 10px; color: var(--ink-muted); margin-left: 4px; }
-.imp-badge { font-family: 'Geist Mono', monospace; font-size: 9px; padding: 1px 5px; border-radius: 5px; background: rgba(100,210,255,.14); color: #9bdcff; }
+.imp-badge { font-family: 'Geist Mono', monospace; font-size: 10px; padding: 1px 6px; border-radius: 8px; background: rgba(100,210,255,.14); color: #9bdcff; }   /* DS audit M-2: geometria da família pill */
 .imp-badge.ref { background: var(--gain-soft); color: var(--gain); }
 .imp-badge.rec { background: color-mix(in oklab, var(--purple) 22%, transparent); color: var(--purple-light); }
 .imp-badge.inc { background: var(--gain-soft); color: var(--gain); }
@@ -591,6 +591,22 @@
 .imp-row select { background: var(--bg-elevated-2); color: var(--ink); border: 1px solid var(--border); border-radius: 7px; padding: 5px 6px; font-size: 11px; font-family: inherit; max-width: 100%; cursor: pointer; }
 .imp-val { font-family: 'Geist Mono', monospace; text-align: right; color: var(--ink); }
 .imp-val.ref { color: var(--gain); }
+/* DS audit QW-4: no celular a grade fixa (~556px) clipava dono/categoria/valor sem scroll.
+   Reflow em 2 linhas: [check | data | desc | valor] / [selects lado a lado]. */
+@media (max-width: 719.98px) {
+  .imp-list { overflow-x: auto; }   /* cinto de segurança caso algo ainda exceda */
+  .imp-row {
+    grid-template-columns: 22px 52px minmax(0,1fr) auto;
+    grid-template-areas: 'cb date desc val' 'cb own own cat';
+    row-gap: 7px;
+  }
+  .imp-row > input[type="checkbox"] { grid-area: cb; }
+  .imp-date { grid-area: date; }
+  .imp-desc { grid-area: desc; }
+  .imp-val { grid-area: val; }
+  .imp-owner { grid-area: own; width: 100%; }
+  .imp-cat { grid-area: cat; width: 100%; min-width: 120px; }
+}
 /* Overlay de progresso/sucesso da importação */
 /* SEM backdrop-filter: blur de tela cheia re-borrava o fundo a cada frame
    enquanto o scan/linhas animavam por cima → travava (sobretudo no celular).

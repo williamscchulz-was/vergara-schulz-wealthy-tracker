@@ -695,7 +695,7 @@
 </div></div>
 
 <!-- Generic confirm modal (used for Expense delete, and future destructive actions) -->
-<div class="modal-bg" id="confirmModal"><div class="modal confirm-modal">
+<div class="modal-bg" id="confirmModal"><div class="modal confirm-modal" role="alertdialog" aria-modal="true">
   <h3 id="confirmTitle">Confirmar</h3>
   <p class="sub" id="confirmSub">Esta ação não pode ser desfeita.</p>
   <div class="modal-foot">
@@ -751,7 +751,7 @@
     </div>
     <div class="field full" id="expRepeatField" hidden>
       <label data-i18n="exp.f.repeat.until">Repete todo mês — até quando? <span style="text-transform:none;letter-spacing:0;color:var(--ink-3)">(opcional)</span></label>
-      <input type="month" id="expRepeatUntil" class="exp-filter" style="width:100%">
+      <input type="month" id="expRepeatUntil">
       <div class="meta" data-i18n="exp.f.repeat.hint">Em branco = repete pra sempre. Despesa fixa entra automático todo mês.</div>
     </div>
     <div class="field full" id="expNotesField"><label data-i18n="exp.f.notes">Notas (opcional)</label><textarea id="expNotes" data-i18n-ph="exp.f.notes.ph" placeholder="Detalhes adicionais..." rows="2"></textarea></div>
@@ -764,7 +764,7 @@
   </div>
 </div></div>
 
-<div class="modal-bg" id="i10Modal"><div class="modal">
+<div class="modal-bg" id="i10Modal"><div class="modal" role="dialog" aria-modal="true">
   <h3 data-i18n="i10.modal.title">Editar valores do Investidor10</h3>
   <p class="sub" data-i18n="i10.modal.sub">Enquanto a automação não está pronta, atualize os valores manualmente. Abra o Investidor10 e copie os valores exatos.</p>
   <div class="form-grid">
@@ -778,7 +778,7 @@
   </div>
 </div></div>
 
-<div class="modal-bg" id="i10CfgModal"><div class="modal">
+<div class="modal-bg" id="i10CfgModal"><div class="modal" role="dialog" aria-modal="true">
   <h3 data-i18n="cfg.modal.title">Configurar sincronização I10</h3>
   <p class="sub" data-i18n="cfg.modal.sub">Cole a URL do seu Cloudflare Worker e o ID da sua carteira pública. A configuração é compartilhada entre os dois usuários via Firestore.</p>
   <div class="form-grid">
@@ -805,7 +805,7 @@
   </div>
 </div></div>
 
-<div class="modal-bg" id="reserveModal"><div class="modal">
+<div class="modal-bg" id="reserveModal"><div class="modal" role="dialog" aria-modal="true">
   <h3 id="reserveModalTitle">Editar conta</h3>
   <p class="sub" data-i18n="reserve.modal.sub">Reserva de emergência</p>
   <div class="form-grid">
@@ -819,14 +819,14 @@
     </div>
   </div>
   <div class="modal-foot">
-    <button class="btn-secondary" id="reserveDeleteBtn" data-i18n="exp.btn.delete" style="background:transparent;border:1px solid rgba(255,94,87,0.3);color:#ff5e57">Excluir</button>
+    <button class="btn-danger ghost" id="reserveDeleteBtn" data-i18n="exp.btn.delete">Excluir</button>
     <div class="spacer"></div>
     <button class="btn-secondary" id="reserveModalCancel" data-i18n="exp.btn.cancel">Cancelar</button>
     <button class="btn-primary" id="reserveModalSave" data-i18n="exp.btn.save">Salvar</button>
   </div>
 </div></div>
 
-<div class="modal-bg" id="pensionModal"><div class="modal">
+<div class="modal-bg" id="pensionModal"><div class="modal" role="dialog" aria-modal="true">
   <h3 id="pensionModalTitle">Editar previdência</h3>
   <p class="sub" data-i18n="pension.modal.sub">Previdência privada</p>
   <div class="form-grid">
@@ -840,7 +840,7 @@
     </div>
   </div>
   <div class="modal-foot">
-    <button class="btn-secondary" id="pensionDeleteBtn" data-i18n="exp.btn.delete" style="background:transparent;border:1px solid rgba(255,94,87,0.3);color:#ff5e57">Excluir</button>
+    <button class="btn-danger ghost" id="pensionDeleteBtn" data-i18n="exp.btn.delete">Excluir</button>
     <div class="spacer"></div>
     <button class="btn-secondary" id="pensionModalCancel" data-i18n="exp.btn.cancel">Cancelar</button>
     <button class="btn-primary" id="pensionModalSave" data-i18n="exp.btn.save">Salvar</button>
@@ -848,7 +848,7 @@
 </div></div>
 
 <!-- Editor de meta (dividendos / quantidade de ações) -->
-<div class="modal-bg" id="metaModal"><div class="modal">
+<div class="modal-bg" id="metaModal"><div class="modal" role="dialog" aria-modal="true">
   <h3 id="metaModalTitle">Editar meta</h3>
   <p class="sub" id="metaModalSub">Quantidade de ações</p>
   <div class="form-grid">
@@ -866,14 +866,14 @@
     </div>
   </div>
   <div class="modal-foot">
-    <button class="btn-secondary" id="metaDeleteBtn" data-i18n="exp.btn.delete" style="background:transparent;border:1px solid rgba(255,94,87,0.3);color:#ff5e57">Excluir</button>
+    <button class="btn-danger ghost" id="metaDeleteBtn" data-i18n="exp.btn.delete">Excluir</button>
     <div class="spacer"></div>
     <button class="btn-secondary" id="metaModalCancel" data-i18n="exp.btn.cancel">Cancelar</button>
     <button class="btn-primary" id="metaModalSave" data-i18n="exp.btn.save">Salvar</button>
   </div>
 </div></div>
 
-<div class="modal-bg" id="yearlyModal"><div class="modal">
+<div class="modal-bg" id="yearlyModal"><div class="modal" role="dialog" aria-modal="true">
   <h3 id="yearlyModalTitle">Adicionar ano</h3>
   <p class="sub" data-i18n="yearly.modal.sub">Snapshot anual para gráficos de crescimento.</p>
   <div class="form-grid">
@@ -889,7 +889,7 @@
   </div>
 </div></div>
 
-<div class="modal-bg" id="contribListModal"><div class="modal">
+<div class="modal-bg" id="contribListModal"><div class="modal" role="dialog" aria-modal="true">
   <h3 id="contribListTitle">Aportes</h3>
   <p class="sub" id="contribListTotal">-</p>
   <div id="contribListItems" style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;max-height:50vh;overflow-y:auto"></div>
@@ -900,7 +900,7 @@
   </div>
 </div></div>
 
-<div class="modal-bg" id="contribModal"><div class="modal">
+<div class="modal-bg" id="contribModal"><div class="modal" role="dialog" aria-modal="true">
   <h3 data-i18n="contrib.modal.title">Aporte mensal</h3>
   <p class="sub" data-i18n="contrib.modal.sub">Registre um aporte feito no mês</p>
   <div class="form-grid">
@@ -924,7 +924,7 @@
 
 <!-- FX (USD) edit modal — padrão .modal-bg.show (consertado) -->
 <div class="modal-bg" id="fxModal">
-  <div class="modal">
+  <div class="modal" role="dialog" aria-modal="true">
     <button id="fxModalClose" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--ink-3);font-size:20px;line-height:1;cursor:pointer">&times;</button>
     <h3 data-i18n="fx.modal.title">Dólar (USD)</h3>
     <p class="sub" data-i18n="fx.modal.sub">Quanto você tem em dólar — convertido pela cotação atual.</p>
@@ -934,6 +934,7 @@
       <div class="hint"><span data-i18n="fx.rate.label">Cotação atual:</span> <b id="fxModalRate">—</b> <span id="fxModalRateDate"></span></div>
     </div>
     <div class="modal-foot">
+      <div class="spacer"></div>
       <button class="btn-secondary" id="fxModalCancel" data-i18n="exp.btn.cancel">Cancelar</button>
       <button class="btn-primary" id="fxModalSave" data-i18n="exp.btn.save">Salvar</button>
     </div>
@@ -942,7 +943,7 @@
 
 <!-- Importador de fatura do cartão (PDF) -->
 <div class="modal-bg" id="importModal">
-  <div class="modal modal-wide">
+  <div class="modal modal-wide" role="dialog" aria-modal="true">
     <h3 data-i18n="imp.modal.title">Revisar fatura</h3>
     <p class="sub" data-i18n="imp.modal.sub">Confira de quem é o gasto e a categoria. Desmarque o que não quer importar.</p>
     <div class="imp-meta">
@@ -960,6 +961,7 @@
     <div class="imp-tabs" id="importTabs" hidden></div>
     <div class="imp-list" id="importList"></div>
     <div class="modal-foot">
+      <div class="spacer"></div>
       <button class="btn-secondary" id="importCancel" data-i18n="exp.btn.cancel">Cancelar</button>
       <button class="btn-primary" id="importConfirm">Importar</button>
     </div>
@@ -967,7 +969,7 @@
 </div>
 
 <!-- Aba/modal Importações: histórico com desfazer por lote específico -->
-<div class="modal-bg" id="importsModal"><div class="modal">
+<div class="modal-bg" id="importsModal"><div class="modal" role="dialog" aria-modal="true">
   <h3 data-i18n="imports.title">Importações</h3>
   <p class="sub" data-i18n="imports.sub">Histórico — desfaça qualquer lote sem mexer nos outros.</p>
   <div class="imports-list" id="importsList"></div>
