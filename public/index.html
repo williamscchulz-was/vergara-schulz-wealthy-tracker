@@ -100,7 +100,7 @@
   var s = document.getElementById('aevoSplash'); if (!s) return;
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   var done = false, started = false;
-  function hide(){ if (done) return; done = true; s.classList.add('gone'); setTimeout(function(){ if (s) s.style.display = 'none'; }, 640); }
+  function hide(){ if (done) return; done = true; s.classList.add('gone'); setTimeout(function(){ if (s) s.style.display = 'none'; }, 760); }   // 760ms = cortina (700ms) + folga
   function play(){
     if (started) return; started = true;
     s.classList.add('play');                 // dispara a cascata só AGORA (main thread já livre → a animação é pintada)
