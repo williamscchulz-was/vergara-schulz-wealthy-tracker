@@ -4286,6 +4286,11 @@ $('btnImports')?.addEventListener('click', openImportsModal);
 $('importsClose')?.addEventListener('click', closeImportsModal);
 $('importsModal')?.addEventListener('click', e => { if (e.target.id === 'importsModal') closeImportsModal(); });
 
+// Histórico anual em popup (pedido do dono): saiu da página, abre sob demanda.
+$('btnHistoryOpen')?.addEventListener('click', () => $('historyModal')?.classList.add('show'));
+$('historyClose')?.addEventListener('click', () => $('historyModal')?.classList.remove('show'));
+$('historyModal')?.addEventListener('click', e => { if (e.target.id === 'historyModal') $('historyModal').classList.remove('show'); });
+
 // ============================================================
 //  PROVENTOS DO I10 → GANHOS (ao vivo, sem arquivo).
 //  Puxa /i10/earnings-list/<wallet> (lista detalhada), filtra os JÁ PAGOS

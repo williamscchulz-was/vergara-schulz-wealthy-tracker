@@ -158,6 +158,10 @@
   opacity: 0; pointer-events: none; transition: opacity .18s var(--ease-out), transform .18s var(--ease-out); }
 .tip-term:hover::after, .tip-term:focus-visible::after { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+/* Histórico anual virou botão + popup (pedido do dono) — gatilho discreto, centrado */
+.inv-history-open { display: inline-flex; align-items: center; gap: var(--sp-2); align-self: center; margin: 2px auto 0; }
+#historyModal .yearly-table { width: 100%; }
+
 /* Pedido da Flávia: toggle Fixas/Variáveis ao lado da busca (segmented compacto) */
 .exp-nat-filter { display: inline-flex; gap: 3px; padding: 3px; background: var(--bg-elevated-2); border: 1px solid var(--border); border-radius: 9px; flex-shrink: 0; }
 .exp-nat-filter button { border: 0; background: transparent; color: var(--ink-2); font: 600 var(--fs-micro) Inter, system-ui, sans-serif; padding: 5px 10px; border-radius: 7px; cursor: pointer; transition: color .15s, background .15s; white-space: nowrap; }

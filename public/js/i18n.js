@@ -406,6 +406,7 @@ export const I18N = {
     'topbar.logout': 'Sair',
     'contrib.add': 'Aporte',
     'hist.addyear': 'Ano',
+    'hist.open': 'Histórico anual',
     'contrib.list.add': '+ Novo aporte',
     'yearly.f.year': 'Ano',
     // ---- Analytics cards (Fase C) ----
@@ -875,6 +876,7 @@ export const I18N = {
     'topbar.logout': 'Sign out',
     'contrib.add': 'Contribution',
     'hist.addyear': 'Year',
+    'hist.open': 'Yearly history',
     'contrib.list.add': '+ New contribution',
     'yearly.f.year': 'Year',
     // ---- Analytics cards ----

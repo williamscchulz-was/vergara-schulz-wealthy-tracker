@@ -622,40 +622,45 @@
       </div>
       </div><!-- /inv-charts -->
 
-      <!-- HISTORICO ANUAL -->
-      <div class="card animate-in dash-span">
-        <div class="card-body">
-          <div class="card-head">
-            <div>
-              <div class="eyebrow" data-i18n="card.history">yearly history</div>
-              <div style="font-size:13px;color:var(--ink-muted);margin-top:4px" data-i18n="sub.history">net worth + dividends per year</div>
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button class="btn-ghost" id="btnImportHistory" title="Import net worth and dividends history from Investidor10" data-i18n-title="hist.import.title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                I10
-              </button>
-              <button class="btn-ghost primary" id="btnAddYear">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                <span data-i18n="hist.addyear">Year</span>
-              </button>
-            </div>
-          </div>
-          <table class="yearly-table">
-            <thead><tr><th data-i18n="th.year">Year</th><th data-i18n="th.networth">Net worth</th><th data-i18n="th.dividends">Dividends</th><th data-i18n="th.dy">DY</th><th data-i18n="th.yoy">YoY</th></tr></thead>
-            <tbody id="yearlyBody"></tbody>
-          </table>
-          <div style="display:none">
-            <span id="goalRemaining"></span><span id="goalSub"></span><span id="goalYearsLeft"></span>
-            <span id="progressPct"></span><span id="progressSub"></span><span id="historyYears"></span>
-            <span id="divGoalPill"></span><span id="divYearsLeft"></span><span id="divProgress"></span>
-          </div>
-        </div>
-      </div>
+      <!-- HISTORICO ANUAL (pedido do dono: saiu da página, virou botão + popup) -->
+      <button class="btn-ghost inv-history-open" id="btnHistoryOpen" type="button">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span data-i18n="hist.open">Histórico anual</span>
+      </button>
 
     </div>
   </div>
 </div>
+
+<!-- Histórico anual em popup (pedido do dono) — mesmos IDs do antigo card, renderers intactos -->
+<div class="modal-bg" id="historyModal"><div class="modal modal-wide" role="dialog" aria-modal="true">
+  <div class="card-head" style="margin-bottom:14px">
+    <div>
+      <h3 data-i18n="card.history">Histórico anual</h3>
+      <p class="sub" style="margin:2px 0 0" data-i18n="sub.history">patrimônio + proventos por ano</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn-ghost" id="btnImportHistory" title="Import net worth and dividends history from Investidor10" data-i18n-title="hist.import.title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        I10
+      </button>
+      <button class="btn-ghost primary" id="btnAddYear">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-i18n="hist.addyear">Ano</span>
+      </button>
+    </div>
+  </div>
+  <table class="yearly-table">
+    <thead><tr><th data-i18n="th.year">Ano</th><th data-i18n="th.networth">Patrimônio</th><th data-i18n="th.dividends">Proventos</th><th data-i18n="th.dy">DY</th><th data-i18n="th.yoy">YoY</th></tr></thead>
+    <tbody id="yearlyBody"></tbody>
+  </table>
+  <div style="display:none">
+    <span id="goalRemaining"></span><span id="goalSub"></span><span id="goalYearsLeft"></span>
+    <span id="progressPct"></span><span id="progressSub"></span><span id="historyYears"></span>
+    <span id="divGoalPill"></span><span id="divYearsLeft"></span><span id="divProgress"></span>
+  </div>
+  <div class="modal-foot"><div class="spacer"></div><button class="btn-secondary" id="historyClose" data-i18n="imports.close">Fechar</button></div>
+</div></div>
 
 <!-- Budget editor — one row per category with BRL-masked limit input -->
 <div class="modal-bg" id="budgetModal"><div class="modal liquid budget-modal">
