@@ -3825,6 +3825,14 @@ $('expSearch')?.addEventListener('input', e => {
   _expSearchQuery = e.target.value || '';
   renderExpenseTable(_lastMonthExp);
 });
+// Filtros opção 1 (escolha do dono): "/" foca a busca — só quando não se está digitando.
+document.addEventListener('keydown', (e) => {
+  if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
+  const ae = document.activeElement;
+  if (ae && (/INPUT|TEXTAREA|SELECT/.test(ae.tagName) || ae.isContentEditable)) return;
+  const s = $('expSearch');
+  if (s && s.offsetParent) { e.preventDefault(); s.focus(); }
+});
 // Filtros da listagem (categoria / pessoa / tipo)
 ['expFilterCat', 'expFilterOwner'].forEach(id => {
   $(id)?.addEventListener('change', e => {
