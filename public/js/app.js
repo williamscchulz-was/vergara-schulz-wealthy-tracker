@@ -2902,25 +2902,51 @@ function renderMonthlyReturns() {
   const yAt = (pct) => pct >= 0 ? mid - (pct / maxPos) * posH : mid + (-pct / maxNeg) * negH;
   const monthNames = getLang() === 'en' ? MONTH_NAMES_SHORT_EN : MONTH_NAMES_SHORT;
 
+  // M1 (escolha do dono): gradiente vertical + topo arredondado (linguagem dos charts
+  // anuais), glow no mês atual e linha tracejada da MÉDIA com etiqueta na ponta.
+  const defs = '<defs>'
+    + '<linearGradient id="mrGp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--gain)"/><stop offset="100%" stop-color="var(--gain)" stop-opacity="0.45"/></linearGradient>'
+    + '<linearGradient id="mrGn" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--loss)" stop-opacity="0.5"/><stop offset="100%" stop-color="var(--loss)"/></linearGradient>'
+    + '<filter id="mrGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
+    + '</defs>';
   const bars = rows.map((r, i) => {
     const x = PAD_X + i * slot + (slot - barW) / 2;
     const pct = r.returnPct;
     const y = pct >= 0 ? yAt(pct) : mid;
-    const h = Math.abs(yAt(pct) - mid);
+    const h = Math.max(1.5, Math.abs(yAt(pct) - mid));
     const color = pct >= 0 ? 'var(--gain)' : 'var(--loss)';
+    const isCur = i === rows.length - 1;
+    const rr = Math.min(5, h);            // raio do canto (degrada em barras mínimas)
+    const x2 = x + barW, yb = y + h;
+    // canto arredondado na ponta EXTERNA: topo nas positivas, fundo nas negativas
+    const shape = pct >= 0
+      ? `M${x.toFixed(1)} ${yb.toFixed(1)} L${x.toFixed(1)} ${(y + rr).toFixed(1)} Q${x.toFixed(1)} ${y.toFixed(1)} ${(x + rr).toFixed(1)} ${y.toFixed(1)} L${(x2 - rr).toFixed(1)} ${y.toFixed(1)} Q${x2.toFixed(1)} ${y.toFixed(1)} ${x2.toFixed(1)} ${(y + rr).toFixed(1)} L${x2.toFixed(1)} ${yb.toFixed(1)} Z`
+      : `M${x.toFixed(1)} ${y.toFixed(1)} L${x2.toFixed(1)} ${y.toFixed(1)} L${x2.toFixed(1)} ${(yb - rr).toFixed(1)} Q${x2.toFixed(1)} ${yb.toFixed(1)} ${(x2 - rr).toFixed(1)} ${yb.toFixed(1)} L${(x + rr).toFixed(1)} ${yb.toFixed(1)} Q${x.toFixed(1)} ${yb.toFixed(1)} ${x.toFixed(1)} ${(yb - rr).toFixed(1)} Z`;
     const labelY = H - PAD_BOTTOM + 14;
     const monthChar = monthNames[r.month - 1];
-    const valLabelY = pct >= 0 ? (y - 4) : (y + h + 10);
+    const valLabelY = pct >= 0 ? (y - 6) : (yb + 13);
     const valText = (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%';
-    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(1, h).toFixed(1)}" fill="${color}" opacity="0.85" rx="2"><title>${monthChar}/${String(r.year).slice(-2)}: ${valText}</title></rect>
+    return `<path d="${shape}" fill="url(#${pct >= 0 ? 'mrGp' : 'mrGn'})"${isCur ? ' filter="url(#mrGlow)"' : ''}><title>${monthChar}/${String(r.year).slice(-2)}: ${valText}</title></path>
       <text x="${(x + barW/2).toFixed(1)}" y="${valLabelY.toFixed(1)}" text-anchor="middle" fill="${color}" font-size="13" font-family="Geist Mono, monospace" font-weight="700" opacity="0.92">${valText}</text>
       <text x="${(x + barW/2).toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" fill="var(--ink-muted)" font-size="12" font-family="Geist Mono, monospace">${monthChar}</text>`;
   }).join('');
 
   // Zero baseline
-  const baseline = `<line x1="${PAD_X.toFixed(1)}" y1="${mid.toFixed(1)}" x2="${(W - PAD_X).toFixed(1)}" y2="${mid.toFixed(1)}" stroke="var(--ink-muted)" stroke-width="0.5" stroke-dasharray="3 4" opacity="0.4"/>`;
+  const baseline = `<line x1="${PAD_X.toFixed(1)}" y1="${mid.toFixed(1)}" x2="${(W - PAD_X).toFixed(1)}" y2="${mid.toFixed(1)}" stroke="var(--ink-muted)" stroke-width="0.8" stroke-dasharray="3 4" opacity="0.5"/>`;
 
-  svg.innerHTML = baseline + bars;
+  // Linha da média (mesmo cálculo do badge: últimos 12)
+  const avgN = rows.slice(-12);
+  const avgPct = avgN.reduce((s, r) => s + r.returnPct, 0) / avgN.length;
+  let avgLine = '';
+  if (isFinite(avgPct) && rows.length >= 2) {
+    const ay = yAt(Math.max(-maxNeg, Math.min(maxPos, avgPct)));
+    const tag = (avgPct >= 0 ? '+' : '') + avgPct.toFixed(1) + '%';
+    avgLine = `<line x1="${PAD_X}" y1="${ay.toFixed(1)}" x2="${(W - PAD_X - 58).toFixed(1)}" y2="${ay.toFixed(1)}" stroke="var(--purple)" stroke-width="1.2" stroke-dasharray="5 5" opacity="0.55"/>`
+      + `<rect x="${(W - PAD_X - 54).toFixed(1)}" y="${(ay - 9).toFixed(1)}" width="54" height="18" rx="9" fill="var(--purple)" fill-opacity="0.14"/>`
+      + `<text x="${(W - PAD_X - 27).toFixed(1)}" y="${(ay + 3.5).toFixed(1)}" text-anchor="middle" fill="var(--purple)" font-size="10.5" font-weight="700" font-family="Geist Mono, monospace">${tag}</text>`;
+  }
+
+  svg.innerHTML = defs + baseline + bars + avgLine;
 
   // Badge: average of last N (max 12)
   if (badge) {
