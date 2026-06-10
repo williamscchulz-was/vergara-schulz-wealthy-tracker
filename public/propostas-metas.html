@@ -1,0 +1,86 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ledger · Metas — 3 novas ideias</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0c08;--panel:#14180f;--panel2:#1a1f14;--panel3:#20261a;--ink:#f3f4ee;--ink2:#b9bbae;--ink3:#9a9c90;--border:rgba(255,255,255,.08);--lime:#c7f73e;--lime2:#a6d22e;--on:#15170b;--gain:#4fdd8a;--warn:#ffc24d}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;padding:32px 24px 90px;line-height:1.5}
+  .mono{font-family:'Geist Mono',monospace}
+  h1{font-size:24px;margin:0 0 4px;letter-spacing:-.02em} .lead{color:var(--ink2);font-size:14px;margin:0 0 8px;max-width:800px}
+  h2{font-size:16px;margin:38px 0 10px;display:flex;gap:10px;align-items:center}
+  .rec{font:700 10px Inter;letter-spacing:.07em;padding:4px 10px;border-radius:999px;background:color-mix(in srgb,var(--lime) 22%,transparent);color:var(--lime)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:16px 18px;max-width:780px}
+  .eyebrow{font:700 10.5px Inter;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
+  .why{font-size:12px;color:var(--ink3);margin:10px 0 0;max-width:780px;padding-top:10px;border-top:1px dashed var(--border)} .why b{color:var(--ink2)}
+  .pick{margin-top:40px;background:var(--panel);border:1px solid color-mix(in srgb,var(--lime) 40%,transparent);border-radius:14px;padding:14px 16px;font-size:13.5px;max-width:780px}
+
+  /* ===== A — padrão CARTEIRA: tile + nome/sub + barra inline + pill "faltam" ===== */
+  .a-row{display:grid;grid-template-columns:26px 150px minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
+  .a-row:last-of-type{border-bottom:0}
+  .tile{width:26px;height:26px;border-radius:8px;background:color-mix(in srgb,var(--lime) 12%,transparent);border:1px solid color-mix(in srgb,var(--lime) 30%,transparent);display:grid;place-items:center;font:700 8.5px 'Geist Mono';color:var(--lime)}
+  .a-nm{min-width:0}.a-nm b{font-size:13px;display:block}.a-nm small{font:600 10.5px 'Geist Mono';color:var(--ink3)}
+  .bar{height:6px;border-radius:4px;background:rgba(255,255,255,.07);position:relative;overflow:hidden}
+  .bar i{position:absolute;inset:0 auto 0 0;border-radius:4px;background:linear-gradient(90deg,var(--lime2),var(--lime))}
+  .a-val{font:600 12.5px 'Geist Mono';color:var(--ink);text-align:right;white-space:nowrap}
+  .a-val small{color:var(--ink3);font-weight:500}
+  .pill{font:700 11px 'Geist Mono';padding:3px 9px;border-radius:8px;white-space:nowrap}
+  .pill.far{background:rgba(255,255,255,.06);color:var(--ink2)}
+  .pill.near{background:color-mix(in srgb,var(--lime) 16%,transparent);color:var(--lime)}
+  .pill.warn{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
+
+  /* ===== B — anel de progresso à direita (grade 2 col) ===== */
+  .b-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:680px){.b-grid{grid-template-columns:1fr}}
+  .b-it{display:flex;align-items:center;gap:12px;background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:11px 13px}
+  .b-nm{flex:1;min-width:0}.b-nm b{font-size:13px;display:block}.b-nm small{font:600 10.5px 'Geist Mono';color:var(--ink3)}
+  .ring{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font:700 10px 'Geist Mono';color:var(--ink);flex-shrink:0}
+
+  /* ===== C — barra grossa com % DENTRO ===== */
+  .c-row{padding:8px 0;border-bottom:1px solid var(--border)}
+  .c-row:last-of-type{border-bottom:0}
+  .c-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:5px}
+  .c-top b{font-size:13px}
+  .c-top .v{font:600 12px 'Geist Mono';color:var(--ink2)}
+  .fat{height:18px;border-radius:9px;background:rgba(255,255,255,.06);position:relative;overflow:hidden}
+  .fat i{position:absolute;inset:0 auto 0 0;border-radius:9px;background:linear-gradient(90deg,var(--lime2),var(--lime));display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font:700 10px 'Geist Mono';color:var(--on);min-width:34px}
+  .fat em{position:absolute;right:8px;top:0;bottom:0;display:flex;align-items:center;font:700 10px 'Geist Mono';color:var(--ink3);font-style:normal}
+</style></head>
+<body>
+<h1>Metas — 3 novas ideias (no padrão do card Carteira)</h1>
+<p class="lead">Mesmos dados, três jeitos. O "faltam %" ganha destaque de verdade em todas.</p>
+
+<h2>OPÇÃO A — Linha estilo Carteira <span class="rec">RECOMENDADA</span></h2>
+<div class="card">
+  <div class="eyebrow" style="margin-bottom:8px">Metas</div>
+  <div class="a-row"><span class="tile">DIV</span><span class="a-nm"><b>Renda em dividendos</b><small>R$ 65K / R$ 1M · ano · até 2035</small></span><span class="bar"><i style="width:7%"></i></span><span class="a-val">7%</span><span class="pill warn">ritmo: atrás</span></div>
+  <div class="a-row"><span class="tile">BBAS</span><span class="a-nm"><b>BBAS3</b><small>11.400 / 20.000</small></span><span class="bar"><i style="width:57%"></i></span><span class="a-val">57%</span><span class="pill far">faltam 43%</span></div>
+  <div class="a-row"><span class="tile">BBSE</span><span class="a-nm"><b>BBSE3</b><small>17.250 / 20.000</small></span><span class="bar"><i style="width:86%"></i></span><span class="a-val">86%</span><span class="pill near">faltam 14%</span></div>
+  <div class="a-row"><span class="tile">CXSE</span><span class="a-nm"><b>CXSE3</b><small>2.201 / 20.000</small></span><span class="bar"><i style="width:11%"></i></span><span class="a-val">11%</span><span class="pill far">faltam 89%</span></div>
+  <div class="a-row"><span class="tile">RANI</span><span class="a-nm"><b>RANI3</b><small>1.900 / 20.000</small></span><span class="bar"><i style="width:10%"></i></span><span class="a-val">10%</span><span class="pill far">faltam 90%</span></div>
+</div>
+<p class="why"><b>Por quê:</b> espelho do card Carteira — tile + nome/sub + barra <b>inline</b> (1 linha por meta, ~44px) + <b>"faltam X%" como pill colorida</b> (lime quando perto, âmbar quando o ritmo tá atrás). Card cai pra metade da altura atual.</p>
+
+<h2>OPÇÃO B — Anéis de progresso (grade 2×2)</h2>
+<div class="card">
+  <div class="eyebrow" style="margin-bottom:10px">Metas</div>
+  <div class="b-grid">
+    <div class="b-it"><span class="ring" style="background:conic-gradient(var(--warn) 7%, rgba(255,255,255,.08) 0)"><span style="background:var(--panel2);width:32px;height:32px;border-radius:50%;display:grid;place-items:center">7%</span></span><span class="b-nm"><b>Dividendos</b><small>R$ 65K / 1M · 2035</small></span></div>
+    <div class="b-it"><span class="ring" style="background:conic-gradient(var(--lime) 57%, rgba(255,255,255,.08) 0)"><span style="background:var(--panel2);width:32px;height:32px;border-radius:50%;display:grid;place-items:center">57%</span></span><span class="b-nm"><b>BBAS3</b><small>11.400 / 20.000 · faltam 43%</small></span></div>
+    <div class="b-it"><span class="ring" style="background:conic-gradient(var(--lime) 86%, rgba(255,255,255,.08) 0)"><span style="background:var(--panel2);width:32px;height:32px;border-radius:50%;display:grid;place-items:center">86%</span></span><span class="b-nm"><b>BBSE3</b><small>17.250 / 20.000 · faltam 14%</small></span></div>
+    <div class="b-it"><span class="ring" style="background:conic-gradient(var(--lime) 11%, rgba(255,255,255,.08) 0)"><span style="background:var(--panel2);width:32px;height:32px;border-radius:50%;display:grid;place-items:center">11%</span></span><span class="b-nm"><b>CXSE3</b><small>2.201 / 20.000 · faltam 89%</small></span></div>
+  </div>
+</div>
+<p class="why"><b>Por quê:</b> o % completo vira um <b>anel</b> (eco do donut da carteira). Grade 2×2 = card bem baixo. Menos espaço pra barra longa, mais "dashboard".</p>
+
+<h2>OPÇÃO C — Barra grossa com % embutido</h2>
+<div class="card">
+  <div class="eyebrow" style="margin-bottom:8px">Metas</div>
+  <div class="c-row"><div class="c-top"><b>Renda em dividendos</b><span class="v">R$ 65K <small style="color:var(--ink3)">/ R$ 1M · até 2035</small></span></div><div class="fat"><i style="width:8%">7%</i><em>faltam 93%</em></div></div>
+  <div class="c-row"><div class="c-top"><b>BBAS3</b><span class="v">11.400 <small style="color:var(--ink3)">/ 20.000</small></span></div><div class="fat"><i style="width:57%">57%</i><em>faltam 43%</em></div></div>
+  <div class="c-row"><div class="c-top"><b>BBSE3</b><span class="v">17.250 <small style="color:var(--ink3)">/ 20.000</small></span></div><div class="fat"><i style="width:86%">86%</i><em>faltam 14%</em></div></div>
+  <div class="c-row"><div class="c-top"><b>CXSE3</b><span class="v">2.201 <small style="color:var(--ink3)">/ 20.000</small></span></div><div class="fat"><i style="width:11%">11%</i><em>faltam 89%</em></div></div>
+</div>
+<p class="why"><b>Por quê:</b> a barra é a protagonista — grossa (18px), com o <b>% feito DENTRO do preenchimento</b> e o "faltam X%" ancorado na ponta. Mantém 2 linhas por meta mas com hierarquia clara.</p>
+
+<div class="pick">→ responde <b>"metas A"</b>, <b>"metas B"</b> ou <b>"metas C"</b> (ou mistura: ex. "A, mas com a barra grossa da C").</div>
+</body></html>
