@@ -5251,12 +5251,18 @@ function _metaCompact(n) {
   return 'R$ ' + _metaFmtN(n);
 }
 function _metaRow(o) {
+  // Metas v2 (escolha do dono): linha única no padrão Carteira (opção A) + barra
+  // grossa com o % feito DENTRO do preenchimento (opção C) + pill à direita.
   const f = Math.max(2, Math.min(100, o.fill || 0));
+  const pct = Math.round(Math.max(0, Math.min(100, o.fill || 0)));
   const pencil = `<button class="mt-edit-btn" data-edit="${o.id}" aria-label="${esc(t('metas.edit'))}" title="${esc(t('metas.edit'))}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`;
   const marker = (o.mark != null) ? `<div class="mt-mark" style="left:${Math.max(0, Math.min(100, o.mark))}%"></div>` : '';
-  return `<div class="mt-goal${o.gap ? ' gap' : ''}" data-id="${o.id}" data-type="${o.type}">`
-    + `<div class="mt-row"><span class="mt-name">${o.name}</span><span class="mt-num">${o.curHtml}</span>${pencil}</div>`
-    + `<div class="mt-line"><div class="mt-bar"><div class="mt-fill ${o.st}" style="width:${f}%"></div>${marker}</div><span class="mt-tail">${o.tail}</span></div>`
+  return `<div class="mt-goal" data-id="${o.id}" data-type="${o.type}">`
+    + `<span class="mt-tile">${esc(o.tile || '')}</span>`
+    + `<div class="mt-info"><span class="mt-name">${o.name}</span><small class="mt-sub">${o.sub || ''}</small></div>`
+    + `<div class="mt-bar"><div class="mt-fill ${o.st}" style="width:${f}%"><span class="mt-pct">${pct}%</span></div>${marker}</div>`
+    + `<span class="mt-pill ${o.pillCls || 'mid'}">${o.pillTxt || ''}</span>`
+    + pencil
     + `</div>`;
 }
 function renderMetas() {
@@ -5268,21 +5274,25 @@ function renderMetas() {
   const divYear = +state.dividendsYearlyGoalYear || 2035;
   const divFill = divTgt > 0 ? divCur / divTgt * 100 : 0;
   const divMark = (nowY - META_DIV_START) / Math.max(1, (divYear - META_DIV_START)) * 100;
+  const divSt = metaClassify(divFill, divMark);
   let html = _metaRow({
-    id: 'div', type: 'dividends', name: esc(t('metas.dividends')),
-    curHtml: `${_metaCompact(divCur)} <small>/ ${_metaCompact(divTgt)} · ${esc(t('metas.perYear'))}</small>`,
-    fill: divFill, mark: divMark, st: metaClassify(divFill, divMark), tail: String(divYear), gap: true,
+    id: 'div', type: 'dividends', name: esc(t('metas.dividends')), tile: 'DIV',
+    sub: `${_metaCompact(divCur)} / ${_metaCompact(divTgt)} · ${esc(t('metas.perYear'))} · ${divYear}`,
+    fill: divFill, mark: divMark, st: divSt,
+    pillTxt: esc(t('metas.pace.' + divSt)), pillCls: divSt === 'behind' ? 'warn' : 'near',
   });
   // 2) Ações — SEM prazo: só barra de progresso + quanto falta (%). Quantidade vem do I10.
   for (const g of (state.shareGoals || [])) {
     const cur = i10Qty(g.ticker), tgt = +g.target || 0;
     const fill = tgt > 0 ? cur / tgt * 100 : 0;
     const left = tgt > 0 ? Math.max(0, 100 - Math.round(fill)) : 100;
-    const tail = (tgt > 0 && cur >= tgt) ? t('metas.done') : t('metas.left').replace('{p}', left);
+    const done = tgt > 0 && cur >= tgt;
     html += _metaRow({
-      id: g.id, type: 'shares', name: esc(g.ticker),
-      curHtml: `${_metaFmtN(cur)} <small>/ ${_metaFmtN(tgt)}</small>`,
-      fill, mark: null, st: 'progress', tail,
+      id: g.id, type: 'shares', name: esc(g.ticker), tile: String(g.ticker || '').slice(0, 4).toUpperCase(),
+      sub: `${_metaFmtN(cur)} / ${_metaFmtN(tgt)}`,
+      fill, mark: null, st: 'progress',
+      pillTxt: done ? t('metas.done') : t('metas.left').replace('{p}', left),
+      pillCls: (done || fill >= 80) ? 'near' : 'mid',
     });
   }
   wrap.innerHTML = html + `<span class="mt-add" id="mtAdd">+ ${esc(t('metas.add'))}</span>`;

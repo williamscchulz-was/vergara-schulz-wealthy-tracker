@@ -102,21 +102,29 @@
 #metasCard .mt-head { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; margin-bottom: 28px; flex-wrap: wrap; }
 .mt-h-title { font-size: 16px; font-weight: 700; letter-spacing: -.01em; color: var(--ink); }
 .mt-h-note { font-size: 11.5px; color: var(--ink-muted); }
-/* DS jun/2026 (pedido do dono): Metas mais compactas */
-.mt-goal { position: relative; margin-bottom: 14px; }
-.mt-goal.gap { margin-bottom: 20px; }
-.mt-goal:last-of-type { margin-bottom: 8px; }
-.mt-row { display: flex; align-items: center; gap: 12px; margin-bottom: 5px; }
-.mt-name { flex: 1; min-width: 0; font-size: var(--fs-body-lg); font-weight: 600; letter-spacing: -.01em; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mt-num { font-family: 'Geist Mono', monospace; font-size: var(--fs-body); color: var(--ink); white-space: nowrap; }
-.mt-num small { color: var(--ink-3); font-weight: 400; }
-.mt-line { display: flex; align-items: center; gap: 13px; }
-.mt-bar { position: relative; flex: 1; height: 5px; border-radius: 4px; background: color-mix(in oklab, var(--ink-3) 16%, transparent); }
-.mt-fill { height: 100%; border-radius: 4px; transition: width .5s var(--ease-out), background .3s; }
-.mt-fill.ahead { background: var(--gain); } .mt-fill.ontrack { background: var(--purple); } .mt-fill.behind { background: var(--warn); }
-.mt-fill.progress { background: var(--purple); }
-.mt-mark { position: absolute; top: -3px; bottom: -3px; width: 1.5px; background: var(--ink-3); border-radius: 2px; transition: left .5s var(--ease-out); }
-.mt-tail { font-family: 'Geist Mono', monospace; font-size: var(--fs-caption); font-weight: 700; color: var(--ink-2); text-align: right; flex-shrink: 0; white-space: nowrap; }   /* "faltam X%" em evidência */
+/* Metas v2 (escolha do dono): linha única estilo Carteira (A) + barra GROSSA com o
+   % feito dentro do preenchimento (C) + pill "faltam X%"/ritmo à direita. */
+.mt-goal { display: grid; grid-template-columns: 26px minmax(110px, 175px) minmax(0, 1fr) auto 26px; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.mt-goal:last-of-type { border-bottom: 0; }
+.mt-tile { width: 26px; height: 26px; border-radius: 8px; background: var(--purple-soft); border: 1px solid color-mix(in oklab, var(--purple) 28%, transparent); display: grid; place-items: center; font: 700 8.5px 'Geist Mono', monospace; color: var(--purple); letter-spacing: .02em; }
+.mt-info { min-width: 0; }
+.mt-name { display: block; font-size: var(--fs-body); font-weight: 600; letter-spacing: -.01em; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mt-sub { display: block; font: 600 10.5px 'Geist Mono', monospace; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mt-bar { position: relative; height: 18px; border-radius: 9px; background: color-mix(in oklab, var(--ink-3) 14%, transparent); overflow: hidden; }
+.mt-fill { position: absolute; inset: 0 auto 0 0; border-radius: 9px; min-width: 36px; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; transition: width .5s var(--ease-out), background .3s; }
+.mt-pct { font: 700 10px 'Geist Mono', monospace; color: var(--on-accent); }
+.mt-fill.ahead { background: linear-gradient(90deg, color-mix(in oklab, var(--gain) 75%, var(--purple)), var(--gain)); }
+.mt-fill.ontrack, .mt-fill.progress { background: linear-gradient(90deg, var(--purple-deep), var(--purple)); }
+.mt-fill.behind { background: linear-gradient(90deg, color-mix(in oklab, var(--warn) 70%, var(--purple-deep)), var(--warn)); }
+.mt-mark { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink-2); opacity: .85; transition: left .5s var(--ease-out); }
+.mt-pill { font: 700 var(--fs-micro) 'Geist Mono', monospace; padding: 4px 10px; border-radius: 8px; white-space: nowrap; justify-self: end; }
+.mt-pill.mid { background: color-mix(in oklab, var(--ink-3) 12%, transparent); color: var(--ink-2); }
+.mt-pill.near { background: color-mix(in oklab, var(--purple) 16%, transparent); color: var(--purple); }
+.mt-pill.warn { background: color-mix(in oklab, var(--warn) 16%, transparent); color: var(--warn); }
+@media (max-width: 600px) {
+  .mt-goal { grid-template-columns: 26px minmax(0, 1fr) auto 26px; grid-template-areas: 'tile info pill edit' 'bar bar bar bar'; row-gap: 7px; }
+  .mt-tile { grid-area: tile; } .mt-info { grid-area: info; } .mt-pill { grid-area: pill; } .mt-edit-btn { grid-area: edit; } .mt-bar { grid-area: bar; }
+}
 .mt-edit-btn { flex-shrink: 0; width: 26px; height: 26px; display: grid; place-items: center; border: none; background: transparent; color: var(--ink-3); cursor: pointer; border-radius: 7px; padding: 0; transition: color .15s, background .15s; }
 .mt-edit-btn:hover { color: var(--purple); background: var(--bg-elevated-2); }
 .mt-edit-btn svg { width: 15px; height: 15px; }
