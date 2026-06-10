@@ -499,7 +499,7 @@ function updateLedgerEquity() {
 // numerator by treating them as negative cash flow (they reduced end
 // but shouldn't count as a withdrawal). This keeps the mental model
 // "dividends are part of your return, not cash taken out".
-function computeMonthlyReturns(monthlyEquity, contributions, yearlyDividends) {
+function computeMonthlyReturns(monthlyEquity, contributions, yearlyDividends, realDivsMonthly) {
   if (!Array.isArray(monthlyEquity) || monthlyEquity.length < 2) return [];
 
   // Build { 'YYYY-MM': amount } for contributions
@@ -520,6 +520,17 @@ function computeMonthlyReturns(monthlyEquity, contributions, yearlyDividends) {
       divMonthlyMap[k] = (divMonthlyMap[k] || 0) + per;
     }
   });
+  // PRECISÃO (jun/2026): quando o sync trouxe os proventos REAIS por mês
+  // (i10/earnings-list, agregados por data de pagamento), eles substituem o
+  // chute ÷12 dentro do intervalo coberto — meses sem provento valem 0 mesmo.
+  if (realDivsMonthly && typeof realDivsMonthly === 'object') {
+    const ks = Object.keys(realDivsMonthly).sort();
+    if (ks.length) {
+      const lo = ks[0], hi = ks[ks.length - 1];
+      for (const k of Object.keys(divMonthlyMap)) { if (k >= lo && k <= hi) divMonthlyMap[k] = 0; }
+      for (const k of ks) divMonthlyMap[k] = +realDivsMonthly[k] || 0;
+    }
+  }
 
   const out = [];
   for (let i = 1; i < monthlyEquity.length; i++) {
@@ -2122,7 +2133,7 @@ function renderInvestments() {
   // (Dietz modificado + proventos) → os números batem em todo o app.
   let _moPct = null;
   try {
-    const _mr = computeMonthlyReturns((state.i10.monthly || []).slice(-3), state.contributions || [], state.yearly || []);
+    const _mr = computeMonthlyReturns((state.i10.monthly || []).slice(-3), state.contributions || [], state.yearly || [], state.i10.divsMonthly);
     if (_mr.length) _moPct = +_mr[_mr.length - 1].returnPct || 0;
   } catch (_) {}
   const _moTxt = _moPct === null ? null : (_moPct >= 0 ? '+' : '') + _moPct.toFixed(1).replace('.', ',') + '%';
@@ -2862,7 +2873,7 @@ function renderMonthlyReturns() {
   // this card only wants the recent run, so slice to the last 13 months
   // (→ 12 monthly returns). The full series still feeds yearEquity().
   const recentMonthly = (state.i10.monthly || []).slice(-13);
-  const rows = computeMonthlyReturns(recentMonthly, state.contributions || [], state.yearly || []);
+  const rows = computeMonthlyReturns(recentMonthly, state.contributions || [], state.yearly || [], state.i10.divsMonthly);
   if (rows.length === 0) {
     wrap.style.display = 'none';
     if (empty) {
@@ -3356,6 +3367,30 @@ async function syncFromI10() {
       };
     });
 
+    // Proventos POR MÊS (precisão do Dietz mensal): lista detalhada com data de
+    // pagamento real, agregada por YYYY-MM. Best-effort — se o endpoint falhar,
+    // o cálculo continua caindo no fallback anual ÷ 12.
+    let divsMonthly = null;
+    try {
+      const elRes = await fetch(`${base}/i10/earnings-list/${encodeURIComponent(walletId)}`);
+      if (elRes.ok) {
+        const el = await elRes.json();
+        const elRows = (el && el.table && Array.isArray(el.table.data)) ? el.table.data : [];
+        const todayISO = new Date().toISOString().slice(0, 10);
+        const byMonth = {};
+        for (const r of elRows) {
+          const pay = String(r.date_payment_original || '').slice(0, 10);
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(pay) || pay > todayISO) continue;   // só PAGOS
+          const val = +r.net_total_original || 0;                              // líquido (IR já descontado)
+          if (!(val > 0)) continue;
+          const k = pay.slice(0, 7);
+          byMonth[k] = Math.round(((byMonth[k] || 0) + val) * 100) / 100;
+        }
+        const keys = Object.keys(byMonth).sort().slice(-30);   // doc enxuto: últimos 30 meses
+        if (keys.length) { divsMonthly = {}; keys.forEach(k => { divsMonthly[k] = byMonth[k]; }); }
+      }
+    } catch (_) { /* sem lista → fallback ÷12 segue valendo */ }
+
     // Persist in Firestore - both users share via onSnapshot
     await setDoc(docI10, {
       equity,
@@ -3366,6 +3401,7 @@ async function syncFromI10() {
       assets,
       categories,
       monthly,
+      ...(divsMonthly ? { divsMonthly } : {}),
       year,
       updatedAt: serverTimestamp(),
       updatedBy: (state.user?.displayName || 'unknown') + ' (auto)',
@@ -4990,6 +5026,7 @@ function subscribeAll() {
     state.i10.assets = Array.isArray(data.assets) ? data.assets : [];
     state.i10.categories = Array.isArray(data.categories) ? data.categories : [];
     state.i10.monthly = Array.isArray(data.monthly) ? data.monthly : [];
+    state.i10.divsMonthly = (data.divsMonthly && typeof data.divsMonthly === 'object') ? data.divsMonthly : null;   // proventos reais por mês (precisão do Dietz)
     state.i10.applied = +data.applied || 0;
     state.i10.variation = +data.variation || 0;
     state.i10.profitTwr = +data.profitTwr || 0;

@@ -186,7 +186,9 @@ Todas as coleções e documentos ficam sob `household/main/...` (a casa é uma s
 /household/main/config/settings         // lang, theme, etc
 /household/main/config/i10              // snapshot sincronizado da carteira do W
     equity, applied, variation, profitTwr, dividends, year,
-    assets[], categories[], monthly[], tickerCategories{}, updatedAt, updatedBy, source
+    assets[], categories[], monthly[], divsMonthly{}, tickerCategories{}, updatedAt, updatedBy, source
+    // divsMonthly{}: { 'YYYY-MM': líquido } últimos ~30 meses (earnings-list por data
+    //   de pagamento) — precisão do Dietz mensal; sem ele, fallback anual ÷ 12
     // monthly[]: [{ year, month, equity }] sorted asc — backbone do card
     // de rentabilidade mês a mês (vem do /summary/barchart/... do I10)
 

@@ -62,6 +62,9 @@ Campos: `equity`, `applied`, `variation`, `profitTwr`, `dividends`,
 `year`, `assets[]`, `categories[]`, `monthly[]` (histórico mensal de
 PL dos últimos 12 meses, shape `[{ year, month, equity }]` ordenado
 cronologicamente; alimenta o card "rentabilidade mês a mês"),
+`divsMonthly{}` (proventos REAIS por mês — `{ 'YYYY-MM': valorLíquido }`,
+últimos ~30 meses, agregados de `/i10/earnings-list` pela data de
+pagamento; dá precisão ao Dietz mensal, que sem isso cai no anual ÷ 12),
 `tickerCategories{}`, `updatedAt`, `updatedBy`, `source`.
 
 ### `/household/main/config/i10-louise`
