@@ -1,0 +1,207 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ledger · Design System — provador ao vivo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>var v=Date.now();['01-base','02-layout','03-cards-hero','04-carteira-charts','06-expenses','07-resumo-metas','08-modals-mobile','09-contrast-light','11-polish'].forEach(function(f){document.write('<link rel="stylesheet" href="css/'+f+'.css?v='+v+'">');});</script>
+<style>
+  /* casca da página (escopo ds- pra não colidir com o CSS real) */
+  .ds-wrap{max-width:1080px;margin:0 auto;padding:30px 22px 110px}
+  .ds-top{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+  .ds-h1{font-size:24px;font-weight:800;letter-spacing:-.02em;color:var(--ink);margin:0}
+  .ds-lead{color:var(--ink-2);font-size:14px;margin:4px 0 26px;max-width:780px}
+  .ds-h2{font-size:17px;font-weight:700;color:var(--ink);margin:42px 0 4px;letter-spacing:-.01em}
+  .ds-sub{color:var(--ink-3);font-size:13px;margin:0 0 14px;max-width:760px}
+  .ds-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .ds-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .ds-note{font-size:11.5px;color:var(--ink-muted);margin-top:8px}
+  .ds-spec{font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-3);background:var(--bg-elevated-2);border:1px solid var(--border);border-radius:8px;padding:3px 8px;display:inline-block}
+  .ds-score{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .ds-sc{background:var(--bg-elevated);border:1px solid var(--border);border-radius:14px;padding:13px 14px}
+  .ds-sc .l{font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.07em;font-weight:700}
+  .ds-sc .n{font:700 19px 'Geist Mono';color:var(--ink);margin-top:4px}
+  .ds-sc .n b{color:var(--purple)} .ds-sc .n span{color:var(--ink-muted);font-size:13px}
+  .ds-skel{border-radius:10px;background:linear-gradient(100deg,var(--bg-elevated-2) 40%,var(--bg-elevated-3) 50%,var(--bg-elevated-2) 60%);background-size:200% 100%;animation:ds-shimmer 1.4s linear infinite}
+  @keyframes ds-shimmer{to{background-position:-200% 0}}
+  .ds-tooltip{position:relative;display:inline-block;border-bottom:1px dashed var(--ink-3);cursor:help;color:var(--ink-2);font-size:13px}
+  .ds-tooltip .tip{position:absolute;bottom:130%;left:50%;transform:translateX(-50%) translateY(4px);background:var(--bg-elevated-3);border:1px solid var(--border-strong);color:var(--ink);font-size:11.5px;padding:7px 11px;border-radius:9px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .18s var(--ease-out),transform .18s var(--ease-out);box-shadow:var(--shadow-lg)}
+  .ds-tooltip:hover .tip,.ds-tooltip:focus-visible .tip{opacity:1;transform:translateX(-50%) translateY(0)}
+  .ds-motion{background:var(--bg-elevated);border:1px solid var(--border);border-radius:14px;padding:14px}
+  .ds-motion h4{margin:0 0 2px;font-size:13.5px;color:var(--ink)}
+  .ds-stage{height:74px;display:flex;align-items:center;justify-content:center;background:var(--bg-elevated-2);border-radius:10px;margin:10px 0;overflow:hidden}
+  .ds-chip{background:var(--purple);color:var(--on-accent);font:700 12px Inter;padding:8px 16px;border-radius:10px}
+  .ds-replay{font:600 11px Inter;background:transparent;border:1px solid var(--border-2);color:var(--ink-2);border-radius:8px;padding:5px 11px;cursor:pointer}
+  .ds-replay:hover{color:var(--purple);border-color:var(--purple)}
+  .ds-bp{font-size:13px;color:var(--ink-2)} .ds-bp b{color:var(--ink)}
+  .ds-bp ul{margin:6px 0 0;padding-left:18px} .ds-bp li{margin-bottom:4px}
+  .ds-theme{font:600 12px Inter;background:var(--bg-elevated);border:1px solid var(--border-2);color:var(--ink);border-radius:999px;padding:9px 16px;cursor:pointer}
+  .ds-theme:hover{border-color:var(--purple)}
+  .ds-demo-table td{font-size:13px;color:var(--ink);padding:10px 12px;border-bottom:1px solid var(--border)}
+  .ds-demo-table tr:hover td{background:var(--bg-elevated-2)}
+  .ds-demo-table .mono{font-family:'Geist Mono',monospace}
+</style></head>
+<body><div class="ds-wrap">
+
+<div class="ds-top">
+  <h1 class="ds-h1">Design System — provador ao vivo</h1>
+  <button class="ds-theme" id="dsTheme">☀ Trocar pra Linen (claro)</button>
+</div>
+<p class="ds-lead">Tudo aqui usa o <b>CSS real do app</b> (não é imitação): passa o mouse, clica, aperta Tab, abre o modal, troca o tema. <b>O gosto é teu</b> — o que não agradar, aponta que eu calibro. <a href="auditoria.html" style="color:var(--purple)">← voltar pro checklist da auditoria</a></p>
+
+<h2 class="ds-h2">Score (antes → agora → alvo Fase 3)</h2>
+<div class="ds-score">
+  <div class="ds-sc"><div class="l">Componentes</div><div class="n">5,0 → <b>7,0</b> <span>→ 9</span></div></div>
+  <div class="ds-sc"><div class="l">Acessibilidade</div><div class="n">5,0 → <b>7,5</b> <span>→ 9</span></div></div>
+  <div class="ds-sc"><div class="l">Cor & Tokens</div><div class="n">6,0 → <b>7,5</b> <span>→ 9</span></div></div>
+  <div class="ds-sc"><div class="l">Tipografia</div><div class="n">5,5 → <b>6,0</b> <span>→ 9</span></div></div>
+  <div class="ds-sc"><div class="l">Espaçamento</div><div class="n">5,5 → <b>5,5</b> <span>→ 9</span></div></div>
+  <div class="ds-sc"><div class="l">Responsivo</div><div class="n">6,0 → <b>7,5</b> <span>→ 9</span></div></div>
+</div>
+<p class="ds-note">Tipografia/Espaçamento quase não mexem ainda — a adoção em massa dos tokens é a Fase 3 (por isso o alvo).</p>
+
+<h2 class="ds-h2">Botões</h2>
+<p class="ds-sub">Hover com o mouse · <b>Tab</b> mostra o anel de foco novo · o último é desabilitado.</p>
+<div class="ds-row">
+  <button class="btn-primary">Salvar</button>
+  <button class="btn-secondary">Cancelar</button>
+  <button class="btn-ghost">Importar</button>
+  <button class="btn-danger">Excluir</button>
+  <button class="btn-danger ghost">Excluir (ghost)</button>
+  <button class="btn-primary" disabled>Salvando…</button>
+</div>
+<p class="ds-note">O "Salvar" estava com texto BRANCO sobre lime (1,3:1) por um bloco morto da era roxa — corrigido (12,9:1).</p>
+
+<h2 class="ds-h2">Formulário (campos do modal real)</h2>
+<div class="ds-grid">
+  <div class="card"><div class="modal" role="presentation" style="position:static;max-width:none;box-shadow:none;border:0;background:transparent;padding:0;animation:none;overflow:visible">
+    <div class="form-grid">
+      <div class="field"><label>Valor (R$)</label><input type="text" value="R$ 139,99"></div>
+      <div class="field"><label>Data</label><input type="date" value="2026-06-10"></div>
+      <div class="field full"><label>Categoria</label><select><option>Assinaturas</option><option>Moradia</option><option>Saúde</option></select></div>
+      <div class="field full"><label>Repete até quando? (opcional)</label><input type="month"></div>
+      <div class="field full"><label>Notas</label><textarea rows="2" placeholder="Detalhes adicionais..."></textarea></div>
+    </div>
+  </div></div>
+  <div class="ds-bp card"><b>Microinterações do campo</b>
+    <ul>
+      <li><b>Focus:</b> borda lime + halo suave (clica num campo)</li>
+      <li><b>Largura:</b> campos de modal não travam mais em 132px (bug .exp-filter removido)</li>
+      <li><b>Mobile:</b> grid colapsa pra 1 coluna ≤720px</li>
+    </ul>
+  </div>
+</div>
+
+<h2 class="ds-h2">Pills, chips & badges (família unificada: raio 8)</h2>
+<div class="ds-row" style="margin-bottom:10px">
+  <span class="exp-cat-pill" style="--cat-color:#9b8cff"><span class="exp-cat-pill-icon">✈</span>Viagem</span>
+  <span class="exp-cat-pill" style="--cat-color:#ff6f91"><span class="exp-cat-pill-icon">♥</span>Saúde</span>
+  <span class="exp-cat-pill" style="--cat-color:#5b9cf6"><span class="exp-cat-pill-icon">⌂</span>Moradia</span>
+  <span class="exp-cat-pill" style="--cat-color:#45d483"><span class="exp-cat-pill-icon">🎁</span>Presentes</span>
+</div>
+<div class="ds-row" style="margin-bottom:10px">
+  <span class="exp-owner-chip exp-owner-william">W</span>
+  <span class="exp-owner-chip exp-owner-flavia">F</span>
+  <span class="exp-owner-chip exp-owner-louise">L</span>
+  <span class="exp-owner-chip exp-owner-familia">Fam</span>
+  <span class="imp-badge">2/4</span>
+  <span class="imp-badge ref">estorno</span>
+  <span class="imp-badge rec">recorrente</span>
+  <span class="pill-count">12</span>
+</div>
+<div class="ds-row">
+  <span class="status-pill green"><span class="dot"></span>No ritmo</span>
+  <span class="status-pill yellow"><span class="dot"></span>Atenção</span>
+  <span class="status-pill red"><span class="dot"></span>Abaixo da meta</span>
+</div>
+
+<h2 class="ds-h2">Card + tabela</h2>
+<p class="ds-sub">Hover no card (eleva 2px, 400ms) e nas linhas.</p>
+<div class="ds-grid">
+  <div class="card"><div class="card-head"><div><h3>Todas as despesas</h3><div class="meta">Clique em uma linha para editar</div></div></div>
+    <table class="ds-demo-table" style="width:100%;border-collapse:collapse">
+      <tr><td class="mono" style="color:var(--ink-3)">15/06</td><td>LATAM AIR*HIYLFO <span class="exp-owner-chip exp-owner-familia">Fam</span></td><td><span class="exp-cat-pill" style="--cat-color:#9b8cff">Viagem</span></td><td class="mono" style="text-align:right">R$ 1.039,55</td></tr>
+      <tr><td class="mono" style="color:var(--ink-3)">12/06</td><td>Energia Solar <span class="exp-owner-chip exp-owner-familia">Fam</span></td><td><span class="exp-cat-pill" style="--cat-color:#5b9cf6">Moradia</span></td><td class="mono" style="text-align:right">R$ 320,00</td></tr>
+      <tr><td class="mono" style="color:var(--ink-3)">10/06</td><td>Apple <span class="exp-owner-chip exp-owner-louise">L</span></td><td><span class="exp-cat-pill" style="--cat-color:#b98cff">Assinaturas</span></td><td class="mono" style="text-align:right">R$ 99,99</td></tr>
+    </table>
+  </div>
+  <div class="card"><div class="card-head"><div><h3>Tooltip (proposto)</h3><div class="meta">ainda não existe no app — aprova?</div></div></div>
+    <p style="font-size:13px;color:var(--ink-2);line-height:1.7">O Profit <span class="ds-tooltip" tabindex="0">TWR<span class="tip">Time-Weighted Return — rentabilidade sem efeito dos aportes</span></span> da carteira ficou acima do <span class="ds-tooltip" tabindex="0">CDI<span class="tip">Certificado de Depósito Interbancário — referência de renda fixa</span></span> no período. <span style="color:var(--ink-3)">(passa o mouse / Tab nos termos tracejados)</span></p>
+  </div>
+</div>
+
+<h2 class="ds-h2">Modal & feedbacks (ao vivo)</h2>
+<div class="ds-row">
+  <button class="btn-primary" id="dsOpenModal">Abrir modal real</button>
+  <button class="btn-secondary" id="dsToastOk">Toast de sucesso</button>
+  <button class="btn-secondary" id="dsToastErr">Toast de erro</button>
+</div>
+<p class="ds-note">O modal entra com <span class="ds-spec">modalUp · 300ms · ease-back</span> + fundo <span class="ds-spec">fadeIn · 200ms</span>; o toast sobe com <span class="ds-spec">300ms · ease-out</span>.</p>
+
+<h2 class="ds-h2">Estados (loading · vazio · erro)</h2>
+<div class="ds-grid">
+  <div class="card"><div class="card-head"><div><h3>Loading — skeleton (proposto)</h3><div class="meta">enquanto o I10 sincroniza</div></div></div>
+    <div class="ds-skel" style="height:14px;width:55%;margin-bottom:9px"></div>
+    <div class="ds-skel" style="height:30px;width:80%;margin-bottom:9px"></div>
+    <div class="ds-skel" style="height:14px;width:40%"></div>
+  </div>
+  <div class="card"><div class="card-head"><div><h3>Empty state (real)</h3><div class="meta">.chart-empty — agora é classe, não inline</div></div></div>
+    <div class="chart-empty"><b>sem dados ainda</b>adicione anos no historico para ver o grafico</div>
+  </div>
+  <div class="card"><div class="card-head"><div><h3>Erro técnico (real)</h3><div class="meta">mensagem humana + detalhe copiável</div></div></div>
+    <pre class="err-pop-body">FirebaseError: PERMISSION_DENIED
+  at household/main/expenses
+  request.auth.uid não autorizado</pre>
+  </div>
+</div>
+
+<h2 class="ds-h2">Motion preview (specs reais + replay)</h2>
+<div class="ds-grid">
+  <div class="ds-motion"><h4>Entrada de card</h4><span class="ds-spec">fadeUp · 400ms · ease-out</span><div class="ds-stage"><div class="ds-chip" data-anim="fadeUp .4s var(--ease-out)">card</div></div><button class="ds-replay">↺ tocar de novo</button></div>
+  <div class="ds-motion"><h4>Modal</h4><span class="ds-spec">modalUp · 300ms · ease-back (spring)</span><div class="ds-stage"><div class="ds-chip" data-anim="modalUp .3s var(--ease-back)">modal</div></div><button class="ds-replay">↺ tocar de novo</button></div>
+  <div class="ds-motion"><h4>Dot "ao vivo" do hero</h4><span class="ds-spec">pulse contínuo · 2s</span><div class="ds-stage"><span class="live-dot" style="width:10px;height:10px;border-radius:50%;background:var(--purple);box-shadow:0 0 0 4px var(--purple-soft)"></span></div><span class="ds-note">contínuo (sem replay)</span></div>
+  <div class="ds-motion"><h4>Hover tátil</h4><span class="ds-spec">translateY(-2px) · 400ms · ease-out</span><div class="ds-stage"><button class="btn-primary">passa o mouse</button></div><span class="ds-note">também nos cards desta página</span></div>
+</div>
+<p class="ds-note">♿ Com <b>prefers-reduced-motion</b> ativo no aparelho, TUDO isso congela (cobertura total nova — antes só ⅓ parava).</p>
+
+<h2 class="ds-h2">Blueprint desta leva (o que foi tocado)</h2>
+<div class="ds-grid">
+  <div class="ds-bp card"><b>Modificados</b><ul><li><span class="ds-spec">08-modals</span> bloco morto deletado · btn-danger.ghost</li><li><span class="ds-spec">01-base</span> tokens --ink-3/--ink-muted (AA, 2 temas)</li><li><span class="ds-spec">06/07</span> pills raio 8 · imp-row mobile · breakpoints .98</li><li><span class="ds-spec">11-polish</span> focus-visible · reduced-motion total · classes novas</li><li><span class="ds-spec">app.js</span> buildBarChart em tokens · inline 49→36</li><li><span class="ds-spec">index.html</span> role=dialog ×12 · footers · Excluir ×3</li></ul></div>
+  <div class="ds-bp card"><b>Criados / Removidos / Reutilizados</b><ul><li><b>+</b> .btn-danger.ghost · .chart-empty · .pill-count · regra :focus-visible</li><li><b>−</b> "BUTTON SYSTEM" morto (59 linhas) · 13 styles inline · paleta roxa dos charts</li><li><b>↻</b> tokens existentes (--loss/--gain/--warn/--purple-*) · .modal input baseline · var() em SVG (tema de graça)</li></ul></div>
+</div>
+
+<div class="card" style="margin-top:26px"><div class="card-head"><div><h3>Pendências que dependem de TI</h3></div></div>
+  <p style="font-size:13.5px;color:var(--ink-2);line-height:1.8;margin:0">1️⃣ <b>QW-3</b> (sub-abas mobile): opção <b>A</b> (segmented full-width) ou <b>B</b> (2×2)? — <a href="auditoria.html" style="color:var(--purple)">ver as duas</a><br>2️⃣ <b>Tooltip</b> e <b>skeleton</b> propostos acima: aprova pros lugares certos do app?<br>3️⃣ <b>"vai Fase 3"</b> → adoção em massa dos tokens de tipo/espaçamento, 3 breakpoints, paridade light total, headings, alvos 44px.</p>
+</div>
+
+</div>
+<div class="toast" id="dsToast">feito!</div>
+<div class="modal-bg" id="dsModal"><div class="modal" role="dialog" aria-modal="true">
+  <h3>Modal de demonstração</h3>
+  <p class="sub">Estrutura real: título, sub, campos, rodapé padrão [destrutivo — espaço — Cancelar — Primário].</p>
+  <div class="form-grid"><div class="field full"><label>Descrição</label><input type="text" value="Exemplo"></div></div>
+  <div class="modal-foot"><button class="btn-danger ghost">Excluir</button><div class="spacer"></div><button class="btn-secondary" id="dsModalClose">Cancelar</button><button class="btn-primary" id="dsModalSave">Salvar</button></div>
+</div></div>
+<script>
+  var html=document.documentElement, tBtn=document.getElementById('dsTheme');
+  tBtn.addEventListener('click',function(){
+    var light=html.getAttribute('data-theme')==='light';
+    if(light){html.removeAttribute('data-theme');tBtn.textContent='☀ Trocar pra Linen (claro)';}
+    else{html.setAttribute('data-theme','light');tBtn.textContent='🌙 Voltar pra Obsidian (escuro)';}
+  });
+  var modal=document.getElementById('dsModal');
+  document.getElementById('dsOpenModal').addEventListener('click',function(){modal.classList.add('show');});
+  function closeM(){modal.classList.remove('show');}
+  document.getElementById('dsModalClose').addEventListener('click',closeM);
+  document.getElementById('dsModalSave').addEventListener('click',closeM);
+  modal.addEventListener('click',function(e){if(e.target===modal)closeM();});
+  var toast=document.getElementById('dsToast'),tt;
+  function showToast(msg,err){toast.textContent=msg;toast.style.borderColor=err?'var(--loss)':'var(--border-strong)';toast.style.color=err?'var(--loss)':'var(--ink)';toast.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){toast.classList.remove('show');},2200);}
+  document.getElementById('dsToastOk').addEventListener('click',function(){showToast('✓ Despesa salva');});
+  document.getElementById('dsToastErr').addEventListener('click',function(){showToast('Não deu pra sincronizar agora — tente de novo em instantes',true);});
+  document.querySelectorAll('.ds-replay').forEach(function(b){
+    b.addEventListener('click',function(){
+      var chip=b.parentElement.querySelector('.ds-chip');
+      chip.style.animation='none';void chip.offsetWidth;chip.style.animation=chip.dataset.anim;
+    });
+  });
+  document.querySelectorAll('.ds-chip[data-anim]').forEach(function(c){c.style.animation=c.dataset.anim;});
+</script>
+</body></html>
