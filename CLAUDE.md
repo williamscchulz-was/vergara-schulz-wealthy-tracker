@@ -375,7 +375,7 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 > - **DEPOIS de qualquer mudança relevante:** `git add` + `git commit` + `git push origin main`. O trabalho só está salvo de verdade **quando está no GitHub**.
 > - `firebase deploy` publica o site mas **NÃO** envia o código pro GitHub. **Deploy ≠ push.** Nunca confie só no deploy pra preservar o código-fonte.
 
-1. **Conversa → plano.** Tarefas não-triviais começam com a gente alinhando escopo em texto antes de qualquer edit. Se for mudança UI, descrever o comportamento esperado e validar.
+1. **Conversa → plano.** Tarefas não-triviais começam com a gente alinhando escopo em texto antes de qualquer edit. Se for mudança UI/design, **texto não basta — mockar** (ver item 9).
 2. **Sempre no `main`, direto.** O projeto tem uma única branch ativa — `main`. Nada de worktrees isoladas, nada de branch `claude/<task>`, nada de PR com merge imediato. Commits pequenos, `git add` + `git commit` + `git push origin main`. Se houver um `.claude/worktrees/` no repo, é estado residual do início do projeto — ignorar, não operar ali. Quem está editando são os dois donos do repo; a única pessoa que o review protegeria é si mesmo, e o custo da cerimônia não compensa.
 3. **Commits pequenos e descritivos.** Mensagem em inglês, 1-2 sentenças, foco no "porquê". Co-author do Claude incluído quando a task foi de fato assistida (formato padrão do `/commit`).
 4. **Cada commit é auto-contido.** Código + docs que descrevem esse código (ver §9.8) + (se tiver) teste saem juntos. Nada de "depois eu arrumo o doc".
@@ -390,6 +390,7 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
    - **Pessoas, emails, UIDs ou walletIds** — sempre conferir `CLAUDE.md §1` e §5 quando mexer
    
    Motivação: o CLAUDE.md é o contexto carregado em toda sessão futura. Se ficar desatualizado, sessões novas tomam decisões baseadas em informação errada (já aconteceu — "Fernanda" ficou propagando meses porque ninguém corrigiu o doc). **Regra operacional:** antes de `git commit`, revisar se o diff do commit toca schema/feature/padrão; se tocar, o diff TEM que incluir o `.md` correspondente.
+9. **🎨 Design = mockup-first (obrigatório).** Nenhuma melhoria de design/UX entra só descrita em texto. Fluxo: **Análise → Relatório → Mockup HTML (página standalone em `public/`, publicada) → Aprovação do dono → Blueprint → Implementação → remover o mockup**. Decisão com múltiplos caminhos → mockar 2–3 variantes lado a lado (caso `propostas.html`, tags A/B/C). Estados (hover/loading/empty/error/sucesso) e motion (gatilho · duração · easing) exemplificados visualmente, nunca só descritos. Processo completo: `docs/DESIGN-WORKFLOW.md`.
 
 ---
 
