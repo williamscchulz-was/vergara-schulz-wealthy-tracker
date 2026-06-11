@@ -1206,7 +1206,7 @@ function renderExpenseTable(entries) {
     return `<tr ${isV ? `data-recurring-id="${esc(e.recurringId)}"` : `data-id="${e.id}"`} class="${isIn ? 'is-income' : ''}${isV ? ' is-recurring' : ''}${extraCls}" style="--cat-color:${meta.color}">
       <td class="mono exp-row-date">${formatDateBR(e.date)}</td>
       <td class="exp-row-desc-cell">${descHtml}${fixaBadge}</td>
-      <td><span class="exp-cat-pill ${isIn ? 'is-income' : ''}" style="--cat-color:${meta.color}"><span class="exp-cat-pill-icon">${meta.icon}</span>${pillLabel}</span></td>
+      <td><span class="exp-cat-pill ${isIn ? 'is-income' : ''}" style="--cat-color:${meta.color}">${isIn ? '' : `<span class="exp-cat-pill-icon">${meta.icon}</span>`}${pillLabel}</span></td>
       <td class="mono exp-row-amt">${amtText}</td>
     </tr>`;
   }).join('') + ((sorted.length > TLIMIT && state.expSub !== 'lancamentos' && state.expSub !== 'ganhos')
@@ -4346,7 +4346,9 @@ function renderImportsList() {
     const isConta = h.source === 'conta', gone = n === 0;
     const meta = `${n} ${n === 1 ? t('imports.entry') : t('imports.entries')} · ${fmtImpDate(h.at)}` + (h.total ? ` · <b class="mono">${fmtBRL(h.total)}</b>` : '');
     return `<div class="imports-item${gone ? ' is-gone' : ''}">
-      <div class="imports-emoji">${isConta ? '🏦' : '💳'}</div>
+      <div class="imports-emoji">${isConta
+        ? '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>'
+        : '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>'}</div>
       <div class="imports-info"><div class="imports-t">${t(isConta ? 'imports.src.conta' : 'imports.src.cartao')}</div><div class="imports-m">${meta}</div></div>
       <button class="imports-undo" data-batch="${esc(h.batchId)}"${gone ? ' disabled' : ''}>${gone ? t('imports.gone') : t('imports.undo')}</button>
     </div>`;
