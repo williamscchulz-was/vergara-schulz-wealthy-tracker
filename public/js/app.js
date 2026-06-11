@@ -3902,8 +3902,23 @@ $('expNwPill')?.addEventListener('click', () => switchMode('investments'));
 // Table search — live filter, only the current month's rows are touched
 $('expSearch')?.addEventListener('input', e => {
   _expSearchQuery = e.target.value || '';
+  updateClearFiltersBtn();
   renderExpenseTable(_lastMonthExp);
 });
+// Botão "Limpar filtros" (pedido do dono): aparece só quando há algo ativo; zera tudo num clique.
+function updateClearFiltersBtn() {
+  const any = !!(_expSearchQuery.trim() || _expFilters.cat || _expFilters.owner || _expFilters.nature || _expFilters.src);
+  const b = $('btnClearFilters'); if (b) b.hidden = !any;
+}
+function clearExpFilters() {
+  _expSearchQuery = ''; if ($('expSearch')) $('expSearch').value = '';
+  _expFilters = { cat: '', owner: '', nature: '', src: '' };
+  ['expFilterCat', 'expFilterOwner', 'expFilterSource'].forEach(id => { const el = $(id); if (el) { el.value = ''; el.classList.remove('on'); } });
+  document.querySelectorAll('#expNatFilter button').forEach(x => { const on = !x.dataset.nat; x.classList.toggle('on', on); x.setAttribute('aria-checked', String(on)); });
+  updateClearFiltersBtn();
+  renderExpenseTable(_lastMonthExp);
+}
+$('btnClearFilters')?.addEventListener('click', clearExpFilters);
 // Filtros opção 1 (escolha do dono): "/" foca a busca — só quando não se está digitando.
 document.addEventListener('keydown', (e) => {
   if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -3920,6 +3935,7 @@ document.addEventListener('keydown', (e) => {
     else if (id === 'expFilterOwner') _expFilters.owner = v;
     else _expFilters.src = v;
     e.target.classList.toggle('on', !!v);
+    updateClearFiltersBtn();
     renderExpenseTable(_lastMonthExp);
   });
 });
@@ -3931,6 +3947,7 @@ document.querySelectorAll('#expNatFilter button').forEach(b => b.addEventListene
     x.classList.toggle('on', on);
     x.setAttribute('aria-checked', String(on));
   });
+  updateClearFiltersBtn();
   renderExpenseTable(_lastMonthExp);
 }));
 
