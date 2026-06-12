@@ -1,0 +1,283 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ledger · Auditoria UX — todas as ideias ao vivo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0c08;--panel:#14180f;--panel2:#1a1f14;--panel3:#20261a;--ink:#f3f4ee;--ink2:#b9bbae;--ink3:#9a9c90;--border:rgba(255,255,255,.08);--lime:#c7f73e;--lime2:#a6d22e;--on:#15170b;--gain:#4fdd8a;--loss:#ff6b61;--easeo:cubic-bezier(.16,1,.3,1);--easeb:cubic-bezier(.34,1.56,.64,1)}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;padding:32px 22px 100px;line-height:1.55}
+  .mono{font-family:'Geist Mono',monospace}
+  h1{font-size:24px;margin:0 0 4px;letter-spacing:-.02em}.lead{color:var(--ink2);font-size:14px;margin:0 0 10px;max-width:860px}
+  .sec{font:700 11px Inter;letter-spacing:.1em;text-transform:uppercase;color:var(--lime);margin:46px 0 4px;border-top:1px solid var(--border);padding-top:26px}
+  .secd{color:var(--ink3);font-size:13px;margin:0 0 18px;max-width:840px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;max-width:1180px}
+  .it{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:16px;display:flex;flex-direction:column}
+  .it h3{margin:0 0 2px;font-size:14.5px;display:flex;align-items:center;gap:8px}
+  .id{font:700 10px 'Geist Mono';background:rgba(199,247,62,.16);color:var(--lime);border-radius:6px;padding:2px 7px}
+  .it .d{font-size:12px;color:var(--ink3);margin:0 0 12px;min-height:50px}
+  .it .d b{color:var(--ink2)}
+  .stage{background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:14px;flex:1;position:relative;overflow:hidden;min-height:150px}
+  .hint{font-size:10.5px;color:var(--lime);margin-top:9px;font-weight:600}
+  .row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 4px;border-bottom:1px solid var(--border);font-size:12.5px}
+  .row:last-child{border-bottom:0}
+  .row .dt{font:600 11px 'Geist Mono';color:var(--ink3)}
+  .row .vl{font:600 12px 'Geist Mono'}
+  .cpill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:8px;font:600 10.5px Inter;cursor:pointer}
+  .pick{margin-top:44px;background:var(--panel);border:1px solid rgba(199,247,62,.45);border-radius:14px;padding:16px 18px;font-size:13.5px;max-width:1180px}
+  .toastd{position:absolute;left:50%;bottom:12px;transform:translateX(-50%) translateY(60px);background:var(--panel3);border:1px solid var(--border);border-radius:10px;padding:9px 14px;font-size:12px;display:flex;gap:12px;align-items:center;transition:transform .3s var(--easeo);white-space:nowrap}
+  .toastd.show{transform:translateX(-50%) translateY(0)}
+  .toastd button{border:0;background:none;color:var(--lime);font:700 12px Inter;cursor:pointer}
+  button.demo{font:600 12px Inter;background:var(--panel2);color:var(--ink2);border:1px solid var(--border);border-radius:9px;padding:8px 14px;cursor:pointer}
+  button.demo:hover{color:var(--lime);border-color:var(--lime)}
+  .prim{background:linear-gradient(135deg,var(--lime),var(--lime2));color:var(--on);border:0;font:600 13px Inter;border-radius:11px;padding:10px 18px;cursor:pointer;transition:transform .15s}
+  .prim:active{transform:scale(.96)}
+</style></head>
+<body>
+<h1>Auditoria UX sênior — polimento, micro-interações e usabilidade</h1>
+<p class="lead">Cada ideia roda <b>ao vivo</b> abaixo (toca, arrasta, digita). No fim, responde com os códigos que aprovas — ex.: <b class="mono">"U1 U4 M2 P1"</b> — ou <b>"tudo"</b>.</p>
+
+<div class="sec">Usabilidade · o dia a dia da Flávia no celular</div>
+<p class="secd">Princípio: a ação nº1 (lançar/conferir despesa) tem que estar na <b>zona do polegar</b> e custar o mínimo de toques. Hoje "+ Nova despesa" mora no TOPO da tela — o lugar mais caro do celular.</p>
+<div class="grid">
+
+  <div class="it"><h3><span class="id">U1</span> Botão flutuante de lançar (FAB)</h3>
+    <p class="d">Um <b>+ flutuante acima da ilha</b>, sempre à mão. Lançar despesa vira 1 toque de polegar em qualquer scroll. (O do topo continua no desktop.)</p>
+    <div class="stage" style="min-height:200px">
+      <div style="font-size:11px;color:var(--ink3)">lista rolando…<br>…<br>…<br>…<br>…</div>
+      <div style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(26,31,20,.9);border:1px solid var(--border);border-radius:999px;padding:8px 18px;font-size:11px;color:var(--ink2)">⌂ ilha de navegação</div>
+      <button id="fab" style="position:absolute;right:14px;bottom:58px;width:52px;height:52px;border-radius:50%;border:0;background:linear-gradient(135deg,var(--lime),var(--lime2));color:var(--on);font-size:26px;font-weight:600;cursor:pointer;box-shadow:0 10px 26px -6px rgba(199,247,62,.5);transition:transform .2s var(--easeb)">+</button>
+    </div>
+    <div class="hint">→ toca no +</div>
+  </div>
+
+  <div class="it"><h3><span class="id">U2</span> Deslizar pra trocar de mês</h3>
+    <p class="d"><b>Swipe ⟵ ⟶ na área da lista</b> navega os meses — o gesto que todo app de banco tem. O seletor fixo continua existindo.</p>
+    <div class="stage" id="swipeStage" style="touch-action:pan-y;cursor:grab">
+      <div style="text-align:center;font:700 15px 'Geist Mono';margin:8px 0 12px" id="swipeMonth">Junho 2026</div>
+      <div id="swipeList" style="transition:transform .25s var(--easeo),opacity .25s">
+        <div class="row"><span class="dt">15/06</span><span>LATAM AIR*HIYLFO</span><b class="vl">R$ 1.039</b></div>
+        <div class="row"><span class="dt">12/06</span><span>Energia Solar</span><b class="vl">R$ 320</b></div>
+        <div class="row"><span class="dt">10/06</span><span>Apple</span><b class="vl">R$ 99</b></div>
+      </div>
+    </div>
+    <div class="hint">→ arrasta a lista pro lado (mouse ou dedo)</div>
+  </div>
+
+  <div class="it"><h3><span class="id">U3</span> Excluir com "Desfazer" (sem modal)</h3>
+    <p class="d">Excluir lançamento para de pedir confirmação: <b>some na hora + toast com Desfazer (5s)</b>. Menos fricção, mesmo nível de segurança — padrão Gmail/iOS.</p>
+    <div class="stage">
+      <div id="u4list">
+        <div class="row" data-r><span class="dt">10/06</span><span>Apple</span><span style="display:flex;gap:8px;align-items:center"><b class="vl">R$ 99</b><button class="demo" style="padding:4px 9px;color:var(--loss);border-color:color-mix(in srgb,var(--loss) 35%,transparent)" data-del>✕</button></span></div>
+        <div class="row" data-r><span class="dt">07/06</span><span>Gás</span><span style="display:flex;gap:8px;align-items:center"><b class="vl">R$ 110</b><button class="demo" style="padding:4px 9px;color:var(--loss);border-color:color-mix(in srgb,var(--loss) 35%,transparent)" data-del>✕</button></span></div>
+      </div>
+      <div class="toastd" id="u4toast">Lançamento excluído <button id="u4undo">DESFAZER</button></div>
+    </div>
+    <div class="hint">→ toca no ✕ e depois em DESFAZER</div>
+  </div>
+
+  <div class="it"><h3><span class="id">U4</span> Trocar categoria sem abrir o modal</h3>
+    <p class="d"><b>Tocar na pill de categoria</b> abre um menu rápido ali mesmo — recategorizar (a tarefa mais comum pós-import) cai de 4 toques pra 2.</p>
+    <div class="stage">
+      <div class="row"><span class="dt">12/06</span><span>Energia Solar</span><span class="cpill" id="u5pill" style="background:rgba(154,160,166,.15);color:#9aa0a6">◎ Outros ▾</span></div>
+      <div id="u5menu" hidden style="position:absolute;right:14px;top:54px;background:var(--panel3);border:1px solid var(--border);border-radius:12px;padding:6px;box-shadow:0 20px 50px -16px #000;z-index:5">
+        <div class="cpill u5opt" style="display:flex;margin:3px;background:rgba(91,156,246,.14);color:#5b9cf6">⌂ Moradia</div>
+        <div class="cpill u5opt" style="display:flex;margin:3px;background:rgba(240,191,76,.14);color:#f0bf4c">🛒 Mercado</div>
+        <div class="cpill u5opt" style="display:flex;margin:3px;background:rgba(185,140,255,.14);color:#b98cff">↻ Assinaturas</div>
+      </div>
+    </div>
+    <div class="hint">→ toca na pill "Outros"</div>
+  </div>
+
+  <div class="it"><h3><span class="id">U5</span> Tocar no mês abre o calendário</h3>
+    <p class="d">"Junho 2026" deixa de ser só texto: <b>tocar abre uma grade de 12 meses</b> — pular de junho pra janeiro vira 2 toques em vez de 5 nas setinhas.</p>
+    <div class="stage" style="text-align:center">
+      <button class="demo mono" id="u6btn" style="font-weight:700">‹ &nbsp; Junho 2026 &nbsp; ›</button>
+      <div id="u6grid" hidden style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px">
+        <button class="demo mono u6m">Jan</button><button class="demo mono u6m">Fev</button><button class="demo mono u6m">Mar</button><button class="demo mono u6m">Abr</button>
+        <button class="demo mono u6m">Mai</button><button class="demo mono u6m" style="color:var(--on);background:var(--lime);border-color:var(--lime)">Jun</button><button class="demo mono u6m">Jul</button><button class="demo mono u6m">Ago</button>
+        <button class="demo mono u6m">Set</button><button class="demo mono u6m">Out</button><button class="demo mono u6m">Nov</button><button class="demo mono u6m">Dez</button>
+      </div>
+    </div>
+    <div class="hint">→ toca no "Junho 2026"</div>
+  </div>
+
+  <div class="it"><h3><span class="id">U6</span> Lista agrupada por dia</h3>
+    <p class="d">Em vez de data repetida linha a linha, <b>cabeçalhos de dia com subtotal</b> — escaneia "o que gastei dia 15" num olhar.</p>
+    <div class="stage" style="max-height:200px;overflow-y:auto">
+      <div style="position:sticky;top:0;background:var(--panel2);border-radius:8px;padding:5px 10px;font:700 10.5px 'Geist Mono';color:var(--ink2);display:flex;justify-content:space-between"><span>SEX · 15/06</span><span>R$ 4.404</span></div>
+      <div class="row"><span class="dt"></span><span>LATAM AIR*HIYLFO</span><b class="vl">R$ 1.039</b></div>
+      <div class="row"><span class="dt"></span><span>BIO ESTHETIC</span><b class="vl">R$ 312</b></div>
+      <div style="position:sticky;top:0;background:var(--panel2);border-radius:8px;padding:5px 10px;font:700 10.5px 'Geist Mono';color:var(--ink2);display:flex;justify-content:space-between;margin-top:8px"><span>QUI · 12/06</span><span>R$ 320</span></div>
+      <div class="row"><span class="dt"></span><span>Energia Solar</span><b class="vl">R$ 320</b></div>
+      <div style="position:sticky;top:0;background:var(--panel2);border-radius:8px;padding:5px 10px;font:700 10.5px 'Geist Mono';color:var(--ink2);display:flex;justify-content:space-between;margin-top:8px"><span>SEG · 10/06</span><span>R$ 99</span></div>
+      <div class="row"><span class="dt"></span><span>Apple</span><b class="vl">R$ 99</b></div>
+      <div class="row"><span class="dt"></span><span>…rola pra sentir o sticky…</span><b class="vl"></b></div>
+      <div class="row"><span class="dt"></span><span>…</span><b class="vl"></b></div>
+    </div>
+    <div class="hint">→ rola a listinha (o dia gruda no topo)</div>
+  </div>
+</div>
+
+<div class="sec">Micro-interações · a sensação de app caro</div>
+<p class="secd">Feedback em <b>menos de 100ms</b> pra cada toque: o app "responde ao dedo". Tudo respeita reduced-motion.</p>
+<div class="grid">
+
+  <div class="it"><h3><span class="id">M1</span> Salvar vira ✓ (e a linha pisca)</h3>
+    <p class="d">Ao salvar: o botão <b>morfa em check</b>, o modal fecha, e a <b>linha recém-criada acende em lime e apaga</b> — você VÊ onde o lançamento caiu.</p>
+    <div class="stage">
+      <button class="prim" id="m1btn" style="width:130px">Salvar</button>
+      <div id="m1list" style="margin-top:12px"></div>
+    </div>
+    <div class="hint">→ toca em Salvar</div>
+  </div>
+
+  <div class="it"><h3><span class="id">M2</span> Troca de aba com deslize</h3>
+    <p class="d">Investimentos ⇄ Despesas ⇄ Resumo hoje corta seco. Proposta: <b>crossfade + deslize de 12px (180ms)</b> — continuidade espacial, zero peso.</p>
+    <div class="stage">
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <button class="demo m2tab" data-p="0" style="color:var(--lime);border-color:var(--lime)">Investimentos</button>
+        <button class="demo m2tab" data-p="1">Despesas</button>
+      </div>
+      <div style="position:relative;height:90px">
+        <div class="m2panel" style="position:absolute;inset:0;background:var(--panel2);border-radius:10px;display:grid;place-content:center;font:700 18px 'Geist Mono';color:var(--lime);transition:opacity .18s var(--easeo),transform .18s var(--easeo)">R$ 1.725.101</div>
+        <div class="m2panel" style="position:absolute;inset:0;background:var(--panel2);border-radius:10px;display:grid;place-content:center;font:700 18px 'Geist Mono';color:var(--gain);opacity:0;transform:translateX(12px);transition:opacity .18s var(--easeo),transform .18s var(--easeo)">R$ 27,2k poupados</div>
+      </div>
+    </div>
+    <div class="hint">→ alterna as abas</div>
+  </div>
+
+  <div class="it"><h3><span class="id">M3</span> Números que contam ao trocar de mês</h3>
+    <p class="d">O hero já conta — mas os KPIs pulam seco. Proposta: <b>todos os valores fazem count-up de 350ms</b> na troca de mês/aba.</p>
+    <div class="stage" style="text-align:center">
+      <div style="font:700 10px Inter;letter-spacing:.09em;color:var(--ink3);text-transform:uppercase">Gastos do mês</div>
+      <div class="mono" id="m3num" style="font-size:30px;font-weight:700;margin:6px 0 12px">R$ 20.047</div>
+      <button class="demo" id="m3btn">trocar de mês →</button>
+    </div>
+    <div class="hint">→ troca o mês e olha o número</div>
+  </div>
+
+  <div class="it"><h3><span class="id">M4</span> Toque tátil nas linhas e cards</h3>
+    <p class="d">Linhas/cards clicáveis <b>afundam levemente (scale .98)</b> no toque — o dedo sente que pegou. Custo: 1 linha de CSS.</p>
+    <div class="stage">
+      <div class="row" style="cursor:pointer;transition:transform .12s,background .12s;border-radius:10px;padding:12px 10px" onpointerdown="this.style.transform='scale(.975)';this.style.background='var(--panel2)'" onpointerup="this.style.transform='';this.style.background=''" onpointerleave="this.style.transform='';this.style.background=''"><span class="dt">15/06</span><span>LATAM AIR*HIYLFO</span><b class="vl">R$ 1.039</b></div>
+      <div class="row" style="cursor:pointer;transition:transform .12s,background .12s;border-radius:10px;padding:12px 10px" onpointerdown="this.style.transform='scale(.975)';this.style.background='var(--panel2)'" onpointerup="this.style.transform='';this.style.background=''" onpointerleave="this.style.transform='';this.style.background=''"><span class="dt">12/06</span><span>Energia Solar</span><b class="vl">R$ 320</b></div>
+    </div>
+    <div class="hint">→ pressiona e segura uma linha</div>
+  </div>
+
+  <div class="it"><h3><span class="id">M5</span> Busca que destaca o que achou</h3>
+    <p class="d">O termo buscado fica <b>marcado em lime nas linhas</b> + contador "3 de 90" — você vê POR QUE cada linha apareceu.</p>
+    <div class="stage">
+      <input id="m5q" placeholder="digita: latam" style="width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:8px 12px;color:var(--ink);font:500 12.5px Inter;outline:none;margin-bottom:10px">
+      <div id="m5rows">
+        <div class="row"><span class="dt">15/06</span><span data-t="LATAM AIR*HIYLFO">LATAM AIR*HIYLFO</span><b class="vl">R$ 1.039</b></div>
+        <div class="row"><span class="dt">15/06</span><span data-t="LATAM AIR*EFGCNY">LATAM AIR*EFGCNY</span><b class="vl">R$ 1.497</b></div>
+        <div class="row"><span class="dt">10/06</span><span data-t="Apple">Apple</span><b class="vl">R$ 99</b></div>
+      </div>
+    </div>
+    <div class="hint">→ digita no campo</div>
+  </div>
+
+  <div class="it"><h3><span class="id">M6</span> Pull-to-refresh no Investimentos</h3>
+    <p class="d"><b>Puxar a tela pra baixo sincroniza com o I10</b> — o gesto universal de "atualiza aí". O botão Sync continua existindo.</p>
+    <div class="stage" id="m6stage" style="touch-action:none;cursor:grab;overflow:hidden">
+      <div id="m6ind" style="text-align:center;font-size:11px;color:var(--ink3);height:0;overflow:hidden;transition:height .2s">⟳ solta pra sincronizar</div>
+      <div id="m6card" style="background:var(--panel2);border-radius:12px;padding:16px;transition:transform .25s var(--easeo)">
+        <div style="font:700 10px Inter;letter-spacing:.09em;color:var(--ink3)">PATRIMÔNIO TOTAL</div>
+        <div class="mono" id="m6val" style="font-size:24px;font-weight:700;margin-top:4px">R$ 1.725.101</div>
+      </div>
+    </div>
+    <div class="hint">→ arrasta o card pra baixo e solta</div>
+  </div>
+</div>
+
+<div class="sec">Polimento · os detalhes que ninguém nota (mas todo mundo sente)</div>
+<div class="grid">
+
+  <div class="it"><h3><span class="id">P1</span> Datas humanas</h3>
+    <p class="d">"15/06" vira <b>"hoje" / "ontem" / "seg, 15"</b> na lista do mês corrente. Datas absolutas continuam no CSV/edição.</p>
+    <div class="stage">
+      <div class="row"><span class="dt" style="color:var(--lime)">hoje</span><span>SUPERMERCADOS KOCH</span><b class="vl">R$ 218</b></div>
+      <div class="row"><span class="dt">ontem</span><span>DL*UberRides</span><b class="vl">R$ 7,99</b></div>
+      <div class="row"><span class="dt">seg, 09</span><span>Apple</span><b class="vl">R$ 99</b></div>
+      <div class="row"><span class="dt">05/06</span><span>Gás</span><b class="vl">R$ 110</b></div>
+    </div>
+    <div class="hint">demo estática — repara na coluna de data</div>
+  </div>
+
+  <div class="it"><h3><span class="id">P2</span> Sombras de rolagem</h3>
+    <p class="d">Containers roláveis ganham <b>sombra na borda</b> quando há mais conteúdo — o olho sabe que dá pra rolar (hoje listas "terminam" sem aviso).</p>
+    <div class="stage">
+      <div id="p2scroll" style="max-height:150px;overflow-y:auto;border-radius:10px;position:relative">
+        <div class="row"><span class="dt">15/06</span><span>LATAM AIR</span><b class="vl">R$ 1.039</b></div>
+        <div class="row"><span class="dt">15/06</span><span>AMAZON</span><b class="vl">R$ 362</b></div>
+        <div class="row"><span class="dt">14/06</span><span>BIO ESTHETIC</span><b class="vl">R$ 312</b></div>
+        <div class="row"><span class="dt">12/06</span><span>Energia Solar</span><b class="vl">R$ 320</b></div>
+        <div class="row"><span class="dt">10/06</span><span>Apple</span><b class="vl">R$ 99</b></div>
+        <div class="row"><span class="dt">07/06</span><span>Gás</span><b class="vl">R$ 110</b></div>
+      </div>
+    </div>
+    <div class="hint">→ rola e observa as bordas escurecerem</div>
+  </div>
+
+  <div class="it"><h3><span class="id">P3</span> Vazio com alma</h3>
+    <p class="d">Empty states com a <b>marca (7 flechas) desenhada fininha</b> + CTA direto — em vez do texto cinza solto.</p>
+    <div class="stage" style="display:grid;place-content:center;text-align:center">
+      <svg viewBox="0 0 48 48" width="54" height="54" style="margin:0 auto;opacity:.35;color:var(--lime)" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 43 L24 35 L41 43"/><path d="M7 38 L24 30 L41 38"/><path d="M7 33 L24 25 L41 33"/><path d="M7 28 L24 20 L41 28"/><path d="M7 23 L24 15 L41 23"/><path d="M7 18 L24 10 L41 18"/><path d="M7 13 L24 5 L41 13"/></svg>
+      <div style="font-weight:700;font-size:13.5px;margin:10px 0 2px">Nenhuma despesa em Julho</div>
+      <div style="font-size:11.5px;color:var(--ink3);margin-bottom:12px">o mês tá limpo — bom sinal 😌</div>
+      <button class="prim" style="margin:0 auto">+ Lançar a primeira</button>
+    </div>
+    <div class="hint">demo estática</div>
+  </div>
+
+  <div class="it"><h3><span class="id">P4</span> Teclado certo no celular</h3>
+    <p class="d">Campo de <b>valor abre o teclado numérico</b> (inputmode decimal) — hoje em alguns fluxos abre o teclado de texto. Custo zero, ganho diário.</p>
+    <div class="stage">
+      <label style="font:600 10px Inter;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)">Valor (R$)</label>
+      <input inputmode="decimal" placeholder="0,00" style="width:100%;margin-top:5px;background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--ink);font:600 16px 'Geist Mono';outline:none">
+      <div style="font-size:10.5px;color:var(--ink3);margin-top:8px">→ no celular, este campo abre o teclado 0-9</div>
+    </div>
+    <div class="hint">→ toca no campo (no celular)</div>
+  </div>
+</div>
+
+<div class="pick"><b>Aprovação:</b> responde com os códigos — ex.: <b class="mono">"U1 U3 M1 M4 P1 P4"</b> — ou <b>"tudo"</b>, ou <b>"tudo menos U6"</b>. Implemento no app em fatias verificáveis, na ordem que escolheres.</div>
+
+<script>
+/* U1 FAB */
+document.getElementById('fab').addEventListener('click',function(){this.style.transform='scale(1.18) rotate(90deg)';var b=this;setTimeout(function(){b.style.transform=''},250)});
+/* U2 swipe meses */
+(function(){var st=document.getElementById('swipeStage'),lst=document.getElementById('swipeList'),mo=document.getElementById('swipeMonth');var months=['Maio 2026','Junho 2026','Julho 2026'];var cur=1,x0=null;
+st.addEventListener('pointerdown',function(e){x0=e.clientX;st.setPointerCapture(e.pointerId)});
+st.addEventListener('pointerup',function(e){if(x0===null)return;var dx=e.clientX-x0;x0=null;if(Math.abs(dx)<40)return;var dir=dx<0?1:-1;cur=Math.max(0,Math.min(2,cur+dir));lst.style.transform='translateX('+(dir*-30)+'px)';lst.style.opacity='0';setTimeout(function(){mo.textContent=months[cur];lst.style.transition='none';lst.style.transform='translateX('+(dir*30)+'px)';void lst.offsetWidth;lst.style.transition='';lst.style.transform='';lst.style.opacity='1'},250)});})();
+/* U3 delete+undo */
+(function(){var del=null,t=document.getElementById('u4toast'),tm;document.querySelectorAll('[data-del]').forEach(function(b){b.addEventListener('click',function(){var r=b.closest('[data-r]');del={el:r,next:r.nextSibling,parent:r.parentNode};r.remove();t.classList.add('show');clearTimeout(tm);tm=setTimeout(function(){t.classList.remove('show');del=null},5000)})});
+document.getElementById('u4undo').addEventListener('click',function(){if(del){del.parent.insertBefore(del.el,del.next);del=null}t.classList.remove('show')});})();
+/* U4 quick category */
+(function(){var p=document.getElementById('u5pill'),m=document.getElementById('u5menu');p.addEventListener('click',function(){m.hidden=!m.hidden});
+document.querySelectorAll('.u5opt').forEach(function(o){o.addEventListener('click',function(){p.innerHTML=o.innerHTML+' ▾';p.style.background=getComputedStyle(o).backgroundColor;p.style.color=getComputedStyle(o).color;m.hidden=true})});})();
+/* U5 month grid */
+(function(){var b=document.getElementById('u6btn'),g=document.getElementById('u6grid');b.addEventListener('click',function(){g.hidden=!g.hidden});
+document.querySelectorAll('.u6m').forEach(function(x){x.addEventListener('click',function(){b.innerHTML='‹ &nbsp; '+x.textContent+' 2026 &nbsp; ›';g.hidden=true})});})();
+/* M1 save morph + row flash */
+(function(){var b=document.getElementById('m1btn'),l=document.getElementById('m1list'),busy=false;
+b.addEventListener('click',function(){if(busy)return;busy=true;b.textContent='✓';b.style.width='52px';setTimeout(function(){
+  var r=document.createElement('div');r.className='row';r.innerHTML='<span class="dt">hoje</span><span>Padaria Central</span><b class="vl">R$ 24,90</b>';
+  r.style.background='rgba(199,247,62,.18)';r.style.borderRadius='9px';r.style.transition='background 1.2s ease';l.prepend(r);
+  setTimeout(function(){r.style.background='transparent'},80);
+  b.textContent='Salvar';b.style.width='130px';busy=false;},700)});})();
+/* M2 tab slide */
+(function(){var tabs=document.querySelectorAll('.m2tab'),ps=document.querySelectorAll('.m2panel');tabs.forEach(function(t){t.addEventListener('click',function(){var k=+t.dataset.p;tabs.forEach(function(x){var on=x===t;x.style.color=on?'var(--lime)':'';x.style.borderColor=on?'var(--lime)':''});ps.forEach(function(p,i){if(i===k){p.style.opacity='1';p.style.transform='translateX(0)'}else{p.style.opacity='0';p.style.transform='translateX('+(i<k?-12:12)+'px)'}})})});})();
+/* M3 count-up */
+(function(){var n=document.getElementById('m3num'),vals=[20047,15780,31472],i=0;document.getElementById('m3btn').addEventListener('click',function(){i=(i+1)%vals.length;var from=+n.dataset.v||20047,to=vals[i],t0=performance.now();n.dataset.v=to;(function f(t){var k=Math.min(1,(t-t0)/350);k=1-Math.pow(1-k,3);n.textContent='R$ '+Math.round(from+(to-from)*k).toLocaleString('pt-BR');if(k<1)requestAnimationFrame(f)})(t0)});})();
+/* M5 highlight */
+(function(){var q=document.getElementById('m5q');q.addEventListener('input',function(){var v=q.value.trim();document.querySelectorAll('#m5rows [data-t]').forEach(function(s){var t=s.dataset.t;if(!v){s.innerHTML=t;s.closest('.row').style.display='';return}var ix=t.toLowerCase().indexOf(v.toLowerCase());var row=s.closest('.row');if(ix<0){row.style.display='none';return}row.style.display='';s.innerHTML=t.slice(0,ix)+'<mark style="background:rgba(199,247,62,.35);color:var(--ink);border-radius:3px;padding:0 1px">'+t.slice(ix,ix+v.length)+'</mark>'+t.slice(ix+v.length)})});})();
+/* M6 pull-to-refresh */
+(function(){var st=document.getElementById('m6stage'),c=document.getElementById('m6card'),ind=document.getElementById('m6ind'),v=document.getElementById('m6val');var y0=null,dy=0;
+st.addEventListener('pointerdown',function(e){y0=e.clientY;c.style.transition='none';st.setPointerCapture(e.pointerId)});
+st.addEventListener('pointermove',function(e){if(y0===null)return;dy=Math.max(0,Math.min(70,e.clientY-y0));c.style.transform='translateY('+dy+'px)';ind.style.height=dy>20?'20px':'0'});
+st.addEventListener('pointerup',function(){if(y0===null)return;c.style.transition='';c.style.transform='';var fire=dy>45;y0=null;dy=0;if(fire){ind.textContent='⟳ sincronizando…';ind.style.height='20px';v.style.opacity='.3';setTimeout(function(){v.textContent='R$ 1.725.940';v.style.opacity='1';ind.textContent='✓ sincronizado';setTimeout(function(){ind.style.height='0';ind.textContent='⟳ solta pra sincronizar'},900)},900)}else{ind.style.height='0'}});})();
+/* P2 scroll shadows */
+(function(){var el=document.getElementById('p2scroll');function up(){var top=el.scrollTop>4,bot=el.scrollTop+el.clientHeight<el.scrollHeight-4;el.style.maskImage='linear-gradient(180deg,'+(top?'transparent 0,#000 18px':'#000 0')+','+(bot?'#000 calc(100% - 18px),transparent 100%':'#000 100%')+')';el.style.webkitMaskImage=el.style.maskImage}el.addEventListener('scroll',up);up();})();
+</script>
+</body></html>
