@@ -1397,12 +1397,11 @@ function openQuickCatMenu(anchor, expenseId) {
       const grp = cur.installment && cur.fpBase ? String(cur.fpBase).replace(/\|\d+\/\d+$/, '') : null;
       const sibs = grp ? (state.expenses || []).filter(e => e.id !== expenseId && e.fpBase && String(e.fpBase).replace(/\|\d+\/\d+$/, '') === grp) : [];
       if (sibs.length) await Promise.allSettled(sibs.map(s => setDoc(docExpense(s.id), patch, { merge: true })));
-      // Fixa: propaga a categoria pra todas as repetições da fixa (pedido do dono)
+      // Fixa: a categoria mudou → pergunta o escopo (só esta / próximas / todas)
       const recTpl = (!grp && cur.category !== b.dataset.k) ? findRuleTemplateFor(cur) : null;
-      const recN = recTpl ? await propagateCategoryToTemplate(recTpl, b.dataset.k, expenseId) : 0;
       if (sibs.length) showToast(t('exp.toast.cascade').replace('{n}', sibs.length + 1));
-      else if (recN > 0) showToast(t('exp.toast.recurringCascade').replace('{n}', recN + 1));
-      else showToast(t('exp.quickcat.done'));
+      else if (!recTpl) showToast(t('exp.quickcat.done'));
+      if (recTpl) await applyFixaCategoryScope({ tpl: recTpl, category: b.dataset.k, fromCat: cur.category, editedId: expenseId, editedDate: cur.date });
     } catch (err) { console.error('[quickcat]', err); showToast(t('toast.error.save')); }
   }));
 }
@@ -1832,11 +1831,11 @@ function openRecurringEditor(id) {
   bg.querySelector('#recEditSave').onclick = async () => {
     try {
       const newCat = catSel.value;
+      // Editar a fixa em si = "daqui pra frente": muda o template (governa as projeções
+      // futuras); as reais já materializadas em meses passados não são tocadas aqui.
       await setDoc(docRecurring(id), { value: parseBRLInput(bg.querySelector('#recEditVal').value), endYM: (bg.querySelector('#recEditEnd').value || null), category: newCat, updatedAt: serverTimestamp() }, { merge: true });
-      // Categoria propaga pras despesas reais já materializadas desta fixa (pedido do dono)
-      const n = (newCat !== tpl.category) ? await propagateCategoryToTemplate({ ...tpl, category: tpl.category }, newCat, null) : 0;
       bg.classList.remove('show');
-      showToast(n > 0 ? t('exp.toast.recurringCascade').replace('{n}', n + 1) : 'Despesa fixa atualizada');
+      showToast('Despesa fixa atualizada');
     } catch (e) { showErrorPopup('Falha ao salvar a recorrência', e); }
   };
   bg.querySelector('#recEditDel').onclick = async () => {
@@ -1854,13 +1853,16 @@ function findRuleTemplateFor(e) {
   if (!e) return null;
   return (state.recurring || []).find(tpl => satisfiesRule(e, tpl)) || null;
 }
-// Fixa (pedido do dono): editar a categoria de UMA repetição muda TODAS — as outras
-// despesas reais que realizam o MESMO template + o template (que governa os meses
-// futuros projetados). Só categoria; valor nunca. Retorna nº de reais tocadas.
-async function propagateCategoryToTemplate(tpl, category, excludeId) {
+// Fixa (pedido do dono): propaga a categoria pras repetições do MESMO template + o
+// template (governa as futuras projetadas). Só categoria; valor nunca.
+// sinceDate (YYYY-MM-DD): se passado, só as reais com data >= sinceDate ("daqui pra
+// frente"); null = todas (passadas + futuras). O template é sempre atualizado.
+// Retorna nº de reais tocadas.
+async function propagateCategoryToTemplate(tpl, category, excludeId, sinceDate) {
   if (!tpl) return 0;
   const reais = (state.expenses || []).filter(e =>
-    e.id !== excludeId && (e.type || 'expense') === 'expense' && e.category !== category && satisfiesRule(e, tpl));
+    e.id !== excludeId && (e.type || 'expense') === 'expense' && e.category !== category
+    && satisfiesRule(e, tpl) && (!sinceDate || String(e.date || '') >= sinceDate));
   const ops = [
     ...reais.map(s => setDoc(docExpense(s.id), { category, updatedAt: serverTimestamp(), updatedBy: (state.user?.displayName || 'fixa') }, { merge: true })),
     ...(tpl.category !== category ? [setDoc(docRecurring(tpl.id), { category, updatedAt: serverTimestamp() }, { merge: true })] : []),
@@ -1868,6 +1870,37 @@ async function propagateCategoryToTemplate(tpl, category, excludeId) {
   if (!ops.length) return 0;
   await Promise.allSettled(ops);
   return reais.length;
+}
+
+// Diálogo de escopo (A=bottom-sheet mobile / B=modal radio desktop). Resolve com
+// 'this' | 'future' | 'all' | 'cancel'. monthLabel ex.: "Junho 2026".
+let _scopeResolve = null;
+function askScope(monthLabel, fromLabel, toLabel) {
+  return new Promise(resolve => {
+    const dlg = $('scopeDialog'); if (!dlg) { resolve('this'); return; }
+    if (_scopeResolve) { const prev = _scopeResolve; _scopeResolve = null; prev('cancel'); }   // review: recusa órfã concorrente
+    _scopeResolve = resolve;
+    $('scopeThisSub').textContent = (getLang() === 'en' ? 'only ' : 'apenas ') + monthLabel;
+    $('scopeSub').innerHTML = `<b>${esc(fromLabel)}</b> → <b style="color:var(--loss)">${esc(toLabel)}</b>`;
+    const isMobile = () => matchMedia('(max-width: 719.98px)').matches;   // review: reavalia no clique (resize cruzando 720)
+    let sel = null;
+    dlg.querySelectorAll('.scope-opt').forEach(o => {
+      o.classList.remove('sel');
+      o.onclick = () => {
+        if (isMobile()) { finishScope(o.dataset.scope); }       // A: toque resolve direto
+        else { sel = o.dataset.scope; dlg.querySelectorAll('.scope-opt').forEach(x => x.classList.toggle('sel', x === o)); }  // B: seleciona
+      };
+    });
+    $('scopeApply').onclick = () => finishScope(sel || 'this');   // B: confirma a seleção
+    $('scopeCancel').onclick = () => finishScope('cancel');
+    dlg.onclick = (e) => { if (e.target === dlg) finishScope('cancel'); };
+    dlg.classList.add('show');
+  });
+}
+function finishScope(v) {
+  const dlg = $('scopeDialog'); if (dlg) dlg.classList.remove('show');
+  const r = _scopeResolve; _scopeResolve = null;
+  if (r) r(v);
 }
 
 let _savingExpense = false;   // guard de reentrância: Enter no campo chama saveExpense() direto (review A)
@@ -1919,24 +1952,25 @@ async function _saveExpenseInner() {
       });
       data.recurringId = tplRef.id;
     }
+    let scopePending = null;   // fixa cuja categoria mudou → perguntar o escopo após fechar o modal
     if (editingExpenseId) {
+      // review: captura a entry ORIGINAL ANTES do setDoc — o onSnapshot (latency
+      // compensation) pode reescrever state.expenses já com a categoria nova e suprimir
+      // o diálogo. `editing` (linha ~1945) é justamente esse snapshot pré-edição.
+      const entry = editing;
       await setDoc(docExpense(editingExpenseId), data, { merge: true });
       _flashRowId = editingExpenseId;   // UX M1: a linha editada acende no render
       // Parcelado: propaga de-quem/categoria/descrição/natureza pra TODAS as parcelas da mesma compra.
-      const entry = state.expenses.find(x => x.id === editingExpenseId);
       const grp = entry && entry.installment && entry.fpBase ? String(entry.fpBase).replace(/\|\d+\/\d+$/, '') : null;
       const sibs = grp ? (state.expenses || []).filter(e => e.id !== editingExpenseId && e.fpBase && String(e.fpBase).replace(/\|\d+\/\d+$/, '') === grp) : [];
-      // Fixa: a categoria propaga pra TODAS as repetições da mesma fixa (pedido do dono).
-      // Só quando a categoria REALMENTE mudou (editar só o valor não mexe nas outras).
-      // Casa pelo template via satisfies() — usa a entry ORIGINAL (pré-edição).
+      // Fixa: a categoria mudou → guarda pra perguntar o ESCOPO (só esta / próximas / todas)
+      // depois de fechar o modal. Casa pelo template via satisfies() (entry ORIGINAL).
       const recTpl = (type === 'expense' && entry && !grp && entry.category !== category) ? findRuleTemplateFor(entry) : null;
-      const recN = recTpl ? await propagateCategoryToTemplate(recTpl, category, editingExpenseId) : 0;
+      if (recTpl) scopePending = { tpl: recTpl, category, fromCat: entry.category, editedId: editingExpenseId, editedDate: entry.date || date };
       if (sibs.length) {
         await Promise.allSettled(sibs.map(s => setDoc(docExpense(s.id), { owner: _modalOwner, category, description, nature: _modalNature, updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'unknown' }, { merge: true })));
         showToast(t('exp.toast.cascade').replace('{n}', sibs.length + 1));
-      } else if (recN > 0) {
-        showToast(t('exp.toast.recurringCascade').replace('{n}', recN + 1));
-      } else {
+      } else if (!scopePending) {
         showToast(t(type === 'income' ? 'exp.toast.income.saved' : 'exp.toast.saved'));
       }
     } else {
@@ -1948,8 +1982,25 @@ async function _saveExpenseInner() {
     btn.textContent = '✓';
     await new Promise(r => setTimeout(r, 380));
     closeExpenseModal();
+    if (scopePending) await applyFixaCategoryScope(scopePending);   // diálogo de escopo
   } catch (err) { console.error(err); showToast(t('toast.error.save')); }
   finally { btn.disabled = false; btn.textContent = originalLabel; }
+}
+
+// Pergunta o escopo (só esta / próximas / todas) e aplica a propagação de categoria.
+async function applyFixaCategoryScope({ tpl, category, fromCat, editedId, editedDate }) {
+  const d = state.currentViewMonth || new Date();
+  const names = getLang() === 'en' ? MONTH_NAMES_EN : MONTH_NAMES_PT;
+  const monthLabel = names[d.getMonth()] + ' ' + d.getFullYear();
+  const fromLabel = (CATEGORIES[fromCat] || CATEGORIES.outros).label;
+  const toLabel = (CATEGORIES[category] || CATEGORIES.outros).label;
+  const scope = await askScope(monthLabel, fromLabel, toLabel);
+  if (scope === 'this' || scope === 'cancel') { showToast(t('exp.quickcat.done')); return; }
+  // future = o MÊS atual inteiro em diante (review: corte no 1º dia do mês, não no dia editado,
+  // pra pegar 2 reais no mesmo mês); all = tudo (sinceDate null).
+  const since = (scope === 'future' && editedDate) ? (editedDate.slice(0, 7) + '-01') : null;
+  const n = await propagateCategoryToTemplate(tpl, category, editedId, since);
+  showToast(n > 0 ? t('exp.toast.recurringCascade').replace('{n}', n + 1) : t('exp.quickcat.done'));
 }
 
 // UX U3 (aprovado): excluir SEM modal de confirmação — some na hora e o toast
@@ -5372,6 +5423,8 @@ $('yearlyModal').addEventListener('click', e => { if (e.target.id === 'yearlyMod
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
+    if (_scopeResolve) { finishScope('cancel'); return; }   // diálogo de escopo fecha primeiro
+    if ($('catDetailModal')?.classList.contains('show')) { closeCategoryDetail(); return; }
     closeExpenseModal();
     closeI10Modal();
     closeYearlyModal();

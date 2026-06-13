@@ -713,3 +713,40 @@ tr.row-flash td { animation: rowFlash 1.4s ease both; }
   /* sub-abas e chips mais compactos */
   .exp-subnav button { padding: 9px 4px; font-size: 12px; }
 }
+
+/* ===========================================================
+   DIÁLOGO DE ESCOPO da fixa — A bottom-sheet (mobile) / B modal radio (desktop).
+   =========================================================== */
+.scope-bg { padding: 0; }   /* review: sem o padding 20px do .modal-bg, o sheet encosta na borda inferior */
+.scope-bg.show { align-items: flex-end; }   /* mobile: cola embaixo (bottom-sheet) */
+.scope-card { width: 100%; background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: 22px 22px 0 0; padding: 8px 18px calc(20px + env(safe-area-inset-bottom)); position: relative;
+  box-shadow: 0 -20px 50px rgba(0,0,0,.5); animation: scopeUp .3s var(--ease-out); }
+@keyframes scopeUp { from { transform: translateY(100%); } to { transform: none; } }
+.scope-grab { width: 38px; height: 4px; border-radius: 999px; background: var(--ink-3); opacity: .4; margin: 8px auto 14px; }
+.scope-card h3 { margin: 0 0 3px; font-size: 16px; }
+.scope-card .sub { margin: 0 0 14px; font-size: 12.5px; color: var(--ink-3); }
+.scope-opt { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: var(--bg-elevated-2);
+  border: 1px solid var(--border); border-radius: 14px; padding: 13px 14px; margin-bottom: 8px; cursor: pointer; color: var(--ink);
+  transition: border-color var(--t-fast) var(--ease-out), background var(--t-fast) var(--ease-out); }
+.scope-opt:hover { border-color: color-mix(in oklab, var(--purple) 45%, transparent); background: var(--bg-elevated-3); }
+.scope-ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; flex-shrink: 0;
+  background: color-mix(in oklab, var(--purple) 12%, transparent); color: var(--purple); }
+.scope-tx { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.scope-tx .tt { font-weight: 600; font-size: 13.5px; }
+.scope-tx .ds { font-size: 11px; color: var(--ink-3); margin-top: 1px; }
+.scope-rd { display: none; }
+.scope-foot { display: flex; gap: 8px; margin-top: 6px; }
+.scope-foot .btn-primary, .scope-foot .btn-secondary { flex: 1; }
+@media (max-width: 719.98px) {
+  #scopeApply { display: none; }   /* toque na opção resolve direto */
+}
+@media (min-width: 720px) {        /* desktop: modal central com radio + Aplicar */
+  .scope-bg.show { align-items: center; }
+  .scope-card { max-width: 380px; border-radius: 18px; padding: 20px; animation: modalUp .3s var(--ease-back); box-shadow: var(--shadow-lg); }
+  .scope-grab { display: none; }
+  .scope-rd { display: block; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--ink-3); flex-shrink: 0; position: relative; }
+  .scope-opt.sel .scope-rd { border-color: var(--purple); }
+  .scope-opt.sel .scope-rd::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--purple); }
+  .scope-opt.sel { border-color: color-mix(in oklab, var(--purple) 45%, transparent); }
+}

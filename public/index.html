@@ -672,6 +672,34 @@
   <div class="modal-foot"><div class="spacer"></div><button class="btn-secondary" id="historyClose" data-i18n="imports.close">Fechar</button></div>
 </div></div>
 
+<!-- Escolha de escopo ao mudar a categoria de uma fixa (A=bottom-sheet mobile / B=modal desktop) -->
+<div class="modal-bg scope-bg" id="scopeDialog">
+  <div class="scope-card" role="dialog" aria-modal="true" aria-labelledby="scopeTitle">
+    <div class="scope-grab"></div>
+    <h3 id="scopeTitle" data-i18n="scope.title">Aplicar a quais repetições?</h3>
+    <p class="sub" id="scopeSub">—</p>
+    <button class="scope-opt" type="button" data-scope="this">
+      <span class="scope-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/></svg></span>
+      <span class="scope-tx"><span class="tt" data-i18n="scope.this">Só esta</span><span class="ds" id="scopeThisSub">apenas este mês</span></span>
+      <span class="scope-rd"></span>
+    </button>
+    <button class="scope-opt" type="button" data-scope="future">
+      <span class="scope-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+      <span class="scope-tx"><span class="tt" data-i18n="scope.future">Esta e as próximas</span><span class="ds" data-i18n="scope.future.sub">daqui pra frente (não mexe nos passados)</span></span>
+      <span class="scope-rd"></span>
+    </button>
+    <button class="scope-opt" type="button" data-scope="all">
+      <span class="scope-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18"/></svg></span>
+      <span class="scope-tx"><span class="tt" data-i18n="scope.all">Todas as repetições</span><span class="ds" data-i18n="scope.all.sub">passadas e futuras</span></span>
+      <span class="scope-rd"></span>
+    </button>
+    <div class="scope-foot">
+      <button class="btn-secondary" id="scopeCancel" type="button" data-i18n="exp.btn.cancel">Cancelar</button>
+      <button class="btn-primary" id="scopeApply" type="button" data-i18n="scope.apply">Aplicar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Drill-down de categoria (pedido do dono): todos os lançamentos da categoria + soma -->
 <div class="modal-bg" id="catDetailModal"><div class="modal modal-wide cd-modal" role="dialog" aria-modal="true">
   <div class="cd-head">
