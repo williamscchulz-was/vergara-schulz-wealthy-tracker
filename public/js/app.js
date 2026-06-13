@@ -987,7 +987,9 @@ function renderExpenses() {
   updateImportsBtn();
 }
 
+let _catBreakdownExp = [];   // dataset do card "Por categoria" (pro drill-down em popup)
 function renderCategoryBreakdown(monthExp, total) {
+  _catBreakdownExp = monthExp;
   const wrap = $('catList');
   const totalEl = $('expBudgetTotal');
   const budgets = state.budgets || {};
@@ -1028,7 +1030,7 @@ function renderCategoryBreakdown(monthExp, total) {
       ? `${fmtBRL0(val)} <span class="exp-cat-of">${t('exp.budget.of').replace('{limit}', fmtBRL0(limit))}</span>`
       : fmtBRL0(val);
 
-    return `<div class="exp-cat-row${idx >= 8 ? ' exp-cat-extra' : ''}${overBudget ? ' over-budget' : ''}${limit > 0 ? ' has-budget' : ''}" style="--cat-color:${cat.color};--cat-delay:${0.05 + idx * 0.04}s">
+    return `<div class="exp-cat-row exp-cat-clickable${idx >= 8 ? ' exp-cat-extra' : ''}${overBudget ? ' over-budget' : ''}${limit > 0 ? ' has-budget' : ''}" data-cat="${esc(catKey)}" role="button" tabindex="0" style="--cat-color:${cat.color};--cat-delay:${0.05 + idx * 0.04}s">
       <div class="exp-cat-icon">${cat.icon}</div>
       <div class="exp-cat-meta">
         <div class="exp-cat-name">${cat.label}</div>
@@ -1047,6 +1049,14 @@ function renderCategoryBreakdown(monthExp, total) {
   wrap.classList.remove('show-all');
   const _mb = wrap.querySelector('.exp-cat-more');
   if (_mb) _mb.addEventListener('click', () => setExpSub('categorias'));
+  // Drill-down: clicar (ou Enter/Espaço) numa categoria abre o popup com todos os
+  // lançamentos dela no mês + soma de conferência (pedido do dono).
+  wrap.querySelectorAll('.exp-cat-row[data-cat]').forEach(row => {
+    row.addEventListener('click', () => openCategoryDetail(row.dataset.cat));
+    row.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCategoryDetail(row.dataset.cat); } });
+  });
+  // Popup de detalhe aberto + chegou snapshot novo → re-renderiza ao vivo (não fica defasado).
+  if (_cdOpenCat && $('catDetailModal')?.classList.contains('show')) openCategoryDetail(_cdOpenCat);
 
   // Footer: total spent vs total budgeted (across categories that have a limit)
   if (totalEl) {
@@ -1069,6 +1079,64 @@ function renderCategoryBreakdown(monthExp, total) {
     }
   }
 }
+
+// Drill-down de categoria (pedido do dono): popup com TODOS os lançamentos da
+// categoria no mês vigente + soma de conferência. Lê _catBreakdownExp (o MESMO
+// dataset do card "Por categoria"), então a soma bate exatamente com a barra.
+let _cdOpenCat = null;   // categoria aberta no popup (pra re-render ao vivo via onSnapshot)
+function openCategoryDetail(catKey) {
+  _cdOpenCat = catKey;
+  const cat = CATEGORIES[catKey] || CATEGORIES.outros;
+  const rows = (_catBreakdownExp || [])
+    .filter(e => (e.category || 'outros') === catKey)
+    .sort((a, b) => parseLocalDate(b.date) - parseLocalDate(a.date));
+  const total = rows.reduce((s, e) => s + (+e.value || 0), 0);
+  const names = getLang() === 'en' ? MONTH_NAMES_EN : MONTH_NAMES_PT;
+  const d = state.currentViewMonth || new Date();
+  const countLbl = (n) => n + ' ' + t(n === 1 ? 'exp.count.one' : 'exp.count.many');
+
+  const ico = $('cdIcon');
+  if (ico) { ico.innerHTML = cat.icon; ico.style.setProperty('--cat-color', cat.color); }
+  $('cdTitle').textContent = cat.label;
+  $('cdSub').textContent = `${countLbl(rows.length)} · ${names[d.getMonth()]} ${d.getFullYear()}`;
+
+  const body = $('cdBody');
+  if (!rows.length) {
+    body.innerHTML = `<tr><td colspan="3" class="cd-empty">${esc(t('exp.filter.none'))}</td></tr>`;
+  } else {
+    body.innerHTML = rows.map(e => {
+      const isV = e._virtual;
+      const owner = ownerChipHtml(e);
+      const src = entrySourceKind(e);
+      const srcLine = isV
+        ? (e._future ? 'fixa · prevista' : 'fixa')
+        : (src === 'cartao' ? t('exp.filter.src.card') : src === 'conta' ? t('exp.filter.src.pix') : t('exp.filter.src.manual'));
+      const idAttr = isV ? `data-recurring-id="${esc(e.recurringId)}"` : `data-id="${esc(e.id)}"`;
+      return `<tr ${idAttr} class="cd-row" tabindex="0">
+        <td class="mono cd-date">${formatDateBR(e.date)}</td>
+        <td class="cd-desc"><div class="cd-desc-main">${esc(e.description) || '—'}${owner}</div><div class="cd-src">${esc(srcLine)}</div></td>
+        <td class="mono cd-val">${fmtBRL(+e.value || 0)}</td>
+      </tr>`;
+    }).join('');
+  }
+  $('cdFootCount').textContent = countLbl(rows.length);
+  $('cdFootVal').textContent = fmtBRL0(total);   // review: mesmo helper da barra (fmtBRL0) → o total CONFERE com o valor da categoria no card
+
+  // Clicar numa linha abre o editor (conferir/corrigir). Se o lançamento sumiu (o
+  // outro usuário removeu enquanto o popup estava aberto), avisa em vez de no-op.
+  body.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => {
+    if (!(state.expenses || []).some(x => x.id === tr.dataset.id)) { showToast(t('exp.quickcat.gone')); return; }
+    closeCategoryDetail(); openExpenseModal(tr.dataset.id);
+  }));
+  body.querySelectorAll('tr[data-recurring-id]').forEach(tr => tr.addEventListener('click', () => {
+    if (!(state.recurring || []).some(x => x.id === tr.dataset.recurringId)) { showToast(t('exp.quickcat.gone')); return; }
+    closeCategoryDetail(); openRecurringEditor(tr.dataset.recurringId);
+  }));
+
+  $('catDetailModal')?.classList.add('show');
+  attachScrollShadow($('cdBodyScroll'));
+}
+function closeCategoryDetail() { _cdOpenCat = null; $('catDetailModal')?.classList.remove('show'); }
 
 // Owner short chip renderer — returns '' when the owner tag adds no info
 // (undefined or a legacy entry without owner field).
@@ -1329,7 +1397,10 @@ function openQuickCatMenu(anchor, expenseId) {
       const grp = cur.installment && cur.fpBase ? String(cur.fpBase).replace(/\|\d+\/\d+$/, '') : null;
       const sibs = grp ? (state.expenses || []).filter(e => e.id !== expenseId && e.fpBase && String(e.fpBase).replace(/\|\d+\/\d+$/, '') === grp) : [];
       if (sibs.length) await Promise.allSettled(sibs.map(s => setDoc(docExpense(s.id), patch, { merge: true })));
-      showToast(sibs.length ? t('exp.toast.cascade').replace('{n}', sibs.length + 1) : t('exp.quickcat.done'));
+      // Fixa: propaga a categoria pra todas as repetições da fixa (pedido do dono)
+      const recN = (!grp && cur.category !== b.dataset.k) ? await propagateCategoryToRule(impRuleKey(cur.description || ''), b.dataset.k, expenseId) : 0;
+      const touched = sibs.length || recN;
+      showToast(touched ? t('exp.toast.cascade').replace('{n}', touched + 1) : t('exp.quickcat.done'));
     } catch (err) { console.error('[quickcat]', err); showToast(t('toast.error.save')); }
   }));
 }
@@ -1740,6 +1811,7 @@ function openRecurringEditor(id) {
       + '<h3>Despesa fixa</h3>'
       + '<p class="sub" id="recEditDesc" style="margin:-4px 0 12px"></p>'
       + '<div class="field full"><label>Valor</label><input type="text" id="recEditVal" inputmode="decimal" autocomplete="off"></div>'
+      + '<div class="field full"><label>Categoria</label><select id="recEditCat"></select><div class="meta">Muda em todas as repetições desta fixa</div></div>'
       + '<div class="field full"><label>Repetir até</label><input type="month" id="recEditEnd"><div class="meta">Em branco = indefinido</div></div>'
       + '<div class="modal-foot">'
       + '<button class="btn-danger ghost" id="recEditDel" type="button">Parar de repetir</button><div class="spacer"></div>'
@@ -1752,10 +1824,17 @@ function openRecurringEditor(id) {
   bg.querySelector('#recEditDesc').textContent = tpl.desc + (tpl.card ? ' · no cartão' : '') + (tpl.endYM ? ` · até ${tpl.endYM}` : ' · indefinido');
   bg.querySelector('#recEditVal').value = fmtBRLInput(tpl.value);
   bg.querySelector('#recEditEnd').value = tpl.endYM || '';
+  const catSel = bg.querySelector('#recEditCat');
+  catSel.innerHTML = catsAZ().map(([k, c]) => `<option value="${esc(k)}">${esc(c.label)}</option>`).join('');
+  catSel.value = tpl.category || 'outros';
   bg.querySelector('#recEditSave').onclick = async () => {
     try {
-      await setDoc(docRecurring(id), { value: parseBRLInput(bg.querySelector('#recEditVal').value), endYM: (bg.querySelector('#recEditEnd').value || null), updatedAt: serverTimestamp() }, { merge: true });
-      bg.classList.remove('show'); showToast('Despesa fixa atualizada');
+      const newCat = catSel.value;
+      await setDoc(docRecurring(id), { value: parseBRLInput(bg.querySelector('#recEditVal').value), endYM: (bg.querySelector('#recEditEnd').value || null), category: newCat, updatedAt: serverTimestamp() }, { merge: true });
+      // Categoria propaga pras despesas reais já materializadas desta fixa (pedido do dono)
+      const n = (newCat !== tpl.category) ? await propagateCategoryToRule(tpl.ruleKey, newCat, null) : 0;
+      bg.classList.remove('show');
+      showToast(n > 0 ? t('exp.toast.cascade').replace('{n}', n + 1) : 'Despesa fixa atualizada');
     } catch (e) { showErrorPopup('Falha ao salvar a recorrência', e); }
   };
   bg.querySelector('#recEditDel').onclick = async () => {
@@ -1763,6 +1842,26 @@ function openRecurringEditor(id) {
     catch (e) { showErrorPopup('Falha ao remover a recorrência', e); }
   };
   bg.classList.add('show');
+}
+
+// Fixa (pedido do dono): editar a categoria de UMA repetição muda TODAS — as outras
+// despesas reais com a mesma ruleKey + o template (que governa os meses futuros
+// projetados). Só age quando existe um template de recorrência com essa ruleKey (=
+// fixa declarada), nunca em compras avulsas de mesmo nome. Retorna nº de reais tocadas.
+async function propagateCategoryToRule(ruleKey, category, excludeId) {
+  if (!ruleKey) return 0;
+  const tpls = (state.recurring || []).filter(r => r.ruleKey === ruleKey);
+  if (!tpls.length) return 0;
+  const reais = (state.expenses || []).filter(e =>
+    e.id !== excludeId && (e.type || 'expense') === 'expense' && e.description &&
+    impRuleKey(e.description) === ruleKey && e.category !== category);
+  const ops = [
+    ...reais.map(s => setDoc(docExpense(s.id), { category, updatedAt: serverTimestamp(), updatedBy: (state.user?.displayName || 'fixa') }, { merge: true })),
+    ...tpls.filter(tp => tp.category !== category).map(tp => setDoc(docRecurring(tp.id), { category, updatedAt: serverTimestamp() }, { merge: true })),
+  ];
+  if (!ops.length) return 0;
+  await Promise.allSettled(ops);
+  return reais.length;
 }
 
 let _savingExpense = false;   // guard de reentrância: Enter no campo chama saveExpense() direto (review A)
@@ -1821,9 +1920,17 @@ async function _saveExpenseInner() {
       const entry = state.expenses.find(x => x.id === editingExpenseId);
       const grp = entry && entry.installment && entry.fpBase ? String(entry.fpBase).replace(/\|\d+\/\d+$/, '') : null;
       const sibs = grp ? (state.expenses || []).filter(e => e.id !== editingExpenseId && e.fpBase && String(e.fpBase).replace(/\|\d+\/\d+$/, '') === grp) : [];
+      // Fixa: a categoria propaga pra TODAS as repetições da mesma fixa (pedido do dono).
+      // Só quando a categoria REALMENTE mudou (editar só o valor não mexe nas outras).
+      // Usa a descrição ORIGINAL pra casar a ruleKey mesmo se a descrição mudou aqui.
+      const recN = (type === 'expense' && entry && !grp && entry.category !== category)
+        ? await propagateCategoryToRule(impRuleKey(entry.description || description), category, editingExpenseId)
+        : 0;
       if (sibs.length) {
         await Promise.allSettled(sibs.map(s => setDoc(docExpense(s.id), { owner: _modalOwner, category, description, nature: _modalNature, updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'unknown' }, { merge: true })));
         showToast(t('exp.toast.cascade').replace('{n}', sibs.length + 1));
+      } else if (recN > 0) {
+        showToast(t('exp.toast.cascade').replace('{n}', recN + 1));
       } else {
         showToast(t(type === 'income' ? 'exp.toast.income.saved' : 'exp.toast.saved'));
       }
@@ -4631,6 +4738,10 @@ $('importsModal')?.addEventListener('click', e => { if (e.target.id === 'imports
 $('btnHistoryOpen')?.addEventListener('click', () => $('historyModal')?.classList.add('show'));
 $('historyClose')?.addEventListener('click', () => $('historyModal')?.classList.remove('show'));
 $('historyModal')?.addEventListener('click', e => { if (e.target.id === 'historyModal') $('historyModal').classList.remove('show'); });
+
+// Drill-down de categoria — fechar
+$('cdClose')?.addEventListener('click', closeCategoryDetail);
+$('catDetailModal')?.addEventListener('click', e => { if (e.target.id === 'catDetailModal') closeCategoryDetail(); });
 
 // ============================================================
 //  PROVENTOS DO I10 → GANHOS (ao vivo, sem arquivo).

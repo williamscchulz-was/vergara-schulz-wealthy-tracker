@@ -240,7 +240,7 @@
 
       <div class="stats four">
         <div class="stat animate-in">
-          <div class="lbl">Gastos do mês</div>
+          <div class="lbl" data-i18n="exp.stat.spent">Despesas do mês</div>
           <div class="val" id="expTotal">R$ 0</div>
           <div class="sub" id="expTotalSub">0 lançamentos</div>
         </div>
@@ -670,6 +670,32 @@
     <span id="divGoalPill"></span><span id="divYearsLeft"></span><span id="divProgress"></span>
   </div>
   <div class="modal-foot"><div class="spacer"></div><button class="btn-secondary" id="historyClose" data-i18n="imports.close">Fechar</button></div>
+</div></div>
+
+<!-- Drill-down de categoria (pedido do dono): todos os lançamentos da categoria + soma -->
+<div class="modal-bg" id="catDetailModal"><div class="modal modal-wide cd-modal" role="dialog" aria-modal="true">
+  <div class="cd-head">
+    <div class="cd-icon" id="cdIcon"></div>
+    <div class="cd-head-txt">
+      <h3 id="cdTitle">Categoria</h3>
+      <p class="sub" id="cdSub">—</p>
+    </div>
+  </div>
+  <div class="cd-scroll" id="cdBodyScroll">
+    <table class="cd-table">
+      <thead><tr>
+        <th data-i18n="exp.detail.date">Data</th>
+        <th data-i18n="exp.detail.desc">Descrição</th>
+        <th class="cd-th-val" data-i18n="exp.detail.value">Valor</th>
+      </tr></thead>
+      <tbody id="cdBody"></tbody>
+    </table>
+  </div>
+  <div class="cd-foot">
+    <span class="cd-foot-count mono" id="cdFootCount"></span>
+    <span class="cd-foot-total"><span data-i18n="exp.detail.total">Total</span> <b class="mono" id="cdFootVal"></b></span>
+  </div>
+  <div class="modal-foot"><span class="cd-hint" data-i18n="exp.detail.hint">Toque numa linha para conferir/editar</span><div class="spacer"></div><button class="btn-secondary" id="cdClose" data-i18n="imports.close">Fechar</button></div>
 </div></div>
 
 <!-- Budget editor — one row per category with BRL-masked limit input -->

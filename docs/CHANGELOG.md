@@ -5,6 +5,16 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.4 — Drill-down de categoria + categoria sincronizada nas fixas (2026-06-13)
+- **Drill-down**: clicar numa categoria no card "Por categoria" abre popup com TODOS os
+  lançamentos dela no mês + soma de conferência (mesmo helper da barra → bate exato).
+  Cada linha abre o editor; re-renderiza ao vivo via onSnapshot; PT/EN.
+- **Fixa**: editar a categoria de uma repetição propaga pra TODAS (outras reais com a
+  mesma ruleKey + o template que governa as futuras) — via saveExpense, quick-cat e um
+  novo seletor de categoria no editor de recorrência. Só categoria/nome; VALOR nunca.
+  Guardas: só quando a categoria mudou; só em fixas declaradas (template com ruleKey).
+- **Termo**: "Gastos do mês" e a sub-aba "Gastos" → "Despesas" (PT).
+
 ### v9.3 — Refino cosmético: o último 1% (2026-06-13)
 Auditoria sênior (workflow 5-lentes sobre o CSS real, 79 achados → 9 temas). Tudo
 cosmético, sem mudança de layout/comportamento. Tokens de timing `--t-fast/base/slow`
