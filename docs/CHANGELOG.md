@@ -5,6 +5,16 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.7 — Consertos mobile dos prints do dono (2026-06-13)
+Escolhas no mockup propostas-mobile-fix: (1) lista de lançamentos vira CARTÃO no
+celular (reflow da <table> via grid no <tr>: descrição+valor na 1ª linha — valor
+nunca corta — pill+data na 2ª; day-headers/"Ver todas" seguem linha cheia); (2) botões
+de ação em grade 2×2 limpa (2 sub-grupos .exp-add-secondary flex / .exp-add-primary
+grid — resolve "Importações" oculto sem órfão); (3) tiles de Investimentos 1 coluna
+horizontal (label/sub à esquerda, valor à direita em coluna auto → R$ 1.585.494
+inteiro). Removido o overflow:hidden do v9.6 que CORTAVA o valor. Bônus: mini-KPIs do
+hero em 2 colunas (encurta o hero, sem órfão).
+
 ### v9.6 — SUPER auditoria de responsividade (16 agentes) (2026-06-13)
 132 achados brutos → 27 temas (14 quebra/7 feio/6 menor), consolidados num bloco em
 11-polish. Foco do dono: grupos de botões que quebram deixando ÓRFÃO. Principais:

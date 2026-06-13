@@ -189,10 +189,14 @@
           <div class="meta" data-i18n="exp.section.meta">Lançamentos e orçamento do mês</div>
         </div>
         <div class="exp-add-group">
-          <button class="btn-ghost btn-imports" id="btnImports" data-i18n="imports.btn" title="Histórico de importações — desfaça qualquer lote" hidden>Importações</button>
-          <button class="btn-ghost" id="btnImportStatement" data-i18n="imp.btn" data-i18n-title="imp.title" title="Importar fatura do cartão (PDF)">Importar fatura</button>
-          <button class="btn-ghost btn-add-income" id="btnAddIncome" data-i18n="exp.new.income" title="Novo ganho">+ Ganho</button>
-          <button class="btn-primary" id="btnAddExpense" data-i18n="exp.new">+ Nova despesa</button>
+          <div class="exp-add-secondary">
+            <button class="btn-ghost btn-imports" id="btnImports" data-i18n="imports.btn" title="Histórico de importações — desfaça qualquer lote" hidden>Importações</button>
+            <button class="btn-ghost" id="btnImportStatement" data-i18n="imp.btn" data-i18n-title="imp.title" title="Importar fatura do cartão (PDF)">Importar fatura</button>
+          </div>
+          <div class="exp-add-primary">
+            <button class="btn-ghost btn-add-income" id="btnAddIncome" data-i18n="exp.new.income" title="Novo ganho">+ Ganho</button>
+            <button class="btn-primary" id="btnAddExpense" data-i18n="exp.new">+ Nova despesa</button>
+          </div>
         </div>
         <input type="file" id="impFile" accept="application/pdf,.pdf,text/csv,.csv" multiple hidden>
       </div>

@@ -1317,7 +1317,7 @@ function renderExpenseTable(entries) {
     return dayHead + `<tr ${isV ? `data-recurring-id="${esc(e.recurringId)}"` : `data-id="${e.id}"`} class="${isIn ? 'is-income' : ''}${isV ? ' is-recurring' : ''}${extraCls}${flashCls}" style="--cat-color:${meta.color}">
       <td class="mono exp-row-date">${grouped ? '' : fmtDateHuman(e.date)}</td>
       <td class="exp-row-desc-cell">${descHtml}${fixaBadge}</td>
-      <td><span class="exp-cat-pill ${isIn ? 'is-income' : ''}" style="--cat-color:${meta.color}" data-quickcat="${isV ? '' : (e.id || '')}">${isIn ? '' : `<span class="exp-cat-pill-icon">${meta.icon}</span>`}${pillLabel}</span></td>
+      <td class="exp-row-cat-cell"><span class="exp-cat-pill ${isIn ? 'is-income' : ''}" style="--cat-color:${meta.color}" data-quickcat="${isV ? '' : (e.id || '')}">${isIn ? '' : `<span class="exp-cat-pill-icon">${meta.icon}</span>`}${pillLabel}</span></td>
       <td class="mono exp-row-amt">${amtText}</td>
     </tr>`;
   }).join('') + ((sorted.length > TLIMIT && state.expSub !== 'lancamentos' && state.expSub !== 'ganhos')

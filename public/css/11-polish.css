@@ -757,8 +757,7 @@ tr.row-flash td { animation: rowFlash 1.4s ease both; }
    Vem depois do v9.5 (vence por ordem nas larguras que se sobrepõem).
    =========================================================== */
 /* --- defensivos globais (qualquer largura): nada vaza nem quebra dado --- */
-.ikpi { overflow: hidden; }
-.ikpi-v, .ikpi.tile .ikpi-v { white-space: nowrap; max-width: 100%; }
+.ikpi-v, .ikpi.tile .ikpi-v { white-space: nowrap; }   /* (removido overflow:hidden que CORTAVA o valor — review do dono) */
 .inv-asset-rt { flex-shrink: 0; min-width: 72px; white-space: nowrap; }
 .inv-asset-val { white-space: nowrap; }
 .inv-asset-nm, .inv-asset-q { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
@@ -770,11 +769,14 @@ tr.row-flash td { animation: rowFlash 1.4s ease both; }
 }
 
 @media (max-width: 480px) {
-  /* QUEBRA: botões de ação Despesas — grade 2×2, primary full-width (nunca órfão) [exemplo do dono] */
+  /* escolha do dono (grade 2×2): Importações|Importar em cima, +Ganho|+Nova despesa
+     embaixo. Os 2 sub-grupos resolvem o caso de "Importações" oculto (3 botões) sem órfão. */
   .section-head { flex-direction: column; align-items: stretch; gap: 12px; }
   .section-head > div:first-child { width: 100%; }
-  .exp-add-group { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); width: 100%; max-width: 100%; }
-  .exp-add-group .btn-primary { grid-column: 1 / -1; }
+  .exp-add-group { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 100%; }
+  .exp-add-secondary { display: flex; gap: 8px; }
+  .exp-add-secondary button { flex: 1; }
+  .exp-add-primary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .exp-add-group button { width: 100%; min-height: 44px; white-space: nowrap; padding: 11px 14px; }
   /* QUEBRA: toolbar de filtros — busca full, selects 2-col, nat-filter linha própria, toque 40px */
   .exp-filter { flex: 1 1 calc(50% - 3px); max-width: none; padding: 7px 22px 7px 9px; font-size: 11px; min-height: 40px; }
@@ -787,7 +789,7 @@ tr.row-flash td { animation: rowFlash 1.4s ease both; }
   .ikpi-k { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   /* QUEBRA: hero Investimentos — mini-KPIs empilham (sem órfão), Louise nunca some, ações quebram bem */
   .hero-card { padding: 22px 20px 18px; }
-  .hero-mini-kpis { flex-direction: column; gap: 12px; }
+  .hero-mini-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }   /* 2 colunas (encurta o hero) */
   .hero-mini-kpis .k { font-size: 10px; } .hero-mini-kpis .v { font-size: 16px; }
   .louise-chip { white-space: normal; max-width: none; }
   .louise-chip-var { flex-shrink: 0; white-space: nowrap; }
@@ -858,4 +860,38 @@ tr.row-flash td { animation: rowFlash 1.4s ease both; }
   .exp-cat-name { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .exp-hero .amt #expHeroAmt, .hero-amount .num { font-size: 28px; }
   .brand-text .tag { display: none; }
+}
+
+/* ===========================================================
+   CONSERTOS MOBILE (v9.7) — escolhas do dono (propostas-mobile-fix).
+   1=lançamentos viram cartão · 2=botões 2×2 (acima) · 3=tiles 1-col.
+   =========================================================== */
+/* 3 · Tiles de Investimentos: 1 coluna, horizontal (label/sub à esquerda, valor à
+   direita) — o número grande NUNCA corta nem vaza (col auto = tamanho do valor). */
+@media (max-width: 719.98px) {
+  .inv-kpis.three { grid-template-columns: 1fr !important; }
+  .inv-kpis.three > .card:last-child { grid-column: auto !important; }
+  .ikpi.tile { display: grid; grid-template-columns: minmax(0,1fr) auto; grid-template-areas: "k val" "sub val"; column-gap: 14px; align-items: center; }
+  .ikpi.tile .ikpi-k { grid-area: k; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ikpi.tile .ikpi-v { grid-area: val; align-self: center; font-size: 22px; text-align: right; }
+  .ikpi.tile .ikpi-sub { grid-area: sub; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ikpi.tile .ikpi-sub:empty { display: none; }
+}
+/* 1 · Lista de lançamentos vira CARTÃO no celular: descrição + valor na 1ª linha
+   (valor nunca corta), pill + data na 2ª. Reflow da <table> via grid no <tr>. */
+@media (max-width: 600px) {
+  .exp-table thead { display: none; }
+  .exp-table tbody tr[data-id], .exp-table tbody tr[data-recurring-id] {
+    display: grid; grid-template-columns: minmax(0,1fr) auto; column-gap: 10px; row-gap: 6px;
+    padding: 12px 6px; align-items: start;
+  }
+  .exp-table tbody tr[data-id] > td, .exp-table tbody tr[data-recurring-id] > td {
+    display: block; padding: 0; border: 0 !important;
+  }
+  .exp-row-desc-cell { grid-column: 1; grid-row: 1; min-width: 0; }
+  .exp-row-amt { grid-column: 2; grid-row: 1; text-align: right; font-size: 14px; white-space: nowrap; align-self: baseline; }
+  .exp-row-cat-cell { grid-column: 1; grid-row: 2; align-self: center; }
+  .exp-row-date { grid-column: 2; grid-row: 2; text-align: right; align-self: center; color: var(--ink-3); font-size: 11px; }
+  .exp-table tbody tr.exp-day-tr, .exp-table tbody tr.exp-row-more-tr { display: block; }
+  .exp-table tbody tr.exp-day-tr > td, .exp-table tbody tr.exp-row-more-tr > td { display: block; padding: 0; border: 0; }
 }

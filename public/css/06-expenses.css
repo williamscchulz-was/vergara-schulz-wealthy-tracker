@@ -437,6 +437,7 @@
 
 /* Header group: + Ganho (secondary) next to + Nova despesa (primary) */
 .exp-add-group { display: inline-flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; }
+.exp-add-secondary, .exp-add-primary { display: flex; gap: var(--sp-2); align-items: center; }
 .btn-ghost.btn-add-income {
   display: inline-flex; align-items: center; gap: 2px;
   padding: 9px 15px;
