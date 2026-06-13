@@ -1,0 +1,144 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ledger · Refino cosmético — antes / depois</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0c08;--panel:#14180f;--panel2:#1a1f14;--panel3:#20261a;--ink:#f3f4ee;--ink2:#b9bbae;--ink3:#9a9c90;--inkm:#8b8d81;--border:rgba(255,255,255,.08);--lime:#c7f73e;--lime2:#a6d22e;--on:#15170b;--gain:#4fdd8a;--loss:#ff6b61;--easeo:cubic-bezier(.16,1,.3,1)}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;padding:32px 22px 110px;line-height:1.55}
+  .mono{font-family:'Geist Mono',monospace}
+  h1{font-size:24px;margin:0 0 4px;letter-spacing:-.02em}
+  .lead{color:var(--ink2);font-size:14px;margin:0 0 26px;max-width:880px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:16px;max-width:1180px}
+  .it{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:16px 18px;display:flex;flex-direction:column}
+  .it h3{margin:0 0 3px;font-size:14.5px;display:flex;align-items:center;gap:8px}
+  .id{font:700 10px 'Geist Mono';background:rgba(199,247,62,.16);color:var(--lime);border-radius:6px;padding:2px 7px}
+  .it .d{font-size:12px;color:var(--ink3);margin:0 0 14px}
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .ba>div{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px;position:relative;min-height:84px;display:flex;flex-direction:column;justify-content:center}
+  .ba .tag{position:absolute;top:7px;left:9px;font:700 8.5px Inter;letter-spacing:.1em;text-transform:uppercase;color:var(--inkm)}
+  .ba .depois{border-color:color-mix(in oklab,var(--lime) 28%,transparent)}
+  .ba .depois .tag{color:var(--lime)}
+  .why{font-size:11.5px;color:var(--ink3);margin-top:11px;padding-top:10px;border-top:1px dashed var(--border)}
+  .why b{color:var(--ink2)}
+  button.demo{font:600 11px Inter;background:var(--panel2);color:var(--ink2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;margin-top:10px;align-self:flex-start}
+  button.demo:hover{color:var(--lime);border-color:var(--lime)}
+  .pick{margin-top:42px;background:var(--panel);border:1px solid rgba(199,247,62,.45);border-radius:14px;padding:16px 18px;font-size:13.5px;max-width:1180px}
+  /* amostras */
+  .num-lg{font:700 26px 'Geist Mono';letter-spacing:-.02em}
+  .cur{color:var(--ink3)}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:8px 2px;font-size:12.5px;border-bottom:1px solid var(--border)}
+  .row:last-child{border:0}
+  .pillset{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .demo-pill{display:inline-flex;align-items:center;gap:5px;font:600 10.5px Inter;border-radius:8px}
+</style></head>
+<body>
+<h1>Refino cosmético — o último 1%</h1>
+<p class="lead">9 micro-detalhes que um olho sênior nota (achados no CSS real). Cada um mostra <b>ANTES</b> (como está hoje) e <b>DEPOIS</b> (proposto), lado a lado. Vários são tão sutis que só dá pra decidir <i>vendo</i>. Responde com os códigos — ex. <b class="mono">"C1 C2 C3 C6"</b> ou <b>"tudo"</b>.</p>
+
+<div class="grid">
+
+  <div class="it"><h3><span class="id">C1</span> Números tabulares (param de "dançar")</h3>
+    <p class="d">Sem <span class="mono" style="font-size:11px">tabular-nums</span>, cada dígito tem largura própria — ao atualizar/contar, o número treme lateralmente. Com tabular, as casas ficam fixas como num display.</p>
+    <div class="ba">
+      <div><span class="tag">antes</span><div class="num-lg" id="c1a" style="font-variant-numeric:proportional-nums">R$ 20.047</div></div>
+      <div class="depois"><span class="tag">depois</span><div class="num-lg" id="c1b" style="font-variant-numeric:tabular-nums">R$ 20.047</div></div>
+    </div>
+    <button class="demo" id="c1btn">▶ contar os dois (repara no tremor à esquerda)</button>
+    <div class="why"><b>Onde:</b> valores Geist Mono em tabelas e KPIs. <b>Custo:</b> 1 linha global. O mais visível dos 9 — afeta todo count-up e cada atualização do I10.</div>
+  </div>
+
+  <div class="it"><h3><span class="id">C2</span> Símbolo R$ / US$ com tratamento óptico</h3>
+    <p class="d">Hoje o "R$" tem quase o mesmo peso do número e compete com ele. Proposta: <b>menor, mais leve e levemente afastado</b> — vira prefixo discreto, o número manda.</p>
+    <div class="ba">
+      <div><span class="tag">antes</span><div class="num-lg"><span style="font-weight:600">R$</span> 1.725.101</div></div>
+      <div class="depois"><span class="tag">depois</span><div class="num-lg"><span style="font-size:.62em;font-weight:600;color:var(--ink3);margin-right:.12em;vertical-align:.04em">R$</span>1.725.101</div></div>
+    </div>
+    <div class="why"><b>Onde:</b> hero de patrimônio, KPIs, US$ holdings. Padrão Apple/Stripe: a moeda é contexto, o valor é o herói.</div>
+  </div>
+
+  <div class="it"><h3><span class="id">C3</span> Divisores com fade nas pontas</h3>
+    <p class="d">As linhas entre itens batem seco na borda do card. <b>Esmaecer as pontas</b> dá um acabamento de vidro — a linha "nasce e morre" suave.</p>
+    <div class="ba">
+      <div><span class="tag">antes</span><div style="width:100%"><div class="row" style="border-color:var(--border)">Mercado<b class="mono">218</b></div><div class="row" style="border-color:var(--border)">Uber<b class="mono">7,99</b></div></div></div>
+      <div class="depois"><span class="tag">depois</span><div style="width:100%"><div class="row" style="border:0;border-image:linear-gradient(90deg,transparent,rgba(255,255,255,.14) 22%,rgba(255,255,255,.14) 78%,transparent) 1;border-bottom-width:1px;border-bottom-style:solid">Mercado<b class="mono">218</b></div><div class="row" style="border:0;border-image:linear-gradient(90deg,transparent,rgba(255,255,255,.14) 22%,rgba(255,255,255,.14) 78%,transparent) 1;border-bottom-width:1px;border-bottom-style:solid">Uber<b class="mono">7,99</b></div></div></div>
+    </div>
+    <div class="why"><b>Onde:</b> linhas de despesa, ativos, categorias. Sutil mas premium — some o "corte" reto nas bordas.</div>
+  </div>
+
+  <div class="it"><h3><span class="id">C4</span> Micro-labels com tracking unificado</h3>
+    <p class="d">As etiquetas MAIÚSCULAS usam espaçamentos diferentes (.06 / .08 / .09 / .13em) espalhados pelo CSS. <b>Unificar em .08em</b> dá ritmo consistente.</p>
+    <div class="ba">
+      <div><span class="tag">antes</span><div style="display:flex;flex-direction:column;gap:8px"><span style="font:700 10px Inter;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)">Patrimônio total</span><span style="font:700 10px Inter;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3)">Dividendos 2026</span><span style="font:700 10px Inter;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)">Variação no mês</span></div></div>
+      <div class="depois"><span class="tag">depois</span><div style="display:flex;flex-direction:column;gap:8px"><span style="font:700 10px Inter;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)">Patrimônio total</span><span style="font:700 10px Inter;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)">Dividendos 2026</span><span style="font:700 10px Inter;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)">Variação no mês</span></div></div>
+    </div>
+    <div class="why"><b>Onde:</b> eyebrows de card, .stat .lbl, .exp-day-head, .rz-gauge label. Olha a coluna inteira: a direita "respira" igual.</div>
+  </div>
+
+  <div class="it"><h3><span class="id">C5</span> Raios de canto na régua</h3>
+    <p class="d">Alguns cantos fogem da escala (5px, 10px, 11px avulsos). <b>Encaixar tudo em 8/12/16</b> deixa as curvas em harmonia.</p>
+    <div class="ba">
+      <div><span class="tag">antes</span><div class="pillset"><span class="demo-pill" style="padding:4px 9px;border-radius:5px;background:var(--panel3);color:var(--ink2)">5px</span><span class="demo-pill" style="padding:4px 9px;border-radius:10px;background:var(--panel3);color:var(--ink2)">10px</span><span class="demo-pill" style="padding:4px 9px;border-radius:11px;background:var(--panel3);color:var(--ink2)">11px</span></div></div>
+      <div class="depois"><span class="tag">depois</span><div class="pillset"><span class="demo-pill" style="padding:4px 9px;border-radius:8px;background:var(--panel3);color:var(--ink2)">8px</span><span class="demo-pill" style="padding:4px 9px;border-radius:8px;background:var(--panel3);color:var(--ink2)">8px</span><span class="demo-pill" style="padding:4px 9px;border-radius:12px;background:var(--panel3);color:var(--ink2)">12px</span></div></div>
+    </div>
+    <div class="why"><b>Onde:</b> pill-count, err-pop-body, exp-cat-icon, alguns badges. Régua: 8 (chips) · 12 (caixas) · 16/22 (cards) · 999 (pills).</div>
+  </div>
+
+  <div class="it"><h3><span class="id">C6</span> Timing de transição em 3 degraus</h3>
+    <p class="d">As animações usam durações soltas (.15 / .18 / .2 / .25 / .4s sem critério). <b>Padronizar em fast/base/slow</b> dá coesão ao toque.</p>
+    <div class="ba">
+      <div><span class="tag">antes</span><div style="display:flex;flex-direction:column;gap:7px"><span class="demo-pill hovx" style="padding:6px 10px;border-radius:8px;background:var(--panel3);color:var(--ink2);transition:all .18s linear">hover .18s linear</span><span class="demo-pill hovx" style="padding:6px 10px;border-radius:8px;background:var(--panel3);color:var(--ink2);transition:all .25s ease">hover .25s ease</span></div></div>
+      <div class="depois"><span class="tag">depois</span><div style="display:flex;flex-direction:column;gap:7px"><span class="demo-pill hovx" style="padding:6px 10px;border-radius:8px;background:var(--panel3);color:var(--ink2);transition:all .15s var(--easeo)">fast .15s</span><span class="demo-pill hovx" style="padding:6px 10px;border-radius:8px;background:var(--panel3);color:var(--ink2);transition:all .22s var(--easeo)">base .22s</span></div></div>
+    </div>
+    <div class="why"><b>Onde:</b> hovers de botões/cards/pills. Tokens novos: <span class="mono" style="font-size:10.5px">--t-fast .15s · --t-base .22s · --t-slow .4s</span>, todos no mesmo easing.</div>
+  </div>
+
+  <div class="it"><h3><span class="id">C7</span> Pills com altura óptica igual</h3>
+    <p class="d">As várias pílulas (categoria, dono, fixa, contador) têm paddings ligeiramente diferentes — alturas desencontradas quando vizinhas. <b>Mesma altura-x</b>.</p>
+    <div class="ba">
+      <div><span class="tag">antes</span><div class="pillset"><span class="demo-pill" style="padding:3px 9px;border-radius:8px;background:rgba(91,156,246,.14);color:#5b9cf6">⌂ Moradia</span><span class="demo-pill" style="padding:2px 7px;border-radius:8px;background:rgba(199,247,62,.16);color:var(--lime)">Fam</span><span class="demo-pill" style="padding:4px 8px;border-radius:8px;background:var(--panel3);color:var(--ink3)">fixa</span></div></div>
+      <div class="depois"><span class="tag">depois</span><div class="pillset"><span class="demo-pill" style="padding:3px 9px;border-radius:8px;background:rgba(91,156,246,.14);color:#5b9cf6">⌂ Moradia</span><span class="demo-pill" style="padding:3px 9px;border-radius:8px;background:rgba(199,247,62,.16);color:var(--lime)">Fam</span><span class="demo-pill" style="padding:3px 9px;border-radius:8px;background:var(--panel3);color:var(--ink3)">fixa</span></div></div>
+    </div>
+    <div class="why"><b>Onde:</b> exp-cat-pill, owner-chip, fixa-badge, pill-count. Alinha o miolo das pills numa linha só — repara no "Fam".</div>
+  </div>
+
+  <div class="it"><h3><span class="id">C8</span> Cor que cruza suave (sem "snap")</h3>
+    <p class="d">Quando um valor vira de verde pra vermelho (ou troca de mês), a cor <b>pula seco</b>. Uma transição de 250ms faz o número <b>derreter</b> de uma cor pra outra.</p>
+    <div class="ba">
+      <div><span class="tag">antes</span><div class="num-lg" id="c8a" style="color:var(--gain)">+0,4%</div></div>
+      <div class="depois"><span class="tag">depois</span><div class="num-lg" id="c8b" style="color:var(--gain);transition:color .25s var(--easeo)">+0,4%</div></div>
+    </div>
+    <button class="demo" id="c8btn">▶ alternar ganho/perda</button>
+    <div class="why"><b>Onde:</b> .stat .val, pills de variação, % do mês. O da direita troca de cor com suavidade; o da esquerda corta.</div>
+  </div>
+
+  <div class="it"><h3><span class="id">C9</span> Sinais +/− e setas com respiro fixo</h3>
+    <p class="d">O espaçamento entre o sinal/seta e o número varia (colado em uns, largo em outros). <b>Um hair-space consistente</b> alinha tudo.</p>
+    <div class="ba">
+      <div><span class="tag">antes</span><div style="display:flex;flex-direction:column;gap:6px;font:600 13px 'Geist Mono'"><span style="color:var(--gain)">+R$ 76,40</span><span style="color:var(--gain)">↑0% vs Maio</span><span style="color:var(--loss)">↓ 2% vs Maio</span></div></div>
+      <div class="depois"><span class="tag">depois</span><div style="display:flex;flex-direction:column;gap:6px;font:600 13px 'Geist Mono'"><span style="color:var(--gain)">+ R$ 76,40</span><span style="color:var(--gain)">↑ 0% vs Maio</span><span style="color:var(--loss)">↓ 2% vs Maio</span></div></div>
+    </div>
+    <div class="why"><b>Onde:</b> valores de ganho, comparativos "vs mês", pills. Hair-space (0.18em) entre marca e número, igual em todos.</div>
+  </div>
+
+</div>
+
+<div class="pick"><b>Tua escolha:</b> responde com os códigos — ex. <b class="mono">"C1 C2 C3 C6 C8"</b>, <b>"tudo"</b>, ou <b>"tudo menos C5"</b>. Implemento em um commit só (são todos cosméticos, sem risco), com revisão antes do deploy.</div>
+
+<script>
+// C1 count-up nos dois (mostra o tremor do proporcional)
+document.getElementById('c1btn').addEventListener('click',function(){
+  [['c1a',false],['c1b',true]].forEach(function(p){
+    var el=document.getElementById(p[0]);var to=18470+Math.floor(Math.random()*9000),from=20047,t0=performance.now();
+    (function f(t){var k=Math.min(1,(t-t0)/900);k=1-Math.pow(1-k,3);el.textContent='R$ '+Math.round(from+(to-from)*k).toLocaleString('pt-BR');if(k<1)requestAnimationFrame(f);})(t0);
+  });
+});
+// C8 color snap vs crossfade
+(function(){var on=true;document.getElementById('c8btn').addEventListener('click',function(){on=!on;
+  var a=document.getElementById('c8a'),b=document.getElementById('c8b');
+  if(on){a.style.color='var(--gain)';a.textContent='+0,4%';b.style.color='var(--gain)';b.textContent='+0,4%';}
+  else{a.style.color='var(--loss)';a.textContent='−2,8%';b.style.color='var(--loss)';b.textContent='−2,8%';}
+});})();
+// C6 hover demo (estilo já no inline)
+document.querySelectorAll('.hovx').forEach(function(x){x.addEventListener('mouseenter',function(){x.style.background='var(--lime)';x.style.color='var(--on)';});x.addEventListener('mouseleave',function(){x.style.background='var(--panel3)';x.style.color='var(--ink2)';});});
+</script>
+</body></html>
