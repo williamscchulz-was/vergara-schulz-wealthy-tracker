@@ -6,7 +6,7 @@ import { app, auth, db, GoogleAuthProvider, signInWithPopup, signOut, onAuthStat
 import { I18N } from "./i18n.js";
 import { ICONS, CATEGORIES, INCOME_SOURCES, INCOME_OPTS, MONTH_NAMES_PT, MONTH_NAMES_EN } from "./constants.js";
 import { IMP_GATEWAY, IMP_UF, IMP_STOP, impNormalize, impTokens, impRuleKey, impToISO, impFp, parseBRMoney } from "./import-core.js";
-import { projectMonth as projectRecurring, toYM, ymOf } from "./recurring-core.js";
+import { projectMonth as projectRecurring, satisfies as satisfiesRule, toYM, ymOf } from "./recurring-core.js";
 
 // ============================================================
 //  EARLY AUTH GUARD - login works even if main code crashes
@@ -1398,9 +1398,11 @@ function openQuickCatMenu(anchor, expenseId) {
       const sibs = grp ? (state.expenses || []).filter(e => e.id !== expenseId && e.fpBase && String(e.fpBase).replace(/\|\d+\/\d+$/, '') === grp) : [];
       if (sibs.length) await Promise.allSettled(sibs.map(s => setDoc(docExpense(s.id), patch, { merge: true })));
       // Fixa: propaga a categoria pra todas as repetições da fixa (pedido do dono)
-      const recN = (!grp && cur.category !== b.dataset.k) ? await propagateCategoryToRule(impRuleKey(cur.description || ''), b.dataset.k, expenseId) : 0;
-      const touched = sibs.length || recN;
-      showToast(touched ? t('exp.toast.cascade').replace('{n}', touched + 1) : t('exp.quickcat.done'));
+      const recTpl = (!grp && cur.category !== b.dataset.k) ? findRuleTemplateFor(cur) : null;
+      const recN = recTpl ? await propagateCategoryToTemplate(recTpl, b.dataset.k, expenseId) : 0;
+      if (sibs.length) showToast(t('exp.toast.cascade').replace('{n}', sibs.length + 1));
+      else if (recN > 0) showToast(t('exp.toast.recurringCascade').replace('{n}', recN + 1));
+      else showToast(t('exp.quickcat.done'));
     } catch (err) { console.error('[quickcat]', err); showToast(t('toast.error.save')); }
   }));
 }
@@ -1832,9 +1834,9 @@ function openRecurringEditor(id) {
       const newCat = catSel.value;
       await setDoc(docRecurring(id), { value: parseBRLInput(bg.querySelector('#recEditVal').value), endYM: (bg.querySelector('#recEditEnd').value || null), category: newCat, updatedAt: serverTimestamp() }, { merge: true });
       // Categoria propaga pras despesas reais já materializadas desta fixa (pedido do dono)
-      const n = (newCat !== tpl.category) ? await propagateCategoryToRule(tpl.ruleKey, newCat, null) : 0;
+      const n = (newCat !== tpl.category) ? await propagateCategoryToTemplate({ ...tpl, category: tpl.category }, newCat, null) : 0;
       bg.classList.remove('show');
-      showToast(n > 0 ? t('exp.toast.cascade').replace('{n}', n + 1) : 'Despesa fixa atualizada');
+      showToast(n > 0 ? t('exp.toast.recurringCascade').replace('{n}', n + 1) : 'Despesa fixa atualizada');
     } catch (e) { showErrorPopup('Falha ao salvar a recorrência', e); }
   };
   bg.querySelector('#recEditDel').onclick = async () => {
@@ -1844,20 +1846,24 @@ function openRecurringEditor(id) {
   bg.classList.add('show');
 }
 
+// Acha o template de fixa que uma despesa real realiza (ou null). Usa satisfies() —
+// a MESMA regra da reconciliação: recurringId (fixa manual) OU cartão (ruleKey +
+// valor na tolerância). Assim casa fixas manuais E não arrasta compra avulsa de
+// mesmo nome mas valor diferente (review jun/2026).
+function findRuleTemplateFor(e) {
+  if (!e) return null;
+  return (state.recurring || []).find(tpl => satisfiesRule(e, tpl)) || null;
+}
 // Fixa (pedido do dono): editar a categoria de UMA repetição muda TODAS — as outras
-// despesas reais com a mesma ruleKey + o template (que governa os meses futuros
-// projetados). Só age quando existe um template de recorrência com essa ruleKey (=
-// fixa declarada), nunca em compras avulsas de mesmo nome. Retorna nº de reais tocadas.
-async function propagateCategoryToRule(ruleKey, category, excludeId) {
-  if (!ruleKey) return 0;
-  const tpls = (state.recurring || []).filter(r => r.ruleKey === ruleKey);
-  if (!tpls.length) return 0;
+// despesas reais que realizam o MESMO template + o template (que governa os meses
+// futuros projetados). Só categoria; valor nunca. Retorna nº de reais tocadas.
+async function propagateCategoryToTemplate(tpl, category, excludeId) {
+  if (!tpl) return 0;
   const reais = (state.expenses || []).filter(e =>
-    e.id !== excludeId && (e.type || 'expense') === 'expense' && e.description &&
-    impRuleKey(e.description) === ruleKey && e.category !== category);
+    e.id !== excludeId && (e.type || 'expense') === 'expense' && e.category !== category && satisfiesRule(e, tpl));
   const ops = [
     ...reais.map(s => setDoc(docExpense(s.id), { category, updatedAt: serverTimestamp(), updatedBy: (state.user?.displayName || 'fixa') }, { merge: true })),
-    ...tpls.filter(tp => tp.category !== category).map(tp => setDoc(docRecurring(tp.id), { category, updatedAt: serverTimestamp() }, { merge: true })),
+    ...(tpl.category !== category ? [setDoc(docRecurring(tpl.id), { category, updatedAt: serverTimestamp() }, { merge: true })] : []),
   ];
   if (!ops.length) return 0;
   await Promise.allSettled(ops);
@@ -1922,15 +1928,14 @@ async function _saveExpenseInner() {
       const sibs = grp ? (state.expenses || []).filter(e => e.id !== editingExpenseId && e.fpBase && String(e.fpBase).replace(/\|\d+\/\d+$/, '') === grp) : [];
       // Fixa: a categoria propaga pra TODAS as repetições da mesma fixa (pedido do dono).
       // Só quando a categoria REALMENTE mudou (editar só o valor não mexe nas outras).
-      // Usa a descrição ORIGINAL pra casar a ruleKey mesmo se a descrição mudou aqui.
-      const recN = (type === 'expense' && entry && !grp && entry.category !== category)
-        ? await propagateCategoryToRule(impRuleKey(entry.description || description), category, editingExpenseId)
-        : 0;
+      // Casa pelo template via satisfies() — usa a entry ORIGINAL (pré-edição).
+      const recTpl = (type === 'expense' && entry && !grp && entry.category !== category) ? findRuleTemplateFor(entry) : null;
+      const recN = recTpl ? await propagateCategoryToTemplate(recTpl, category, editingExpenseId) : 0;
       if (sibs.length) {
         await Promise.allSettled(sibs.map(s => setDoc(docExpense(s.id), { owner: _modalOwner, category, description, nature: _modalNature, updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'unknown' }, { merge: true })));
         showToast(t('exp.toast.cascade').replace('{n}', sibs.length + 1));
       } else if (recN > 0) {
-        showToast(t('exp.toast.cascade').replace('{n}', recN + 1));
+        showToast(t('exp.toast.recurringCascade').replace('{n}', recN + 1));
       } else {
         showToast(t(type === 'income' ? 'exp.toast.income.saved' : 'exp.toast.saved'));
       }

@@ -644,7 +644,7 @@ tr.row-flash td { animation: rowFlash 1.4s ease both; }
 .exp-cat-clickable:active { transform: scale(.99); }
 .exp-cat-clickable:hover .exp-cat-name { color: var(--ink) !important; }
 
-.cd-modal { max-width: 540px; }
+.modal.cd-modal { max-width: min(540px, 94vw); }   /* especificidade vence .modal.modal-wide + nunca estoura o viewport */
 .cd-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .cd-icon { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; flex-shrink: 0;
   background: color-mix(in oklab, var(--cat-color, var(--purple)) 16%, transparent); color: var(--cat-color, var(--purple)); }
