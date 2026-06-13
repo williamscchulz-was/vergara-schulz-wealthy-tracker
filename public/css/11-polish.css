@@ -570,3 +570,67 @@ tr.row-flash td { animation: rowFlash 1.4s ease both; }
 /* P3: marca no vazio */
 .exp-empty .empty-mark { width: 52px; height: 52px; color: var(--purple); opacity: .32; margin-bottom: 8px; }
 .exp-empty .exp-empty-cta { margin-top: 14px; }
+
+/* ===========================================================
+   REFINO COSMÉTICO (v9.3) — o último 1% (auditoria sênior).
+   Tudo cosmético: nenhuma mudança de layout ou comportamento.
+   =========================================================== */
+
+/* C1 — tabular-nums onde ainda faltava: números param de "dançar" ao atualizar/contar */
+.mono, td.mono, .exp-row-amt, .exp-row-date, .ikpi-v, .ticker-val, .inv-asset-val,
+.rz-kpi2-v, .rz-period, .louise-chip-val, .g-val, .exp-total-val, .exp-nw-amt,
+.mt-pct, .mt-pill, .rz-cat-v, .rz-cat-pct, .rz-top-v, .imp-val {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* C2 — símbolo R$/US$ como prefixo discreto: peso leve, não compete com o número
+   (refino conservador — não encolhe o tamanho já validado no hero) */
+.hero-amount .cur, .exp-hero .amt .cur, .ytd-num .cur, .exp-nw-amt .cur, .hero-usd .usd-sym {
+  font-weight: 600 !important;
+  opacity: .8;
+}
+
+/* C3 — divisores com fade nas pontas (acabamento de vidro). Tabela: linha pintada no
+   tr (cruza todas as colunas). Listas grid: border-image. */
+.exp-table tbody td { border-bottom: 0 !important; }
+.exp-table tbody tr:not(:last-child):not(.exp-day-tr):not(.exp-row-more-tr) {
+  background-image: linear-gradient(90deg, transparent, color-mix(in oklab, var(--ink-3) 20%, transparent) 5%, color-mix(in oklab, var(--ink-3) 20%, transparent) 95%, transparent);
+  background-size: 100% 1px; background-position: 0 100%; background-repeat: no-repeat;
+}
+.rz-top:not(:last-child), .rz-cat:not(:last-child) {
+  border-bottom-color: transparent !important;
+  border-image: linear-gradient(90deg, transparent, color-mix(in oklab, var(--ink-3) 22%, transparent) 8%, color-mix(in oklab, var(--ink-3) 22%, transparent) 92%, transparent) 1 !important;
+}
+
+/* C4 — micro-labels uppercase no tracking canônico (.09em); some os .06/.13 avulsos */
+.rz-dc-a, .exp-total-bar .exp-total-lbl, .rz-gauge-c span, .exp-day-head, .exp-cat-more {
+  letter-spacing: .09em !important;
+}
+
+/* C5 — raios de canto na régua (sm 8 · tile 10 · caixa 12 · base 14 · pill 999) */
+.exp-nat-filter button, .card-collapse { border-radius: var(--radius-sm) !important; }
+.exp-fixa-badge { border-radius: 6px !important; }
+.inv-tk { border-radius: 10px !important; }
+.err-pop-body, .exp-subnav button { border-radius: 12px !important; }
+
+/* C6 — timing em 3 degraus: hovers de UI coesos no mesmo easing */
+.exp-filter, .exp-nat-filter button, .btn-csv, .pill-count, .exp-filter-clear,
+.cat-row.clickable, .imports-item, .rz-nav button, .mode-switch button, .card-collapse {
+  transition: color var(--t-base) var(--ease-out), background var(--t-base) var(--ease-out),
+              border-color var(--t-base) var(--ease-out), transform var(--t-fast) var(--ease-out) !important;
+}
+
+/* C7 — pills com altura óptica igual (mesmo x-height quando vizinhas) */
+.exp-owner-chip { padding-top: 3px !important; padding-bottom: 3px !important; }
+.exp-fixa-badge { padding: 3px 7px !important; }
+.pill-count { padding: 3px 8px !important; }
+
+/* C8 — cor cruza suave (250ms) em vez de pular, ao virar ganho↔perda ou trocar de mês */
+.stat .val, .ikpi-v, .rz-kpi-v, .rz-kpi2-s, .exp-row-amt, .mt-pct,
+.return-pill, .hero-pill, .exp-hero .amt #expHeroAmt, .exp-cat-amt {
+  transition: color var(--t-base) var(--ease-out), background-color var(--t-base) var(--ease-out);
+}
+
+/* C9 — sinais +/− e setas: o render já emite "+ "/"↑ "/"↓ " com espaço; nada a forçar
+   aqui (mantido como referência da decisão). */

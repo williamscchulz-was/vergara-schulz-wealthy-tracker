@@ -5,6 +5,20 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.3 — Refino cosmético: o último 1% (2026-06-13)
+Auditoria sênior (workflow 5-lentes sobre o CSS real, 79 achados → 9 temas). Tudo
+cosmético, sem mudança de layout/comportamento. Tokens de timing `--t-fast/base/slow`
+em 01-base; resto em 11-polish (REFINO COSMÉTICO v9.3):
+- C1 tabular-nums onde faltava (números não "dançam" no count-up/sync).
+- C2 símbolo R$/US$ como prefixo discreto (peso 600, sem encolher o hero validado).
+- C3 divisores com fade nas pontas (tabela via gradiente no tr; rz-top/rz-cat via border-image).
+- C4 micro-labels uppercase unificados em .09em (some os .06/.13 avulsos).
+- C5 raios na régua (8 sm · 10 tile · 12 caixa · 14 base).
+- C6 transições em 3 degraus (fast/base/slow no mesmo easing).
+- C7 pills com altura óptica igual (owner-chip/fixa-badge/pill-count → x-height do cat-pill).
+- C8 cor cruza suave (250ms) ao virar ganho↔perda / trocar de mês.
+- C9 sinais +/− e setas já saíam com hair-space no render (nada a mudar).
+
 ### v9.2 — Lote UX aprovado: 16 melhorias de usabilidade/micro-interação (2026-06-12)
 - **Usabilidade**: FAB "+" na zona do polegar (mobile); swipe ⟵⟶ troca o mês; excluir
   lançamento SEM modal (toast com DESFAZER 5s, regrava com o mesmo id); tocar na pill
