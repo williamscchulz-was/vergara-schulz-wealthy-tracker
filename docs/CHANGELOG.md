@@ -5,6 +5,18 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.6 — SUPER auditoria de responsividade (16 agentes) (2026-06-13)
+132 achados brutos → 27 temas (14 quebra/7 feio/6 menor), consolidados num bloco em
+11-polish. Foco do dono: grupos de botões que quebram deixando ÓRFÃO. Principais:
+- .exp-add-group (Importações/Importar/+Ganho/+Nova despesa) → grade 2×2, primary
+  full-width embaixo (nunca órfão); .section-head empilha no mobile.
+- Toolbar de filtros: selects 2-col, nat-filter linha própria, toque 40px, CSV 40px.
+- Topbar: nome trunca (ellipsis), botões compactos, nada estoura em 320.
+- Hero Investimentos: mini-KPIs empilham, Louise nunca some, ações quebram limpas.
+- Rodapés de modais: Excluir full-width + Cancelar|Salvar 50/50 (sem órfão).
+- Import/Resumo/tabela/ativos/segmentados: ellipsis, flex-shrink, colapso de grids,
+  donut/gauge fluidos. Defensivos globais (nowrap/ellipsis) p/ dado nunca sumir.
+
 ### v9.5 — Mobile hardening: auditoria de responsividade (2026-06-13)
 Auditoria de 6 áreas × larguras 320/360/390/414/768/desktop (workflow, 65 achados →
 temas reais; vários já cobertos por media queries existentes). Bloco em 11-polish,

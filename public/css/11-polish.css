@@ -750,3 +750,112 @@ tr.row-flash td { animation: rowFlash 1.4s ease both; }
   .scope-opt.sel .scope-rd::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--purple); }
   .scope-opt.sel { border-color: color-mix(in oklab, var(--purple) 45%, transparent); }
 }
+
+/* ===========================================================
+   SUPER-RESPONSIVIDADE (v9.6) — auditoria 16 agentes (132 achados).
+   Foco: grupos de botões que quebram com ÓRFÃO + overflow + toque.
+   Vem depois do v9.5 (vence por ordem nas larguras que se sobrepõem).
+   =========================================================== */
+/* --- defensivos globais (qualquer largura): nada vaza nem quebra dado --- */
+.ikpi { overflow: hidden; }
+.ikpi-v, .ikpi.tile .ikpi-v { white-space: nowrap; max-width: 100%; }
+.inv-asset-rt { flex-shrink: 0; min-width: 72px; white-space: nowrap; }
+.inv-asset-val { white-space: nowrap; }
+.inv-asset-nm, .inv-asset-q { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.exp-owner-opt, .exp-nat-opt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.exp-subnav button { white-space: nowrap; }
+
+@media (max-width: 719.98px) {
+  .imp-row select { min-height: 44px; padding: 8px; font-size: 13px; }   /* toque + sem zoom iOS */
+}
+
+@media (max-width: 480px) {
+  /* QUEBRA: botões de ação Despesas — grade 2×2, primary full-width (nunca órfão) [exemplo do dono] */
+  .section-head { flex-direction: column; align-items: stretch; gap: 12px; }
+  .section-head > div:first-child { width: 100%; }
+  .exp-add-group { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); width: 100%; max-width: 100%; }
+  .exp-add-group .btn-primary { grid-column: 1 / -1; }
+  .exp-add-group button { width: 100%; min-height: 44px; white-space: nowrap; padding: 11px 14px; }
+  /* QUEBRA: toolbar de filtros — busca full, selects 2-col, nat-filter linha própria, toque 40px */
+  .exp-filter { flex: 1 1 calc(50% - 3px); max-width: none; padding: 7px 22px 7px 9px; font-size: 11px; min-height: 40px; }
+  .exp-nat-filter { width: 100%; display: flex; flex-wrap: wrap; justify-content: space-between; }
+  .exp-nat-filter button { flex: 1 1 auto; min-height: 40px; }
+  .exp-filter-clear { min-height: 40px; }
+  .btn-csv { width: 40px; height: 40px; }
+  /* QUEBRA: tiles de KPI — valor não quebra, label trunca */
+  .ikpi.tile .ikpi-v { font-size: 20px; }
+  .ikpi-k { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* QUEBRA: hero Investimentos — mini-KPIs empilham (sem órfão), Louise nunca some, ações quebram bem */
+  .hero-card { padding: 22px 20px 18px; }
+  .hero-mini-kpis { flex-direction: column; gap: 12px; }
+  .hero-mini-kpis .k { font-size: 10px; } .hero-mini-kpis .v { font-size: 16px; }
+  .louise-chip { white-space: normal; max-width: none; }
+  .louise-chip-var { flex-shrink: 0; white-space: nowrap; }
+  .hero-actions { gap: 6px; flex-wrap: wrap; }
+  .hero-actions .btn-ghost { padding: 6px 10px; font-size: 11px; }
+  /* QUEBRA: Resumo — kpis2/bal/alloc colapsam, donut menor */
+  .rz-kpis2 { grid-template-columns: 1fr !important; }
+  .rz-bal { flex-direction: column; align-items: center; gap: 16px; }
+  .rz-alloc { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .rz-donut, .rz-odonut { width: 120px !important; height: 120px !important; flex-shrink: 0; }
+  /* QUEBRA: tabela de lançamentos — pill blindada, valor não vaza, padding menor */
+  .exp-table td, .exp-table th { padding: 10px 8px; }
+  .exp-cat-pill { flex-shrink: 0; white-space: nowrap; }
+  .exp-row-desc-cell { min-width: 0; }
+  .exp-row-amt { white-space: nowrap; font-size: 12px; }
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  /* FEIO: hero de Despesas empilha; seletor de mês não fica órfão */
+  .exp-hero { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .exp-hero .left { width: 100%; }
+  .exp-monthnav, .month-nav { min-width: 0; }
+  .exp-monthnav .current { min-width: 90px; font-size: 11px; }
+  .exp-subnav-row { flex-direction: column; gap: 10px; margin: calc(-1 * var(--sp-2)); padding: var(--sp-2); }
+  /* FEIO: breakdown de categoria — nome trunca, valor não vaza */
+  .exp-cat-row { gap: 10px; }
+  .exp-cat-v { flex-shrink: 0; max-width: 100px; }
+  .exp-cat-amt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* FEIO: header do Resumo empilha, stats 2-col, gráfico menor */
+  .rz-head { flex-direction: column; align-items: stretch; gap: 10px; }
+  .rz-seg, .rz-nav { width: 100%; }
+  .rz-bal-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 12px; }
+  .rz-gbars { height: 120px; }
+  /* topbar: nome trunca, botões compactos, nada estoura */
+  .topbar-actions { gap: 8px; }
+  .theme-toggle { width: 32px; height: 32px; }
+  .theme-toggle svg { width: 16px; height: 16px; }
+  .user-pill { max-width: 160px; padding: 5px 10px 5px 5px; gap: 8px; }
+  #userName { max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; }
+  .brand { flex-shrink: 1; min-width: 0; }
+}
+/* QUEBRA: rodapés de modais — Excluir full embaixo, Cancelar|Salvar 50/50 (sem órfão) */
+@media (max-width: 420px) {
+  .modal .modal-foot { flex-wrap: wrap; gap: 8px; }
+  .modal .modal-foot .spacer { display: none; }
+  .modal .modal-foot .btn-danger, .modal .modal-foot .btn-danger.ghost { flex: 1 1 100%; order: 3; }
+  .modal .modal-foot .btn-secondary, .modal .modal-foot .btn-primary { flex: 1 1 calc(50% - 4px); min-width: 0; padding: 11px 16px; }
+}
+@media (max-width: 410px) { .inv-leg { grid-template-columns: 1fr; gap: 4px; } }
+@media (max-width: 400px) { .rz-period { min-width: 80px; font-size: 12px; } }
+@media (max-width: 390px) {
+  .ikpi-k { font-size: 9px; letter-spacing: .04em; }
+  .inv-tk { width: 36px; height: 36px; } .inv-asset { padding: 8px; }
+  .cart-alloc { gap: 12px; } .inv-donut { width: 80px; height: 80px; }
+  .inv-leg .nm, .rz-leg .nm { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+@media (max-width: 375px) {
+  .imp-cat { min-width: 0; }
+  .imp-row { grid-template-columns: 20px 44px minmax(0,1fr) auto; padding: 6px 8px; gap: 6px; }
+  .imp-desc { white-space: normal; }
+  .modal.modal-wide { padding: 16px; }
+}
+@media (max-width: 374px) {
+  .mode-switch { padding: 4px; }
+  .mode-switch button { padding: 8px 16px; font-size: 11px; }
+}
+@media (max-width: 360px) {
+  .exp-owner-seg, .exp-nat-seg { gap: 3px; padding: 3px; }
+  .exp-owner-opt, .exp-nat-opt { padding: 7px 6px; font-size: 10px; }
+  .exp-cat-name { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .exp-hero .amt #expHeroAmt, .hero-amount .num { font-size: 28px; }
+  .brand-text .tag { display: none; }
+}
