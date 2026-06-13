@@ -473,6 +473,7 @@ body {
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
+  overscroll-behavior-y: contain;   /* UX M6: o pull-to-refresh do app não disputa com o reload nativo */
 }
 
 /* Subtle gradient mesh background */

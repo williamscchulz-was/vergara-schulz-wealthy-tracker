@@ -348,6 +348,8 @@
     <div class="module" id="moduleResumo"><div id="resumoBody"></div></div>
 
     <div class="module active" id="moduleInvestments">
+      <!-- UX M6: indicador do puxar-pra-sincronizar (mobile) -->
+      <div class="ptr-ind" id="ptrInd" aria-hidden="true"></div>
 
       <!-- HERO Patrimonio -->
       <div class="hero-card animate-in">
@@ -1012,6 +1014,8 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<!-- UX U1: FAB de lançar despesa — fora dos módulos (fixed real), só na aba Despesas + mobile -->
+<button class="fab-add" id="fabAdd" type="button" aria-label="Nova despesa" hidden>+</button>
 
 <script type="module" src="js/app.js"></script>
 

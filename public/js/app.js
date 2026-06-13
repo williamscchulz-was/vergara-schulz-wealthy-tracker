@@ -322,11 +322,17 @@ function shortMoney(n) {
   if (Math.abs(n) >= 1_000) return (n/1_000).toFixed(0) + 'k';
   return n.toFixed(0);
 }
+// Timer ÚNICO do #toast — showToast e showUndoToast compartilham o mesmo elemento;
+// timers anônimos antigos escondiam o DESFAZER antes da hora (review B).
+let _toastTimer = null;
 function showToast(msg) {
   const t = $('toast');
+  // janela de DESFAZER ativa = rede de segurança do delete — toast informativo não a destrói
+  if (t.classList.contains('has-undo')) return;
+  clearTimeout(_toastTimer);
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2600);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
 }
 // Popup de ERRO visível — em vez de o sistema "não fazer nada" calado. Mostra
 // um título humano + o detalhe técnico (mensagem/stack) copiável (pra mandar pro
@@ -374,12 +380,13 @@ window.addEventListener('error', e => { if (e && e.error) showErrorPopup('Erro n
 // ---- Versão do app + popup de novidades (minimal) ----
 // Bump APP_VERSION quando lançar algo visível: quem já usou vê o popup 1× com
 // a lista APP_CHANGES; a versão aparece no header (clicável reabre o popup).
-const APP_VERSION = '9.1';
+const APP_VERSION = '9.2';
 const APP_CHANGES = [
-  'Investimentos: dividendos no topo, carteira ao lado do donut de diversificação, gráficos com números maiores e cards da Análise do mesmo tamanho.',
-  'Resumo: gauge de poupança, patrimônio por ano com crescimento (e 2026).',
-  'Despesas: sub-aba Lançamentos com navegação de meses; categorias com ícones neutros e sem o "X" nas padrão.',
-  'Padrão de fontes unificado (escala tipográfica) e textos traduzindo certo.',
+  'Botão + flutuante pra lançar despesa e deslizar pro lado troca o mês (celular).',
+  'Excluir ficou instantâneo com DESFAZER no aviso — sem janela de confirmação.',
+  'Toque na pill de categoria troca a categoria ali mesmo; toque no nome do mês abre a grade de meses.',
+  'Gastos e Ganhos agrupados por dia com subtotal; datas viram "hoje/ontem"; busca destaca o termo.',
+  'Salvar confirma com ✓ e a linha recém-salva pisca; puxar a tela sincroniza com o I10.',
 ];
 function showUpdatePopup() {
   let bg = document.getElementById('updPopup');
@@ -783,6 +790,9 @@ function switchMode(mode, opts = {}) {
     renderInvestments();
   }
   wireCardCollapse();   // botões de recolher (cobre Despesas + Investimentos)
+  // UX U1 (review I): o FAB vive FORA do módulo (fixed dentro de elemento com animação
+  // de transform fica preso ao módulo) — mostra/esconde conforme a aba.
+  if ($('fabAdd')) $('fabAdd').hidden = (mode !== 'expenses');
   // Persist this as the user's preferred default for next session.
   // `opts.persist === false` skips writing (used during the initial boot
   // so we don't overwrite the value we just read).
@@ -924,10 +934,10 @@ function renderExpenses() {
   }
 
   // Stats 2×2 (igual mockup): Gastos do mês (valor + nº), Despesas fixas (+sparkline)
-  $('expTotal').textContent = fmtBRL0(total);
+  countUpEl($('expTotal'), total, fmtBRL0);   // UX M3: números contam ao trocar de mês
   $('expTotalSub').textContent = monthExp.length + (monthExp.length === 1 ? ' lançamento' : ' lançamentos');
   const fixasTotal = monthExp.filter(e => e.nature === 'fixa' || e.recurring).reduce((s, e) => s + (+e.value || 0), 0);
-  $('expFixas').textContent = fmtBRL0(fixasTotal);
+  countUpEl($('expFixas'), fixasTotal, fmtBRL0);
   {
     const dim = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
     const byDay = {}, fxDay = {};
@@ -1134,7 +1144,13 @@ function renderExpenseTable(entries) {
   _lastMonthExp = entries;
   const tbody = $('expBody');
   if (entries.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4"><div class="exp-empty"><h4>${t('exp.empty.table.title')}</h4><p>${t('exp.empty.table.sub')}</p></div></td></tr>`;
+    // UX P3: vazio com a marca (7 flechas finas) + CTA direto
+    tbody.innerHTML = `<tr><td colspan="4"><div class="exp-empty">
+      <svg class="empty-mark" viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 43 L24 35 L41 43"/><path d="M7 38 L24 30 L41 38"/><path d="M7 33 L24 25 L41 33"/><path d="M7 28 L24 20 L41 28"/><path d="M7 23 L24 15 L41 23"/><path d="M7 18 L24 10 L41 18"/><path d="M7 13 L24 5 L41 13"/></svg>
+      <h4>${t('exp.empty.table.title')}</h4><p>${t('exp.empty.table.sub')}</p>
+      <button class="btn-primary exp-empty-cta" type="button">+ ${esc(t('exp.empty.cta'))}</button>
+    </div></td></tr>`;
+    tbody.querySelector('.exp-empty-cta')?.addEventListener('click', () => openExpenseModal(null));
     return;
   }
 
@@ -1187,12 +1203,32 @@ function renderExpenseTable(entries) {
 
   const sorted = [...result].sort(expCompare);
   const TLIMIT = 8;   // mostra as primeiras N linhas; o resto fica atrás de "Ver todas" (enche o card até a altura do de categoria)
+  const _showAll = state._expTableAll || state.expSub === 'lancamentos' || state.expSub === 'ganhos';   // Lançamentos/Ganhos mostram TODAS
+  // UX U6: nas sub-abas cheias e ordenado por data, agrupa por DIA com subtotal.
+  const grouped = _showAll && _expSort.key === 'date';
+  // UX M5: termo da busca destacado na descrição — match no texto CRU, escape por
+  // segmento (marcar o texto já escapado corrompia entidades; review F).
+  const _q2 = _expSearchQuery.trim();
+  const _hi = (raw) => {
+    const s = String(raw || '');
+    if (!_q2 || !s) return esc(s);
+    const lower = s.toLowerCase(), ql = _q2.toLowerCase();
+    let out = '', i = 0;
+    for (;;) {
+      const ix = lower.indexOf(ql, i);
+      if (ix < 0) { out += esc(s.slice(i)); break; }
+      out += esc(s.slice(i, ix)) + '<mark class="hl">' + esc(s.slice(ix, ix + ql.length)) + '</mark>';
+      i = ix + ql.length;
+    }
+    return out;
+  };
+  let _lastDay = null;
   tbody.innerHTML = sorted.map((e, i) => {
     const meta = entryMeta(e);
     const isIn = isIncome(e);
     const notes = (e.notes || '').replace(/\s*·\s*provis[aã]o\b/i, '').trim();   // provisão conta como gasto → sem o selo "provisão"
     const ownerChip = ownerChipHtml(e);
-    const descMain = `<div class="exp-row-desc">${esc(e.description) || '—'}${ownerChip}</div>`;
+    const descMain = `<div class="exp-row-desc">${_hi(e.description) || '—'}${ownerChip}</div>`;
     const descHtml = notes
       ? `${descMain}<div class="exp-row-notes" title="${esc(notes)}">${esc(notes)}</div>`
       : descMain;
@@ -1201,12 +1237,19 @@ function renderExpenseTable(entries) {
     const pillLabel = isIn ? t('exp.income.pill') : meta.label;
     const isV = e._virtual;
     const fixaBadge = isV ? `<span class="exp-fixa-badge">${e._future ? 'fixa · prevista' : 'fixa'}</span>` : '';
-    const _showAll = state._expTableAll || state.expSub === 'lancamentos' || state.expSub === 'ganhos';   // Lançamentos/Ganhos mostram TODAS
     const extraCls = (!_showAll && sorted.length > TLIMIT && i >= TLIMIT) ? ' exp-row-extra' : '';
-    return `<tr ${isV ? `data-recurring-id="${esc(e.recurringId)}"` : `data-id="${e.id}"`} class="${isIn ? 'is-income' : ''}${isV ? ' is-recurring' : ''}${extraCls}" style="--cat-color:${meta.color}">
-      <td class="mono exp-row-date">${formatDateBR(e.date)}</td>
+    const flashCls = (_flashRowId && e.id === _flashRowId) ? ' row-flash' : '';   // UX M1: linha recém-salva acende
+    // UX U6: cabeçalho do dia (HOJE/ONTEM/SEX · 15/06 · subtotal do dia na visão atual)
+    let dayHead = '';
+    if (grouped && e.date !== _lastDay) {
+      _lastDay = e.date;
+      const dayTotal = sorted.filter(x => x.date === e.date).reduce((s, x) => s + (+x.value || 0), 0);
+      dayHead = `<tr class="exp-day-tr"><td colspan="4"><div class="exp-day-head"><span>${dayHeadLabel(e.date)}</span><span class="mono">${fmtBRL0(dayTotal)}</span></div></td></tr>`;
+    }
+    return dayHead + `<tr ${isV ? `data-recurring-id="${esc(e.recurringId)}"` : `data-id="${e.id}"`} class="${isIn ? 'is-income' : ''}${isV ? ' is-recurring' : ''}${extraCls}${flashCls}" style="--cat-color:${meta.color}">
+      <td class="mono exp-row-date">${grouped ? '' : fmtDateHuman(e.date)}</td>
       <td class="exp-row-desc-cell">${descHtml}${fixaBadge}</td>
-      <td><span class="exp-cat-pill ${isIn ? 'is-income' : ''}" style="--cat-color:${meta.color}">${isIn ? '' : `<span class="exp-cat-pill-icon">${meta.icon}</span>`}${pillLabel}</span></td>
+      <td><span class="exp-cat-pill ${isIn ? 'is-income' : ''}" style="--cat-color:${meta.color}" data-quickcat="${isV ? '' : (e.id || '')}">${isIn ? '' : `<span class="exp-cat-pill-icon">${meta.icon}</span>`}${pillLabel}</span></td>
       <td class="mono exp-row-amt">${amtText}</td>
     </tr>`;
   }).join('') + ((sorted.length > TLIMIT && state.expSub !== 'lancamentos' && state.expSub !== 'ganhos')
@@ -1214,8 +1257,81 @@ function renderExpenseTable(entries) {
     : '');
   tbody.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => openExpenseModal(tr.dataset.id)));
   tbody.querySelectorAll('tr[data-recurring-id]').forEach(tr => tr.addEventListener('click', () => openRecurringEditor(tr.dataset.recurringId)));
+  // UX U4: tocar na pill de categoria troca ali mesmo (sem abrir o modal)
+  tbody.querySelectorAll('[data-quickcat]').forEach(p => p.addEventListener('click', (ev) => {
+    const id = p.dataset.quickcat;
+    if (!id || p.classList.contains('is-income')) return;   // ganhos/virtuais → fluxo normal
+    ev.stopPropagation();
+    openQuickCatMenu(p, id);
+  }));
   const _moreBtn = tbody.querySelector('.exp-row-more');
   if (_moreBtn) _moreBtn.addEventListener('click', () => setExpSub('lancamentos'));   // abre a sub-aba Lançamentos
+  // UX M1: o flash vale pra UM render — depois apaga sozinho
+  if (_flashRowId && tbody.querySelector('.row-flash')) { const fid = _flashRowId; setTimeout(() => { if (_flashRowId === fid) _flashRowId = null; }, 1500); }
+}
+// ---- UX P1: datas humanas (hoje/ontem/dia da semana) na lista ----
+const WEEKDAYS_PT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+const WEEKDAYS_EN = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+function _dayDiff(iso) {
+  const d = parseLocalDate(iso); if (!d || isNaN(d)) return null;
+  const now = new Date();
+  return Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 86400000);
+}
+function fmtDateHuman(iso) {
+  const diff = _dayDiff(iso);
+  if (diff === null) return formatDateBR(iso);
+  if (diff === 0) return t('date.today');
+  if (diff === 1) return t('date.yesterday');
+  if (diff > 1 && diff < 7) {
+    const d = parseLocalDate(iso);
+    return (getLang() === 'en' ? WEEKDAYS_EN : WEEKDAYS_PT)[d.getDay()] + ', ' + String(d.getDate()).padStart(2, '0');
+  }
+  return formatDateBR(iso);
+}
+function dayHeadLabel(iso) {
+  const diff = _dayDiff(iso);
+  const d = parseLocalDate(iso);
+  const dm = formatDateBR(iso);
+  if (diff === 0) return t('date.today').toUpperCase() + ' · ' + dm;
+  if (diff === 1) return t('date.yesterday').toUpperCase() + ' · ' + dm;
+  if (d && !isNaN(d)) return (getLang() === 'en' ? WEEKDAYS_EN : WEEKDAYS_PT)[d.getDay()].toUpperCase() + ' · ' + dm;
+  return dm;
+}
+// ---- UX M1: flash da linha recém-salva ----
+let _flashRowId = null;
+// ---- UX U4: menu rápido de categoria (popover único, reposicionado) ----
+function openQuickCatMenu(anchor, expenseId) {
+  let m = document.getElementById('quickCatMenu');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'quickCatMenu';
+    document.body.appendChild(m);
+    document.addEventListener('click', (e) => { if (!m.contains(e.target)) m.classList.remove('show'); });
+  }
+  m.innerHTML = catsAZ().map(([k, c]) =>
+    `<button type="button" data-k="${esc(k)}" style="--cat-color:${c.color}"><span class="qc-ic">${c.icon}</span>${esc(c.label)}</button>`).join('');
+  const r = anchor.getBoundingClientRect();
+  m.style.top = (r.bottom + window.scrollY + 6) + 'px';
+  m.style.left = Math.max(8, Math.min(window.innerWidth - 228, r.right + window.scrollX - 220)) + 'px';
+  m.classList.add('show');
+  m.querySelectorAll('button[data-k]').forEach(b => b.addEventListener('click', async (ev) => {
+    ev.stopPropagation();
+    m.classList.remove('show');
+    // review D: o doc pode ter sido excluído enquanto o menu estava aberto — um setDoc
+    // merge criaria um "fantasma" só com category. Aborta com mensagem humana.
+    const cur = (state.expenses || []).find(x => x.id === expenseId);
+    if (!cur) { showToast(t('exp.quickcat.gone')); return; }
+    try {
+      _flashRowId = expenseId;   // review J: ANTES do await — o snapshot chega rápido
+      const patch = { category: b.dataset.k, updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'quickcat' };
+      await setDoc(docExpense(expenseId), patch, { merge: true });
+      // review G: parcelas da MESMA compra mantêm a categoria juntas (invariante do modal)
+      const grp = cur.installment && cur.fpBase ? String(cur.fpBase).replace(/\|\d+\/\d+$/, '') : null;
+      const sibs = grp ? (state.expenses || []).filter(e => e.id !== expenseId && e.fpBase && String(e.fpBase).replace(/\|\d+\/\d+$/, '') === grp) : [];
+      if (sibs.length) await Promise.allSettled(sibs.map(s => setDoc(docExpense(s.id), patch, { merge: true })));
+      showToast(sibs.length ? t('exp.toast.cascade').replace('{n}', sibs.length + 1) : t('exp.quickcat.done'));
+    } catch (err) { console.error('[quickcat]', err); showToast(t('toast.error.save')); }
+  }));
 }
 
 // CSV export of the currently viewed month (ignores search filter — users
@@ -1623,7 +1739,7 @@ function openRecurringEditor(id) {
     bg.innerHTML = '<div class="modal" role="dialog" aria-modal="true" style="max-width:420px">'
       + '<h3>Despesa fixa</h3>'
       + '<p class="sub" id="recEditDesc" style="margin:-4px 0 12px"></p>'
-      + '<div class="field full"><label>Valor</label><input type="text" id="recEditVal" inputmode="decimal"></div>'
+      + '<div class="field full"><label>Valor</label><input type="text" id="recEditVal" inputmode="decimal" autocomplete="off"></div>'
       + '<div class="field full"><label>Repetir até</label><input type="month" id="recEditEnd"><div class="meta">Em branco = indefinido</div></div>'
       + '<div class="modal-foot">'
       + '<button class="btn-danger ghost" id="recEditDel" type="button">Parar de repetir</button><div class="spacer"></div>'
@@ -1649,7 +1765,13 @@ function openRecurringEditor(id) {
   bg.classList.add('show');
 }
 
+let _savingExpense = false;   // guard de reentrância: Enter no campo chama saveExpense() direto (review A)
 async function saveExpense() {
+  if (_savingExpense) return;
+  _savingExpense = true;
+  try { await _saveExpenseInner(); } finally { _savingExpense = false; }
+}
+async function _saveExpenseInner() {
   const value = parseBRLInput($('expValue').value);
   const date = $('expDate').value;
   let description, category;
@@ -1694,6 +1816,7 @@ async function saveExpense() {
     }
     if (editingExpenseId) {
       await setDoc(docExpense(editingExpenseId), data, { merge: true });
+      _flashRowId = editingExpenseId;   // UX M1: a linha editada acende no render
       // Parcelado: propaga de-quem/categoria/descrição/natureza pra TODAS as parcelas da mesma compra.
       const entry = state.expenses.find(x => x.id === editingExpenseId);
       const grp = entry && entry.installment && entry.fpBase ? String(entry.fpBase).replace(/\|\d+\/\d+$/, '') : null;
@@ -1705,34 +1828,60 @@ async function saveExpense() {
         showToast(t(type === 'income' ? 'exp.toast.income.saved' : 'exp.toast.saved'));
       }
     } else {
-      await addDoc(colExpenses(), { ...data, createdAt: serverTimestamp() });
+      const _ref = await addDoc(colExpenses(), { ...data, createdAt: serverTimestamp() });
+      _flashRowId = _ref.id;            // UX M1: a linha nova acende no render
       showToast(t(type === 'income' ? 'exp.toast.income.added' : 'exp.toast.added'));
     }
+    // UX M1: o botão morfa em ✓ por um instante antes de fechar — confirmação tátil
+    btn.textContent = '✓';
+    await new Promise(r => setTimeout(r, 380));
     closeExpenseModal();
   } catch (err) { console.error(err); showToast(t('toast.error.save')); }
   finally { btn.disabled = false; btn.textContent = originalLabel; }
 }
 
+// UX U3 (aprovado): excluir SEM modal de confirmação — some na hora e o toast
+// oferece DESFAZER por 5s (regrava o doc com o MESMO id → nada mais muda).
 async function deleteExpense() {
   if (!editingExpenseId) return;
-  const entry = state.expenses.find(x => x.id === editingExpenseId);
-  const isIncome = entry?.type === 'income';
-  openConfirmModal({
-    title: t(isIncome ? 'exp.delete.income.title' : 'exp.delete.title'),
-    sub: t('exp.delete.sub'),
-    confirmLabel: t('exp.delete.confirm'),
-    cancelLabel: t('exp.btn.cancel'),
-    danger: true,
-    onConfirm: async () => {
+  const docId = editingExpenseId;
+  const entry = state.expenses.find(x => x.id === docId);
+  // review E: o parceiro pode ter excluído enquanto o modal estava aberto — o delete
+  // por id é idempotente; fecha e avisa em vez de virar botão "morto".
+  if (!entry) {
+    try { await deleteDoc(docExpense(docId)); } catch (_) {}
+    closeExpenseModal();
+    showToast(t('exp.toast.deleted'));
+    return;
+  }
+  const wasIncome = entry.type === 'income';
+  const { id: _id, ...payload } = entry;
+  try {
+    await deleteDoc(docExpense(docId));
+    closeExpenseModal();
+    showUndoToast(t(wasIncome ? 'exp.toast.income.deleted' : 'exp.toast.deleted'), async () => {
       try {
-        await deleteDoc(docExpense(editingExpenseId));
-        showToast(t(isIncome ? 'exp.toast.income.deleted' : 'exp.toast.deleted'));
-        closeExpenseModal();
-      } catch (err) { console.error(err); showToast(t('toast.error.delete')); }
-    },
-  });
+        _flashRowId = docId;   // review J: ANTES do await, senão o snapshot renderiza sem o flash
+        await setDoc(docExpense(docId), payload);
+        showToast(t('exp.undo.restored'));
+      } catch (err) { console.error('[undo-delete]', err); showToast(t('toast.error.save')); }
+    });
+  } catch (err) { console.error(err); showToast(t('toast.error.delete')); }
 }
-
+// Toast com ação (DESFAZER) — reusa o elemento #toast; 5s de janela; timer compartilhado.
+function showUndoToast(msg, onUndo) {
+  const el = $('toast'); if (!el) return;
+  clearTimeout(_toastTimer);   // mata qualquer timer de toast comum pendente
+  el.innerHTML = `${esc(msg)} <button type="button" class="toast-undo">${esc(t('exp.undo.action'))}</button>`;
+  el.classList.add('show', 'has-undo');
+  el.querySelector('.toast-undo').addEventListener('click', () => {
+    clearTimeout(_toastTimer);
+    el.classList.remove('show', 'has-undo');
+    el.textContent = '';
+    onUndo();
+  });
+  _toastTimer = setTimeout(() => { el.classList.remove('show', 'has-undo'); setTimeout(() => { el.textContent = ''; }, 350); }, 5000);
+}
 // ============================================================
 //                   INVESTMENTS MODULE
 // ============================================================
@@ -3919,6 +4068,101 @@ function clearExpFilters() {
   renderExpenseTable(_lastMonthExp);
 }
 $('btnClearFilters')?.addEventListener('click', clearExpFilters);
+
+// ===== UX aprovado (jun/2026): gestos, atalhos e polimento =====
+// U2: swipe ⟵⟶ na aba Despesas troca o mês (só toque; scroll vertical não dispara)
+(function () {
+  const mod = $('moduleExpenses'); if (!mod) return;
+  let tx = null, ty = null, maxDy = 0;
+  mod.addEventListener('touchstart', (e) => { const p = e.touches[0]; tx = p.clientX; ty = p.clientY; maxDy = 0; }, { passive: true });
+  // review K: rastreia o MAIOR desvio vertical do gesto — scroll de ida-e-volta com
+  // deriva horizontal não pode trocar o mês (o delta líquido mentia).
+  mod.addEventListener('touchmove', (e) => {
+    if (ty === null) return;
+    maxDy = Math.max(maxDy, Math.abs(e.touches[0].clientY - ty));
+  }, { passive: true });
+  mod.addEventListener('touchend', (e) => {
+    if (tx === null) return;
+    const p = e.changedTouches[0], dx = p.clientX - tx;
+    const vertical = maxDy;
+    tx = ty = null; maxDy = 0;
+    if (Math.abs(dx) < 64 || vertical > 48) return;
+    mod.classList.remove('swipe-l', 'swipe-r'); void mod.offsetWidth;
+    mod.classList.add(dx < 0 ? 'swipe-l' : 'swipe-r');
+    (dx < 0 ? $('btnNextMonth') : $('btnPrevMonth'))?.click();
+  }, { passive: true });
+  mod.addEventListener('touchcancel', () => { tx = ty = null; maxDy = 0; }, { passive: true });
+})();
+// U5: tocar no "Junho 2026" abre a grade de 12 meses (pulo direto, sem 5 toques de setinha)
+function openMonthPicker(anchor) {
+  let p = document.getElementById('monthPicker');
+  if (!p) {
+    p = document.createElement('div'); p.id = 'monthPicker'; document.body.appendChild(p);
+    document.addEventListener('click', (e) => { if (!p.contains(e.target) && e.target !== anchor) p.classList.remove('show'); });
+  }
+  const cur = state.currentViewMonth || new Date();
+  let yr = cur.getFullYear();
+  const render = () => {
+    const names = getLang() === 'en' ? MONTH_NAMES_SHORT_EN : MONTH_NAMES_SHORT;
+    p.innerHTML = `<div class="mp-head"><button type="button" data-y="-1">‹</button><b class="mono">${yr}</b><button type="button" data-y="1">›</button></div>`
+      + '<div class="mp-grid">' + names.map((n, i) =>
+        `<button type="button" class="mono${(yr === cur.getFullYear() && i === cur.getMonth()) ? ' on' : ''}" data-m="${i}">${esc(n)}</button>`).join('') + '</div>';
+    p.querySelectorAll('[data-y]').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); yr += +b.dataset.y; render(); }));
+    p.querySelectorAll('[data-m]').forEach(b => b.addEventListener('click', () => {
+      state.currentViewMonth = new Date(yr, +b.dataset.m, 1);
+      p.classList.remove('show');
+      renderExpenses();
+    }));
+  };
+  render();
+  const r = anchor.getBoundingClientRect();
+  p.style.top = (r.bottom + window.scrollY + 8) + 'px';
+  p.style.left = Math.max(8, Math.min(window.innerWidth - 250, r.left + window.scrollX + r.width / 2 - 121)) + 'px';
+  p.classList.add('show');
+}
+$('currentMonthLabel')?.addEventListener('click', (e) => { e.stopPropagation(); openMonthPicker(e.currentTarget); });
+// U1: FAB de lançar despesa na zona do polegar (mobile; CSS esconde no desktop)
+$('fabAdd')?.addEventListener('click', () => openExpenseModal(null));
+// M6: puxar pra baixo no Investimentos sincroniza com o I10
+(function () {
+  const mod = $('moduleInvestments'); if (!mod) return;
+  let y0 = null, pulled = 0;
+  mod.addEventListener('touchstart', (e) => { y0 = (window.scrollY <= 0) ? e.touches[0].clientY : null; pulled = 0; }, { passive: true });
+  mod.addEventListener('touchmove', (e) => {
+    if (y0 === null) return;
+    pulled = e.touches[0].clientY - y0;
+    const el = $('ptrInd');
+    if (el) { el.style.height = pulled > 28 ? '30px' : '0'; if (pulled > 28) el.textContent = pulled > 90 ? t('ptr.release') : t('ptr.pull'); }
+  }, { passive: true });
+  mod.addEventListener('touchend', () => {
+    const el = $('ptrInd');
+    const hide = () => { if (el) { el.style.height = '0'; el.textContent = ''; } };
+    // review C: sem config não dispara (senão o modal de ⚙️ abriria sob um "✓");
+    // ✓ só no SUCESSO — falha esconde (o syncFromI10 já mostra o toast humano).
+    const cfgOk = !!(state.i10Cfg && state.i10Cfg.workerUrl && state.i10Cfg.walletId);
+    if (y0 !== null && pulled > 90 && !state.i10Syncing && cfgOk) {
+      if (el) { el.textContent = t('ptr.syncing'); el.style.height = '30px'; }
+      syncFromI10()
+        .then(() => { if (el) { el.textContent = '✓'; setTimeout(hide, 800); } })
+        .catch(hide);
+    } else hide();
+    y0 = null; pulled = 0;
+  }, { passive: true });
+  mod.addEventListener('touchcancel', () => { const el = $('ptrInd'); if (el) { el.style.height = '0'; el.textContent = ''; } y0 = null; pulled = 0; }, { passive: true });   // review H
+})();
+// P2: sombras de rolagem — o olho sabe que há mais conteúdo
+function attachScrollShadow(el) {
+  if (!el) return;
+  if (el._shadowUp) { el._shadowUp(); return; }   // re-render: só recalcula
+  const up = () => {
+    const top = el.scrollTop > 4, bot = el.scrollTop + el.clientHeight < el.scrollHeight - 4;
+    const m = `linear-gradient(180deg, ${top ? 'transparent 0, #000 16px' : '#000 0'}, ${bot ? '#000 calc(100% - 16px), transparent 100%' : '#000 100%'})`;
+    el.style.maskImage = m; el.style.webkitMaskImage = m;
+  };
+  el._shadowUp = up;
+  el.addEventListener('scroll', up, { passive: true });
+  up();
+}
 // Filtros opção 1 (escolha do dono): "/" foca a busca — só quando não se está digitando.
 document.addEventListener('keydown', (e) => {
   if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -4355,7 +4599,7 @@ function renderImportsList() {
   }).join('');
   list.querySelectorAll('.imports-undo[data-batch]:not([disabled])').forEach(b => b.addEventListener('click', () => confirmUndoImport(b.dataset.batch)));
 }
-function openImportsModal() { renderImportsList(); $('importsModal')?.classList.add('show'); }
+function openImportsModal() { renderImportsList(); $('importsModal')?.classList.add('show'); attachScrollShadow($('importsList')); }
 function closeImportsModal() { $('importsModal')?.classList.remove('show'); }
 function confirmUndoImport(batchId) {
   const docs = (state.expenses || []).filter(e => e.batchId === batchId);
@@ -4635,6 +4879,7 @@ function renderImportReview() {
   const note = $('importLowNote');
   if (note) { if (lowN > 0) { note.textContent = ' · ' + t('imp.uncertain').replace('{n}', lowN); note.hidden = false; } else note.hidden = true; }
   $('importModal').classList.add('show');
+  attachScrollShadow($('importList'));   // UX P2: sombra de rolagem
   impUpdateConfirm();
 }
 // Abas por competência: quando o import junta várias faturas (vários meses),

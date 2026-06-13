@@ -512,3 +512,61 @@
 .exp-monthnav button { width: 34px; height: 34px; border-radius: 999px; border: 0; background: transparent; color: var(--ink-2); cursor: pointer; font-size: var(--fs-value); line-height: 1; transition: color .15s, background .15s; }
 .exp-monthnav button:hover { color: var(--on-accent); background: var(--purple); }
 .exp-monthnav .current { min-width: 130px; text-align: center; font-weight: 700; font-size: var(--fs-body-lg); color: var(--ink); font-family: 'Geist Mono', monospace; letter-spacing: .01em; }
+
+/* ===========================================================
+   UX aprovado (jun/2026) — auditoria sênior: 16 melhorias
+   =========================================================== */
+/* U6: cabeçalho de dia com subtotal (sub-abas Gastos/Ganhos) */
+.exp-day-tr td { padding: 0 !important; border: 0 !important; background: transparent !important; }
+.exp-day-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 10px 0 4px; padding: 6px 12px; background: var(--bg-elevated-2); border-radius: 9px; font: 700 10.5px 'Geist Mono', monospace; letter-spacing: .06em; color: var(--ink-2); }
+.exp-day-head .mono { color: var(--ink-3); }
+/* M5: termo da busca destacado */
+mark.hl { background: color-mix(in oklab, var(--purple) 32%, transparent); color: var(--ink); border-radius: 3px; padding: 0 1px; }
+/* M1: linha recém-salva acende e apaga */
+@keyframes rowFlash { 0% { background: color-mix(in oklab, var(--purple) 20%, transparent); } 100% { background: transparent; } }
+tr.row-flash td { animation: rowFlash 1.4s ease both; }
+/* U4: menu rápido de categoria */
+#quickCatMenu { position: absolute; z-index: 130; display: none; flex-direction: column; gap: 2px; width: 220px; max-height: 300px; overflow-y: auto; background: var(--bg-elevated-3); border: 1px solid var(--border-strong); border-radius: 12px; padding: 6px; box-shadow: var(--shadow-lg); }
+#quickCatMenu.show { display: flex; }
+#quickCatMenu button { display: flex; align-items: center; gap: 9px; border: 0; background: transparent; color: var(--ink-2); font: 600 var(--fs-caption) Inter, system-ui, sans-serif; padding: 8px 10px; border-radius: 8px; cursor: pointer; text-align: left; }
+#quickCatMenu button:hover { background: color-mix(in oklab, var(--cat-color, var(--purple)) 14%, transparent); color: var(--ink); }
+#quickCatMenu .qc-ic { display: inline-flex; color: var(--cat-color, var(--ink-3)); }
+#quickCatMenu .qc-ic svg, #quickCatMenu .qc-ic .icn { width: 14px; height: 14px; }
+.exp-cat-pill[data-quickcat]:not([data-quickcat=""]) { cursor: pointer; }
+/* U5: grade de meses */
+#monthPicker { position: absolute; z-index: 130; display: none; width: 242px; background: var(--bg-elevated-3); border: 1px solid var(--border-strong); border-radius: 14px; padding: 10px; box-shadow: var(--shadow-lg); }
+#monthPicker.show { display: block; }
+#monthPicker .mp-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+#monthPicker .mp-head b { font-size: var(--fs-body-lg); }
+#monthPicker .mp-head button { width: 30px; height: 30px; border: 0; background: transparent; color: var(--ink-2); border-radius: 8px; font-size: 16px; cursor: pointer; }
+#monthPicker .mp-head button:hover { background: var(--bg-elevated-2); color: var(--purple); }
+#monthPicker .mp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+#monthPicker .mp-grid button { border: 1px solid var(--border); background: transparent; color: var(--ink-2); font-size: var(--fs-caption); font-weight: 600; padding: 8px 0; border-radius: 8px; cursor: pointer; }
+#monthPicker .mp-grid button:hover { color: var(--ink); border-color: var(--border-strong); }
+#monthPicker .mp-grid button.on { background: var(--purple); color: var(--on-accent); border-color: var(--purple); }
+.exp-monthnav .current { cursor: pointer; }
+/* U1: FAB (só mobile, só na aba Despesas — o JS controla o hidden) */
+.fab-add { display: none; }
+.fab-add[hidden] { display: none !important; }
+@media (max-width: 719.98px) {
+  .fab-add { display: grid; place-items: center; position: fixed; right: 16px; bottom: calc(92px + env(safe-area-inset-bottom)); z-index: 90; width: 54px; height: 54px; border-radius: 50%; border: 0; background: linear-gradient(135deg, var(--purple), var(--purple-deep)); color: var(--on-accent); font-size: 28px; font-weight: 600; line-height: 1; cursor: pointer; box-shadow: 0 12px 28px -8px var(--purple-glow), 0 4px 10px rgba(0,0,0,.35); transition: transform .2s var(--ease-back); }
+  .fab-add:active { transform: scale(.92); }
+}
+/* U2: deslize visual na troca de mês por swipe */
+@keyframes swipeL { from { opacity: .4; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+@keyframes swipeR { from { opacity: .4; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
+#moduleExpenses.swipe-l > .exp-g-table, #moduleExpenses.swipe-l > .exp-g-cat { animation: swipeL .22s var(--ease-out); }
+#moduleExpenses.swipe-r > .exp-g-table, #moduleExpenses.swipe-r > .exp-g-cat { animation: swipeR .22s var(--ease-out); }
+/* M4: toque tátil — linhas e cards respondem ao dedo */
+.exp-table tbody tr[data-id], .exp-table tbody tr[data-recurring-id] { transition: background .12s; }
+.exp-table tbody tr[data-id]:active td, .exp-table tbody tr[data-recurring-id]:active td { background: var(--bg-elevated-2); }
+.cat-row.clickable, .imports-item, .exp-recent-row { transition: transform .12s var(--ease-out); }
+.cat-row.clickable:active, .imports-item:active, .exp-recent-row:active { transform: scale(.985); }
+/* U3: botão DESFAZER no toast */
+.toast .toast-undo { border: 0; background: transparent; color: var(--purple); font: 700 var(--fs-caption) Inter, system-ui, sans-serif; letter-spacing: .04em; cursor: pointer; margin-left: 10px; }
+.toast.has-undo { pointer-events: auto; }
+/* M6: indicador do pull-to-refresh */
+.ptr-ind { height: 0; overflow: hidden; text-align: center; font: 600 11px 'Geist Mono', monospace; color: var(--ink-3); transition: height .2s var(--ease-out); }
+/* P3: marca no vazio */
+.exp-empty .empty-mark { width: 52px; height: 52px; color: var(--purple); opacity: .32; margin-bottom: 8px; }
+.exp-empty .exp-empty-cta { margin-top: 14px; }

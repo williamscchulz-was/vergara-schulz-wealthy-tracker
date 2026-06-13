@@ -5,6 +5,19 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.2 — Lote UX aprovado: 16 melhorias de usabilidade/micro-interação (2026-06-12)
+- **Usabilidade**: FAB "+" na zona do polegar (mobile); swipe ⟵⟶ troca o mês; excluir
+  lançamento SEM modal (toast com DESFAZER 5s, regrava com o mesmo id); tocar na pill
+  de categoria troca ali mesmo (quickCatMenu); tocar no "Junho 2026" abre grade de 12
+  meses (monthPicker); sub-abas Gastos/Ganhos agrupadas por DIA com subtotal.
+- **Micro-interações**: Salvar morfa em ✓ e a linha salva/editada pisca lime
+  (_flashRowId); troca de aba 0.5s→0.22s; stats com count-up; press states em
+  linhas/cards; termo da busca destacado (mark.hl); pull-to-refresh no Investimentos
+  chama syncFromI10.
+- **Polimento**: datas humanas (hoje/ontem/dia-semana) na lista; sombras de rolagem
+  (attachScrollShadow) nas listas de import; empty state com a marca + CTA; inputs de
+  valor com inputmode decimal.
+
 ### v8.20 — Despesa fixa conta no saldo do mês (2026-06-07)
 - A instância projetada da recorrência agora tem `provisioned:false` → **entra no
   saldo do mês** (custo real), inclusive nos meses à frente (forecast). Antes ia
