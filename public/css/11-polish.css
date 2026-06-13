@@ -673,3 +673,43 @@ tr.row-flash td { animation: rowFlash 1.4s ease both; }
 .cd-foot-total b { font-size: var(--fs-value); color: var(--purple-light); font-variant-numeric: tabular-nums; }
 .cd-hint { font-size: var(--fs-micro); color: var(--ink-muted); }
 @media (max-width: 480px) { .cd-hint { display: none; } .cd-scroll { max-height: 58vh; } }
+
+/* ===========================================================
+   RESPONSIVIDADE (v9.5) — mobile hardening (auditoria 6 áreas).
+   ≤720 = mobile geral; ≤400 = estreito; ≤374 = iPhone SE/mini.
+   Telas ≥375px (layout já validado pelo dono) ficam intactas.
+   =========================================================== */
+@media (max-width: 719.98px) {
+  /* Toolbar de filtros: nada estoura — busca ocupa a linha toda, resto encolhe e quebra */
+  .exp-table-tools > * { min-width: 0; }
+  .exp-search { flex: 1 1 100% !important; }
+  .exp-filter { flex: 1 1 auto; max-width: 100%; }
+  /* Touch targets ≥ 40px (eram 32-34px) */
+  .month-nav button { width: 40px; height: 40px; }
+  .rz-nav button { width: 38px; height: 38px; }
+  /* min-widths que empurravam o layout pra fora em telas estreitas */
+  .updated { min-width: 0; }
+  .rz-period { min-width: 92px; }
+  /* mini-KPIs do hero: gap 30px vazava → respira sem estourar */
+  .hero-mini-kpis { gap: 14px 18px; }
+  /* iOS NÃO dá zoom ao focar input se a fonte for ≥16px */
+  .modal input, .modal select, .modal textarea,
+  .exp-search input, #recEditVal, #recEditCat { font-size: 16px !important; }
+  /* FAB com folga extra acima da ilha de navegação */
+  .fab-add { bottom: calc(104px + env(safe-area-inset-bottom)); }
+}
+@media (max-width: 400px) {
+  /* Tiles de Investimentos: 1 coluna (o 2+1 ainda apertava "Dólar/Aplicado") */
+  .inv-kpis.three { grid-template-columns: 1fr !important; }
+  .inv-kpis.three > .card:last-child { grid-column: auto !important; }
+  /* Modal: padding lateral menor pra ganhar largura útil */
+  .modal { padding-left: 16px; padding-right: 16px; }
+}
+@media (max-width: 374px) {
+  /* Números gigantes do hero não vazam em iPhone SE/mini e Androids pequenos */
+  .hero-amount .num, .exp-hero .amt #expHeroAmt { font-size: 32px !important; }
+  .rz-hero-amt { font-size: 30px !important; }
+  .page { padding-left: 12px; padding-right: 12px; }
+  /* sub-abas e chips mais compactos */
+  .exp-subnav button { padding: 9px 4px; font-size: 12px; }
+}

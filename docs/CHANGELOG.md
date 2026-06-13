@@ -5,6 +5,17 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.5 — Mobile hardening: auditoria de responsividade (2026-06-13)
+Auditoria de 6 áreas × larguras 320/360/390/414/768/desktop (workflow, 65 achados →
+temas reais; vários já cobertos por media queries existentes). Bloco em 11-polish,
+preservando ≥375px (layout já validado): toolbar de filtros não estoura (busca 100%,
+resto encolhe), touch targets 40px (month-nav/rz-nav eram 32-34), min-widths que
+empurravam (.updated 140px, .rz-period 130px) zerados/reduzidos, mini-KPIs gap 30→14px,
+inputs 16px (mata o zoom do iOS ao focar), FAB com folga sobre a ilha, tiles de
+Investimentos 1-col em ≤400, hero amount 32px em ≤374 (iPhone SE/mini), padding lateral
+menor em telas estreitas. Também: matching da propagação de fixa via satisfies()
+(funciona em fixas manuais, mata over-reach) + toast dedicado + cd-modal 94vw.
+
 ### v9.4 — Drill-down de categoria + categoria sincronizada nas fixas (2026-06-13)
 - **Drill-down**: clicar numa categoria no card "Por categoria" abre popup com TODOS os
   lançamentos dela no mês + soma de conferência (mesmo helper da barra → bate exato).
