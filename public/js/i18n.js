@@ -120,7 +120,7 @@ export const I18N = {
     // ---- Expenses tab (Fase B: i18n de verdade) ----
     'exp.section.title': 'Despesas',
     'exp.section.meta': 'Lançamentos e orçamento do mês',
-    'exp.new': '+ Nova despesa',
+    'exp.new': 'Despesa',
     'exp.hero.total': 'TOTAL DO MÊS',
     'exp.hero.balance': 'SALDO DO MÊS',
     'exp.hero.balance.sub': '{in} entraram · {out} saíram',
@@ -452,7 +452,7 @@ export const I18N = {
     // ---- Income/expense split ----
     'exp.type.expense': 'Saída',
     'exp.type.income': 'Ganho',
-    'exp.new.income': '+ Ganho',
+    'exp.new.income': 'Ganho',
     'exp.f.source': 'Fonte',
     'exp.modal.income.new.title': 'Novo ganho',
     'exp.modal.income.new.sub': 'Registre uma entrada. A fonte pode ser editada depois.',
@@ -462,6 +462,7 @@ export const I18N = {
     'exp.toast.income.saved': 'Ganho atualizado',
     'exp.toast.income.deleted': 'Ganho excluído',
     'exp.income.pill': 'Ganho',
+    'exp.prov.badge': 'Provisão',
     'exp.sources.salario': 'Salário',
     'exp.sources.freelance': 'Freelance',
     'exp.sources.distribuicao': 'Distribuição',
@@ -606,7 +607,7 @@ export const I18N = {
     // ---- Expenses tab ----
     'exp.section.title': 'Expenses',
     'exp.section.meta': 'Monthly spending and budget',
-    'exp.new': '+ New expense',
+    'exp.new': 'Expense',
     'exp.hero.total': 'MONTH TOTAL',
     'exp.hero.balance': 'MONTH BALANCE',
     'exp.hero.balance.sub': '{in} in · {out} out',
@@ -938,7 +939,7 @@ export const I18N = {
     // ---- Income/expense split ----
     'exp.type.expense': 'Expense',
     'exp.type.income': 'Income',
-    'exp.new.income': '+ Income',
+    'exp.new.income': 'Income',
     'exp.f.source': 'Source',
     'exp.modal.income.new.title': 'New income',
     'exp.modal.income.new.sub': 'Record an income. Source can be edited later.',
@@ -948,6 +949,7 @@ export const I18N = {
     'exp.toast.income.saved': 'Income updated',
     'exp.toast.income.deleted': 'Income deleted',
     'exp.income.pill': 'Income',
+    'exp.prov.badge': 'Provision',
     'exp.sources.salario': 'Salary',
     'exp.sources.freelance': 'Freelance',
     'exp.sources.distribuicao': 'Distribution',

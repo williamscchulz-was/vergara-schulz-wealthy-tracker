@@ -5,6 +5,27 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.9 — Pacote de polimento mobile (prints do dono) + categorias no desktop (2026-06-13)
+6 ajustes de mobile aprovados via mockup (before/after) + 1 de desktop:
+- **P1 Resumo (anual):** no celular o hero do gauge vira linha — gauge menor à esquerda
+  + Ganhos/Despesas/Poupado em coluna (rótulo·valor) com traço lime; some o "Poupado"
+  órfão e o espaço morto. (`11-polish` @media ≤480)
+- **P2 Nav + FAB:** o "+" (nova despesa) foi integrado à ilha de navegação como botão
+  (`.ms-add` no `.mode-switch`); o FAB solto (`.fab-add`) some no mobile — acaba a colisão
+  e o conteúdo escondido atrás da barra. (`index.html`, `11-polish`, `app.js`)
+- **P3 Provisão:** lançamento com "· provisão" na nota agora ganha selo **Provisão** (lime,
+  mesma pegada do "fixa") em vez de só sumir do texto. (`app.js`, `06-expenses`, `i18n`)
+- **P4 Filtros minimal (mobile):** Categoria/Pessoa/Origem + Fixas/Variáveis + CSV colapsam
+  atrás de um ícone de filtro (com contador); só busca + ícone ficam à vista. Desktop segue
+  com tudo inline (`exp-filters-pop` = `display:contents`). (`index.html`, `11-polish`, `app.js`)
+- **P5 Espaçamento:** o divisor "ESTE MÊS" tinha margem negativa herdada do desktop que colava
+  o card abaixo; no mobile vira margem positiva (respiro). (`11-polish` @media ≤719)
+- **P6 Painel:** "Importar fatura"/"Importações" viram ícones discretos; "+ Ganho"/"+ Nova
+  despesa" viram **Ganho** (ghost com seta) / **Despesa** (lime); sub-abas no mobile viram
+  linha única com sublinhado lime (era grade 2×2 de pílulas). (`index.html`, `11-polish`, `i18n`)
+- **Categorias no desktop:** o card "Por categoria" mostra TODAS as categorias (não capa em 8)
+  quando está ao lado da tabela — enche o vão branco. (`11-polish` @media ≥1000)
+
 ### v9.8 — Resumo: KPIs do ano em grid 2×2 no mobile (2026-06-13)
 Os 4 KPIs do ano (Ganhos/Despesas/Dividendos/Patrimônio) na aba Resumo voltam a ficar
 em grade 2×2 no celular — antes empilhavam em 1 coluna. Uma linha em 11-polish dentro do

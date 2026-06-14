@@ -125,6 +125,8 @@
 .exp-cat-more:hover { color: var(--purple); }
 /* Despesa fixa (recorrente) projetada: badge + linha levemente distinta */
 .exp-fixa-badge { display: inline-block; margin-left: 6px; font: 600 9px Inter, sans-serif; text-transform: uppercase; letter-spacing: .05em; color: var(--purple); background: var(--purple-soft); border: 1px solid var(--purple); border-radius: 5px; padding: 1px 5px; vertical-align: middle; white-space: nowrap; }
+/* P3 (v9.9): selo "Provisão" — lançamento provisionado (parcela futura conta como gasto) */
+.exp-prov-badge { display: inline-block; margin-left: 6px; font: 600 9px Inter, sans-serif; text-transform: uppercase; letter-spacing: .05em; color: var(--purple); background: var(--purple-soft); border: 1px solid var(--purple); border-radius: 6px; padding: 3px 7px; vertical-align: middle; white-space: nowrap; }
 .exp-table tr.is-recurring { opacity: .9; }
 .exp-repeat-toggle { display: flex; align-items: center; gap: var(--sp-2); cursor: pointer; font-size: var(--fs-body); color: var(--ink-2); user-select: none; }
 .exp-repeat-toggle input { width: 15px; height: 15px; accent-color: var(--purple); margin: 0; }
@@ -438,23 +440,23 @@
 /* Header group: + Ganho (secondary) next to + Nova despesa (primary) */
 .exp-add-group { display: inline-flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; }
 .exp-add-secondary, .exp-add-primary { display: flex; gap: var(--sp-2); align-items: center; }
+/* P6 (v9.9): Ganho limpo — ghost neutro com setinha verde (era um botão verde "estranho") */
 .btn-ghost.btn-add-income {
-  display: inline-flex; align-items: center; gap: 2px;
+  display: inline-flex; align-items: center; gap: 6px;
   padding: 9px 15px;
-  background: color-mix(in oklab, var(--gain) 16%, transparent);
-  border: 1px solid color-mix(in oklab, var(--gain) 45%, transparent);
-  color: var(--gain);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--ink);
   border-radius: var(--radius-pill);
   font-family: inherit;
-  font-size: var(--fs-caption); font-weight: 700; letter-spacing: 0.01em;
+  font-size: var(--fs-caption); font-weight: 600; letter-spacing: 0.01em;
   cursor: pointer;
-  box-shadow: 0 2px 10px color-mix(in oklab, var(--gain) 14%, transparent);
-  transition: background 0.18s var(--ease-out), border-color 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out);
+  transition: background 0.18s var(--ease-out), border-color 0.18s var(--ease-out);
 }
+.btn-ghost.btn-add-income .bi-arrow { color: var(--gain); flex-shrink: 0; }
 .btn-ghost.btn-add-income:hover {
-  background: color-mix(in oklab, var(--gain) 24%, transparent);
-  border-color: color-mix(in oklab, var(--gain) 62%, transparent);
-  box-shadow: 0 4px 16px color-mix(in oklab, var(--gain) 26%, transparent);
+  background: var(--bg-elevated-2);
+  border-color: var(--border-strong);
 }
 
 /* Owner segmented picker in modal */

@@ -190,6 +190,9 @@
 .exp-filter-clear[hidden] { display: none; }
 .btn-csv { width: 32px; height: 32px; padding: 0 !important; justify-content: center; border-radius: 9px; }
 .btn-csv span { display: none; }
+/* P4 (v9.9): no mobile os filtros colapsam atrás de um ícone (ver media query ≤480) */
+.exp-filters-pop { display: contents; }
+.exp-filter-toggle { display: none; }
 
 /* DS Fase 3: alvos de toque ≥44px nas ações frequentes do mobile */
 @media (max-width: 719.98px) {
@@ -231,6 +234,11 @@
   #moduleExpenses.active > .exp-g-table { grid-column: span 7; margin: 0; align-self: stretch; }
   #moduleExpenses.active > .exp-g-cat .cat-list { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; }
   #moduleExpenses.active > .exp-g-cat .exp-cat-more { margin-top: auto; }
+  /* Ideia 1 (v9.9): no desktop o card de categoria fica ao lado da tabela e sobrava
+     vão branco (só 8 cats). Mostra TODAS (não capa em 8) e esconde "Ver todas" — o
+     space-between distribui e enche a altura. No mobile segue capado (compacto). */
+  #moduleExpenses.active > .exp-g-cat .cat-list .exp-cat-extra { display: grid; }
+  #moduleExpenses.active > .exp-g-cat .cat-list .exp-cat-more { display: none; }
 }
 
 /* "Ver todas (N)" da tabela de despesas — mostra as primeiras, expande o resto */
@@ -265,8 +273,10 @@
 /* DS audit QW-3 (escolha do dono: opção B) — no celular a pílula estourava (~380px) e
    "Categorias" ficava clipada. Vira grade 2×2: tudo visível, alvo de toque grande. */
 @media (max-width: 480px) {
-  .exp-subnav { display: grid; grid-template-columns: 1fr 1fr; width: 100%; gap: 5px; border-radius: 16px; }
-  .exp-subnav button { padding: 10px 6px; border-radius: 11px; text-align: center; white-space: nowrap; }
+  /* P6 (v9.9): sub-abas viram linha única com sublinhado lime (rolável) */
+  .exp-subnav { display: flex; width: 100%; gap: 2px; padding: 0; background: transparent; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .exp-subnav button { flex: 0 0 auto; padding: 9px 12px; border-radius: 0 !important; text-align: center; white-space: nowrap; color: var(--ink-3); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .exp-subnav button.on { background: transparent; color: var(--ink); border-bottom-color: var(--purple); box-shadow: none; }
   .exp-subnav-row { gap: 10px; }
   .exp-monthnav { width: 100%; justify-content: center; }
 }
@@ -552,6 +562,14 @@ tr.row-flash td { animation: rowFlash 1.4s ease both; }
   .fab-add { display: grid; place-items: center; position: fixed; right: 16px; bottom: calc(92px + env(safe-area-inset-bottom)); z-index: 90; width: 54px; height: 54px; border-radius: 50%; border: 0; background: linear-gradient(135deg, var(--purple), var(--purple-deep)); color: var(--on-accent); font-size: 28px; font-weight: 600; line-height: 1; cursor: pointer; box-shadow: 0 12px 28px -8px var(--purple-glow), 0 4px 10px rgba(0,0,0,.35); transition: transform .2s var(--ease-back); }
   .fab-add:active { transform: scale(.92); }
 }
+/* P2 (v9.9): "+" integrado na ilha de navegação (substitui o FAB) */
+.ms-add { display: none; }
+@media (max-width: 719.98px) {
+  .mode-switch button[data-mode] { padding: 10px 16px !important; }
+  .ms-add { display: grid; place-items: center; width: 38px; height: 38px; margin-left: 2px; flex-shrink: 0; border: 0; border-radius: 50%; background: linear-gradient(135deg, var(--purple-light), var(--purple)); color: #1a1420; font-size: 23px; font-weight: 500; line-height: 1; cursor: pointer; box-shadow: 0 4px 12px var(--purple-glow); }
+  .ms-add:active { transform: scale(.92); }
+  .fab-add { display: none !important; }
+}
 /* U2: deslize visual na troca de mês por swipe */
 @keyframes swipeL { from { opacity: .4; transform: translateX(16px); } to { opacity: 1; transform: none; } }
 @keyframes swipeR { from { opacity: .4; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
@@ -771,19 +789,31 @@ tr.row-flash td { animation: rowFlash 1.4s ease both; }
 @media (max-width: 480px) {
   /* escolha do dono (grade 2×2): Importações|Importar em cima, +Ganho|+Nova despesa
      embaixo. Os 2 sub-grupos resolvem o caso de "Importações" oculto (3 botões) sem órfão. */
-  .section-head { flex-direction: column; align-items: stretch; gap: 12px; }
-  .section-head > div:first-child { width: 100%; }
-  .exp-add-group { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 100%; }
-  .exp-add-secondary { display: flex; gap: 8px; }
-  .exp-add-secondary button { flex: 1; }
-  .exp-add-primary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .exp-add-group button { width: 100%; min-height: 44px; white-space: nowrap; padding: 11px 14px; }
+  /* P6 (v9.9): topo do Painel — Importar/Importações viram ícones ao lado do título;
+     Ganho | Despesa num par limpo embaixo. */
+  .section-head { display: grid; grid-template-columns: 1fr auto; align-items: start; gap: 12px 8px; }
+  .section-head > div:first-child { grid-column: 1; }
+  .exp-add-group { display: contents; }
+  .exp-add-secondary { grid-column: 2; grid-row: 1; display: flex; gap: 6px; }
+  .exp-add-secondary button { flex: 0 0 auto; width: 38px; height: 38px; min-height: 0; padding: 0; justify-content: center; }
+  .exp-add-secondary button span { display: none; }
+  .exp-add-primary { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .exp-add-primary button { width: 100%; min-height: 44px; white-space: nowrap; padding: 11px 14px; justify-content: center; }
   /* QUEBRA: toolbar de filtros — busca full, selects 2-col, nat-filter linha própria, toque 40px */
   .exp-filter { flex: 1 1 calc(50% - 3px); max-width: none; padding: 7px 22px 7px 9px; font-size: 11px; min-height: 40px; }
   .exp-nat-filter { width: 100%; display: flex; flex-wrap: wrap; justify-content: space-between; }
   .exp-nat-filter button { flex: 1 1 auto; min-height: 40px; }
   .exp-filter-clear { min-height: 40px; }
   .btn-csv { width: 40px; height: 40px; }
+  /* P4 (v9.9): toolbar minimal — busca + ícone de filtro; o resto abre na folha */
+  .exp-search { flex: 1 1 auto !important; }
+  .exp-filter-toggle { display: grid; place-items: center; position: relative; width: 40px; height: 40px; flex: 0 0 auto; border: 1px solid var(--border); border-radius: 10px; background: transparent; color: var(--ink-2); cursor: pointer; }
+  .exp-filter-toggle.on { border-color: color-mix(in oklab, var(--purple) 45%, transparent); color: var(--purple); }
+  .exp-filter-toggle .ff-cnt { position: absolute; top: -6px; right: -6px; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 8px; background: var(--purple); color: var(--on-accent); font: 700 10px 'Geist Mono', monospace; display: grid; place-items: center; }
+  .exp-filters-pop { display: none; flex-basis: 100%; width: 100%; flex-wrap: wrap; gap: 8px; margin-top: 8px; padding: 12px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 14px; }
+  .exp-filters-pop.open { display: flex; }
+  /* P5 (v9.9): respiro do divisor "ESTE MÊS" (mata a margem negativa herdada do desktop) */
+  .inv-sec { margin: 18px 2px 11px; }
   /* QUEBRA: tiles de KPI — valor não quebra, label trunca */
   .ikpi.tile .ikpi-v { font-size: 20px; }
   .ikpi-k { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -797,7 +827,12 @@ tr.row-flash td { animation: rowFlash 1.4s ease both; }
   .hero-actions .btn-ghost { padding: 6px 10px; font-size: 11px; }
   /* QUEBRA: Resumo — bal/alloc colapsam, donut menor; KPIs ficam 2×2 */
   .rz-kpis2 { grid-template-columns: 1fr 1fr !important; }
-  .rz-bal { flex-direction: column; align-items: center; gap: 16px; }
+  /* P1 (v9.9): hero do Resumo — gauge menor à esquerda + stats em coluna à direita */
+  .rz-bal { flex-direction: row; align-items: center; gap: 14px; padding: 16px; }
+  .rz-bal .rz-gauge svg { width: 104px; height: 104px; }
+  .rz-bal .rz-gauge-c b { font-size: 23px; }
+  .rz-bal-info { gap: 10px; }
+  .rz-bal-eye { margin-bottom: 2px; }
   .rz-alloc { flex-direction: column; align-items: flex-start; gap: 12px; }
   .rz-donut, .rz-odonut { width: 120px !important; height: 120px !important; flex-shrink: 0; }
   /* QUEBRA: tabela de lançamentos — pill blindada, valor não vaza, padding menor */
@@ -819,7 +854,9 @@ tr.row-flash td { animation: rowFlash 1.4s ease both; }
   /* FEIO: header do Resumo empilha, stats 2-col, gráfico menor */
   .rz-head { flex-direction: column; align-items: stretch; gap: 10px; }
   .rz-seg, .rz-nav { width: 100%; }
-  .rz-bal-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 12px; }
+  .rz-bal-stats { display: flex; flex-direction: column; gap: 8px; margin-top: 2px; border-left: 2px solid var(--hero-num); padding-left: 12px; }
+  .rz-bal-stats > div { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .rz-bal-stats .v { font-size: 16px; margin-top: 0; }
   .rz-gbars { height: 120px; }
   /* topbar: nome trunca, botões compactos, nada estoura */
   .topbar-actions { gap: 8px; }

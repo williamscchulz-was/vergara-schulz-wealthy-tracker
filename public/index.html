@@ -178,6 +178,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="13" width="3" height="5"/><rect x="12" y="9" width="3" height="9"/><rect x="17" y="6" width="3" height="12"/></svg>
         <span data-i18n="tab.resumo">Resumo</span>
       </button>
+      <button class="ms-add" id="msAdd" type="button" aria-label="Nova despesa">+</button>
     </div>
 
     
@@ -190,11 +191,11 @@
         </div>
         <div class="exp-add-group">
           <div class="exp-add-secondary">
-            <button class="btn-ghost btn-imports" id="btnImports" data-i18n="imports.btn" title="Histórico de importações — desfaça qualquer lote" hidden>Importações</button>
-            <button class="btn-ghost" id="btnImportStatement" data-i18n="imp.btn" data-i18n-title="imp.title" title="Importar fatura do cartão (PDF)">Importar fatura</button>
+            <button class="btn-ghost btn-imports" id="btnImports" title="Histórico de importações — desfaça qualquer lote" aria-label="Importações" hidden><svg class="bi-ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.6-6.4M3 4v4h4"/></svg><span data-i18n="imports.btn">Importações</span></button>
+            <button class="btn-ghost" id="btnImportStatement" data-i18n-title="imp.title" title="Importar fatura do cartão (PDF)" aria-label="Importar fatura"><svg class="bi-ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg><span data-i18n="imp.btn">Importar fatura</span></button>
           </div>
           <div class="exp-add-primary">
-            <button class="btn-ghost btn-add-income" id="btnAddIncome" data-i18n="exp.new.income" title="Novo ganho">+ Ganho</button>
+            <button class="btn-ghost btn-add-income" id="btnAddIncome" title="Novo ganho"><svg class="bi-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg><span data-i18n="exp.new.income">Ganho</span></button>
             <button class="btn-primary" id="btnAddExpense" data-i18n="exp.new">+ Nova despesa</button>
           </div>
         </div>
@@ -296,33 +297,39 @@
               <input type="search" id="expSearch" data-i18n-ph="exp.search.ph" placeholder="Buscar descrição, categoria..." autocomplete="off" />
               <kbd class="srch-kbd" aria-hidden="true">/</kbd>
             </label>
-            <select id="expFilterCat" class="exp-filter" aria-label="Categoria"><option value="" data-i18n="exp.filter.cat.all">Categoria</option></select>
-            <select id="expFilterOwner" class="exp-filter" aria-label="Pessoa">
-              <option value="" data-i18n="exp.filter.owner.all">Pessoa</option>
-              <option value="william">William</option>
-              <option value="flavia">Flávia</option>
-              <option value="louise">Louise</option>
-              <option value="familia" data-i18n="exp.owner.familia">Família</option>
-            </select>
-            <!-- pedido do dono: separar o que veio do cartão de crédito do que é pix/conta -->
-            <select id="expFilterSource" class="exp-filter" aria-label="Origem">
-              <option value="" data-i18n="exp.filter.src.all">Origem</option>
-              <option value="cartao" data-i18n="exp.filter.src.card">Cartão</option>
-              <option value="conta" data-i18n="exp.filter.src.pix">Pix/Conta</option>
-              <option value="manual" data-i18n="exp.filter.src.manual">Manual</option>
-            </select>
-            <button type="button" class="exp-filter-clear" id="btnClearFilters" hidden>✕ <span data-i18n="exp.filter.clear">Limpar</span></button>
-            <!-- pedido da Flávia: separar fixas/variáveis num clique (substitui o select "Tipo";
-                 "Ganhos" tem sub-aba própria e "Saídas" é o default da tabela) -->
-            <div class="exp-nat-filter" role="radiogroup" aria-label="Fixas ou variáveis" id="expNatFilter">
-              <button type="button" data-nat="" class="on" role="radio" aria-checked="true" data-i18n="exp.filter.nat.all">Todas</button>
-              <button type="button" data-nat="fixa" role="radio" aria-checked="false" data-i18n="exp.filter.nat.fixa">Fixas</button>
-              <button type="button" data-nat="variavel" role="radio" aria-checked="false" data-i18n="exp.filter.nat.var">Variáveis</button>
-            </div>
-            <button class="btn-ghost btn-csv" id="btnExportCsv" title="Exportar CSV" data-i18n-title="exp.csv.title">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              <span data-i18n="exp.csv">CSV</span>
+            <!-- P4 (v9.9): no mobile, busca + este ícone; os controles abaixo colapsam na folha -->
+            <button type="button" class="exp-filter-toggle" id="btnFilterToggle" aria-label="Filtros" aria-expanded="false">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
+              <span class="ff-cnt" id="filterCount" hidden>0</span>
             </button>
+            <div class="exp-filters-pop" id="expFiltersPop">
+              <select id="expFilterCat" class="exp-filter" aria-label="Categoria"><option value="" data-i18n="exp.filter.cat.all">Categoria</option></select>
+              <select id="expFilterOwner" class="exp-filter" aria-label="Pessoa">
+                <option value="" data-i18n="exp.filter.owner.all">Pessoa</option>
+                <option value="william">William</option>
+                <option value="flavia">Flávia</option>
+                <option value="louise">Louise</option>
+                <option value="familia" data-i18n="exp.owner.familia">Família</option>
+              </select>
+              <!-- pedido do dono: separar o que veio do cartão de crédito do que é pix/conta -->
+              <select id="expFilterSource" class="exp-filter" aria-label="Origem">
+                <option value="" data-i18n="exp.filter.src.all">Origem</option>
+                <option value="cartao" data-i18n="exp.filter.src.card">Cartão</option>
+                <option value="conta" data-i18n="exp.filter.src.pix">Pix/Conta</option>
+                <option value="manual" data-i18n="exp.filter.src.manual">Manual</option>
+              </select>
+              <button type="button" class="exp-filter-clear" id="btnClearFilters" hidden>✕ <span data-i18n="exp.filter.clear">Limpar</span></button>
+              <!-- pedido da Flávia: separar fixas/variáveis num clique -->
+              <div class="exp-nat-filter" role="radiogroup" aria-label="Fixas ou variáveis" id="expNatFilter">
+                <button type="button" data-nat="" class="on" role="radio" aria-checked="true" data-i18n="exp.filter.nat.all">Todas</button>
+                <button type="button" data-nat="fixa" role="radio" aria-checked="false" data-i18n="exp.filter.nat.fixa">Fixas</button>
+                <button type="button" data-nat="variavel" role="radio" aria-checked="false" data-i18n="exp.filter.nat.var">Variáveis</button>
+              </div>
+              <button class="btn-ghost btn-csv" id="btnExportCsv" title="Exportar CSV" data-i18n-title="exp.csv.title">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span data-i18n="exp.csv">CSV</span>
+              </button>
+            </div>
           </div>
         </div>
         <div class="exp-total-bar" id="expTotalBar" hidden></div>

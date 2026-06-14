@@ -1294,7 +1294,8 @@ function renderExpenseTable(entries) {
   tbody.innerHTML = sorted.map((e, i) => {
     const meta = entryMeta(e);
     const isIn = isIncome(e);
-    const notes = (e.notes || '').replace(/\s*·\s*provis[aã]o\b/i, '').trim();   // provisão conta como gasto → sem o selo "provisão"
+    const isProv = /·\s*provis[aã]o\b/i.test(e.notes || '');
+    const notes = (e.notes || '').replace(/\s*·\s*provis[aã]o\b/i, '').trim();   // tira da nota → vira selo "Provisão"
     const ownerChip = ownerChipHtml(e);
     const descMain = `<div class="exp-row-desc">${_hi(e.description) || '—'}${ownerChip}</div>`;
     const descHtml = notes
@@ -1305,6 +1306,7 @@ function renderExpenseTable(entries) {
     const pillLabel = isIn ? t('exp.income.pill') : meta.label;
     const isV = e._virtual;
     const fixaBadge = isV ? `<span class="exp-fixa-badge">${e._future ? 'fixa · prevista' : 'fixa'}</span>` : '';
+    const provBadge = isProv ? `<span class="exp-prov-badge">${t('exp.prov.badge')}</span>` : '';   // P3 (v9.9)
     const extraCls = (!_showAll && sorted.length > TLIMIT && i >= TLIMIT) ? ' exp-row-extra' : '';
     const flashCls = (_flashRowId && e.id === _flashRowId) ? ' row-flash' : '';   // UX M1: linha recém-salva acende
     // UX U6: cabeçalho do dia (HOJE/ONTEM/SEX · 15/06 · subtotal do dia na visão atual)
@@ -1316,7 +1318,7 @@ function renderExpenseTable(entries) {
     }
     return dayHead + `<tr ${isV ? `data-recurring-id="${esc(e.recurringId)}"` : `data-id="${e.id}"`} class="${isIn ? 'is-income' : ''}${isV ? ' is-recurring' : ''}${extraCls}${flashCls}" style="--cat-color:${meta.color}">
       <td class="mono exp-row-date">${grouped ? '' : fmtDateHuman(e.date)}</td>
-      <td class="exp-row-desc-cell">${descHtml}${fixaBadge}</td>
+      <td class="exp-row-desc-cell">${descHtml}${fixaBadge}${provBadge}</td>
       <td class="exp-row-cat-cell"><span class="exp-cat-pill ${isIn ? 'is-income' : ''}" style="--cat-color:${meta.color}" data-quickcat="${isV ? '' : (e.id || '')}">${isIn ? '' : `<span class="exp-cat-pill-icon">${meta.icon}</span>`}${pillLabel}</span></td>
       <td class="mono exp-row-amt">${amtText}</td>
     </tr>`;
@@ -4024,9 +4026,11 @@ async function deleteYearly() {
 //                 EVENT LISTENERS
 // ============================================================
 // Mode switch
-document.querySelectorAll('.mode-switch button').forEach(b => {
+document.querySelectorAll('.mode-switch button[data-mode]').forEach(b => {
   b.addEventListener('click', () => switchMode(b.dataset.mode));
 });
+// P2 (v9.9): "+" dentro da ilha de navegação (substitui o FAB) → abre nova despesa
+$('msAdd')?.addEventListener('click', () => openExpenseModal(null));
 
 // Month navigation
 $('btnPrevMonth').addEventListener('click', () => {
@@ -4219,8 +4223,11 @@ $('expSearch')?.addEventListener('input', e => {
 });
 // Botão "Limpar filtros" (pedido do dono): aparece só quando há algo ativo; zera tudo num clique.
 function updateClearFiltersBtn() {
-  const any = !!(_expSearchQuery.trim() || _expFilters.cat || _expFilters.owner || _expFilters.nature || _expFilters.src);
+  const n = [_expFilters.cat, _expFilters.owner, _expFilters.nature, _expFilters.src].filter(Boolean).length;
+  const any = !!_expSearchQuery.trim() || n > 0;
   const b = $('btnClearFilters'); if (b) b.hidden = !any;
+  const c = $('filterCount'); if (c) { c.textContent = String(n); c.hidden = n === 0; }   // P4 (v9.9): contador no ícone
+  const tg = $('btnFilterToggle'); if (tg) tg.classList.toggle('on', n > 0);
 }
 function clearExpFilters() {
   _expSearchQuery = ''; if ($('expSearch')) $('expSearch').value = '';
@@ -4231,6 +4238,13 @@ function clearExpFilters() {
   renderExpenseTable(_lastMonthExp);
 }
 $('btnClearFilters')?.addEventListener('click', clearExpFilters);
+// P4 (v9.9): no mobile os filtros abrem por este botão (folha colapsável)
+$('btnFilterToggle')?.addEventListener('click', () => {
+  const pop = $('expFiltersPop'), tg = $('btnFilterToggle');
+  if (!pop) return;
+  const open = pop.classList.toggle('open');
+  if (tg) tg.setAttribute('aria-expanded', String(open));
+});
 
 // ===== UX aprovado (jun/2026): gestos, atalhos e polimento =====
 // U2: swipe ⟵⟶ na aba Despesas troca o mês (só toque; scroll vertical não dispara)
