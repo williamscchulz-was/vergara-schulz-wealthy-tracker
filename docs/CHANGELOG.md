@@ -5,6 +5,11 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.8 — Resumo: KPIs do ano em grid 2×2 no mobile (2026-06-13)
+Os 4 KPIs do ano (Ganhos/Despesas/Dividendos/Patrimônio) na aba Resumo voltam a ficar
+em grade 2×2 no celular — antes empilhavam em 1 coluna. Uma linha em 11-polish dentro do
+`@media (max-width:480px)`: `.rz-kpis2` passa de `1fr` para `1fr 1fr`. Verificado em 390px.
+
 ### v9.7 — Consertos mobile dos prints do dono (2026-06-13)
 Escolhas no mockup propostas-mobile-fix: (1) lista de lançamentos vira CARTÃO no
 celular (reflow da <table> via grid no <tr>: descrição+valor na 1ª linha — valor

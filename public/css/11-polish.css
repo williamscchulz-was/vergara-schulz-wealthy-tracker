@@ -795,8 +795,8 @@ tr.row-flash td { animation: rowFlash 1.4s ease both; }
   .louise-chip-var { flex-shrink: 0; white-space: nowrap; }
   .hero-actions { gap: 6px; flex-wrap: wrap; }
   .hero-actions .btn-ghost { padding: 6px 10px; font-size: 11px; }
-  /* QUEBRA: Resumo — kpis2/bal/alloc colapsam, donut menor */
-  .rz-kpis2 { grid-template-columns: 1fr !important; }
+  /* QUEBRA: Resumo — bal/alloc colapsam, donut menor; KPIs ficam 2×2 */
+  .rz-kpis2 { grid-template-columns: 1fr 1fr !important; }
   .rz-bal { flex-direction: column; align-items: center; gap: 16px; }
   .rz-alloc { flex-direction: column; align-items: flex-start; gap: 12px; }
   .rz-donut, .rz-odonut { width: 120px !important; height: 120px !important; flex-shrink: 0; }
