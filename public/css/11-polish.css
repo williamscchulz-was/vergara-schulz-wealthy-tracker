@@ -564,9 +564,11 @@ tr.row-flash td { animation: rowFlash 1.4s ease both; }
 }
 /* P2 (v9.9): "+" integrado na ilha de navegação (substitui o FAB) */
 .ms-add { display: none; }
+.ms-add[hidden] { display: none !important; }   /* só na aba Despesas (gating no switchMode) */
 @media (max-width: 719.98px) {
   .mode-switch button[data-mode] { padding: 10px 16px !important; }
-  .ms-add { display: grid; place-items: center; width: 38px; height: 38px; margin-left: 2px; flex-shrink: 0; border: 0; border-radius: 50%; background: linear-gradient(135deg, var(--purple-light), var(--purple)); color: #1a1420; font-size: 23px; font-weight: 500; line-height: 1; cursor: pointer; box-shadow: 0 4px 12px var(--purple-glow); }
+  /* "+" um pouco afastado dos 3 modos (é AÇÃO, não navegação) */
+  .ms-add { display: grid; place-items: center; width: 36px; height: 36px; margin-left: 8px; flex-shrink: 0; border: 0; border-radius: 50%; background: linear-gradient(135deg, var(--purple-light), var(--purple)); color: #1a1420; font-size: 22px; font-weight: 500; line-height: 1; cursor: pointer; box-shadow: 0 4px 12px var(--purple-glow); }
   .ms-add:active { transform: scale(.92); }
   .fab-add { display: none !important; }
 }

@@ -714,6 +714,8 @@ function renderResumo() {
   const goalYear = state.dividendsYearlyGoalYear || 2035;
   const goalPct = goal > 0 ? Math.min(100, divs / goal * 100) : 0;
   const falta = Math.max(0, goal - divs);
+  const goalSt = metaDivStatus();   // veredito REAL (projeção) — não mais hardcoded "dentro do plano"
+  const goalOk = goalSt !== 'behind';
 
   const vsTxt = (v, lbl) => v == null ? '' : (v >= 0 ? '↑' : '↓') + ' ' + Math.abs(v) + '% vs ' + lbl;
 
@@ -765,7 +767,7 @@ function renderResumo() {
         <div class="rz-card-h">${esc(t('rz.divgoal'))}<span class="more">${goalYear}</span></div>
         <div class="rz-note">${mc(divs)} ${esc(t('rz.of'))} <b>${mc(goal)}</b>/${esc(t('rz.year'))}</div>
         <div class="rz-goalbar"><i style="width:${goalPct.toFixed(1)}%"></i></div>
-        <div class="rz-note">${esc(t('rz.atpace'))} <b class="pos">${esc(t('rz.onplan'))}</b> · ${esc(t('rz.missing'))} ${mc(falta)}</div>
+        <div class="rz-note">${esc(t('rz.atpace'))} <b class="${goalOk ? 'pos' : 'neg'}">${esc(t(goalOk ? 'rz.onplan' : 'rz.offplan'))}</b> · ${esc(t('rz.missing'))} ${mc(falta)}</div>
       </div>
     </div>`;
   body.querySelectorAll('[data-rzview]').forEach(b => b.addEventListener('click', () => setResumoView(b.dataset.rzview)));
@@ -792,7 +794,10 @@ function switchMode(mode, opts = {}) {
   wireCardCollapse();   // botões de recolher (cobre Despesas + Investimentos)
   // UX U1 (review I): o FAB vive FORA do módulo (fixed dentro de elemento com animação
   // de transform fica preso ao módulo) — mostra/esconde conforme a aba.
-  if ($('fabAdd')) $('fabAdd').hidden = (mode !== 'expenses');
+  // O "+" (na ilha, v9.9 / ou FAB legado) abre "nova despesa" → só faz sentido na aba Despesas.
+  const onExp = (mode === 'expenses');
+  if ($('fabAdd')) $('fabAdd').hidden = !onExp;
+  if ($('msAdd')) $('msAdd').hidden = !onExp;
   // Persist this as the user's preferred default for next session.
   // `opts.persist === false` skips writing (used during the initial boot
   // so we don't overwrite the value we just read).
@@ -5846,6 +5851,18 @@ function i10Qty(ticker) {
   return a ? (+a.quantity || 0) : 0;
 }
 function metaClassify(fill, mark) { const d = fill - mark; return d >= 5 ? 'ahead' : d <= -5 ? 'behind' : 'ontrack'; }
+// Ritmo da meta de dividendos pela PROJEÇÃO real (aportes + DY + reinvestimento via
+// simulate), não pela régua linear ingênua. Unifica o veredito dos cards (Metas + Resumo):
+// dividendos crescem em bola de neve, então comparar progresso linear sempre diz "atrás".
+function metaDivStatus() {
+  try {
+    if (typeof simulate !== 'function' || typeof readSliders !== 'function') return 'ontrack';
+    const { metaHitYear } = simulate(readSliders());
+    if (metaHitYear === null || metaHitYear > TARGET_YEAR) return 'behind';   // não chega no prazo
+    if (metaHitYear <= TARGET_YEAR - 2) return 'ahead';                       // chega folgado
+    return 'ontrack';                                                          // chega no prazo
+  } catch (e) { return 'ontrack'; }
+}
 function saveShareGoals() {
   setDoc(docShareGoals, { goals: state.shareGoals, updatedAt: serverTimestamp() }, { merge: true })
     .catch(e => console.warn('[metas] save', e));
@@ -5881,7 +5898,7 @@ function renderMetas() {
   const divYear = +state.dividendsYearlyGoalYear || 2035;
   const divFill = divTgt > 0 ? divCur / divTgt * 100 : 0;
   const divMark = (nowY - META_DIV_START) / Math.max(1, (divYear - META_DIV_START)) * 100;
-  const divSt = metaClassify(divFill, divMark);
+  const divSt = metaDivStatus();   // ritmo pela PROJEÇÃO real (mesma conta do Resumo e do card de projeção)
   let html = _metaRow({
     id: 'div', type: 'dividends', name: esc(t('metas.dividends')), tile: 'DIV',
     sub: `${_metaCompact(divCur)} / ${_metaCompact(divTgt)} · ${esc(t('metas.perYear'))} · ${divYear}`,
