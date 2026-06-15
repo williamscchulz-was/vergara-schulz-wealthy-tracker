@@ -1,0 +1,67 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ledger · Card de rentabilidade do mês — mais claro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0c08;--panel:#14180f;--panel2:#1a1f14;--ink:#f3f4ee;--ink2:#b9bbae;--ink3:#9a9c90;--inkm:#8b8d81;--border:rgba(255,255,255,.08);--lime:#c7f73e;--gain:#4fdd8a;--on:#15170b}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;padding:30px 20px 80px;line-height:1.55}
+  h1{font-size:22px;margin:0 0 4px}.lead{color:var(--ink2);font-size:13.5px;margin:0 0 24px;max-width:760px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;max-width:920px}
+  .col h2{font-size:13.5px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+  .tag{font:700 9px Inter;letter-spacing:.06em;padding:3px 9px;border-radius:999px}
+  .tag.now{background:rgba(255,107,97,.16);color:#ff6b61}.tag.rec{background:rgba(199,247,62,.2);color:var(--lime)}.tag.alt{background:rgba(199,247,62,.12);color:var(--lime)}
+  /* card real (tile) */
+  .tile{background:var(--panel2);border:1px solid var(--border);border-radius:18px;padding:16px 18px}
+  .k{font:700 10px Inter;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
+  .dash{border-bottom:1px dashed var(--ink3);cursor:help}
+  .v{font:800 27px 'Geist Mono';letter-spacing:-.02em;margin-top:7px;color:var(--gain)}
+  .sub{font:500 11.5px 'Geist Mono';color:var(--inkm);margin-top:6px}
+  .sub b{color:var(--ink2);font-weight:600}
+  .row2{display:flex;gap:18px;margin-top:8px}
+  .row2 .it .kk{font:600 9px Inter;letter-spacing:.06em;text-transform:uppercase;color:var(--inkm)}
+  .row2 .it .vv{font:700 15px 'Geist Mono';margin-top:2px}
+  .why{font-size:11.5px;color:var(--ink3);margin-top:10px}.why b{color:var(--ink2)}
+  .pick{margin-top:34px;background:var(--panel);border:1px solid rgba(199,247,62,.45);border-radius:14px;padding:15px 17px;font-size:13px;max-width:920px}
+  .mono{font-family:'Geist Mono',monospace}
+</style></head>
+<body>
+<h1>Card de rentabilidade do mês — mais claro</h1>
+<p class="lead">O card de hoje mistura dois "%" de variação sem explicar. As propostas deixam claro que <b>+3,9% é o rendimento real</b> (sem aportes) e que <b>+6,5% é o número bruto do I10</b> (com aportes).</p>
+
+<div class="grid">
+  <div class="col"><h2><span class="tag now">HOJE</span> confuso</h2>
+    <div class="tile">
+      <div class="k">Variação no mês</div>
+      <div class="v">+3,9%</div>
+      <div class="sub">variação I10: +6,5%</div>
+    </div>
+    <div class="why">dois "%" de variação, sem dizer qual é qual nem por que diferem.</div>
+  </div>
+
+  <div class="col"><h2><span class="tag rec">A</span> renomear + sublabel (recomendado)</h2>
+    <div class="tile">
+      <div class="k"><span class="dash" title="Rendimento real da carteira no mês (Dietz): valorização + dividendos, descontando os aportes. O I10 mostra a variação bruta, que inclui o dinheiro que você aportou.">Rentabilidade do mês</span></div>
+      <div class="v">+3,9%</div>
+      <div class="sub"><b>rendimento real</b> · descontados aportes</div>
+    </div>
+    <div class="why">título honesto ("rentabilidade", não "variação") + sublabel explica. O <span class="mono" style="font-size:11px">+6,5%</span> do I10 some daqui (vira tooltip na linha pontilhada). Limpo.</div>
+  </div>
+
+  <div class="col"><h2><span class="tag alt">B</span> os dois, rotulados lado a lado</h2>
+    <div class="tile">
+      <div class="k"><span class="dash" title="Rendimento = quanto rendeu de fato (sem aportes). Bruto I10 = variação total da carteira, incluindo aportes.">Rentabilidade do mês</span></div>
+      <div class="row2">
+        <div class="it"><div class="kk">rendi</div><div class="vv" style="color:var(--gain)">+3,9%</div></div>
+        <div class="it"><div class="kk">bruto I10</div><div class="vv" style="color:var(--ink3)">+6,5%</div></div>
+      </div>
+      <div class="sub" style="margin-top:8px">a diferença ≈ teus aportes do mês</div>
+    </div>
+    <div class="why">mostra os dois, mas <b>cada um rotulado</b> ("rendi" vs "bruto I10") — você compara e entende a diferença na hora.</div>
+  </div>
+</div>
+
+<div class="pick">
+  → responde <b class="mono">"rentab A"</b> ou <b class="mono">"B"</b>. (A = mais limpo, esconde o I10 no tooltip; B = mostra os dois explicados.)<br>
+  <span style="color:var(--ink3);font-size:12px">Em qualquer uma, passar o dedo/mouse no título mostra a explicação completa do cálculo.</span>
+</div>
+</body></html>
