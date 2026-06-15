@@ -2432,28 +2432,10 @@ const deleteReserve     = () => deleteCash('reserves');
 // Cobre as DUAS estruturas: header dentro de .card-body (carteira/gráficos)
 // OU header direto no .card (cards de Despesas). Estado salvo no localStorage.
 function wireCardCollapse() {
-  document.querySelectorAll('#moduleInvestments .card, #moduleExpenses .card').forEach(function (card) {
-    const head = card.querySelector(':scope > .card-body > .card-head') || card.querySelector(':scope > .card-head');
-    if (!head) return;                                 // sem header → não recolhível (ikpi, ytd, etc.)
-    if (card.classList.contains('exp-g-cat') || card.classList.contains('exp-g-table')) return;  // conteúdo do bento — nunca colapsa (some no layout)
-    if (head.querySelector('.card-collapse')) return;  // já tem botão
-    const titleEl = head.querySelector('.eyebrow, h3, h2');
-    const key = 'cc:' + (((titleEl && titleEl.textContent) || head.textContent || '').trim().slice(0, 28));
-    const btn = document.createElement('button');
-    btn.type = 'button'; btn.className = 'card-collapse'; btn.setAttribute('aria-label', 'Minimizar');
-    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
-    btn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      const on = card.classList.toggle('is-collapsed');
-      try { localStorage.setItem(key, on ? '1' : '0'); } catch (_) {}   // '0' explícito: expandir também persiste
-    });
-    let saved = null; try { saved = localStorage.getItem(key); } catch (_) {}
-    // Histórico anual começa RECOLHIDO por padrão (pedido do dono) — até a pessoa abrir.
-    const _t = (((titleEl && titleEl.textContent) || '')).trim().toLowerCase();
-    const defaultCollapsed = _t.startsWith('histórico anual') || _t.startsWith('historico anual') || _t.startsWith('annual history');
-    if (saved === '1' || (saved === null && defaultCollapsed)) card.classList.add('is-collapsed');
-    head.appendChild(btn);
-  });
+  // Botões de expandir/recolher REMOVIDOS (pedido do dono, jun/2026). Limpa qualquer
+  // botão e estado recolhido antigo pra nenhum card ficar preso minimizado.
+  document.querySelectorAll('.card-collapse').forEach(b => b.remove());
+  document.querySelectorAll('.card.is-collapsed').forEach(c => c.classList.remove('is-collapsed'));
 }
 function renderInvestments() {
   const currentYear = new Date().getFullYear();
@@ -4882,6 +4864,11 @@ $('historyModal')?.addEventListener('click', e => { if (e.target.id === 'history
 $('cdClose')?.addEventListener('click', closeCategoryDetail);
 $('catDetailModal')?.addEventListener('click', e => { if (e.target.id === 'catDetailModal') closeCategoryDetail(); });
 
+// Rentabilidade mês a mês — abrir/fechar a tabela detalhada em popup (pedido do dono)
+$('mrTableBtn')?.addEventListener('click', () => { $('mrTableModal')?.classList.add('show'); attachScrollShadow($('mrTableScroll')); });
+$('mrTableClose')?.addEventListener('click', () => $('mrTableModal')?.classList.remove('show'));
+$('mrTableModal')?.addEventListener('click', e => { if (e.target.id === 'mrTableModal') $('mrTableModal').classList.remove('show'); });
+
 // ============================================================
 //  PROVENTOS DO I10 → GANHOS (ao vivo, sem arquivo).
 //  Puxa /i10/earnings-list/<wallet> (lista detalhada), filtra os JÁ PAGOS
@@ -5508,6 +5495,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     if (_scopeResolve) { finishScope('cancel'); return; }   // diálogo de escopo fecha primeiro
     if ($('catDetailModal')?.classList.contains('show')) { closeCategoryDetail(); return; }
+    if ($('mrTableModal')?.classList.contains('show')) { $('mrTableModal').classList.remove('show'); return; }
     closeExpenseModal();
     closeI10Modal();
     closeYearlyModal();

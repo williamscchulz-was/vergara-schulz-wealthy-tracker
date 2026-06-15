@@ -379,8 +379,9 @@
 .mr-badge.pos { color: var(--gain); border-color: color-mix(in oklab, var(--gain) 30%, transparent); background: color-mix(in oklab, var(--gain) 10%, transparent); }
 .mr-badge.neg { color: var(--loss); border-color: color-mix(in oklab, var(--loss) 30%, transparent); background: color-mix(in oklab, var(--loss) 10%, transparent); }
 
-.mr-table-details { margin-top: 10px; }
-.mr-table-details summary {
+/* "Ver tabela detalhada" — agora abre a tabela num popup (pedido do dono) */
+.mr-table-btn {
+  margin-top: 10px;
   display: inline-flex; align-items: center; gap: var(--sp-2);
   padding: 8px 14px;
   border-radius: var(--radius-pill);
@@ -392,12 +393,9 @@
   cursor: pointer;
   user-select: none;
   transition: all 0.18s var(--ease-out);
-  list-style: none;
 }
-.mr-table-details summary::-webkit-details-marker { display: none; }
-.mr-table-details summary:hover { background: var(--bg-elevated-3); color: var(--ink-2); }
-.mr-table-details summary .chev { width: 12px; height: 12px; transition: transform 0.22s var(--ease-out); }
-.mr-table-details[open] summary .chev { transform: rotate(90deg); }
+.mr-table-btn:hover { background: var(--bg-elevated-3); color: var(--ink-2); }
+.mr-table-btn .chev { width: 12px; height: 12px; }
 
 .mr-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 11.5px; font-family: 'Geist Mono', monospace; }
 .mr-table th { text-align: left; padding: 0 12px 10px; font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); border-bottom: 1px solid var(--border); }

@@ -590,28 +590,10 @@
             <svg id="mrChart" viewBox="0 0 700 200" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;aspect-ratio:700/200;display:block;overflow:visible"></svg>
           </div>
           <div id="mrEmpty" class="exp-empty" hidden></div>
-          <details class="mr-table-details">
-            <summary>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chev"><polyline points="9 18 15 12 9 6"/></svg>
-              <span data-i18n="mr.see.table">Ver tabela detalhada</span>
-            </summary>
-            <div class="table-wrap" style="margin-top:12px">
-              <table class="mr-table">
-                <thead>
-                  <tr>
-                    <th data-i18n="mr.th.month">Mês</th>
-                    <th class="mr-th-num" data-i18n="mr.th.start">PL início</th>
-                    <th class="mr-th-num" data-i18n="mr.th.end">PL fim</th>
-                    <th class="mr-th-num" data-i18n="mr.th.contrib">Aporte</th>
-                    <th class="mr-th-num" data-i18n="mr.th.divs">Proventos</th>
-                    <th class="mr-th-num" data-i18n="mr.th.retbrl">Retorno</th>
-                    <th class="mr-th-num" data-i18n="mr.th.retpct">%</th>
-                  </tr>
-                </thead>
-                <tbody id="mrTableBody"></tbody>
-              </table>
-            </div>
-          </details>
+          <button type="button" id="mrTableBtn" class="mr-table-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chev"><polyline points="9 18 15 12 9 6"/></svg>
+            <span data-i18n="mr.see.table">Ver tabela detalhada</span>
+          </button>
         </div>
       </div>
 
@@ -712,6 +694,31 @@
 </div>
 
 <!-- Drill-down de categoria (pedido do dono): todos os lançamentos da categoria + soma -->
+<!-- Rentabilidade mês a mês — tabela detalhada em popup (pedido do dono) -->
+<div class="modal-bg" id="mrTableModal"><div class="modal modal-wide" role="dialog" aria-modal="true">
+  <div class="card-head" style="margin-bottom:14px">
+    <div>
+      <h3 data-i18n="card.monthlyreturn">rentabilidade mês a mês</h3>
+      <p class="sub" style="margin:2px 0 0" data-i18n="sub.monthlyreturn">variação percentual sobre o PL, Dietz modificado + proventos</p>
+    </div>
+  </div>
+  <div class="table-wrap" id="mrTableScroll">
+    <table class="mr-table">
+      <thead><tr>
+        <th data-i18n="mr.th.month">Mês</th>
+        <th class="mr-th-num" data-i18n="mr.th.start">PL início</th>
+        <th class="mr-th-num" data-i18n="mr.th.end">PL fim</th>
+        <th class="mr-th-num" data-i18n="mr.th.contrib">Aporte</th>
+        <th class="mr-th-num" data-i18n="mr.th.divs">Proventos</th>
+        <th class="mr-th-num" data-i18n="mr.th.retbrl">Retorno</th>
+        <th class="mr-th-num" data-i18n="mr.th.retpct">%</th>
+      </tr></thead>
+      <tbody id="mrTableBody"></tbody>
+    </table>
+  </div>
+  <div class="modal-foot"><div class="spacer"></div><button class="btn-secondary" id="mrTableClose" data-i18n="imports.close">Fechar</button></div>
+</div></div>
+
 <div class="modal-bg" id="catDetailModal"><div class="modal modal-wide cd-modal" role="dialog" aria-modal="true">
   <div class="cd-head">
     <div class="cd-icon" id="cdIcon"></div>
