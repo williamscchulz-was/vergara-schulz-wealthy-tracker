@@ -852,6 +852,7 @@ tr.row-flash td { animation: rowFlash 1.4s ease both; }
   /* FEIO: breakdown de categoria — nome trunca, valor não vaza */
   .exp-cat-row { gap: 10px; }
   .exp-cat-v { flex-shrink: 0; max-width: 100px; }
+  .exp-cat-row.has-budget .exp-cat-v { max-width: 150px; }   /* review: "R$ X de R$ Y" precisa de mais espaço */
   .exp-cat-amt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   /* FEIO: header do Resumo empilha, stats 2-col, gráfico menor */
   .rz-head { flex-direction: column; align-items: stretch; gap: 10px; }

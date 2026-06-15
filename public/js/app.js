@@ -325,10 +325,12 @@ function shortMoney(n) {
 // Timer ÚNICO do #toast — showToast e showUndoToast compartilham o mesmo elemento;
 // timers anônimos antigos escondiam o DESFAZER antes da hora (review B).
 let _toastTimer = null;
+let _pendingToast = null;   // review: toast adiado enquanto a janela de DESFAZER está aberta
 function showToast(msg) {
   const t = $('toast');
-  // janela de DESFAZER ativa = rede de segurança do delete — toast informativo não a destrói
-  if (t.classList.contains('has-undo')) return;
+  // janela de DESFAZER ativa = rede de segurança do delete — não a destrói; ADIA o toast
+  // (em vez de descartá-lo) pra confirmação de cascata de fixa não sumir silenciosamente.
+  if (t.classList.contains('has-undo')) { _pendingToast = msg; return; }
   clearTimeout(_toastTimer);
   t.textContent = msg;
   t.classList.add('show');
@@ -995,6 +997,9 @@ function renderExpenses() {
 let _catBreakdownExp = [];   // dataset do card "Por categoria" (pro drill-down em popup)
 function renderCategoryBreakdown(monthExp, total) {
   _catBreakdownExp = monthExp;
+  // Popup de detalhe aberto → re-renderiza ao vivo a CADA snapshot, ANTES do early-return
+  // do mês vazio (senão ficava defasado quando o mês esvaziava). openCategoryDetail trata rows=[].
+  if (_cdOpenCat && $('catDetailModal')?.classList.contains('show')) openCategoryDetail(_cdOpenCat);
   const wrap = $('catList');
   const totalEl = $('expBudgetTotal');
   const budgets = state.budgets || {};
@@ -1035,7 +1040,10 @@ function renderCategoryBreakdown(monthExp, total) {
       ? `${fmtBRL0(val)} <span class="exp-cat-of">${t('exp.budget.of').replace('{limit}', fmtBRL0(limit))}</span>`
       : fmtBRL0(val);
 
-    return `<div class="exp-cat-row exp-cat-clickable${idx >= 8 ? ' exp-cat-extra' : ''}${overBudget ? ' over-budget' : ''}${limit > 0 ? ' has-budget' : ''}" data-cat="${esc(catKey)}" role="button" tabindex="0" style="--cat-color:${cat.color};--cat-delay:${0.05 + idx * 0.04}s">
+    // Só é clicável (drill-down) se houver gasto — categoria orçada com 0 não abre popup vazio (review)
+    const clickCls = val > 0 ? ' exp-cat-clickable' : '';
+    const clickAttrs = val > 0 ? ` data-cat="${esc(catKey)}" role="button" tabindex="0"` : '';
+    return `<div class="exp-cat-row${clickCls}${idx >= 8 ? ' exp-cat-extra' : ''}${overBudget ? ' over-budget' : ''}${limit > 0 ? ' has-budget' : ''}"${clickAttrs} style="--cat-color:${cat.color};--cat-delay:${0.05 + idx * 0.04}s">
       <div class="exp-cat-icon">${cat.icon}</div>
       <div class="exp-cat-meta">
         <div class="exp-cat-name">${cat.label}</div>
@@ -1060,8 +1068,6 @@ function renderCategoryBreakdown(monthExp, total) {
     row.addEventListener('click', () => openCategoryDetail(row.dataset.cat));
     row.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCategoryDetail(row.dataset.cat); } });
   });
-  // Popup de detalhe aberto + chegou snapshot novo → re-renderiza ao vivo (não fica defasado).
-  if (_cdOpenCat && $('catDetailModal')?.classList.contains('show')) openCategoryDetail(_cdOpenCat);
 
   // Footer: total spent vs total budgeted (across categories that have a limit)
   if (totalEl) {
@@ -1914,7 +1920,11 @@ let _savingExpense = false;   // guard de reentrância: Enter no campo chama sav
 async function saveExpense() {
   if (_savingExpense) return;
   _savingExpense = true;
-  try { await _saveExpenseInner(); } finally { _savingExpense = false; }
+  let scopePending = null;
+  try { scopePending = await _saveExpenseInner(); } finally { _savingExpense = false; }
+  // review: o diálogo de escopo (espera por input humano) roda FORA do guard de
+  // reentrância — senão _savingExpense ficava travado enquanto a bottom-sheet abria.
+  if (scopePending) await applyFixaCategoryScope(scopePending);
 }
 async function _saveExpenseInner() {
   const value = parseBRLInput($('expValue').value);
@@ -1973,7 +1983,7 @@ async function _saveExpenseInner() {
       // Fixa: a categoria mudou → guarda pra perguntar o ESCOPO (só esta / próximas / todas)
       // depois de fechar o modal. Casa pelo template via satisfies() (entry ORIGINAL).
       const recTpl = (type === 'expense' && entry && !grp && entry.category !== category) ? findRuleTemplateFor(entry) : null;
-      if (recTpl) scopePending = { tpl: recTpl, category, fromCat: entry.category, editedId: editingExpenseId, editedDate: entry.date || date };
+      if (recTpl) scopePending = { tpl: recTpl, category, fromCat: entry.category, editedId: editingExpenseId, editedDate: date || entry.date };   // review: data EFETIVA salva (se mudou)
       if (sibs.length) {
         await Promise.allSettled(sibs.map(s => setDoc(docExpense(s.id), { owner: _modalOwner, category, description, nature: _modalNature, updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'unknown' }, { merge: true })));
         showToast(t('exp.toast.cascade').replace('{n}', sibs.length + 1));
@@ -1989,14 +1999,16 @@ async function _saveExpenseInner() {
     btn.textContent = '✓';
     await new Promise(r => setTimeout(r, 380));
     closeExpenseModal();
-    if (scopePending) await applyFixaCategoryScope(scopePending);   // diálogo de escopo
+    return scopePending;   // review: o diálogo de escopo roda no wrapper, FORA do guard
   } catch (err) { console.error(err); showToast(t('toast.error.save')); }
   finally { btn.disabled = false; btn.textContent = originalLabel; }
 }
 
 // Pergunta o escopo (só esta / próximas / todas) e aplica a propagação de categoria.
 async function applyFixaCategoryScope({ tpl, category, fromCat, editedId, editedDate }) {
-  const d = state.currentViewMonth || new Date();
+  // review: o rótulo "apenas {mês}" deriva da DATA DO LANÇAMENTO (a mesma usada no corte
+  // 'future'), não do mês que o usuário está vendo — senão divergem.
+  const d = (editedDate && /^\d{4}-\d{2}-\d{2}$/.test(editedDate)) ? parseLocalDate(editedDate) : (state.currentViewMonth || new Date());
   const names = getLang() === 'en' ? MONTH_NAMES_EN : MONTH_NAMES_PT;
   const monthLabel = names[d.getMonth()] + ' ' + d.getFullYear();
   const fromLabel = (CATEGORIES[fromCat] || CATEGORIES.outros).label;
@@ -2042,15 +2054,21 @@ async function deleteExpense() {
 function showUndoToast(msg, onUndo) {
   const el = $('toast'); if (!el) return;
   clearTimeout(_toastTimer);   // mata qualquer timer de toast comum pendente
+  _pendingToast = null;        // o undo é a prioridade agora
   el.innerHTML = `${esc(msg)} <button type="button" class="toast-undo">${esc(t('exp.undo.action'))}</button>`;
   el.classList.add('show', 'has-undo');
   el.querySelector('.toast-undo').addEventListener('click', () => {
     clearTimeout(_toastTimer);
     el.classList.remove('show', 'has-undo');
     el.textContent = '';
+    _pendingToast = null;
     onUndo();
   });
-  _toastTimer = setTimeout(() => { el.classList.remove('show', 'has-undo'); setTimeout(() => { el.textContent = ''; }, 350); }, 5000);
+  // ao fechar a janela, mostra o toast adiado (ex.: "N repetições atualizadas") se houver
+  _toastTimer = setTimeout(() => {
+    el.classList.remove('show', 'has-undo');
+    setTimeout(() => { el.textContent = ''; if (_pendingToast) { const m = _pendingToast; _pendingToast = null; showToast(m); } }, 350);
+  }, 5000);
 }
 // ============================================================
 //                   INVESTMENTS MODULE
