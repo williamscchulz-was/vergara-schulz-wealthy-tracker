@@ -935,3 +935,10 @@ tr.row-flash td { animation: rowFlash 1.4s ease both; }
   .exp-table tbody tr.exp-day-tr, .exp-table tbody tr.exp-row-more-tr { display: block; }
   .exp-table tbody tr.exp-day-tr > td, .exp-table tbody tr.exp-row-more-tr > td { display: block; padding: 0; border: 0; }
 }
+
+/* Botão "atualizar cotação" no modal de dólar + aviso de cotação velha */
+.fx-refresh { display: inline-grid; place-items: center; width: 22px; height: 22px; margin-left: 4px; border: 0; border-radius: 50%; background: var(--bg-elevated-2); color: var(--purple); font-size: 13px; cursor: pointer; vertical-align: middle; transition: background .15s; }
+.fx-refresh:hover { background: var(--bg-elevated-3); }
+.fx-refresh.spin { animation: fxspin .8s linear infinite; }
+@keyframes fxspin { to { transform: rotate(360deg); } }
+.fx-stale { color: var(--warn); font-size: 11px; margin-top: 4px; }

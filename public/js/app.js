@@ -2075,14 +2075,25 @@ function showUndoToast(msg, onUndo) {
 // ============================================================
 
 // v8 Turno 8 — FX (USD holdings) render + edit
+function renderFxModalRate() {
+  const rate = +state.fx.rateUSD || 0;
+  const rEl = $('fxModalRate'); if (rEl) rEl.textContent = rate > 0 ? 'R$ ' + rate.toFixed(2).replace('.', ',') : '—';
+  const upd = state.fx.rateUpdatedAt;
+  const dEl = $('fxModalRateDate'); if (dEl) dEl.textContent = upd ? formatDateTimeBR(upd) : '';
+  // Aviso de cotação velha (> 2 dias) — a cotação não está atualizando sozinha.
+  const warn = $('fxStaleWarn');
+  if (warn) {
+    const d = upd ? (typeof upd.toDate === 'function' ? upd.toDate() : new Date(upd)) : null;
+    const ageDays = d && !isNaN(d) ? (Date.now() - d.getTime()) / 86400000 : 0;
+    if (ageDays > 2) { warn.hidden = false; warn.textContent = '⚠ cotação de ' + Math.round(ageDays) + ' dias atrás — toque em ↻ pra atualizar'; }
+    else warn.hidden = true;
+  }
+}
 function openFXModal() {
   const modal = document.getElementById('fxModal');
   if (!modal) return;
   document.getElementById('fxModalInput').value = (+state.fx.usd || 0).toString().replace('.', ',');
-  const rate = +state.fx.rateUSD || 0;
-  document.getElementById('fxModalRate').textContent = rate > 0 ? 'R$ ' + rate.toFixed(2).replace('.', ',') : '—';
-  const upd = state.fx.rateUpdatedAt;
-  document.getElementById('fxModalRateDate').textContent = upd ? formatDateTimeBR(upd) : '';
+  renderFxModalRate();
   modal.classList.add('show');
 }
 
@@ -2119,6 +2130,15 @@ async function saveFX() {
   document.getElementById('fxModalSave')?.addEventListener('click', () => {
     try { saveFX(); } catch (e) { console.error('saveFX failed:', e); }
   });
+  // Atualizar cotação manualmente (a auto-atualização depende do worker /fx/rate).
+  document.getElementById('fxRefreshBtn')?.addEventListener('click', async () => {
+    const btn = $('fxRefreshBtn'); if (!btn || btn.disabled) return;
+    btn.disabled = true; btn.classList.add('spin');
+    const res = await fetchFXRate();
+    btn.disabled = false; btn.classList.remove('spin');
+    if (res && res.ok) { renderFxModalRate(); showToast('Cotação atualizada: R$ ' + (+res.rate).toFixed(2).replace('.', ',')); }
+    else showToast('Não deu pra atualizar a cotação' + (res && res.reason ? ' (' + res.reason + ')' : ''));
+  });
   document.getElementById('fxModal')?.addEventListener('click', (e) => {
     if (e.target.id === 'fxModal') _close();
   });
@@ -2126,7 +2146,7 @@ async function saveFX() {
 
 async function fetchFXRate() {
   const workerUrl = state.i10Cfg.workerUrl || '';
-  if (!workerUrl) return;
+  if (!workerUrl) return { ok: false, reason: 'sem worker configurado' };
   try {
     const base = workerUrl.replace(/\/+$/, '');
     const r = await fetch(base + '/fx/rate', { headers: { 'Accept': 'application/json' } });
@@ -2139,9 +2159,12 @@ async function fetchFXRate() {
         rateUpdatedAt: data.rateUpdatedAt || new Date().toISOString(),
       }, { merge: true });
       console.log('FX rate refreshed \u2713', data.rateUSD);
+      return { ok: true, rate: +data.rateUSD, date: data.rateUpdatedAt };
     }
+    return { ok: false, reason: 'resposta sem cota\u00e7\u00e3o' };
   } catch (err) {
     console.warn('FX rate refresh failed:', err);
+    return { ok: false, reason: String(err.message || err) };
   }
 }
 

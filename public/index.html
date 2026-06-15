@@ -1012,7 +1012,8 @@
     <div class="field full">
       <label data-i18n="fx.f.usd">Quantidade em USD</label>
       <input type="text" id="fxModalInput" inputmode="decimal" placeholder="Ex: 10.000,00" autocomplete="off">
-      <div class="hint"><span data-i18n="fx.rate.label">Cotação atual:</span> <b id="fxModalRate">—</b> <span id="fxModalRateDate"></span></div>
+      <div class="hint"><span data-i18n="fx.rate.label">Cotação atual:</span> <b id="fxModalRate">—</b> <span id="fxModalRateDate"></span> <button type="button" id="fxRefreshBtn" class="fx-refresh" title="Atualizar cotação agora" aria-label="Atualizar cotação">↻</button></div>
+      <div class="hint fx-stale" id="fxStaleWarn" hidden></div>
     </div>
     <div class="modal-foot">
       <div class="spacer"></div>
