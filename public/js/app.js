@@ -2145,8 +2145,28 @@ async function saveFX() {
 })();
 
 async function fetchFXRate() {
+  // 1) DIRETO do AwesomeAPI \u2014 tem CORS '*', ent\u00e3o o browser busca sem o worker (que
+  //    estava dando HTTP 502 no /fx/rate, prov\u00e1vel bloqueio do IP Cloudflare).
+  try {
+    const r = await fetch('https://economia.awesomeapi.com.br/last/USD-BRL', { headers: { 'Accept': 'application/json' } });
+    if (r.ok) {
+      const d = await r.json();
+      const node = d && d.USDBRL;
+      if (node && node.bid) {
+        const rate = +node.bid;
+        const iso = node.create_date ? new Date(String(node.create_date).replace(' ', 'T')) : new Date();
+        await setDoc(docFx, {
+          rateUSD: rate, rateSource: 'awesomeapi-direct',
+          rateUpdatedAt: isNaN(iso) ? new Date().toISOString() : iso.toISOString(),
+        }, { merge: true });
+        console.log('FX rate refreshed \u2713 (direct)', rate);
+        return { ok: true, rate, date: node.create_date };
+      }
+    }
+  } catch (e) { console.warn('FX direct failed, trying worker:', e); }
+  // 2) Fallback: worker /fx/rate (cache de 15 min, quando estiver no ar)
   const workerUrl = state.i10Cfg.workerUrl || '';
-  if (!workerUrl) return { ok: false, reason: 'sem worker configurado' };
+  if (!workerUrl) return { ok: false, reason: 'fonte direta falhou e sem worker' };
   try {
     const base = workerUrl.replace(/\/+$/, '');
     const r = await fetch(base + '/fx/rate', { headers: { 'Accept': 'application/json' } });
@@ -2158,7 +2178,7 @@ async function fetchFXRate() {
         rateSource: data.rateSource || 'awesomeapi-bcb',
         rateUpdatedAt: data.rateUpdatedAt || new Date().toISOString(),
       }, { merge: true });
-      console.log('FX rate refreshed \u2713', data.rateUSD);
+      console.log('FX rate refreshed \u2713 (worker)', data.rateUSD);
       return { ok: true, rate: +data.rateUSD, date: data.rateUpdatedAt };
     }
     return { ok: false, reason: 'resposta sem cota\u00e7\u00e3o' };
