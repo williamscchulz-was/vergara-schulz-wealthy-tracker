@@ -2530,8 +2530,10 @@ function renderInvestments() {
     $('heroVar').textContent = _moTxt || '—';
     $('heroVar').className = 'ikpi-v ' + ((_moPct || 0) >= 0 ? 'pos' : 'neg');
   }
-  const _i10Var = +state.i10.variation || 0;   // métrica crua do I10 fica visível no sub, sem alegar período
-  if ($('heroVarSub')) $('heroVarSub').textContent = _i10Var ? ('variação I10: ' + (_i10Var >= 0 ? '+' : '') + _i10Var.toFixed(1).replace('.', ',') + '%') : '';
+  // Sub: explica que é rentabilidade LÍQUIDA (Dietz). Removido o "variação I10" cru —
+  // métrica de período próprio do I10 que confundia (dono, jun/2026). O TWR acumulado
+  // continua no card "Lucro (TWR)".
+  if ($('heroVarSub')) $('heroVarSub').textContent = (_moPct !== null) ? (getLang() === 'en' ? 'net · ex-contributions' : 'líquida · descontados aportes') : '';
   const _pill = $('heroMonthPill');
   if (_pill) { if (_moTxt) { _pill.hidden = false; _pill.textContent = _moTxt + ' no mês'; } else _pill.hidden = true; }
   if ($('heroUsd')) $('heroUsd').textContent = 'US$ ' + (+state.fx.usd || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
