@@ -1,0 +1,66 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ledger · Por que descontar o aporte da rentabilidade</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0c08;--panel:#14180f;--panel2:#1a1f14;--ink:#f3f4ee;--ink2:#b9bbae;--ink3:#9a9c90;--inkm:#8b8d81;--border:rgba(255,255,255,.08);--lime:#c7f73e;--gain:#4fdd8a;--on:#15170b;--apo:#7d8aa0}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;padding:30px 20px 80px;line-height:1.6}
+  .wrap{max-width:640px;margin:0 auto}
+  h1{font-size:23px;margin:0 0 6px;letter-spacing:-.02em}
+  .lead{color:var(--ink2);font-size:14px;margin:0 0 26px}
+  .mono{font-family:'Geist Mono',monospace}
+  .step{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
+  .num{width:26px;height:26px;border-radius:50%;background:var(--panel2);border:1px solid var(--border);display:grid;place-items:center;font:700 12px Inter;color:var(--ink2);flex-shrink:0;margin-top:2px}
+  .step .tx{font-size:14px;color:var(--ink2)}.step .tx b{color:var(--ink)}
+  /* barra empilhada */
+  .barcard{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:20px;margin:24px 0}
+  .barlab{font:700 10px Inter;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:14px}
+  .bar{display:flex;height:60px;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+  .seg{display:flex;flex-direction:column;justify-content:center;align-items:center;color:var(--on);font-weight:700;position:relative}
+  .seg .sv{font:700 15px 'Geist Mono'}.seg .sl{font:600 9px Inter;letter-spacing:.04em;text-transform:uppercase;opacity:.85;margin-top:2px}
+  .seg.base{background:#2a3340;color:var(--ink);flex:100}
+  .seg.apo{background:var(--apo);flex:26;color:#0c0f09}
+  .seg.rend{background:linear-gradient(135deg,var(--gain),#3fb574);flex:39;color:#06210f}
+  .leg{display:flex;gap:16px;margin-top:14px;flex-wrap:wrap;font-size:12px;color:var(--ink2)}
+  .leg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  .res{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}
+  .rc{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:14px 16px}
+  .rc .q{font-size:11.5px;color:var(--ink3);min-height:34px}
+  .rc .a{font:800 26px 'Geist Mono';margin-top:6px}
+  .rc.i10 .a{color:var(--ink2)}.rc.real .a{color:var(--gain)}
+  .rc .note{font-size:10.5px;color:var(--inkm);margin-top:4px}
+  .kicker{background:var(--panel);border:1px solid rgba(199,247,62,.4);border-radius:14px;padding:15px 17px;font-size:14px;margin-top:26px}
+  .kicker b{color:var(--lime)}
+</style></head>
+<body><div class="wrap">
+<h1>Por que se "desconta o aporte" da rentabilidade</h1>
+<p class="lead">Rentabilidade = quanto o dinheiro <b>rendeu</b>. Aporte é você transferindo do bolso pra carteira — não é rendimento. Veja com teus números:</p>
+
+<div class="step"><div class="num">1</div><div class="tx">No começo do mês a carteira tinha <b class="mono">R$ 100</b> (escala simplificada).</div></div>
+<div class="step"><div class="num">2</div><div class="tx">Você <b>aportou R$ 2,60</b> do salário — <b>dinheiro seu entrando</b>, não lucro.</div></div>
+<div class="step"><div class="num">3</div><div class="tx">Os investimentos <b>renderam R$ 3,90</b> (valorização + dividendos) — <b>esse é o lucro</b>.</div></div>
+<div class="step"><div class="num">4</div><div class="tx">Fim do mês: <b class="mono">R$ 106,50</b>.</div></div>
+
+<div class="barcard">
+  <div class="barlab">de onde vieram os R$ 106,50</div>
+  <div class="bar">
+    <div class="seg base"><span class="sv">R$ 100</span><span class="sl">já estava lá</span></div>
+    <div class="seg apo"><span class="sv">+2,60</span><span class="sl">aporte</span></div>
+    <div class="seg rend"><span class="sv">+3,90</span><span class="sl">rendeu</span></div>
+  </div>
+  <div class="leg">
+    <span><i style="background:#2a3340"></i>capital inicial</span>
+    <span><i style="background:var(--apo)"></i>aporte (seu dinheiro)</span>
+    <span><i style="background:var(--gain)"></i>rendimento (lucro real)</span>
+  </div>
+</div>
+
+<div class="res">
+  <div class="rc i10"><div class="q">"Quanto minha carteira <b>cresceu</b> no total?"</div><div class="a">+6,5%</div><div class="note">= R$ 6,50 / 100 · <b>inclui o aporte</b> (é o que o I10 mostra)</div></div>
+  <div class="rc real"><div class="q">"Quanto meus investimentos <b>renderam</b>?"</div><div class="a">+3,9%</div><div class="note">= R$ 3,90 / 100 · <b>só o lucro</b> (a rentabilidade de verdade)</div></div>
+</div>
+
+<div class="kicker">
+  Se <b>não</b> descontasse o aporte, bastava pôr muito dinheiro pra "parecer" que rendeu muito — uma mentira. Por isso toda corretora séria mede assim (método <b>Dietz</b>). Os dois números estão certos; só respondem perguntas diferentes. Pra <b>rentabilidade</b>, o honesto é o <b>+3,9%</b>.
+</div>
+</div></body></html>
