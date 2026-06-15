@@ -2144,6 +2144,7 @@ async function saveFX() {
   });
 })();
 
+let _fxAutoChecked = false;   // garante que o auto-refresh do c\u00e2mbio no boot roda s\u00f3 1\u00d7 por sess\u00e3o
 async function fetchFXRate() {
   // 1) DIRETO do AwesomeAPI \u2014 tem CORS '*', ent\u00e3o o browser busca sem o worker (que
   //    estava dando HTTP 502 no /fx/rate, prov\u00e1vel bloqueio do IP Cloudflare).
@@ -5576,6 +5577,13 @@ function subscribeAll() {
       // renderI10Assets. (Old renderFX() was dead+broken — it targeted
       // ids that don't exist and threw, blocking this re-render.)
       if (state.mode === 'investments') renderInvestments();
+      // AO ABRIR O APP: se a cotação está velha (> 8h), atualiza sozinha (1×). Throttle de
+      // 8h → no uso normal dá ~1×/dia e não martela a API ao reabrir. (pedido do dono)
+      if (!_fxAutoChecked) {
+        _fxAutoChecked = true;
+        const ageH = upd ? (Date.now() - (upd instanceof Date ? upd : new Date(upd)).getTime()) / 3600000 : 999;
+        if (ageH > 8) fetchFXRate().catch(() => {});
+      }
     }
   });
   unsub.i10Louise = onSnapshot(docI10Louise, (snap) => {
