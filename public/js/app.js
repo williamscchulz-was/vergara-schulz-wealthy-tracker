@@ -1194,7 +1194,7 @@ function renderRecentList(entries) {
 // on the same dataset without re-querying state.
 let _lastMonthExp = [];
 let _expSearchQuery = '';
-let _expFilters = { cat: '', owner: '', nature: '', src: '' };
+let _expFilters = { cat: '', owner: '', nature: '', src: '', pay: '' };
 // Origem do lançamento (filtro Cartão × Pix/Conta × Manual, pedido do dono)
 function entrySourceKind(e) {
   const s = String(e.source || '');
@@ -1252,11 +1252,12 @@ function renderExpenseTable(entries) {
     : entries;
 
   // Filtros (categoria / pessoa / tipo / origem) — combinam com a busca de texto
-  const fc = _expFilters.cat, fo = _expFilters.owner, ft = _expFilters.nature, fsrc = _expFilters.src;
+  const fc = _expFilters.cat, fo = _expFilters.owner, ft = _expFilters.nature, fsrc = _expFilters.src, fpay = _expFilters.pay;
   let result = filtered;
   if (fc) result = result.filter(e => (e.category || 'outros') === fc);
   if (fo) result = result.filter(e => (e.owner === 'joint' ? 'familia' : (e.owner || 'familia')) === fo);
   if (fsrc) result = result.filter(e => entrySourceKind(e) === fsrc);
+  if (fpay) result = result.filter(e => (e.payMethod || '') === fpay);   // P-Pix/Cartão: filtro Forma de pagamento
   // Sub-aba Ganhos = só ganhos; senão DESPESAS por padrão (ganhos via filtro "Ganho").
   if (state.expSub === 'ganhos' || ft === 'ganho') result = result.filter(e => isIncome(e));
   else {
@@ -4354,7 +4355,7 @@ $('expSearch')?.addEventListener('input', e => {
 });
 // Botão "Limpar filtros" (pedido do dono): aparece só quando há algo ativo; zera tudo num clique.
 function updateClearFiltersBtn() {
-  const n = [_expFilters.cat, _expFilters.owner, _expFilters.nature, _expFilters.src].filter(Boolean).length;
+  const n = [_expFilters.cat, _expFilters.owner, _expFilters.nature, _expFilters.src, _expFilters.pay].filter(Boolean).length;
   const any = !!_expSearchQuery.trim() || n > 0;
   const b = $('btnClearFilters'); if (b) b.hidden = !any;
   const c = $('filterCount'); if (c) { c.textContent = String(n); c.hidden = n === 0; }   // P4 (v9.9): contador no ícone
@@ -4362,8 +4363,8 @@ function updateClearFiltersBtn() {
 }
 function clearExpFilters() {
   _expSearchQuery = ''; if ($('expSearch')) $('expSearch').value = '';
-  _expFilters = { cat: '', owner: '', nature: '', src: '' };
-  ['expFilterCat', 'expFilterOwner', 'expFilterSource'].forEach(id => { const el = $(id); if (el) { el.value = ''; el.classList.remove('on'); } });
+  _expFilters = { cat: '', owner: '', nature: '', src: '', pay: '' };
+  ['expFilterCat', 'expFilterOwner', 'expFilterSource', 'expFilterPay'].forEach(id => { const el = $(id); if (el) { el.value = ''; el.classList.remove('on'); } });
   document.querySelectorAll('#expNatFilter button').forEach(x => { const on = !x.dataset.nat; x.classList.toggle('on', on); x.setAttribute('aria-checked', String(on)); });
   updateClearFiltersBtn();
   renderExpenseTable(_lastMonthExp);
@@ -4480,12 +4481,13 @@ document.addEventListener('keydown', (e) => {
   if (s && s.offsetParent) { e.preventDefault(); s.focus(); }
 });
 // Filtros da listagem (categoria / pessoa / tipo)
-['expFilterCat', 'expFilterOwner', 'expFilterSource'].forEach(id => {
+['expFilterCat', 'expFilterOwner', 'expFilterSource', 'expFilterPay'].forEach(id => {
   $(id)?.addEventListener('change', e => {
     const v = e.target.value;
     if (id === 'expFilterCat') _expFilters.cat = v;
     else if (id === 'expFilterOwner') _expFilters.owner = v;
-    else _expFilters.src = v;
+    else if (id === 'expFilterSource') _expFilters.src = v;
+    else _expFilters.pay = v;
     e.target.classList.toggle('on', !!v);
     updateClearFiltersBtn();
     renderExpenseTable(_lastMonthExp);

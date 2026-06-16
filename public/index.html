@@ -318,6 +318,12 @@
                 <option value="conta" data-i18n="exp.filter.src.pix">Pix/Conta</option>
                 <option value="manual" data-i18n="exp.filter.src.manual">Manual</option>
               </select>
+              <select id="expFilterPay" class="exp-filter" aria-label="Forma de pagamento">
+                <option value="" data-i18n="exp.filter.pay.all">Forma de pagamento</option>
+                <option value="cartao" data-i18n="exp.pay.cartao">Cartão</option>
+                <option value="conta" data-i18n="exp.pay.pix">Pix</option>
+                <option value="manual" data-i18n="exp.pay.dinheiro">Dinheiro</option>
+              </select>
               <button type="button" class="exp-filter-clear" id="btnClearFilters" hidden>✕ <span data-i18n="exp.filter.clear">Limpar</span></button>
               <!-- pedido da Flávia: separar fixas/variáveis num clique -->
               <div class="exp-nat-filter" role="radiogroup" aria-label="Fixas ou variáveis" id="expNatFilter">
