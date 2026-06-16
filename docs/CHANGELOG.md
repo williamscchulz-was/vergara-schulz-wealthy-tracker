@@ -5,6 +5,13 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.14 — Origem "Manual" = não importado (corrige a semântica da v9.13) (2026-06-16)
+A v9.13 gravava a forma de pagamento do lançamento **manual** na própria Origem (cartão→"Cartão"),
+tirando-o do filtro **"Manual"**. Correção (Opção 1, pedido do dono): **"Manual" = tudo lançado na mão**.
+- Lançamento manual fica **sempre** com `source: 'manual'` → cai no filtro "Manual" (independente da forma de pagamento). Editar um **importado** preserva a origem original dele.
+- A **forma de pagamento** vai num campo separado `payMethod` (não mexe mais na Origem) e **aparece na linha**: "via cartão" / "via Pix" / "em dinheiro".
+- (`app.js`: `data.source`/`payMethod`, `openExpenseModal` lê `payMethod`, render do sub-line)
+
 ### v9.13 — Forma de pagamento no lançamento manual + menu rápido no "+" da nav (2026-06-15)
 - **Forma de pagamento (manual):** o modal de despesa ganha um campo **Cartão · Pix · Dinheiro**
   que grava a Origem (`source`: cartao/conta/manual). Antes a Origem só vinha do import; agora o

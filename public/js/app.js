@@ -1309,8 +1309,11 @@ function renderExpenseTable(entries) {
     const notes = (e.notes || '').replace(/\s*·\s*provis[aã]o\b/i, '').trim();   // tira da nota → vira selo "Provisão"
     const ownerChip = ownerChipHtml(e);
     const descMain = `<div class="exp-row-desc">${_hi(e.description) || '—'}${ownerChip}</div>`;
-    const descHtml = notes
-      ? `${descMain}<div class="exp-row-notes" title="${esc(notes)}">${esc(notes)}</div>`
+    // P-Pix/Cartão (Opção 1): forma de pagamento aparece na linha (lançamentos manuais)
+    const payHint = (!isV && !isIn && e.payMethod) ? ({ cartao: 'via cartão', conta: 'via Pix', manual: 'em dinheiro' }[e.payMethod] || '') : '';
+    const subLine = [notes, payHint].filter(Boolean).join(' · ');
+    const descHtml = subLine
+      ? `${descMain}<div class="exp-row-notes" title="${esc(subLine)}">${esc(subLine)}</div>`
       : descMain;
     const amt = (+e.value || 0);
     const amtText = isIn ? `+ ${fmtBRL(amt)}` : fmtBRL(amt);
@@ -1811,7 +1814,7 @@ function openExpenseModal(id = null, opts = {}) {
     setModalType(type);
     setModalOwner(e.owner || 'familia');
     setModalNature(e.nature || 'variavel');
-    setModalPay(entrySourceKind(e));
+    setModalPay(e.payMethod || 'cartao');
     $('expDesc').value = e.description || '';
     $('expValue').value = fmtBRLInput(e.value);
     $('expDate').value = e.date || '';
@@ -1974,7 +1977,8 @@ async function _saveExpenseInner() {
     type, description, value, date, category, notes,
     owner: _modalOwner,
     nature: type === 'income' ? null : _modalNature,
-    source: type === 'income' ? null : _modalPay,
+    source: type === 'income' ? null : (editingExpenseId ? ((state.expenses || []).find(x => x.id === editingExpenseId)?.source || 'manual') : 'manual'),
+    payMethod: type === 'income' ? null : _modalPay,
     updatedAt: serverTimestamp(),
     updatedBy: state.user?.displayName || 'unknown',
   };
