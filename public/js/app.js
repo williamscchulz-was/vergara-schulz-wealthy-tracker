@@ -1746,7 +1746,7 @@ function setModalOwner(owner) {
 let _modalNature = 'variavel';  // 'variavel' | 'fixa' (despesa fixa vs variável)
 function setModalNature(nat) {
   _modalNature = nat === 'fixa' ? 'fixa' : 'variavel';
-  document.querySelectorAll('#expenseModal .exp-nat-opt').forEach(b => {
+  document.querySelectorAll('#expNatureField .exp-nat-opt').forEach(b => {
     const on = b.dataset.nature === _modalNature;
     b.classList.toggle('active', on);
     b.setAttribute('aria-checked', String(on));
@@ -1754,6 +1754,18 @@ function setModalNature(nat) {
   // Fixa ⇒ repete todo mês automaticamente (sem checkbox). Mostra só o "até quando" opcional.
   const rf = $('expRepeatField');
   if (rf) rf.hidden = _modalNature !== 'fixa';
+}
+
+// P-Pix/Cartão: forma de pagamento do lançamento manual → grava em `source`
+// ('cartao' | 'conta' | 'manual'), que o filtro de Origem já entende (entrySourceKind).
+let _modalPay = 'cartao';
+function setModalPay(pay) {
+  _modalPay = (pay === 'conta' || pay === 'manual') ? pay : 'cartao';
+  document.querySelectorAll('#expPayField .exp-nat-opt').forEach(b => {
+    const on = b.dataset.pay === _modalPay;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-checked', String(on));
+  });
 }
 
 // Toggle the modal's internal state between expense and income. Swaps
@@ -1769,6 +1781,7 @@ function setModalType(type) {
   $('expCategoryField').hidden = _modalType === 'income';
   $('expSourceField').hidden = _modalType !== 'income';
   { const _nf = $('expNatureField'); if (_nf) _nf.hidden = _modalType === 'income'; }  // fixa/variável só faz sentido em despesa
+  { const _pf = $('expPayField'); if (_pf) _pf.hidden = _modalType === 'income'; }  // forma de pagamento só em despesa
   // Ganho enxuto: esconde descrição-texto, de-quem e notas (fica só dropdown + valor + data)
   { const _df = $('expDescField'); if (_df) _df.hidden = _modalType === 'income'; }
   { const _of = $('expOwnerField'); if (_of) _of.hidden = _modalType === 'income'; }
@@ -1798,6 +1811,7 @@ function openExpenseModal(id = null, opts = {}) {
     setModalType(type);
     setModalOwner(e.owner || 'familia');
     setModalNature(e.nature || 'variavel');
+    setModalPay(entrySourceKind(e));
     $('expDesc').value = e.description || '';
     $('expValue').value = fmtBRLInput(e.value);
     $('expDate').value = e.date || '';
@@ -1810,6 +1824,7 @@ function openExpenseModal(id = null, opts = {}) {
     setModalType(opts.type === 'income' ? 'income' : 'expense');
     setModalOwner(ownerFromUser(state.user));
     setModalNature('variavel');
+    setModalPay('cartao');
     $('expDesc').value = '';
     $('expValue').value = '';
     $('expDate').value = today.toISOString().split('T')[0];
@@ -1959,6 +1974,7 @@ async function _saveExpenseInner() {
     type, description, value, date, category, notes,
     owner: _modalOwner,
     nature: type === 'income' ? null : _modalNature,
+    source: type === 'income' ? null : _modalPay,
     updatedAt: serverTimestamp(),
     updatedBy: state.user?.displayName || 'unknown',
   };
@@ -4123,8 +4139,25 @@ async function deleteYearly() {
 document.querySelectorAll('.mode-switch button[data-mode]').forEach(b => {
   b.addEventListener('click', () => switchMode(b.dataset.mode));
 });
-// P2 (v9.9): "+" dentro da ilha de navegação (substitui o FAB) → abre nova despesa
-$('msAdd')?.addEventListener('click', () => openExpenseModal(null));
+// P-nav: "+" da ilha → menu rápido (Nova despesa / Novo ganho), de qualquer aba
+function openAddMenu(anchor) {
+  let m = document.getElementById('addQuickMenu');
+  if (!m) {
+    m = document.createElement('div'); m.id = 'addQuickMenu';
+    m.innerHTML = `<button type="button" data-add="expense"><span class="aq-dot exp"></span>${esc(t('exp.modal.new.title'))}</button>`
+      + `<button type="button" data-add="income"><span class="aq-dot inc"></span>${esc(t('exp.modal.income.new.title'))}</button>`;
+    document.body.appendChild(m);
+    document.addEventListener('click', (e) => { if (m && !m.contains(e.target) && e.target !== anchor) m.classList.remove('show'); });
+    m.querySelectorAll('button[data-add]').forEach(b => b.addEventListener('click', (e) => {
+      e.stopPropagation(); m.classList.remove('show'); openExpenseModal(null, { type: b.dataset.add });
+    }));
+  }
+  const r = anchor.getBoundingClientRect();
+  m.style.left = Math.max(8, Math.min(window.innerWidth - 188, r.left - 60)) + 'px';
+  m.style.bottom = (window.innerHeight - r.top + 10) + 'px';   // logo acima do "+"
+  m.classList.toggle('show');
+}
+$('msAdd')?.addEventListener('click', (ev) => { ev.stopPropagation(); openAddMenu($('msAdd')); });
 
 // Month navigation
 $('btnPrevMonth').addEventListener('click', () => {
@@ -5488,9 +5521,13 @@ document.querySelectorAll('#expenseModal .exp-type-opt').forEach(btn => {
 document.querySelectorAll('#expenseModal .exp-owner-opt').forEach(btn => {
   btn.addEventListener('click', () => setModalOwner(btn.dataset.owner));
 });
-// Modal fixa/variável picker
-document.querySelectorAll('#expenseModal .exp-nat-opt').forEach(btn => {
+// Modal fixa/variável picker (escopado ao próprio campo p/ não pegar o de pagamento)
+document.querySelectorAll('#expNatureField .exp-nat-opt').forEach(btn => {
   btn.addEventListener('click', () => setModalNature(btn.dataset.nature));
+});
+// Modal forma de pagamento picker (P-Pix/Cartão)
+document.querySelectorAll('#expPayField .exp-nat-opt').forEach(btn => {
+  btn.addEventListener('click', () => setModalPay(btn.dataset.pay));
 });
 $('expCancel').addEventListener('click', closeExpenseModal);
 $('expSave').addEventListener('click', saveExpense);

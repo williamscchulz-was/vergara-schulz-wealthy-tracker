@@ -837,6 +837,13 @@
         <button type="button" class="exp-nat-opt" data-nature="fixa" role="radio" aria-checked="false" data-i18n="exp.nature.fixa">Fixa</button>
       </div>
     </div>
+    <div class="field full" id="expPayField"><label data-i18n="exp.f.pay">Forma de pagamento</label>
+      <div class="exp-nat-seg exp-pay-seg" role="radiogroup" aria-label="Forma de pagamento">
+        <button type="button" class="exp-nat-opt active" data-pay="cartao" role="radio" aria-checked="true" data-i18n="exp.pay.cartao">Cartão</button>
+        <button type="button" class="exp-nat-opt" data-pay="conta" role="radio" aria-checked="false" data-i18n="exp.pay.pix">Pix</button>
+        <button type="button" class="exp-nat-opt" data-pay="manual" role="radio" aria-checked="false" data-i18n="exp.pay.dinheiro">Dinheiro</button>
+      </div>
+    </div>
     <div class="field full" id="expRepeatField" hidden>
       <label data-i18n="exp.f.repeat.until">Repete todo mês — até quando? <span style="text-transform:none;letter-spacing:0;color:var(--ink-3)">(opcional)</span></label>
       <input type="month" id="expRepeatUntil">

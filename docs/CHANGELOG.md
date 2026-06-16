@@ -5,6 +5,16 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.13 — Forma de pagamento no lançamento manual + menu rápido no "+" da nav (2026-06-15)
+- **Forma de pagamento (manual):** o modal de despesa ganha um campo **Cartão · Pix · Dinheiro**
+  que grava a Origem (`source`: cartao/conta/manual). Antes a Origem só vinha do import; agora o
+  filtro de Origem vale pros lançamentos manuais também. (`index.html` `#expPayField`, `app.js`
+  `setModalPay` + `data.source`, `i18n` `exp.pay.*`)
+- **"+" da nav vira menu rápido:** no mobile, tocar no "+" da ilha abre **Nova despesa / Novo ganho**
+  (de qualquer aba) em vez de ir direto pra despesa. No desktop o "+" segue escondido. (`app.js`
+  `openAddMenu`, `06-expenses.css` `#addQuickMenu`)
+- **Pendência registrada:** Node 20 nos GitHub Actions (ver §6 do CLAUDE.md) — atualizar antes de set/2026.
+
 ### v9.12 — Animação no app: pills pulsam ao mudar categoria em cascata (2026-06-15)
 Quando a categoria de uma fixa muda em **cascata** (escopo "todas"/"próximas"), as pills das
 linhas afetadas **visíveis no mês** dão um pulso na cor nova (`.cat-flash`, mesma pegada do
