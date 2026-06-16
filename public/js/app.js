@@ -1330,7 +1330,7 @@ function renderExpenseTable(entries) {
     return dayHead + `<tr ${isV ? `data-recurring-id="${esc(e.recurringId)}"` : `data-id="${e.id}"`} class="${isIn ? 'is-income' : ''}${isV ? ' is-recurring' : ''}${extraCls}${flashCls}" style="--cat-color:${meta.color}">
       <td class="mono exp-row-date">${grouped ? '' : fmtDateHuman(e.date)}</td>
       <td class="exp-row-desc-cell">${descHtml}${fixaBadge}${provBadge}</td>
-      <td class="exp-row-cat-cell"><span class="exp-cat-pill ${isIn ? 'is-income' : ''}" style="--cat-color:${meta.color}" data-quickcat="${isV ? '' : (e.id || '')}"${(isV && !isIn) ? ` data-fixacat="${esc(e.recurringId)}" data-fixadate="${esc(e.date)}"` : ''}>${isIn ? '' : `<span class="exp-cat-pill-icon">${meta.icon}</span>`}${pillLabel}</span></td>
+      <td class="exp-row-cat-cell"><span class="exp-cat-pill ${isIn ? 'is-income' : ''}${(e.id && _flashCatIds.has(e.id)) ? ' cat-flash' : ''}" style="--cat-color:${meta.color}" data-quickcat="${isV ? '' : (e.id || '')}"${(isV && !isIn) ? ` data-fixacat="${esc(e.recurringId)}" data-fixadate="${esc(e.date)}"` : ''}>${isIn ? '' : `<span class="exp-cat-pill-icon">${meta.icon}</span>`}${pillLabel}</span></td>
       <td class="mono exp-row-amt">${amtText}</td>
     </tr>`;
   }).join('') + ((sorted.length > TLIMIT && state.expSub !== 'lancamentos' && state.expSub !== 'ganhos')
@@ -1355,6 +1355,7 @@ function renderExpenseTable(entries) {
   if (_moreBtn) _moreBtn.addEventListener('click', () => setExpSub('lancamentos'));   // abre a sub-aba Lançamentos
   // UX M1: o flash vale pra UM render — depois apaga sozinho
   if (_flashRowId && tbody.querySelector('.row-flash')) { const fid = _flashRowId; setTimeout(() => { if (_flashRowId === fid) _flashRowId = null; }, 1500); }
+  if (_flashCatIds.size && tbody.querySelector('.cat-flash')) setTimeout(() => _flashCatIds.clear(), 1500);   // P-fixa: cascade anima 1×
 }
 // ---- UX P1: datas humanas (hoje/ontem/dia da semana) na lista ----
 const WEEKDAYS_PT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
@@ -1386,6 +1387,8 @@ function dayHeadLabel(iso) {
 }
 // ---- UX M1: flash da linha recém-salva ----
 let _flashRowId = null;
+// P-fixa: ids das linhas cuja categoria mudou em CASCATA → animam (.cat-flash) no próximo render
+const _flashCatIds = new Set();
 // ---- UX U4: menu rápido de categoria (popover único, reposicionado) ----
 function openQuickCatMenu(anchor, expenseId, onPick) {
   let m = document.getElementById('quickCatMenu');
@@ -1888,6 +1891,7 @@ async function propagateCategoryToTemplate(tpl, category, excludeId, sinceDate) 
     ...(tpl.category !== category ? [setDoc(docRecurring(tpl.id), { category, updatedAt: serverTimestamp() }, { merge: true })] : []),
   ];
   if (!ops.length) return 0;
+  reais.forEach(s => _flashCatIds.add(s.id)); if (excludeId) _flashCatIds.add(excludeId);   // P-fixa: anima as linhas afetadas no próximo render
   await Promise.allSettled(ops);
   return reais.length;
 }

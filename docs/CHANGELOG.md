@@ -5,6 +5,12 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.12 — Animação no app: pills pulsam ao mudar categoria em cascata (2026-06-15)
+Quando a categoria de uma fixa muda em **cascata** (escopo "todas"/"próximas"), as pills das
+linhas afetadas **visíveis no mês** dão um pulso na cor nova (`.cat-flash`, mesma pegada do
+`row-flash`). Feedback visual de que mudou em várias de uma vez. Respeita `prefers-reduced-motion`.
+(`app.js`: `_flashCatIds` populado em `propagateCategoryToTemplate`; `11-polish.css`: `@keyframes catFlash`)
+
 ### v9.11 — Import de parcela: não duplica mais quando os centavos mudam (2026-06-15)
 A **provisão** de uma parcela (valor estimado) e o **lançamento real** (valor cobrado) duplicavam
 quando diferiam por centavos (ex.: 1.497,**02** vs 1.497,**03**) — o fingerprint da parcela inclui

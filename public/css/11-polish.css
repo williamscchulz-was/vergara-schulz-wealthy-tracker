@@ -535,6 +535,15 @@ mark.hl { background: color-mix(in oklab, var(--purple) 32%, transparent); color
 /* M1: linha recém-salva acende e apaga */
 @keyframes rowFlash { 0% { background: color-mix(in oklab, var(--purple) 20%, transparent); } 100% { background: transparent; } }
 tr.row-flash td { animation: rowFlash 1.4s ease both; }
+/* P-fixa: quando a categoria muda em CASCATA (escopo "todas"/"próximas"), as pills
+   afetadas pulsam na cor NOVA — feedback de que mudou em várias de uma vez. */
+@keyframes catFlash {
+  0%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--cat-color) 55%, transparent); }
+  28%  { box-shadow: 0 0 0 4px color-mix(in oklab, var(--cat-color) 28%, transparent); background: color-mix(in oklab, var(--cat-color) 40%, transparent); }
+  100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
+}
+.exp-cat-pill.cat-flash { animation: catFlash 1s var(--ease-out, ease) 1; }
+@media (prefers-reduced-motion: reduce) { .exp-cat-pill.cat-flash { animation: none; } }
 /* U4: menu rápido de categoria */
 #quickCatMenu { position: absolute; z-index: 130; display: none; flex-direction: column; gap: 2px; width: 220px; max-height: 300px; overflow-y: auto; background: var(--bg-elevated-3); border: 1px solid var(--border-strong); border-radius: 12px; padding: 6px; box-shadow: var(--shadow-lg); }
 #quickCatMenu.show { display: flex; }
