@@ -5,7 +5,7 @@
 import { app, auth, db, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, doc, getDoc, setDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, writeBatch } from "./firebase.js";
 import { I18N } from "./i18n.js";
 import { ICONS, CATEGORIES, INCOME_SOURCES, INCOME_OPTS, MONTH_NAMES_PT, MONTH_NAMES_EN } from "./constants.js";
-import { IMP_GATEWAY, IMP_UF, IMP_STOP, impNormalize, impTokens, impRuleKey, impToISO, impFp, parseBRMoney } from "./import-core.js";
+import { IMP_GATEWAY, IMP_UF, IMP_STOP, impNormalize, impTokens, impRuleKey, impToISO, impFp, parseBRMoney, matchInstallmentProvision } from "./import-core.js";
 import { projectMonth as projectRecurring, satisfies as satisfiesRule, toYM, ymOf } from "./recurring-core.js";
 
 // ============================================================
@@ -5234,6 +5234,14 @@ async function doImport() {
   const checks = [...document.querySelectorAll('#importList .imp-row input[type="checkbox"]:checked')];
   const batchId = 'b' + Date.now().toString(36);   // marca o lote pra permitir desfazer só este import
   const batch = []; let provCount = 0; const learned = {};
+  // P-parcela (jun/2026): reconcilia parcela REAL ↔ PROVISÃO já existente (mesmo estabelecimento
+  // + k/Y + mês), ignorando centavos → converte a provisão em vez de duplicar. Root cause: o
+  // fpBase da parcela inclui valor+data-âncora, que mudam entre a provisão (estimada) e o real.
+  const provsLeft = (state.expenses || [])
+    .filter(e => e.provisioned && e.installment && e.installment.total && e.competencia && (e.type || 'expense') === 'expense')
+    .map(e => ({ id: e.id, descKey: impRuleKey(e.description || ''), k: +e.installment.k, total: +e.installment.total, comp: e.competencia, value: +e.value || 0 }));
+  const provConsumed = new Set();
+  const reconUpdates = [];   // provisões convertidas em real: {id, patch}
   // Pedido do dono (jun/2026): fixas detectadas no import criam a REGRA de recorrência
   // → entram sozinhas todo mês (projeção), e a fatura futura reconcilia via ruleKey.
   const recTemplates = []; const _recSeen = new Set();
@@ -5286,11 +5294,20 @@ async function doImport() {
       const descKey = impRuleKey(tx.desc);             // chave normalizada (mais entropia que slice cru)
       for (let k = X; k <= Y; k++) {
         const off = k - X, prov = off > 0;
+        const compK = compStr(tx, off);
+        // P-parcela: já existe PROVISÃO desta parcela (estab + k/Y + mês)? casa em vez de duplicar
+        // (tolera centavos). Real → converte a provisão em real; provisão → mantém a existente.
+        const m = descKey ? matchInstallmentProvision({ descKey, k, total: Y, comp: compK, value: tx.value }, provsLeft.filter(p => !provConsumed.has(p.id))) : null;
+        if (m) {
+          provConsumed.add(m.id);
+          if (!prov) reconUpdates.push({ id: m.id, patch: { provisioned: false, value: tx.value, date: realDate, competencia: compK, category, owner, nature: nat, source: base.source, installment: { k, total: Y }, notes: [cardNote, `parcela ${k}/${Y}`].filter(Boolean).join(' · '), updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'import' } });
+          continue;   // já existe (provisão convertida ou mantida) → não duplica
+        }
         // base ancorada à compra-mãe (descKey + valor + data real) → não colide com outra compra de mesmo prefixo
         const got = fpFor(`parc|${descKey}|${valKey}|${realDate}|${k}/${Y}`);
         if (!got) continue;
         if (prov) provCount++;
-        batch.push({ ...base, date: off === 0 ? realDate : monthISO(tx, off), competencia: compStr(tx, off), fp: got.fp, fpBase: got.fpBase, provisioned: prov, installment: { k, total: Y },
+        batch.push({ ...base, date: off === 0 ? realDate : monthISO(tx, off), competencia: compK, fp: got.fp, fpBase: got.fpBase, provisioned: prov, installment: { k, total: Y },
           notes: [cardNote, `parcela ${k}/${Y}` + (prov ? ' · provisão' : '')].filter(Boolean).join(' · ') });
       }
     } else {
@@ -5300,7 +5317,7 @@ async function doImport() {
       batch.push({ ...base, date: realDate, competencia: compStr(tx, 0), fp: got.fp, fpBase: got.fpBase, notes: cardNote });
     }
   }
-  if (!batch.length) { showToast(t('imp.alldup')); return; }
+  if (!batch.length && !reconUpdates.length) { showToast(t('imp.alldup')); return; }
   // memória que aprende: guarda as escolhas (estabelecimento → categoria/de-quem) pro próximo import
   // Defesa extra: nunca mandar chave vazia (o setDoc VALIDA síncrono e LANÇA na
   // hora — não rejeita — então sem o try um dado inválido abortaria o import).
@@ -5327,7 +5344,11 @@ async function doImport() {
     for (let i = 0; i < batch.length; i += 450) {
       const wb = writeBatch(db);
       for (const d of batch.slice(i, i + 450)) wb.set(doc(colExpenses()), d);
+      if (i === 0) for (const u of reconUpdates) wb.update(docExpense(u.id), u.patch);   // P-parcela: converte provisões na 1ª leva
       await wb.commit();
+    }
+    if (!batch.length && reconUpdates.length) {   // só reconciliação (nenhum doc novo) → grava as conversões
+      const wb = writeBatch(db); for (const u of reconUpdates) wb.update(docExpense(u.id), u.patch); await wb.commit();
     }
     // Navega a aba Despesas pro mês (competência) dos lançamentos importados — senão
     // parece que "não subiu nada" quando a fatura é de um mês diferente do que está aberto.

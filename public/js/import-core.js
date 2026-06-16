@@ -61,3 +61,22 @@ export function parseBRMoney(raw) {
   if (!s) return 0;
   return parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0;
 }
+
+// Casa um lançamento de PARCELA real com uma PROVISÃO já existente do MESMO parcelamento,
+// pra não duplicar quando o valor muda por centavos (estimado ≠ cobrado) ou a data-âncora
+// difere entre os imports. Match exige: mesmo estabelecimento (descKey) + mesma parcela k/Y
+// + mesmo mês (comp), e valor só dentro de uma tolerância pequena (default 2%) — assim
+// centavos casam mas compras de valores realmente diferentes NÃO se fundem. Puro/testável.
+// real/p: { descKey, k, total, comp, value } (+ p.id). Retorna a provisão casada ou null.
+export function matchInstallmentProvision(real, provs, tol = 0.02) {
+  if (!real || !real.descKey || !Array.isArray(provs)) return null;
+  for (const p of provs) {
+    if (!p || p.descKey !== real.descKey) continue;
+    if (+p.k !== +real.k || +p.total !== +real.total) continue;
+    if (p.comp !== real.comp) continue;
+    const b = +p.value || 0;
+    if (b > 0 && Math.abs((+real.value || 0) - b) / b > tol) continue;
+    return p;
+  }
+  return null;
+}

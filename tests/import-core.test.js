@@ -3,8 +3,20 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  impFp, impNormalize, impTokens, impRuleKey, impToISO, parseBRMoney,
+  impFp, impNormalize, impTokens, impRuleKey, impToISO, parseBRMoney, matchInstallmentProvision,
 } from '../public/js/import-core.js';
+
+test('matchInstallmentProvision — casa parcela real↔provisão por estab+k/Y+mês, tolera centavos', () => {
+  const provs = [
+    { id: 'a', descKey: 'latamair', k: 3, total: 4, comp: '2026-08', value: 1497.02 },
+    { id: 'b', descKey: 'jim', k: 4, total: 6, comp: '2026-08', value: 891.66 },
+  ];
+  assert.equal(matchInstallmentProvision({ descKey: 'latamair', k: 3, total: 4, comp: '2026-08', value: 1497.03 }, provs).id, 'a'); // centavos casam
+  assert.equal(matchInstallmentProvision({ descKey: 'jim', k: 4, total: 6, comp: '2026-08', value: 891.70 }, provs).id, 'b');
+  assert.equal(matchInstallmentProvision({ descKey: 'latamair', k: 3, total: 4, comp: '2026-09', value: 1497.02 }, provs), null); // mês diferente
+  assert.equal(matchInstallmentProvision({ descKey: 'latamair', k: 2, total: 4, comp: '2026-08', value: 1497.02 }, provs), null); // parcela diferente
+  assert.equal(matchInstallmentProvision({ descKey: 'latamair', k: 3, total: 4, comp: '2026-08', value: 1800 }, provs), null); // valor >2% → não funde
+});
 
 test('impFp — determinístico + formato data|valor(2 casas)|desc', () => {
   assert.equal(impFp('2026-06-01', 10, 'X'), impFp('2026-06-01', 10, 'X'));

@@ -5,6 +5,14 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.11 — Import de parcela: não duplica mais quando os centavos mudam (2026-06-15)
+A **provisão** de uma parcela (valor estimado) e o **lançamento real** (valor cobrado) duplicavam
+quando diferiam por centavos (ex.: 1.497,**02** vs 1.497,**03**) — o fingerprint da parcela inclui
+valor + data-âncora, que mudam entre a provisão e o real. Agora o import **reconcilia** parcela
+real ↔ provisão por **estabelecimento + parcela k/Y + mês** (ignorando centavos; tolerância 2% pra
+não fundir compras genuinamente distintas): **converte a provisão em real** em vez de criar outra
+linha. Núcleo puro testável: `matchInstallmentProvision` (`import-core.js`) + teste. (`app.js` doImport)
+
 ### v9.10 — Editar categoria de fixa na repetição futura + remove categoria "Cartão de crédito" (2026-06-15)
 - **Fixa — categoria editável na repetição FUTURA/projetada:** a pill da projeção agora é
   clicável (antes morta) → abre o menu de categoria → o MESMO popup de escopo das reais
