@@ -5,6 +5,18 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.10 — Editar categoria de fixa na repetição futura + remove categoria "Cartão de crédito" (2026-06-15)
+- **Fixa — categoria editável na repetição FUTURA/projetada:** a pill da projeção agora é
+  clicável (antes morta) → abre o menu de categoria → o MESMO popup de escopo das reais
+  (só esta · deste mês pra frente · todas). "Todas" = passado + futuro + template; "só esta"
+  materializa um lançamento real daquele mês (`recurringId` casa na reconciliação, sem duplicar).
+  Valor nunca muda. (`app.js`: `applyFixaCatVirtual`, `openQuickCatMenu(onPick)`, pill `data-fixacat`)
+- **Hover clicável (opção A):** a pill de categoria clicável "acende" no hover (cursor + brilho)
+  — antes parecia não-clicável. (`11-polish`)
+- **Categoria "Cartão de crédito" removida:** era método de pagamento, não categoria de gasto
+  (já existe o filtro de Origem "Cartão"). Despesas que a usavam caem em "Outros" (fallback gracioso).
+  (`constants.js`, `i18n.js`)
+
 ### v9.9 — Pacote de polimento mobile (prints do dono) + categorias no desktop (2026-06-13)
 6 ajustes de mobile aprovados via mockup (before/after) + 1 de desktop:
 - **P1 Resumo (anual):** no celular o hero do gauge vira linha — gauge menor à esquerda

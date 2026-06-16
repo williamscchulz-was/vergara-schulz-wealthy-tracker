@@ -1330,7 +1330,7 @@ function renderExpenseTable(entries) {
     return dayHead + `<tr ${isV ? `data-recurring-id="${esc(e.recurringId)}"` : `data-id="${e.id}"`} class="${isIn ? 'is-income' : ''}${isV ? ' is-recurring' : ''}${extraCls}${flashCls}" style="--cat-color:${meta.color}">
       <td class="mono exp-row-date">${grouped ? '' : fmtDateHuman(e.date)}</td>
       <td class="exp-row-desc-cell">${descHtml}${fixaBadge}${provBadge}</td>
-      <td class="exp-row-cat-cell"><span class="exp-cat-pill ${isIn ? 'is-income' : ''}" style="--cat-color:${meta.color}" data-quickcat="${isV ? '' : (e.id || '')}">${isIn ? '' : `<span class="exp-cat-pill-icon">${meta.icon}</span>`}${pillLabel}</span></td>
+      <td class="exp-row-cat-cell"><span class="exp-cat-pill ${isIn ? 'is-income' : ''}" style="--cat-color:${meta.color}" data-quickcat="${isV ? '' : (e.id || '')}"${(isV && !isIn) ? ` data-fixacat="${esc(e.recurringId)}" data-fixadate="${esc(e.date)}"` : ''}>${isIn ? '' : `<span class="exp-cat-pill-icon">${meta.icon}</span>`}${pillLabel}</span></td>
       <td class="mono exp-row-amt">${amtText}</td>
     </tr>`;
   }).join('') + ((sorted.length > TLIMIT && state.expSub !== 'lancamentos' && state.expSub !== 'ganhos')
@@ -1344,6 +1344,12 @@ function renderExpenseTable(entries) {
     if (!id || p.classList.contains('is-income')) return;   // ganhos/virtuais → fluxo normal
     ev.stopPropagation();
     openQuickCatMenu(p, id);
+  }));
+  // P-fixa (jun/2026): pill de repetição FUTURA/projetada também é clicável → menu de
+  // categoria + o MESMO popup de escopo das reais (só esta / próximas / todas).
+  tbody.querySelectorAll('[data-fixacat]').forEach(p => p.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    openQuickCatMenu(p, null, (catKey) => applyFixaCatVirtual(p.dataset.fixacat, p.dataset.fixadate, catKey));
   }));
   const _moreBtn = tbody.querySelector('.exp-row-more');
   if (_moreBtn) _moreBtn.addEventListener('click', () => setExpSub('lancamentos'));   // abre a sub-aba Lançamentos
@@ -1381,7 +1387,7 @@ function dayHeadLabel(iso) {
 // ---- UX M1: flash da linha recém-salva ----
 let _flashRowId = null;
 // ---- UX U4: menu rápido de categoria (popover único, reposicionado) ----
-function openQuickCatMenu(anchor, expenseId) {
+function openQuickCatMenu(anchor, expenseId, onPick) {
   let m = document.getElementById('quickCatMenu');
   if (!m) {
     m = document.createElement('div');
@@ -1398,6 +1404,7 @@ function openQuickCatMenu(anchor, expenseId) {
   m.querySelectorAll('button[data-k]').forEach(b => b.addEventListener('click', async (ev) => {
     ev.stopPropagation();
     m.classList.remove('show');
+    if (onPick) { onPick(b.dataset.k); return; }   // P-fixa: quem chamou cuida da propagação (repetição virtual)
     // review D: o doc pode ter sido excluído enquanto o menu estava aberto — um setDoc
     // merge criaria um "fantasma" só com category. Aborta com mensagem humana.
     const cur = (state.expenses || []).find(x => x.id === expenseId);
@@ -2020,6 +2027,38 @@ async function applyFixaCategoryScope({ tpl, category, fromCat, editedId, edited
   const since = (scope === 'future' && editedDate) ? (editedDate.slice(0, 7) + '-01') : null;
   const n = await propagateCategoryToTemplate(tpl, category, editedId, since);
   showToast(n > 0 ? t('exp.toast.recurringCascade').replace('{n}', n + 1) : t('exp.quickcat.done'));
+}
+
+// P-fixa (jun/2026): editar a categoria DIRETO numa repetição futura/projetada (pill virtual).
+// Abre o MESMO popup de escopo das reais. 'todas'/'próximas' propagam pelo template (governa
+// as projeções) + reais; 'só esta' materializa um lançamento real daquele mês com a categoria
+// nova (o recurringId casa na reconciliação → não duplica a projeção). Valor nunca muda.
+async function applyFixaCatVirtual(recId, date, category) {
+  const tpl = (state.recurring || []).find(r => r.id === recId);
+  if (!tpl) { showToast(t('exp.quickcat.gone')); return; }
+  if (!category || tpl.category === category) return;
+  const names = getLang() === 'en' ? MONTH_NAMES_EN : MONTH_NAMES_PT;
+  const d = parseLocalDate(date) || (state.currentViewMonth || new Date());
+  const monthLabel = names[d.getMonth()] + ' ' + d.getFullYear();
+  const fromLabel = (CATEGORIES[tpl.category] || CATEGORIES.outros).label;
+  const toLabel = (CATEGORIES[category] || CATEGORIES.outros).label;
+  const scope = await askScope(monthLabel, fromLabel, toLabel);
+  if (scope === 'cancel') return;
+  try {
+    if (scope === 'this') {
+      await addDoc(colExpenses(), {
+        date, competencia: String(date).slice(0, 7), value: +tpl.value || 0, category,
+        owner: tpl.owner || 'familia', type: 'expense', nature: 'fixa', description: tpl.desc,
+        recurringId: tpl.id, card: !!tpl.card,
+        createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdBy: state.user?.displayName || 'fixa',
+      });
+      showToast(t('exp.quickcat.done'));
+    } else {
+      const since = scope === 'future' ? (String(date).slice(0, 7) + '-01') : null;   // 'all' = null (passado+futuro)
+      const n = await propagateCategoryToTemplate(tpl, category, null, since);
+      showToast(n > 0 ? t('exp.toast.recurringCascade').replace('{n}', n + 1) : t('exp.quickcat.done'));
+    }
+  } catch (err) { console.error('[fixacat-virtual]', err); showToast(t('toast.error.save')); }
 }
 
 // UX U3 (aprovado): excluir SEM modal de confirmação — some na hora e o toast

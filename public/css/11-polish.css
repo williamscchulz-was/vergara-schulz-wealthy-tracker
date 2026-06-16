@@ -542,7 +542,9 @@ tr.row-flash td { animation: rowFlash 1.4s ease both; }
 #quickCatMenu button:hover { background: color-mix(in oklab, var(--cat-color, var(--purple)) 14%, transparent); color: var(--ink); }
 #quickCatMenu .qc-ic { display: inline-flex; color: var(--cat-color, var(--ink-3)); }
 #quickCatMenu .qc-ic svg, #quickCatMenu .qc-ic .icn { width: 14px; height: 14px; }
-.exp-cat-pill[data-quickcat]:not([data-quickcat=""]) { cursor: pointer; }
+.exp-cat-pill[data-quickcat]:not([data-quickcat=""]), .exp-cat-pill[data-fixacat] { cursor: pointer; transition: background .15s ease, color .15s ease; }
+/* Hover A (opção do dono): a pill clicável "acende" no hover → fica óbvio que dá pra clicar */
+.exp-cat-pill[data-quickcat]:not([data-quickcat=""]):hover, .exp-cat-pill[data-fixacat]:hover { background: color-mix(in oklab, var(--cat-color) 30%, transparent); color: color-mix(in oklab, var(--cat-color) 95%, var(--ink)); }
 /* U5: grade de meses */
 #monthPicker { position: absolute; z-index: 130; display: none; width: 242px; background: var(--bg-elevated-3); border: 1px solid var(--border-strong); border-radius: 14px; padding: 10px; box-shadow: var(--shadow-lg); }
 #monthPicker.show { display: block; }

@@ -37,7 +37,6 @@ const CATEGORIES = {
   viagem:      { label: 'Viagem',            icon: ICONS.plane,       color: '#5856d6' },
   educacao:    { label: 'Educação',          icon: ICONS.book,        color: '#64d2ff' },
   assinaturas: { label: 'Assinaturas',       icon: ICONS.repeat,      color: '#bf5af2' },
-  cartao:      { label: 'Cartão de crédito', icon: ICONS.creditCard,  color: '#ff453a' },
   compras:     { label: 'Compras',           icon: ICONS.shoppingBag, color: '#ffd60a' },
   outros:      { label: 'Outros',            icon: ICONS.package,     color: '#8e8e93' },
 };
