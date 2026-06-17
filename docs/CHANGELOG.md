@@ -5,6 +5,22 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.19 — Carteira alinhada de vez + hero sem cards duplicados + barra all-time fora (2026-06-17)
+**Carteira (desalinhamento, agora pela raiz):** a causa eram TRÊS estruturas de coluna diferentes
+por tipo de linha — categoria `valor | appr-vazio | chevron`; USD `appr-vazio | valor | ✏️`;
+reserva/previdência `valor | chevron`. O fix v9.17 só tinha mexido na linha do USD. Agora o grid
+foi enxugado pra 4 colunas únicas (`36px 1fr auto 18px` = ícone|nome|valor|controle) e os
+`.cat-appr` vazios saíram dos builders → todas as linhas alinham o valor na MESMA coluna (e bate
+com o grid mobile, que já era 4-col). (`public/js/app.js`, `public/css/04-carteira-charts.css`)
+**Hero — 3 tiles removidos:** "Rentabilidade do mês / Aplicado / Dólar (holdings)" saíram —
+duplicavam rótulos que já aparecem no hero (o "+X% no mês", o "Aplicado", o "US$"). O cálculo
+`_moPct` foi preservado (alimenta o pill "+X% no mês" do hero); JS órfão (`heroUsd`, `kpiApplied`)
+e os ids do skeleton de loading limpos. O dólar-holdings segue editável na Carteira/modal FX.
+(`public/index.html`, `public/js/app.js`)
+**Dividendos — barra all-time removida:** o card "Total recebido all-time" perdeu a barra de
+progresso (denominador "5× a meta anual" era arbitrário, sem significado). A barra do card "YTD"
+(dividendos do ano ÷ meta anual) continua. (`public/index.html`, `public/js/app.js`)
+
 ### v9.18 — "Histórico anual" no header do card + Análise sem vão de rodapé (2026-06-17)
 O botão "Histórico anual" saiu de baixo da grade (estava solto, centralizado) e foi pro header
 do card "Patrimônio por ano", ao lado do seletor `1Y/5Y/All` (novo wrapper `.card-head-actions`).

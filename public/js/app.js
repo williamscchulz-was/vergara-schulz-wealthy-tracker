@@ -2557,7 +2557,7 @@ function renderInvestments() {
     }
   }
 
-  // Hero mini-KPIs + 3 tiles (porte do mockup): Lucro TWR · Dividendos · Variação · Dólar
+  // Hero mini-KPIs: Lucro TWR · Dividendos
   const _twr = +state.i10.profitTwr || 0;
   if ($('heroTwr')) $('heroTwr').textContent = (_twr >= 0 ? '+' : '') + _twr.toFixed(1).replace('.', ',') + '%';
   if ($('heroDiv')) $('heroDiv').textContent = fmtBRL0(+state.i10.dividends || 0);
@@ -2572,18 +2572,10 @@ function renderInvestments() {
     if (_mr.length) _moPct = +_mr[_mr.length - 1].returnPct || 0;
   } catch (_) {}
   const _moTxt = _moPct === null ? null : (_moPct >= 0 ? '+' : '') + _moPct.toFixed(1).replace('.', ',') + '%';
-  if ($('heroVar')) {
-    $('heroVar').textContent = _moTxt || '—';
-    $('heroVar').className = 'ikpi-v ' + ((_moPct || 0) >= 0 ? 'pos' : 'neg');
-  }
-  // Sub: explica que é rentabilidade LÍQUIDA (Dietz). Removido o "variação I10" cru —
-  // métrica de período próprio do I10 que confundia (dono, jun/2026). O TWR acumulado
-  // continua no card "Lucro (TWR)".
-  if ($('heroVarSub')) $('heroVarSub').textContent = (_moPct !== null) ? (getLang() === 'en' ? 'net · ex-contributions' : 'líquida · descontados aportes') : '';
+  // _moPct/_moTxt (acima) alimentam o pill "+X% no mês" do hero. Os 3 tiles
+  // Rentabilidade/Aplicado/Dólar saíram (v9.19) — duplicavam rótulos do hero.
   const _pill = $('heroMonthPill');
   if (_pill) { if (_moTxt) { _pill.hidden = false; _pill.textContent = _moTxt + ' no mês'; } else _pill.hidden = true; }
-  if ($('heroUsd')) $('heroUsd').textContent = 'US$ ' + (+state.fx.usd || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
-  if ($('heroUsdSub')) $('heroUsdSub').textContent = (+state.fx.usd > 0) ? (fmtBRL0(_usdBRL) + ' · cotação ' + (+state.fx.rateUSD || 0).toFixed(2).replace('.', ',')) : '';
   if ($('heroSpark')) sparkPath($('heroSpark'), [12, 18, 15, 24, 30, 28, 36, 42, 46, 54, 60, 66], 400, 150, true);
 
   // Secondary cards
@@ -2663,14 +2655,9 @@ function renderInvestments() {
     }
   }
 
-  // All-time progress bar (proporcional ao valor recebido vs uma meta acumulada simbolica)
-  const allTimeProgressEl = document.getElementById('allTimeProgressBar');
-  if (allTimeProgressEl) {
-    // 35% como visual fixo - representa "progresso da jornada"
-    const accumGoal = state.dividendsYearlyGoal * 5; // 5x meta anual como referencia visual
-    const pct = accumGoal > 0 ? Math.min(100, (allTime / accumGoal) * 100) : 0;
-    allTimeProgressEl.style.width = pct.toFixed(1) + '%';
-  }
+  // (Barra de progresso all-time removida na v9.19 — o denominador "5× a meta
+  //  anual" era arbitrário e não representava meta real. A barra do card YTD
+  //  ficou, essa mede dividendos do ano / meta anual.)
 
   // Carteira count: "X ativos · Y categorias"
   const countEl = document.getElementById('i10AssetsCount');
@@ -2703,7 +2690,6 @@ function renderInvestments() {
   if ($('kpiPension')) $('kpiPension').textContent = fmtBRL0(_pensionBRL);
   if ($('kpiContrib')) $('kpiContrib').textContent = fmtBRL0(_contribYear);
   if ($('kpiContribLbl')) $('kpiContribLbl').textContent = (getLang() === 'en' ? 'Contributions ' : 'Aportes ') + currentYear;
-  if ($('kpiApplied')) $('kpiApplied').textContent = fmtBRL0(+state.i10.applied || 0);
   if (typeof renderMetas === 'function') renderMetas();
   wireCardCollapse();
 }
@@ -3229,7 +3215,6 @@ function renderI10Assets() {
       '<div>' +
         '<div class="cat-value">' + fmtBRL0(g.value) + '</div>' +
       '</div>' +
-      '<div class="cat-appr"></div>' +
       chevronHtml +
     '</div>' +
     '<div class="cat-tickers">' + tickersHtml + '</div>';
@@ -3258,7 +3243,6 @@ function renderI10Assets() {
         '<div class="cat-count">' + percent.toFixed(0) + '% ' + t('cat.label.suffix') + '</div>' +
         '<div class="fx-extra"><span class="fx-native">US$ ' + usd.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '</span><span class="fx-rate-chip">× ' + rateStr + '</span></div>' +
       '</div>' +
-      '<div class="cat-appr"></div>' +
       '<div>' +
         '<div class="cat-value">R$ ' + usdBRL.toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + '</div>' +
       '</div>' +
@@ -3702,7 +3686,7 @@ async function syncFromI10() {
   const originalHTML = btn ? btn.innerHTML : '';
   if (btn) { btn.disabled = true; btn.innerHTML = t('hero.syncing'); }
   // DS (aprovado no provador): skeleton shimmer nos números enquanto o I10 responde
-  const _skelIds = ['i10Equity', 'heroTwr', 'heroDiv', 'heroVar', 'kpiApplied', 'i10Dividends'];
+  const _skelIds = ['i10Equity', 'heroTwr', 'heroDiv', 'i10Dividends'];
   _skelIds.forEach(id => $(id)?.classList.add('skel'));
 
   try {

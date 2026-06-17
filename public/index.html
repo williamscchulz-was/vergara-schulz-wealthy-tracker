@@ -420,14 +420,7 @@
         <svg class="hero-spark" id="heroSpark" viewBox="0 0 400 150" preserveAspectRatio="none" aria-hidden="true"></svg>
       </div>
 
-      <!-- 3 tiles abaixo do hero: Variação · Aplicado · Dólar (igual mockup) -->
-      <div class="inv-kpis three">
-        <div class="card ikpi tile"><div class="ikpi-k">Rentabilidade do mês</div><div class="ikpi-v" id="heroVar">—</div><div class="ikpi-sub" id="heroVarSub"></div></div>
-        <div class="card ikpi tile"><div class="ikpi-k">Aplicado</div><div class="ikpi-v" id="kpiApplied">R$ 0</div><div class="ikpi-sub" id="kpiAppliedSub"></div></div>
-        <div class="card ikpi tile"><div class="ikpi-k">Dólar (holdings)</div><div class="ikpi-v" id="heroUsd">US$ 0</div><div class="ikpi-sub" id="heroUsdSub"></div></div>
-      </div>
-
-      <!-- DIVIDENDOS YTD / TOTAL ALL-TIME — subido pro início (logo após os tiles) -->
+      <!-- DIVIDENDOS YTD / TOTAL ALL-TIME (os 3 tiles Rentabilidade/Aplicado/Dólar saíram na v9.19 — duplicavam rótulos do hero) -->
       <div class="card animate-in inv-ytd">
         <div class="card-body">
           <div class="ytd-grid">
@@ -441,7 +434,6 @@
               <div class="ytd-lbl">total recebido all-time</div>
               <div class="ytd-num"><span class="cur">R$</span><span class="v" id="divAllTime">0</span></div>
               <div class="ytd-sub" id="divAllTimeSub">desde o primeiro ano</div>
-              <div class="ytd-progress"><i id="allTimeProgressBar" style="width:0%;background:linear-gradient(90deg,var(--gain),var(--purple-light))"></i></div>
             </div>
           </div>
         </div>
