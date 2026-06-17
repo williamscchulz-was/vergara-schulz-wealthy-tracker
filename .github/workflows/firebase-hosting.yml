@@ -37,13 +37,7 @@ jobs:
         if: env.HAS_SA == 'true'
         uses: actions/checkout@v5
 
-      - name: Setup Node
-        if: env.HAS_SA == 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      # Deploy pela firebase CLI (não a action de terceiro) → sem dependência de Node 20.
+      # Deploy pela firebase CLI (node já vem no runner) → sem action de terceiro e sem Node 20.
       # A CLI autentica via service account (GOOGLE_APPLICATION_CREDENTIALS → arquivo do secret).
       - name: Deploy to Firebase Hosting (live, via firebase CLI)
         if: env.HAS_SA == 'true'
