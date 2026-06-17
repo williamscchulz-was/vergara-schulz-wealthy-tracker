@@ -5,6 +5,13 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.20 — Tooltip do TWR não estoura mais pra fora do hero (2026-06-17)
+O tooltip de termo técnico (`.tip-term`, hoje só no "TWR") era centralizado no termo
+(`left:50%; translateX(-50%)`). Como o "TWR" fica na borda esquerda do hero — que tem
+`overflow:hidden` pra esconder o spark — o tooltip estourava pra esquerda, era cortado e
+subia por cima do número grande. Agora é **ancorado à esquerda do termo** (`left:0`, sem
+o translateX), abrindo pra direita e ficando todo dentro do card. (`public/css/11-polish.css`)
+
 ### v9.19 — Carteira alinhada de vez + hero sem cards duplicados + barra all-time fora (2026-06-17)
 **Carteira (desalinhamento, agora pela raiz):** a causa eram TRÊS estruturas de coluna diferentes
 por tipo de linha — categoria `valor | appr-vazio | chevron`; USD `appr-vazio | valor | ✏️`;

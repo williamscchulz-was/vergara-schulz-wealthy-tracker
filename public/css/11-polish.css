@@ -150,13 +150,16 @@
 
 /* DS (aprovado no provador): tooltip de termo técnico (TWR, CDI...) — hover/focus, CSS puro */
 .tip-term { position: relative; border-bottom: 1px dashed currentColor; cursor: help; }
-.tip-term::after { content: attr(data-tip); position: absolute; bottom: 130%; left: 50%;
-  transform: translateX(-50%) translateY(4px); width: max-content; max-width: 230px; white-space: normal;
+/* ancorado à ESQUERDA do termo (não centralizado): o "TWR" fica na borda
+   esquerda do hero, que tem overflow:hidden — centralizar estourava pra fora
+   e cortava o tooltip por cima do número. Ancorado, abre pra direita, dentro do card. */
+.tip-term::after { content: attr(data-tip); position: absolute; bottom: 130%; left: 0;
+  transform: translateY(4px); width: max-content; max-width: 260px; white-space: normal;
   background: var(--bg-elevated-3); border: 1px solid var(--border-strong); color: var(--ink);
   font: 500 11px/1.5 Inter, system-ui, sans-serif; letter-spacing: 0; text-transform: none;
   padding: 7px 11px; border-radius: 9px; box-shadow: var(--shadow-lg); z-index: 60;
   opacity: 0; pointer-events: none; transition: opacity .18s var(--ease-out), transform .18s var(--ease-out); }
-.tip-term:hover::after, .tip-term:focus-visible::after { opacity: 1; transform: translateX(-50%) translateY(0); }
+.tip-term:hover::after, .tip-term:focus-visible::after { opacity: 1; transform: translateY(0); }
 
 /* Histórico anual virou botão + popup (pedido do dono) — agora no header do card "Patrimônio por ano", ao lado do toggle 1Y/5Y/All */
 .card-head-actions { display: flex; align-items: center; gap: var(--sp-2); flex-shrink: 0; }
