@@ -715,11 +715,15 @@ function renderResumo() {
       }).join('')
     : '<div class="rz-empty">' + esc(t('rz.empty')) + '</div>';
 
-  // Meta de dividendos
+  // Meta de dividendos — usa TTM (últimos 12 meses) p/ não zerar todo ano (igual à meta da tela
+  // Investimentos). Cai no YTD (divs) se o dado mensal não cobrir 12m. Helper: dividendsTTM().
   const goal = +state.dividendsYearlyGoal || 1e6;
   const goalYear = state.dividendsYearlyGoalYear || 2035;
-  const goalPct = goal > 0 ? Math.min(100, divs / goal * 100) : 0;
-  const falta = Math.max(0, goal - divs);
+  const _divTtm = dividendsTTM();
+  const goalVal = _divTtm.ready ? _divTtm.ttm : divs;
+  const goalWin = _divTtm.ready ? ' · ' + esc(t('metas.last12m')) : '';
+  const goalPct = goal > 0 ? Math.min(100, goalVal / goal * 100) : 0;
+  const falta = Math.max(0, goal - goalVal);
   const goalSt = metaDivStatus();   // veredito REAL (projeção) — não mais hardcoded "dentro do plano"
   const goalOk = goalSt !== 'behind';
 
@@ -771,7 +775,7 @@ function renderResumo() {
       </div>
       <div class="card rz-meta">
         <div class="rz-card-h">${esc(t('rz.divgoal'))}<span class="more">${goalYear}</span></div>
-        <div class="rz-note">${mc(divs)} ${esc(t('rz.of'))} <b>${mc(goal)}</b>/${esc(t('rz.year'))}</div>
+        <div class="rz-note">${mc(goalVal)} ${esc(t('rz.of'))} <b>${mc(goal)}</b>/${esc(t('rz.year'))}${goalWin}</div>
         <div class="rz-goalbar"><i style="width:${goalPct.toFixed(1)}%"></i></div>
         <div class="rz-note">${esc(t('rz.atpace'))} <b class="${goalOk ? 'pos' : 'neg'}">${esc(t(goalOk ? 'rz.onplan' : 'rz.offplan'))}</b> · ${esc(t('rz.missing'))} ${mc(falta)}</div>
       </div>
@@ -6018,6 +6022,21 @@ function metaDivStatus() {
     return 'ontrack';                                                          // chega no prazo
   } catch (e) { return 'ontrack'; }
 }
+// Dividendos TTM (últimos 12 meses) + YoY, a partir de state.i10.divsMonthly (proventos reais/mês,
+// até 30m). Compartilhado pela meta da tela Investimentos (renderMetas) e pelo gauge da tela Resumo
+// (renderResumo) pra não divergir. ready=false quando o dado mensal não cobre 12m → os dois caem no YTD.
+function dividendsTTM() {
+  const dm = (state.i10.divsMonthly && typeof state.i10.divsMonthly === 'object') ? state.i10.divsMonthly : null;
+  if (!dm) return { ready: false, ttm: 0, prev: 0, yoy: null };
+  const keys = Object.keys(dm).sort();
+  const now = new Date();
+  const moKey = (back) => { const d = new Date(now.getFullYear(), now.getMonth() - back, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
+  const sumWin = (months, off) => { let s = 0; for (let i = 0; i < months; i++) s += +dm[moKey(off + i)] || 0; return s; };
+  if (!(keys.length > 0 && keys[0] <= moKey(11))) return { ready: false, ttm: 0, prev: 0, yoy: null };   // cobre os 12m?
+  const ttm = sumWin(12, 0);
+  const prev = (keys[0] <= moKey(23)) ? sumWin(12, 12) : 0;   // 12m anteriores, p/ YoY
+  return { ready: true, ttm, prev, yoy: prev > 0 ? (ttm - prev) / prev * 100 : null };
+}
 function saveShareGoals() {
   setDoc(docShareGoals, { goals: state.shareGoals, updatedAt: serverTimestamp() }, { merge: true })
     .catch(e => console.warn('[metas] save', e));
@@ -6053,22 +6072,15 @@ function renderMetas() {
   const divTgt = +state.dividendsYearlyGoal || 1000000;
   const divYear = +state.dividendsYearlyGoalYear || 2035;
   const divSt = metaDivStatus();   // classe de cor da barra (ritmo rumo a 2035) — mantém nos 2 modos
-  const _dm = (state.i10.divsMonthly && typeof state.i10.divsMonthly === 'object') ? state.i10.divsMonthly : null;
-  const _dmKeys = _dm ? Object.keys(_dm).sort() : [];
-  const _now = new Date();
-  const _moKey = (back) => { const d = new Date(_now.getFullYear(), _now.getMonth() - back, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
-  const _sumWin = (months, off) => { let s = 0; for (let i = 0; i < months; i++) s += +_dm[_moKey(off + i)] || 0; return s; };
-  const _ttmReady = !!_dm && _dmKeys.length > 0 && _dmKeys[0] <= _moKey(11);   // dado cobre os últimos 12m
+  const _ttm = dividendsTTM();      // helper compartilhado com o gauge da tela Resumo
   let divCur, divSubExtra, divMark, divPillTxt, divPillCls;
-  if (_ttmReady) {
-    divCur = _sumWin(12, 0);                                          // soma dos últimos 12 meses (TTM)
+  if (_ttm.ready) {
+    divCur = _ttm.ttm;                                                // soma dos últimos 12 meses (TTM)
     divSubExtra = esc(t('metas.last12m'));
     divMark = null;                                                   // barra limpa no modo TTM
-    const prev = (_dmKeys[0] <= _moKey(23)) ? _sumWin(12, 12) : 0;    // 12m anteriores, p/ YoY
-    if (prev > 0) {
-      const yoy = (divCur - prev) / prev * 100;
-      divPillTxt = (yoy >= 0 ? '↗ +' : '↘ ') + Math.abs(yoy).toFixed(0) + '% ' + esc(t('metas.vs12m'));
-      divPillCls = yoy < 0 ? 'warn' : 'near';
+    if (_ttm.yoy != null) {
+      divPillTxt = (_ttm.yoy >= 0 ? '↗ +' : '↘ ') + Math.abs(_ttm.yoy).toFixed(0) + '% ' + esc(t('metas.vs12m'));
+      divPillCls = _ttm.yoy < 0 ? 'warn' : 'near';
     } else {
       divPillTxt = esc(t('metas.pace.' + divSt)); divPillCls = divSt === 'behind' ? 'warn' : 'near';
     }

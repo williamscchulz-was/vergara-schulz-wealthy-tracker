@@ -5,6 +5,14 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.23 — Gauge de dividendos da tela Resumo também em TTM (consistência) (2026-06-17)
+A meta de dividendos da tela Investimentos virou TTM na v9.21, mas o gauge "Renda em dividendos"
+da tela **Resumo** (`renderResumo`) ainda usava YTD — continuava zerando todo ano lá. Agora as duas
+telas usam o **mesmo cálculo**, via novo helper compartilhado **`dividendsTTM()`** (TTM dos últimos
+12 meses + YoY, com fallback pro YTD se faltar dado mensal). O gauge da Resumo passa a mostrar
+"R$ X de R$ 1M/ano · últimos 12 meses". De quebra, a lógica de janela que estava inline e duplicada
+no `renderMetas` foi extraída pro helper (sem risco de divergir de novo). (`public/js/app.js`)
+
 ### v9.22 — Subtítulos dos cards de Análise viram "?" com tooltip (menos texto na tela) (2026-06-17)
 Os subtítulos explicativos sempre-visíveis dos 4 cards de Análise (Dividendos por ano,
 Patrimônio por ano, Rentabilidade mês a mês, Aportes mensais) saíram da tela e viraram um
