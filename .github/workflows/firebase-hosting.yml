@@ -35,13 +35,21 @@ jobs:
 
       - name: Checkout
         if: env.HAS_SA == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - name: Deploy to Firebase Hosting (live)
+      - name: Setup Node
         if: env.HAS_SA == 'true'
-        uses: FirebaseExtended/action-hosting-deploy@v0
+        uses: actions/setup-node@v4
         with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          channelId: live
-          projectId: wealthy-tracker-68658
+          node-version: '20'
+
+      # Deploy pela firebase CLI (não a action de terceiro) → sem dependência de Node 20.
+      # A CLI autentica via service account (GOOGLE_APPLICATION_CREDENTIALS → arquivo do secret).
+      - name: Deploy to Firebase Hosting (live, via firebase CLI)
+        if: env.HAS_SA == 'true'
+        run: |
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          npx -y firebase-tools@latest deploy --only hosting --project wealthy-tracker-68658 --non-interactive
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}

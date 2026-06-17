@@ -5,11 +5,16 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.16 — GitHub Actions em Node 24 (tira a dívida técnica do Node 20) (2026-06-17)
+`actions/checkout@v4`→`@v5` (Firebase + Pages). O deploy do Firebase trocou a action de terceiro
+`FirebaseExtended/action-hosting-deploy@v0` (Node 20) pela **firebase CLI** (`npx firebase-tools@latest
+deploy`), autenticando via service account (`GOOGLE_APPLICATION_CREDENTIALS` ← secret `FIREBASE_SERVICE_ACCOUNT`).
+Sem mais dependência de Node 20 (deprecado em set/2026).
+
 ### v9.15 — Filtro "Forma de pagamento" (2026-06-16)
 - **Filtro Forma de pagamento:** novo seletor (Cartão / Pix / Dinheiro) ao lado de Origem, filtra por
   `payMethod`. Entra no contador do ícone de filtro e no "limpar filtros". (`index.html` `#expFilterPay`,
   `app.js` `_expFilters.pay`, `i18n`)
-- _Node 24 nos Actions (`checkout@v5` + deploy via firebase CLI): implementado localmente, **aguardando push** — o token do CI não tem `workflow` scope. Ver §6 do CLAUDE.md._
 
 ### v9.14 — Origem "Manual" = não importado (corrige a semântica da v9.13) (2026-06-16)
 A v9.13 gravava a forma de pagamento do lançamento **manual** na própria Origem (cartão→"Cartão"),
