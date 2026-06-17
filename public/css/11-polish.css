@@ -158,8 +158,9 @@
   opacity: 0; pointer-events: none; transition: opacity .18s var(--ease-out), transform .18s var(--ease-out); }
 .tip-term:hover::after, .tip-term:focus-visible::after { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-/* Histórico anual virou botão + popup (pedido do dono) — gatilho discreto, centrado */
-.inv-history-open { display: inline-flex; align-items: center; gap: var(--sp-2); align-self: center; margin: 2px auto 0; }
+/* Histórico anual virou botão + popup (pedido do dono) — agora no header do card "Patrimônio por ano", ao lado do toggle 1Y/5Y/All */
+.card-head-actions { display: flex; align-items: center; gap: var(--sp-2); flex-shrink: 0; }
+.inv-history-open { display: inline-flex; align-items: center; gap: var(--sp-1); font-size: 11px; padding: 5px 11px; }
 #historyModal .yearly-table { width: 100%; }
 
 /* Pedido da Flávia: toggle Fixas/Variáveis ao lado da busca (segmented compacto) */
@@ -362,6 +363,11 @@
 #moduleInvestments .inv-charts .mr-chart-wrap { flex: 1 1 auto; display: flex; align-items: center; min-height: 0; }
 #moduleInvestments .inv-charts .mr-chart-wrap svg { flex: 1; min-width: 0; }
 #moduleInvestments .inv-charts .mr-table-btn { margin-top: auto; align-self: flex-start; }
+/* Patrimônio e Dividendos por ano: mesmo padrão — o gráfico absorve a sobra, sem espaço morto no rodapé */
+#moduleInvestments .inv-charts #plChartWrap,
+#moduleInvestments .inv-charts #divChartWrap { flex: 1 1 auto; display: flex; align-items: center; min-height: 0; }
+#moduleInvestments .inv-charts #plChartWrap svg,
+#moduleInvestments .inv-charts #divChartWrap svg { flex: 1; min-width: 0; }
 
 /* ===== Carteira A (escolha do dono): donut+legenda = CABEÇALHO do card da carteira ===== */
 .inv-diversif { display: grid; grid-template-columns: 1fr; gap: 18px; }

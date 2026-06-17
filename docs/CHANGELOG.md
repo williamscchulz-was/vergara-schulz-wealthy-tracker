@@ -5,6 +5,14 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.18 — "Histórico anual" no header do card + Análise sem vão de rodapé (2026-06-17)
+O botão "Histórico anual" saiu de baixo da grade (estava solto, centralizado) e foi pro header
+do card "Patrimônio por ano", ao lado do seletor `1Y/5Y/All` (novo wrapper `.card-head-actions`).
+Os cards "Patrimônio por ano" e "Dividendos por ano" deixaram de ter o espaço vazio no rodapé no
+desktop: o gráfico passa a absorver a altura sobrando (`#plChartWrap`/`#divChartWrap` com `flex:1`,
+mesmo padrão já usado no card "Rentabilidade mês a mês"). Handler do botão liga por id — JS
+intacto. (`public/index.html`, `public/css/11-polish.css`)
+
 ### v9.17 — Carteira: valor do USD alinhado com as categorias (2026-06-17)
 A linha do USD/dólar na carteira não tinha o placeholder `.cat-appr` que as linhas de
 categoria têm, então o valor caía uma coluna antes da certa (desalinhado à esquerda).
