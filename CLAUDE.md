@@ -376,6 +376,7 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 > - **ANTES de começar a trabalhar:** `git fetch` + `git pull`. Se houver divergência, **avise o dono antes de mesclar**.
 > - **DEPOIS de qualquer mudança relevante:** `git add` + `git commit` + `git push origin main`. O trabalho só está salvo de verdade **quando está no GitHub**.
 > - `firebase deploy` publica o site mas **NÃO** envia o código pro GitHub. **Deploy ≠ push.** Nunca confie só no deploy pra preservar o código-fonte.
+> - **🏷️ Identifique a máquina nos commits.** Cada PC se auto-nomeia (`claudecode-<nome>`) e adiciona o trailer **`Machine: <nome>`** na mensagem do commit, logo depois do `Co-Authored-By`. Assim dá pra ver no `git log` qual máquina fez cada mudança. **O MacBook Pro 13" do dono = `claudecode-macbook`.**
 
 1. **Conversa → plano.** Tarefas não-triviais começam com a gente alinhando escopo em texto antes de qualquer edit. Se for mudança UI/design, **texto não basta — mockar** (ver item 9).
 2. **Sempre no `main`, direto.** O projeto tem uma única branch ativa — `main`. Nada de worktrees isoladas, nada de branch `claude/<task>`, nada de PR com merge imediato. Commits pequenos, `git add` + `git commit` + `git push origin main`. Se houver um `.claude/worktrees/` no repo, é estado residual do início do projeto — ignorar, não operar ali. Quem está editando são os dois donos do repo; a única pessoa que o review protegeria é si mesmo, e o custo da cerimônia não compensa.
