@@ -5,6 +5,13 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.17 — Carteira: valor do USD alinhado com as categorias (2026-06-17)
+A linha do USD/dólar na carteira não tinha o placeholder `.cat-appr` que as linhas de
+categoria têm, então o valor caía uma coluna antes da certa (desalinhado à esquerda).
+Adicionado o `<div class="cat-appr"></div>` na linha do FX (mesma estrutura das categorias)
+e a ✏️ passou a alinhar à direita da célula (`justify-self:end`, sem o `margin-left` extra).
+Valores agora alinhados em coluna. (`public/js/app.js`, `public/css/09-contrast-light.css`)
+
 ### v9.16 — GitHub Actions em Node 24 (tira a dívida técnica do Node 20) (2026-06-17)
 `actions/checkout@v4`→`@v5` (Firebase + Pages). O deploy do Firebase trocou a action de terceiro
 `FirebaseExtended/action-hosting-deploy@v0` (Node 20) pela **firebase CLI** (`npx firebase-tools@latest
