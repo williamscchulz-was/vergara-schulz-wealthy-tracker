@@ -5,6 +5,15 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.22 — Subtítulos dos cards de Análise viram "?" com tooltip (menos texto na tela) (2026-06-17)
+Os subtítulos explicativos sempre-visíveis dos 4 cards de Análise (Dividendos por ano,
+Patrimônio por ano, Rentabilidade mês a mês, Aportes mensais) saíram da tela e viraram um
+**"?" discreto ao lado do título** — a explicação aparece em **tooltip no hover/focus**.
+Deixa a tela de Investimentos mais limpa (pedido do dono: "tem muito texto"). Reusa o padrão
+do tooltip do TWR; novo handler `data-i18n-tip` na `applyI18n` (seta `data-tip` por chave,
+PT/EN) e `data-i18n-aria` no "?" pro leitor de tela. As chaves `sub.*` continuam, agora
+consumidas pelo tooltip. (`public/index.html`, `public/css/11-polish.css`, `public/js/app.js`)
+
 ### v9.21 — Meta de dividendos: últimos 12 meses (TTM) em vez de YTD (2026-06-17)
 A meta "Renda em dividendos" media YTD ÷ R$ 1M, o que **zerava todo 1º de janeiro** e
 desmotivava. Agora a barra usa os **últimos 12 meses (TTM)** — soma rolante de

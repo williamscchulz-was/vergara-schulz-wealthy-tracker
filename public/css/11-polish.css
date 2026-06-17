@@ -161,6 +161,22 @@
   opacity: 0; pointer-events: none; transition: opacity .18s var(--ease-out), transform .18s var(--ease-out); }
 .tip-term:hover::after, .tip-term:focus-visible::after { opacity: 1; transform: translateY(0); }
 
+/* "?" no título dos cards de Investimentos — o subtítulo explicativo virou tooltip no hover
+   (pedido do dono: menos texto na tela). Ancorado à esquerda + abaixo, fica dentro do card. */
+.card-title-row { display: flex; align-items: center; gap: var(--sp-2); }
+.card-help { position: relative; display: inline-grid; place-items: center; width: 16px; height: 16px;
+  border-radius: 50%; border: 1px solid var(--ink-3); color: var(--ink-3);
+  font: 700 10px/1 'Geist Mono', monospace; cursor: help; flex-shrink: 0; transition: all .15s var(--ease-out); }
+.card-help:hover, .card-help:focus-visible { border-color: var(--purple); color: var(--purple); background: var(--purple-soft); outline: none; }
+.card-help::after { content: attr(data-tip); position: absolute; top: 150%; left: 0;
+  width: max-content; max-width: 250px; white-space: normal;
+  background: var(--bg-elevated-3); border: 1px solid var(--border-strong); color: var(--ink);
+  font: 500 11.5px/1.5 Inter, system-ui, sans-serif; letter-spacing: 0; text-transform: none;
+  padding: 8px 11px; border-radius: 9px; box-shadow: var(--shadow-lg); z-index: 60;
+  opacity: 0; pointer-events: none; transform: translateY(-4px);
+  transition: opacity .16s var(--ease-out), transform .16s var(--ease-out); }
+.card-help:hover::after, .card-help:focus-visible::after { opacity: 1; transform: translateY(0); }
+
 /* Histórico anual virou botão + popup (pedido do dono) — agora no header do card "Patrimônio por ano", ao lado do toggle 1Y/5Y/All */
 .card-head-actions { display: flex; align-items: center; gap: var(--sp-2); flex-shrink: 0; }
 .inv-history-open { display: inline-flex; align-items: center; gap: var(--sp-1); font-size: 11px; padding: 5px 11px; }

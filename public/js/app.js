@@ -177,6 +177,10 @@ function applyI18n() {
   document.querySelectorAll('[data-i18n-aria]').forEach(el => {
     el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria')));
   });
+  // Tooltips de termo/card (data-tip lido por CSS content:attr) — ex.: o "?" dos cards
+  document.querySelectorAll('[data-i18n-tip]').forEach(el => {
+    el.setAttribute('data-tip', t(el.getAttribute('data-i18n-tip')));
+  });
   // Update lang label in topbar
   const label = document.getElementById('langLabel');
   if (label) label.textContent = lang === 'pt' ? 'EN' : 'PT';
