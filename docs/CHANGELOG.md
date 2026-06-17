@@ -5,6 +5,15 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.21 — Meta de dividendos: últimos 12 meses (TTM) em vez de YTD (2026-06-17)
+A meta "Renda em dividendos" media YTD ÷ R$ 1M, o que **zerava todo 1º de janeiro** e
+desmotivava. Agora a barra usa os **últimos 12 meses (TTM)** — soma rolante de
+`state.i10.divsMonthly` (proventos reais por mês, até 30m de histórico) ÷ meta anual — então
+não zera e mostra o ritmo real de proventos. O badge vira o **crescimento YoY** (TTM atual vs
+os 12 meses anteriores; ↗ verde / ↘ warn). Fallback: se o dado mensal não cobrir 12 meses
+(ex.: a `earnings-list` do I10 falhou), volta pro YTD com a pill de ritmo de antes. Strings
+`metas.last12m` / `metas.vs12m` em PT/EN. (`public/js/app.js`, `public/js/i18n.js`)
+
 ### v9.20 — Tooltip do TWR não estoura mais pra fora do hero (2026-06-17)
 O tooltip de termo técnico (`.tip-term`, hoje só no "TWR") era centralizado no termo
 (`left:50%; translateX(-50%)`). Como o "TWR" fica na borda esquerda do hero — que tem

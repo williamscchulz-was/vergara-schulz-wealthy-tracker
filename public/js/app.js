@@ -6043,18 +6043,43 @@ function _metaRow(o) {
 function renderMetas() {
   const wrap = $('metasList'); if (!wrap) return;
   const nowY = new Date().getFullYear();
-  // 1) Dividendos — alvo editável, prazo travado.
-  const divCur = +state.i10.dividends || 0;
+  // 1) Dividendos — alvo editável, prazo travado. Barra = TTM (últimos 12 meses) em vez de YTD:
+  //    não zera em janeiro e mostra o ritmo real de proventos. Fonte: state.i10.divsMonthly
+  //    (proventos reais por mês, até 30m). Se o mensal não cobrir 12m, cai no YTD de antes.
   const divTgt = +state.dividendsYearlyGoal || 1000000;
   const divYear = +state.dividendsYearlyGoalYear || 2035;
+  const divSt = metaDivStatus();   // classe de cor da barra (ritmo rumo a 2035) — mantém nos 2 modos
+  const _dm = (state.i10.divsMonthly && typeof state.i10.divsMonthly === 'object') ? state.i10.divsMonthly : null;
+  const _dmKeys = _dm ? Object.keys(_dm).sort() : [];
+  const _now = new Date();
+  const _moKey = (back) => { const d = new Date(_now.getFullYear(), _now.getMonth() - back, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
+  const _sumWin = (months, off) => { let s = 0; for (let i = 0; i < months; i++) s += +_dm[_moKey(off + i)] || 0; return s; };
+  const _ttmReady = !!_dm && _dmKeys.length > 0 && _dmKeys[0] <= _moKey(11);   // dado cobre os últimos 12m
+  let divCur, divSubExtra, divMark, divPillTxt, divPillCls;
+  if (_ttmReady) {
+    divCur = _sumWin(12, 0);                                          // soma dos últimos 12 meses (TTM)
+    divSubExtra = esc(t('metas.last12m'));
+    divMark = null;                                                   // barra limpa no modo TTM
+    const prev = (_dmKeys[0] <= _moKey(23)) ? _sumWin(12, 12) : 0;    // 12m anteriores, p/ YoY
+    if (prev > 0) {
+      const yoy = (divCur - prev) / prev * 100;
+      divPillTxt = (yoy >= 0 ? '↗ +' : '↘ ') + Math.abs(yoy).toFixed(0) + '% ' + esc(t('metas.vs12m'));
+      divPillCls = yoy < 0 ? 'warn' : 'near';
+    } else {
+      divPillTxt = esc(t('metas.pace.' + divSt)); divPillCls = divSt === 'behind' ? 'warn' : 'near';
+    }
+  } else {
+    divCur = +state.i10.dividends || 0;                              // fallback: YTD (comportamento antigo)
+    divSubExtra = esc(t('metas.perYear')) + ' · ' + divYear;
+    divMark = (nowY - META_DIV_START) / Math.max(1, (divYear - META_DIV_START)) * 100;
+    divPillTxt = esc(t('metas.pace.' + divSt)); divPillCls = divSt === 'behind' ? 'warn' : 'near';
+  }
   const divFill = divTgt > 0 ? divCur / divTgt * 100 : 0;
-  const divMark = (nowY - META_DIV_START) / Math.max(1, (divYear - META_DIV_START)) * 100;
-  const divSt = metaDivStatus();   // ritmo pela PROJEÇÃO real (mesma conta do Resumo e do card de projeção)
   let html = _metaRow({
     id: 'div', type: 'dividends', name: esc(t('metas.dividends')), tile: 'DIV',
-    sub: `${_metaCompact(divCur)} / ${_metaCompact(divTgt)} · ${esc(t('metas.perYear'))} · ${divYear}`,
+    sub: `${_metaCompact(divCur)} / ${_metaCompact(divTgt)} · ${divSubExtra}`,
     fill: divFill, mark: divMark, st: divSt,
-    pillTxt: esc(t('metas.pace.' + divSt)), pillCls: divSt === 'behind' ? 'warn' : 'near',
+    pillTxt: divPillTxt, pillCls: divPillCls,
   });
   // 2) Ações — SEM prazo: só barra de progresso + quanto falta (%). Quantidade vem do I10.
   for (const g of (state.shareGoals || [])) {
