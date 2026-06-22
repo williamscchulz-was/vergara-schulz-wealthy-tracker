@@ -1,81 +1,82 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ledger · Proposta — resumo por cartão (mobile)</title>
+<title>Ledger · Forma de pagamento — versão minimal (cc)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{ --pg:#f3efe7; --ink:#2a2620; --ink2:#6b6256; --ink3:#6f6657; --inkm:#837767; --card:#fffdf9; --border:#e7ddcb; --el2:#f4eee2; --green:#2fae5f; --green-deep:#1f8f4a; --green-soft:rgba(47,174,95,.08); }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--pg);color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.4;padding:26px 18px 80px}
-  .wrap{max-width:1080px;margin:0 auto}
-  h1{font-size:23px;letter-spacing:-.02em;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  body{margin:0;background:var(--pg);color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.4;padding:24px 18px 80px}
+  .wrap{max-width:1000px;margin:0 auto}
+  h1{font-size:22px;letter-spacing:-.02em;margin:0 0 4px;display:flex;align-items:center;gap:10px}
   .v{font:700 10px Inter;background:var(--green-soft);color:var(--green-deep);border:1px solid var(--border);padding:3px 8px;border-radius:999px}
-  .lead{color:var(--ink2);font-size:14px;margin:0 0 8px}.lead b{color:var(--ink)}
-  .ok{font-size:13px;color:var(--green-deep);font-weight:600;margin:0 0 24px}
-  .row{display:flex;gap:24px;flex-wrap:wrap;justify-content:center}
-  .col{flex:0 0 auto}
-  .col-h{display:flex;align-items:baseline;gap:8px;margin-bottom:9px;justify-content:center}
-  .col-t{font-size:15px;font-weight:700}
+  .lead{color:var(--ink2);font-size:14px;margin:0 0 6px}.lead b{color:var(--ink)}
+  /* simula o contexto da aba Despesas */
+  .page{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px 18px;margin-top:14px;box-shadow:0 1px 2px rgba(20,40,24,.04)}
+  .tabs{display:inline-flex;background:var(--el2);border-radius:999px;padding:4px;gap:3px;margin-bottom:6px;opacity:.65}
+  .tabs span{font:600 12px Inter;padding:6px 13px;border-radius:999px;color:var(--ink3)}
+  .tabs .on{background:var(--green);color:#fff}
+  .ttl{font-size:16px;font-weight:700;margin:10px 0 2px}
+  .ttl-s{font-size:12px;color:var(--ink3);margin-bottom:14px}
+  .listhint{margin-top:16px;border-top:1px solid var(--border);padding-top:12px;color:var(--inkm);font-size:12px}
+  .opt-t{font-size:13px;font-weight:700;color:var(--ink2);margin:24px 0 0;display:flex;align-items:center;gap:8px}
   .reco{font:700 9px Inter;letter-spacing:.04em;background:var(--green);color:#fff;padding:2px 7px;border-radius:999px;text-transform:uppercase}
-  /* phone frame ~360 */
-  .phone{width:360px;background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 1px 2px rgba(20,40,24,.04),0 10px 26px -14px rgba(20,40,24,.22);overflow:hidden}
-  .lbl{font:700 10px Inter;letter-spacing:.08em;text-transform:uppercase;color:var(--inkm);padding:13px 14px 0}
-  .pad{padding:10px 14px 14px}
-  .pdot{border-radius:6px;display:grid;place-items:center;flex-shrink:0}
-  .pdot svg{width:11px;height:11px}
-  .pn{font-weight:600;color:var(--ink2);white-space:nowrap}
-  .pv{font-family:'Geist Mono',monospace;font-weight:700;color:var(--ink);white-space:nowrap}
-  /* A: pílulas em 2 linhas */
-  .pills{display:flex;flex-wrap:wrap;gap:7px}
-  .pills .pill{display:inline-flex;align-items:center;gap:6px;background:var(--el2);border:1px solid var(--border);border-radius:999px;padding:5px 11px 5px 6px}
-  .pills .pdot{width:19px;height:19px} .pills .pn{font-size:11.5px} .pills .pv{font-size:12px}
-  /* B: grid 2 colunas */
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .gcell{display:flex;align-items:center;gap:9px;background:var(--el2);border:1px solid var(--border);border-radius:11px;padding:8px 10px;min-width:0}
-  .gcell .pdot{width:26px;height:26px;border-radius:8px} .gcell .pdot svg{width:13px;height:13px}
-  .gcell .gt{min-width:0}
-  .gcell .pn{font-size:11px;display:block;overflow:hidden;text-overflow:ellipsis}
-  .gcell .pv{font-size:13.5px;display:block}
-  /* C: barra + legenda */
-  .bar{display:flex;height:26px;border-radius:8px;overflow:hidden;border:1px solid var(--border);margin-bottom:11px}
-  .seg{flex-grow:0}
-  .leg{display:grid;grid-template-columns:1fr 1fr;gap:7px 14px}
-  .li{display:flex;align-items:center;gap:7px;font-size:12px;min-width:0}
-  .li i{width:9px;height:9px;border-radius:3px;flex-shrink:0}
-  .li .ln{color:var(--ink2);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .li .lv{font-family:'Geist Mono',monospace;font-weight:700;color:var(--ink);margin-left:auto;white-space:nowrap}
-  .foot{text-align:center;color:var(--ink3);font-size:13px;margin-top:28px;line-height:1.7}.foot b{color:var(--ink2)}
-  @media(max-width:780px){ .phone{width:100%;max-width:360px} }
+  .od{font-size:11.5px;color:var(--ink3);font-weight:500}
+  /* dados */
+  .ic{display:inline-grid;place-items:center;flex-shrink:0}
+  .ic svg{display:block}
+  /* A — pills leves, sem caixa */
+  .a{display:flex;flex-wrap:nowrap;gap:14px;overflow:hidden}
+  .a .it{display:inline-flex;align-items:center;gap:7px;flex:0 1 auto;min-width:0}
+  .a .ic{width:18px;height:18px;border-radius:5px}.a .ic svg{width:11px;height:11px}
+  .a .n{font-size:12.5px;font-weight:600;color:var(--ink2);white-space:nowrap}
+  .a .vv{font:700 12.5px 'Geist Mono';color:var(--ink);white-space:nowrap}
+  /* B — uma linha de texto com pontinhos */
+  .b{font-size:13px;color:var(--ink2);display:flex;flex-wrap:wrap;gap:4px 0;align-items:center}
+  .b .it{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .b .dot{width:8px;height:8px;border-radius:3px;flex-shrink:0}
+  .b .n{font-weight:600}
+  .b .vv{font-family:'Geist Mono',monospace;font-weight:700;color:var(--ink)}
+  .b .sep{color:var(--border);margin:0 11px}
+  /* C — chips minúsculos com pontinho (sem ícone) */
+  .c{display:flex;flex-wrap:nowrap;gap:8px;overflow:hidden}
+  .c .it{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid var(--border);border-radius:999px;padding:4px 11px;flex:0 1 auto}
+  .c .dot{width:8px;height:8px;border-radius:3px;flex-shrink:0}
+  .c .n{font-size:12px;font-weight:600;color:var(--ink2);white-space:nowrap}
+  .c .vv{font:700 12px 'Geist Mono';color:var(--ink);white-space:nowrap}
+  .foot{text-align:center;color:var(--ink3);font-size:13px;margin-top:26px;line-height:1.7}.foot b{color:var(--ink2)}
 </style></head>
 <body><div class="wrap">
 
-<h1>Resumo por cartão — solução p/ mobile <span class="v">Ledger</span></h1>
-<p class="lead">No <b>desktop</b> fica como você aprovou: pílulas em <b>1 linha</b>. No <b>celular</b> (onde não cabe), 3 opções de layout próprio — <b>sem deslize, sem barra</b>. Tudo à vista. Escolhe:</p>
-<p class="ok">✓ desktop = pílulas 1 linha (mantido) · abaixo só o MOBILE</p>
+<h1>Forma de pagamento — minimal <span class="v">Ledger</span></h1>
+<p class="lead">Sem caixa de card, só a faixa <b>inline</b>. <b>"cc"</b> no lugar de "Cartão". 3 níveis de minimal, no contexto da aba Despesas:</p>
 
-<div class="row" id="stage"></div>
+<div id="stage"></div>
 
-<div class="foot">Qual no mobile: <b>A</b> (pílulas 2 linhas), <b>B</b> (grade 2 colunas) ou <b>C</b> (barra + legenda)? ✌️</div>
+<div class="foot">Qual: <b>A</b> (pills leves), <b>B</b> (1 linha de texto) ou <b>C</b> (chips só com pontinho)? E me confirma <b>onde</b> era o roxo (acima da lista, como aqui, ou outro lugar?). ✌️</div>
 
 </div>
 <script>
   const CARD='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><line x1="2" y1="10" x2="22" y2="10"/></svg>';
   const PIX='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l3.5 3.5a3 3 0 0 0 4.2 0M12 21l3.5-3.5a3 3 0 0 1 4.2 0M12 3L8.5 6.5a3 3 0 0 1-4.2 0M12 21l-3.5-3.5a3 3 0 0 0-4.2 0M3 12l3.5-3.5a3 3 0 0 1 4.2 0L15 12l-4.3 3.5a3 3 0 0 1-4.2 0z"/></svg>';
   const CASH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>';
+  // "cc" no genérico; titulares mantêm o nome (ícone de cartão já diz que é cc)
   const SRC=[
-    {n:'William',v:12400,c:'#1f7ab8',ic:CARD},{n:'Pix',v:8200,c:'#2fae5f',ic:PIX},{n:'Flávia',v:6800,c:'#c43f93',ic:CARD},
-    {n:'Amanda',v:2100,c:'#7c5cd0',ic:CARD},{n:'Dinheiro',v:1694,c:'#8a8175',ic:CASH},
+    {n:'William',v:11400,c:'#1f7ab8',ic:CARD},{n:'Pix',v:5900,c:'#2fae5f',ic:PIX},{n:'Flávia',v:5200,c:'#c43f93',ic:CARD},
+    {n:'cc',v:1700,c:'#8a8175',ic:CARD},{n:'Isolde',v:646,c:'#0ea5a4',ic:CARD},{n:'Amanda',v:188,c:'#7c5cd0',ic:CARD},
   ];
-  const tot=SRC.reduce((s,x)=>s+x.v,0);
-  function mc(n){const a=Math.abs(n);if(a>=1e6)return 'R$ '+(n/1e6).toFixed(2).replace('.',',')+'M';if(a>=1000)return 'R$ '+(n/1000).toFixed(1).replace('.',',')+'K';return 'R$ '+Math.round(n);}
+  const brl=n=>'R$ '+Math.round(n).toLocaleString('pt-BR');
   function tint(h,a){const x=parseInt(h.slice(1),16);return 'rgba('+((x>>16)&255)+','+((x>>8)&255)+','+(x&255)+','+a+')';}
-  const A=SRC.map(s=>`<div class="pill"><span class="pdot" style="color:${s.c};background:${tint(s.c,.14)}">${s.ic}</span><span class="pn">${s.n}</span><span class="pv">${mc(s.v)}</span></div>`).join('');
-  const B=SRC.map(s=>`<div class="gcell"><span class="pdot" style="color:${s.c};background:${tint(s.c,.14)}">${s.ic}</span><span class="gt"><span class="pn">${s.n}</span><span class="pv">${mc(s.v)}</span></span></div>`).join('');
-  const Cseg=SRC.map(s=>`<div class="seg" style="background:${s.c};flex:${s.v}"></div>`).join('');
-  const Cleg=SRC.map(s=>`<span class="li"><i style="background:${s.c}"></i><span class="ln">${s.n}</span><span class="lv">${mc(s.v)}</span></span>`).join('');
-  function phone(inner){return `<div class="phone"><div class="lbl">Por forma de pagamento</div><div class="pad">${inner}</div></div>`;}
+  function tabs(){return '<div class="tabs"><span>Painel</span><span class="on">Despesas</span><span>Ganhos</span><span>Categorias</span></div><div class="ttl">Todas as despesas do mês</div><div class="ttl-s">Clique em uma linha para editar</div>';}
+  function listhint(){return '<div class="listhint">108 LANÇAMENTOS · R$ 32.594,07 — (a lista vem aqui embaixo)</div>';}
+  const A=SRC.map(s=>`<span class="it"><span class="ic" style="color:${s.c};background:${tint(s.c,.14)}">${s.ic}</span><span class="n">${s.n}</span><span class="vv">${brl(s.v)}</span></span>`).join('');
+  const B=SRC.map(s=>`<span class="it"><span class="dot" style="background:${s.c}"></span><span class="n">${s.n}</span> <span class="vv">${brl(s.v)}</span></span>`).join('<span class="sep">·</span>');
+  const C=SRC.map(s=>`<span class="it"><span class="dot" style="background:${s.c}"></span><span class="n">${s.n}</span><span class="vv">${brl(s.v)}</span></span>`).join('');
   document.getElementById('stage').innerHTML=`
-    <div class="col"><div class="col-h"><span class="col-t">A · Pílulas 2 linhas</span></div>${phone('<div class="pills">'+A+'</div>')}</div>
-    <div class="col"><div class="col-h"><span class="col-t">B · Grade 2 colunas</span><span class="reco">★</span></div>${phone('<div class="grid">'+B+'</div>')}</div>
-    <div class="col"><div class="col-h"><span class="col-t">C · Barra + legenda</span></div>${phone('<div class="bar">'+Cseg+'</div><div class="leg">'+Cleg+'</div>')}</div>`;
+    <div class="opt-t">A · Pills leves (sem caixa) <span class="reco">★</span><span class="od">só ícone + nome + valor, inline na página</span></div>
+    <div class="page">${tabs()}<div class="a">${A}</div>${listhint()}</div>
+    <div class="opt-t">B · Uma linha de texto<span class="od">o mais minimal — pontinho de cor + nome + valor, separados por ·</span></div>
+    <div class="page">${tabs()}<div class="b">${B}</div>${listhint()}</div>
+    <div class="opt-t">C · Chips só com pontinho<span class="od">chip fininho, sem ícone, só a cor</span></div>
+    <div class="page">${tabs()}<div class="c">${C}</div>${listhint()}</div>`;
 </script>
 </body></html>
