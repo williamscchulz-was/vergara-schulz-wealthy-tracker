@@ -651,14 +651,11 @@ tr.row-flash td { animation: rowFlash 1.4s ease both; }
   .fab-add { display: grid; place-items: center; position: fixed; right: 16px; bottom: calc(92px + env(safe-area-inset-bottom)); z-index: 90; width: 54px; height: 54px; border-radius: 50%; border: 0; background: linear-gradient(135deg, var(--purple), var(--purple-deep)); color: var(--on-accent); font-size: 28px; font-weight: 600; line-height: 1; cursor: pointer; box-shadow: 0 12px 28px -8px var(--purple-glow), 0 4px 10px rgba(0,0,0,.35); transition: transform .2s var(--ease-back); }
   .fab-add:active { transform: scale(.92); }
 }
-/* P2 (v9.9): "+" integrado na ilha de navegação (substitui o FAB) */
-.ms-add { display: none; }
-.ms-add[hidden] { display: none !important; }   /* só na aba Despesas (gating no switchMode) */
+/* v11.x (pedido do dono): "+" da ilha REMOVIDO — era redundante (FAB cobre o mobile, botões
+   Ganho/Despesa cobrem o desktop) e feio no topo. Some em qualquer largura. */
+.ms-add { display: none !important; }
 @media (max-width: 719.98px) {
   .mode-switch button[data-mode] { padding: 10px 16px !important; }
-  /* "+" um pouco afastado dos 3 modos (é AÇÃO, não navegação) */
-  .ms-add { display: grid; place-items: center; width: 36px; height: 36px; margin-left: 8px; flex-shrink: 0; border: 0; border-radius: 50%; background: linear-gradient(135deg, var(--purple-light), var(--purple)); color: #1a1420; font-size: 22px; font-weight: 500; line-height: 1; cursor: pointer; box-shadow: 0 4px 12px var(--purple-glow); }
-  .ms-add:active { transform: scale(.92); }
   .fab-add { display: none !important; }
 }
 /* U2: deslize visual na troca de mês por swipe */
