@@ -16,6 +16,15 @@ test('matchInstallmentProvision — casa parcela real↔provisão por estab+k/Y+
   assert.equal(matchInstallmentProvision({ descKey: 'latamair', k: 3, total: 4, comp: '2026-09', value: 1497.02 }, provs), null); // mês diferente
   assert.equal(matchInstallmentProvision({ descKey: 'latamair', k: 2, total: 4, comp: '2026-08', value: 1497.02 }, provs), null); // parcela diferente
   assert.equal(matchInstallmentProvision({ descKey: 'latamair', k: 3, total: 4, comp: '2026-08', value: 1800 }, provs), null); // valor >2% → não funde
+  // compras DISTINTAS no mesmo estab/parcela/mês, valor dentro de 2% mas > R$2 → NÃO funde (não some uma)
+  const distintas = [{ id: 'x', descKey: 'nikestore', k: 1, total: 3, comp: '2026-01', value: 300 }];
+  assert.equal(matchInstallmentProvision({ descKey: 'nikestore', k: 1, total: 3, comp: '2026-01', value: 305 }, distintas), null); // R$5 (1,67%) → compra diferente
+  assert.equal(matchInstallmentProvision({ descKey: 'nikestore', k: 1, total: 3, comp: '2026-01', value: 300.5 }, distintas).id, 'x'); // R$0,50 → mesma compra (centavos)
+  // provisão sem valor (b<=0) nunca casa
+  assert.equal(matchInstallmentProvision({ descKey: 'z', k: 1, total: 2, comp: '2026-01', value: 100 }, [{ id: 'q', descKey: 'z', k: 1, total: 2, comp: '2026-01', value: 0 }]), null);
+  // entre dois candidatos, casa o de valor MAIS PRÓXIMO
+  const multi = [{ id: 'p1', descKey: 'amzn', k: 2, total: 5, comp: '2026-03', value: 100 }, { id: 'p2', descKey: 'amzn', k: 2, total: 5, comp: '2026-03', value: 101 }];
+  assert.equal(matchInstallmentProvision({ descKey: 'amzn', k: 2, total: 5, comp: '2026-03', value: 100.9 }, multi).id, 'p2');
 });
 
 test('impFp — determinístico + formato data|valor(2 casas)|desc', () => {

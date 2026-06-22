@@ -68,15 +68,22 @@ export function parseBRMoney(raw) {
 // + mesmo mês (comp), e valor só dentro de uma tolerância pequena (default 2%) — assim
 // centavos casam mas compras de valores realmente diferentes NÃO se fundem. Puro/testável.
 // real/p: { descKey, k, total, comp, value } (+ p.id). Retorna a provisão casada ou null.
-export function matchInstallmentProvision(real, provs, tol = 0.02) {
+export function matchInstallmentProvision(real, provs, tol = 0.02, capAbs = 2) {
   if (!real || !real.descKey || !Array.isArray(provs)) return null;
+  const rv = +real.value || 0;
+  if (rv <= 0) return null;
+  let best = null, bestDiff = Infinity;
   for (const p of provs) {
     if (!p || p.descKey !== real.descKey) continue;
     if (+p.k !== +real.k || +p.total !== +real.total) continue;
     if (p.comp !== real.comp) continue;
     const b = +p.value || 0;
-    if (b > 0 && Math.abs((+real.value || 0) - b) / b > tol) continue;
-    return p;
+    if (b <= 0) continue;                                   // nunca funde sem valor real dos dois lados
+    const absDiff = Math.abs(rv - b);
+    // só perdoa CENTAVOS: dentro de 2% E de R$2. A 2% sozinha fundia compras distintas no mesmo
+    // estabelecimento/parcela/mês (ex.: R$300 vs R$305 = 1,67%), apagando uma silenciosamente.
+    if (absDiff / b > tol || absDiff > capAbs) continue;
+    if (absDiff < bestDiff) { best = p; bestDiff = absDiff; }   // entre candidatos, o de valor mais próximo
   }
-  return null;
+  return best;
 }

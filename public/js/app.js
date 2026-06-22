@@ -672,7 +672,9 @@ function renderResumo() {
 
   // Categorias do período (donut "onde foi o dinheiro")
   const byCat = {};
-  for (const e of exp) { const c = e.category || 'outros'; byCat[c] = (byCat[c] || 0) + (+e.value || 0); }
+  // categoria fora do CATEGORIES vivo (ex.: 'cartao' aposentada, ou custom apagada) cai em 'outros' —
+  // senão virava uma fatia crua "cartao" sem cor/label. A lista (entryMeta) já fazia esse fallback.
+  for (const e of exp) { const c = (e.category && CATEGORIES[e.category]) ? e.category : 'outros'; byCat[c] = (byCat[c] || 0) + (+e.value || 0); }
   const catArr = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
   const dTotal = despesas || 1;
   let dcum = 0;
@@ -1267,7 +1269,9 @@ function renderExpenseTable(entries) {
   if (fc) result = result.filter(e => (e.category || 'outros') === fc);
   if (fo) result = result.filter(e => (e.owner === 'joint' ? 'familia' : (e.owner || 'familia')) === fo);
   if (fsrc) result = result.filter(e => entrySourceKind(e) === fsrc);
-  if (fpay) result = result.filter(e => (e.payMethod || '') === fpay);   // P-Pix/Cartão: filtro Forma de pagamento
+  // P-Pix/Cartão: filtro Forma de pagamento. Importados não têm payMethod → cai na
+  // classificação por origem (entrySourceKind) senão "Cartão" escondia TODA a fatura importada.
+  if (fpay) result = result.filter(e => (e.payMethod || entrySourceKind(e)) === fpay);
   // Sub-aba Ganhos = só ganhos; senão DESPESAS por padrão (ganhos via filtro "Ganho").
   if (state.expSub === 'ganhos' || ft === 'ganho') result = result.filter(e => isIncome(e));
   else {
@@ -1322,7 +1326,8 @@ function renderExpenseTable(entries) {
     const ownerChip = ownerChipHtml(e);
     const descMain = `<div class="exp-row-desc">${_hi(e.description) || '—'}${ownerChip}</div>`;
     // P-Pix/Cartão (Opção 1): forma de pagamento aparece na linha (lançamentos manuais)
-    const payHint = (!isV && !isIn && e.payMethod) ? ({ cartao: 'via cartão', conta: 'via Pix', manual: 'em dinheiro' }[e.payMethod] || '') : '';
+    const _payKey = { cartao: 'exp.payhint.cartao', conta: 'exp.payhint.pix', manual: 'exp.payhint.dinheiro' }[e.payMethod];
+    const payHint = (!isV && !isIn && _payKey) ? t(_payKey) : '';
     const subLine = [notes, payHint].filter(Boolean).join(' · ');
     const descHtml = subLine
       ? `${descMain}<div class="exp-row-notes" title="${esc(subLine)}">${esc(subLine)}</div>`
@@ -1858,7 +1863,7 @@ function openExpenseModal(id = null, opts = {}) {
     setModalType(type);
     setModalOwner(e.owner || 'familia');
     setModalNature(e.nature || 'variavel');
-    setModalPay(e.payMethod || 'cartao');
+    setModalPay(e.payMethod || entrySourceKind(e));   // importado sem payMethod → deriva da origem (não chuta 'cartao')
     $('expDesc').value = e.description || '';
     $('expValue').value = fmtBRLInput(e.value);
     $('expDate').value = e.date || '';
@@ -5456,11 +5461,14 @@ async function doImport() {
     for (let i = 0; i < batch.length; i += 450) {
       const wb = writeBatch(db);
       for (const d of batch.slice(i, i + 450)) wb.set(doc(colExpenses()), d);
-      if (i === 0) for (const u of reconUpdates) wb.update(docExpense(u.id), u.patch);   // P-parcela: converte provisões na 1ª leva
       await wb.commit();
     }
-    if (!batch.length && reconUpdates.length) {   // só reconciliação (nenhum doc novo) → grava as conversões
-      const wb = writeBatch(db); for (const u of reconUpdates) wb.update(docExpense(u.id), u.patch); await wb.commit();
+    // P-parcela: converte provisões em real, em lotes PRÓPRIOS de 450. Antes iam junto da 1ª leva
+    // de sets; com muitas reconciliações o lote passava de 500 e o import inteiro falhava.
+    for (let i = 0; i < reconUpdates.length; i += 450) {
+      const wb = writeBatch(db);
+      for (const u of reconUpdates.slice(i, i + 450)) wb.update(docExpense(u.id), u.patch);
+      await wb.commit();
     }
     // Navega a aba Despesas pro mês (competência) dos lançamentos importados — senão
     // parece que "não subiu nada" quando a fatura é de um mês diferente do que está aberto.
@@ -6114,7 +6122,10 @@ function dividendsTTM() {
   const now = new Date();
   const moKey = (back) => { const d = new Date(now.getFullYear(), now.getMonth() - back, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
   const sumWin = (months, off) => { let s = 0; for (let i = 0; i < months; i++) s += +dm[moKey(off + i)] || 0; return s; };
-  if (!(keys.length > 0 && keys[0] <= moKey(11))) return { ready: false, ttm: 0, prev: 0, yoy: null };   // cobre os 12m?
+  const lastKey = keys[keys.length - 1];   // mês de provento MAIS RECENTE
+  // só "ready" se há provento DENTRO da janela de 12m (antes bastava o mais antigo ser ≤ início —
+  // com sync velho/esparso dava ready=true e ttm=0, zerando a meta em vez de cair no YTD).
+  if (!(keys.length > 0 && lastKey >= moKey(11))) return { ready: false, ttm: 0, prev: 0, yoy: null };
   const ttm = sumWin(12, 0);
   const prev = (keys[0] <= moKey(23)) ? sumWin(12, 12) : 0;   // 12m anteriores, p/ YoY
   return { ready: true, ttm, prev, yoy: prev > 0 ? (ttm - prev) / prev * 100 : null };
