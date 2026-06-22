@@ -1317,6 +1317,8 @@ function renderExpenseTable(entries) {
       <button class="btn-primary exp-empty-cta" type="button">+ ${esc(t('exp.empty.cta'))}</button>
     </div></td></tr>`;
     tbody.querySelector('.exp-empty-cta')?.addEventListener('click', () => openExpenseModal(null));
+    { const _pm0 = $('expPanelMore'); if (_pm0) _pm0.hidden = true; }   // vazio: rodapé some + re-sincroniza altura (senão fica travada/velha)
+    requestAnimationFrame(syncPanelHeights);
     return;
   }
 
@@ -1367,6 +1369,8 @@ function renderExpenseTable(entries) {
   if (result.length === 0) {
     const msg = q ? t('exp.search.none').replace('{q}', _expSearchQuery.trim()) : t('exp.filter.none');
     tbody.innerHTML = `<tr><td colspan="4"><div class="exp-empty"><h4>${msg}</h4><p>${t('exp.empty.table.sub')}</p></div></td></tr>`;
+    { const _pm0 = $('expPanelMore'); if (_pm0) _pm0.hidden = true; }   // sem resultados: rodapé some + re-sincroniza altura
+    requestAnimationFrame(syncPanelHeights);
     return;
   }
 
@@ -1469,10 +1473,19 @@ function syncPanelHeights() {
   if (!cat || !tx || !tw) return;
   const isPanel = !mod.classList.contains('view-lancamentos') && !mod.classList.contains('view-ganhos') && !mod.classList.contains('view-categorias');
   if (!isPanel || window.innerWidth < 900) { tx.style.height = ''; tw.classList.remove('is-clipped'); return; }
-  tx.style.height = '';                         // mede a altura natural do card de categorias
+  tx.style.height = '';                         // mede natural
   const catH = cat.offsetHeight;
-  tx.style.height = catH + 'px';                // iguala
-  tw.classList.toggle('is-clipped', tw.scrollHeight > tw.clientHeight + 2);   // fade só quando há corte
+  const txNat = tx.offsetHeight;
+  const chrome = txNat - tw.offsetHeight;       // card-head + total + rodapé (sem a lista)
+  // só iguala se dá pra clipar SEM espremer o header (catH cabe chrome + ~2 linhas) E o card de
+  // lançamentos é naturalmente mais alto (senão igualar deixaria vazio NELE). Senão, altura natural.
+  if (catH >= chrome + 88 && catH < txNat - 1) {
+    tx.style.height = catH + 'px';
+    tw.classList.toggle('is-clipped', tw.scrollHeight > tw.clientHeight + 2);   // fade só quando corta
+  } else {
+    tx.style.height = '';
+    tw.classList.remove('is-clipped');
+  }
 }
 $('expPanelMore')?.addEventListener('click', () => setExpSub('lancamentos'));   // rodapé fixo → abre a lista completa
 let _panelSyncRaf = 0;

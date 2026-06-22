@@ -259,6 +259,9 @@
   #moduleExpenses.active:not(.view-lancamentos):not(.view-ganhos):not(.view-categorias) > .exp-g-table { display: flex; flex-direction: column; }
   #moduleExpenses.active:not(.view-lancamentos):not(.view-ganhos):not(.view-categorias) > .exp-g-table .table-wrap { flex: 1 1 0; min-height: 0; overflow: hidden; }
   #moduleExpenses.active:not(.view-lancamentos):not(.view-ganhos):not(.view-categorias) > .exp-g-table .table-wrap.is-clipped { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent); }
+  /* header/total nunca espremem — só a lista (.table-wrap) absorve o ajuste de altura */
+  #moduleExpenses.active:not(.view-lancamentos):not(.view-ganhos):not(.view-categorias) > .exp-g-table > .card-head,
+  #moduleExpenses.active:not(.view-lancamentos):not(.view-ganhos):not(.view-categorias) > .exp-g-table > .exp-total-bar { flex: 0 0 auto; }
 }
 
 /* popup "Todas as categorias" (v11) — lista rolável reusando .exp-cat-row */
