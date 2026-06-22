@@ -43,6 +43,7 @@ const docReserves = doc(db, "household", "main", "config", "reserves");
 const docPension  = doc(db, "household", "main", "config", "pension");
 const docShareGoals = doc(db, "household", "main", "config", "shareGoals");
 const docBudgets  = doc(db, "household", "main", "config", "budgets");
+const docIncomeOpts = doc(db, "household", "main", "config", "incomeOpts");   // atalhos de descrição de ganho criados pelo casal (compartilhado)
 const docCategories = doc(db, "household", "main", "config", "categories");
 const docImportMeta = doc(db, "household", "main", "config", "importMeta");
 const docUserPrefs = doc(db, "household", "main", "config", "userPrefs");
@@ -121,6 +122,7 @@ const state = {
   dividendsYearlyGoal: 1_000_000,
   dividendsYearlyGoalYear: 2035,
   shareGoals: [],                // metas de quantidade de ações [{id,ticker,target,startYear,year}]
+  incomeOpts: [],                // atalhos de descrição de ganho criados pelo casal [{val,label,source}]
   currentViewMonth: new Date(),  // month being viewed in Expenses
 };
 
@@ -1792,6 +1794,8 @@ function setModalType(type) {
   // Swap category vs source field
   $('expCategoryField').hidden = _modalType === 'income';
   $('expSourceField').hidden = _modalType !== 'income';
+  // mini-form de "nova descrição" só aparece em ganho E com a opção "➕ Nova" selecionada
+  { const _inf = $('expIncomeNewField'); if (_inf) _inf.hidden = !(_modalType === 'income' && $('expSource')?.value === '__new__'); }
   { const _nf = $('expNatureField'); if (_nf) _nf.hidden = _modalType === 'income'; }  // fixa/variável só faz sentido em despesa
   { const _pf = $('expPayField'); if (_pf) _pf.hidden = _modalType === 'income'; }  // forma de pagamento só em despesa
   // Ganho enxuto: esconde descrição-texto, de-quem e notas (fica só dropdown + valor + data)
@@ -1810,8 +1814,39 @@ function setModalType(type) {
   $('expenseModalSub').textContent = t(subKey);
 }
 
+// Ganho (variante B): reconstrói o dropdown de descrição = atalhos fixos (INCOME_OPTS) +
+// atalhos criados pelo casal (state.incomeOpts, Firestore) + "➕ Nova descrição". E popula
+// o seletor de categoria de renda do mini-form. Idempotente, preserva a seleção atual.
+function incomeAllOpts() { return INCOME_OPTS.concat(Array.isArray(state.incomeOpts) ? state.incomeOpts : []); }
+function populateIncomeFields() {
+  const sel = $('expSource');
+  if (sel) {
+    const cur = sel.value;
+    sel.innerHTML = incomeAllOpts().map(o => `<option value="${esc(o.val)}">${esc(o.label)}</option>`).join('')
+      + `<option value="__new__">${esc(t('exp.f.income.new'))}</option>`;
+    if (cur && (cur === '__new__' || incomeAllOpts().some(o => o.val === cur))) sel.value = cur;
+  }
+  const cat = $('expIncomeNewCat');
+  if (cat) {
+    const curc = cat.value || 'dividendos';
+    cat.innerHTML = Object.keys(INCOME_SOURCES).map(k => `<option value="${k}">${esc(t(INCOME_SOURCES[k].labelKey))}</option>`).join('');
+    cat.value = curc;
+  }
+}
+// Persiste um atalho de descrição de ganho no Firestore compartilhado (dedup por label).
+async function persistIncomeOpt(label, source) {
+  const cur = Array.isArray(state.incomeOpts) ? state.incomeOpts : [];
+  const norm = (label || '').trim().toLowerCase();
+  if (!norm || cur.some(o => (o.label || '').trim().toLowerCase() === norm)) return;
+  const slug = 'cst:' + norm.replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40);
+  const val = cur.some(o => o.val === slug) ? slug + ':' + (cur.length + 1) : slug;
+  const next = cur.concat([{ val, label: label.trim(), source: source || 'outros' }]);
+  await setDoc(docIncomeOpts, { opts: next, updatedAt: serverTimestamp(), updatedBy: state.user?.displayName || 'unknown' }, { merge: true });
+}
+
 function openExpenseModal(id = null, opts = {}) {
   editingExpenseId = id;
+  populateIncomeFields();   // dropdown de ganho sempre com atalhos + custom + "➕ Nova" (cobre toggle de tipo)
   // reseta o controle de recorrência (setModalNature cuida de mostrar/esconder o bloco)
   if ($('expRepeat')) $('expRepeat').checked = false;
   if ($('expRepeatUntil')) $('expRepeatUntil').value = '';
@@ -1827,8 +1862,19 @@ function openExpenseModal(id = null, opts = {}) {
     $('expDesc').value = e.description || '';
     $('expValue').value = fmtBRLInput(e.value);
     $('expDate').value = e.date || '';
-    if (type === 'income') $('expSource').value = (INCOME_OPTS.find(o => o.label === e.description) || INCOME_OPTS[0]).val;
-    else $('expCategory').value = e.category || 'outros';
+    if (type === 'income') {
+      populateIncomeFields();
+      const match = incomeAllOpts().find(o => o.label === e.description);
+      if (match) { $('expSource').value = match.val; if ($('expIncomeNewField')) $('expIncomeNewField').hidden = true; }
+      else {
+        // descrição que não está na lista (custom não-salva) → modo "➕ Nova" com prefill
+        $('expSource').value = '__new__';
+        if ($('expIncomeNewField')) $('expIncomeNewField').hidden = false;
+        if ($('expIncomeNewDesc')) $('expIncomeNewDesc').value = e.description || '';
+        if ($('expIncomeNewCat')) $('expIncomeNewCat').value = INCOME_SOURCES[e.category] ? e.category : 'dividendos';
+        if ($('expIncomeNewSave')) $('expIncomeNewSave').checked = false;
+      }
+    } else $('expCategory').value = e.category || 'outros';
     $('expNotes').value = e.notes || '';
     $('expDelete').style.display = '';
   } else {
@@ -1841,7 +1887,12 @@ function openExpenseModal(id = null, opts = {}) {
     $('expValue').value = '';
     $('expDate').value = today.toISOString().split('T')[0];
     $('expCategory').value = 'outros';
+    populateIncomeFields();
     $('expSource').value = INCOME_OPTS[0].val;
+    if ($('expIncomeNewField')) $('expIncomeNewField').hidden = true;
+    if ($('expIncomeNewDesc')) $('expIncomeNewDesc').value = '';
+    if ($('expIncomeNewCat')) $('expIncomeNewCat').value = 'dividendos';
+    if ($('expIncomeNewSave')) $('expIncomeNewSave').checked = true;
     $('expNotes').value = '';
     $('expDelete').style.display = 'none';
   }
@@ -1849,6 +1900,13 @@ function openExpenseModal(id = null, opts = {}) {
   setTimeout(() => { const f = (_modalType === 'income' ? $('expSource') : $('expDesc')); if (f) f.focus(); }, 50);
 }
 function closeExpenseModal() { $('expenseModal').classList.remove('show'); editingExpenseId = null; }
+// Ganho (variante B): escolher "➕ Nova descrição" revela o mini-form; qualquer atalho o esconde.
+$('expSource')?.addEventListener('change', () => {
+  const nf = $('expIncomeNewField'); if (!nf) return;
+  const isNew = $('expSource').value === '__new__';
+  nf.hidden = !isNew;
+  if (isNew) setTimeout(() => $('expIncomeNewDesc')?.focus(), 30);
+});
 
 // Editor minimal de uma despesa fixa (clique numa linha "fixa" projetada): muda
 // valor / "até quando" ou para de repetir. Modal montado dinamicamente.
@@ -1969,8 +2027,18 @@ async function _saveExpenseInner() {
   const date = $('expDate').value;
   let description, category;
   if (_modalType === 'income') {
-    const opt = INCOME_OPTS.find(o => o.val === $('expSource').value) || INCOME_OPTS[0];
-    description = opt.label; category = opt.source;
+    const sv = $('expSource').value;
+    if (sv === '__new__') {
+      description = ($('expIncomeNewDesc')?.value || '').trim();
+      category = $('expIncomeNewCat')?.value || 'outros';
+      // "salvar como atalho" → grava no Firestore compartilhado (não bloqueia o lançamento se falhar)
+      if (description && $('expIncomeNewSave')?.checked) {
+        try { await persistIncomeOpt(description, category); } catch (e) { console.warn('income shortcut save failed', e); }
+      }
+    } else {
+      const opt = incomeAllOpts().find(o => o.val === sv) || INCOME_OPTS[0];
+      description = opt.label; category = opt.source;
+    }
   } else {
     description = $('expDesc').value.trim();
     category = $('expCategory').value;
@@ -4152,7 +4220,15 @@ function openAddMenu(anchor) {
   }
   const r = anchor.getBoundingClientRect();
   m.style.left = Math.max(8, Math.min(window.innerWidth - 188, r.left - 60)) + 'px';
-  m.style.bottom = (window.innerHeight - r.top + 10) + 'px';   // logo acima do "+"
+  // v9.x: abre na direção com espaço. Desktop (tab bar no topo) → pra BAIXO; celular
+  // (ilha no rodapé) → pra CIMA. Antes era sempre pra cima e estourava o topo no desktop.
+  const menuH = 96;   // ~2 itens; o menu fica display:none então não dá pra medir antes
+  const spaceBelow = window.innerHeight - r.bottom;
+  if (spaceBelow >= menuH + 12 || spaceBelow > r.top) {
+    m.style.top = (r.bottom + 10) + 'px'; m.style.bottom = 'auto';
+  } else {
+    m.style.bottom = (window.innerHeight - r.top + 10) + 'px'; m.style.top = 'auto';
+  }
   m.classList.toggle('show');
 }
 $('msAdd')?.addEventListener('click', (ev) => { ev.stopPropagation(); openAddMenu($('msAdd')); });
@@ -5728,6 +5804,12 @@ function subscribeAll() {
   unsub.contributions = onSnapshot(colContrib(), (snap) => {
     state.contributions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     if (state.mode === 'investments') renderContributions();
+  });
+  unsub.incomeOpts = onSnapshot(docIncomeOpts, (snap) => {
+    const d = snap.data() || {};
+    state.incomeOpts = Array.isArray(d.opts) ? d.opts.filter(o => o && o.val && o.label) : [];
+    // se o modal de ganho está aberto, atualiza o dropdown na hora (tempo real entre W e F)
+    if (_modalType === 'income' && $('expenseModal')?.classList.contains('show')) populateIncomeFields();
   });
   unsub.i10Cfg = onSnapshot(docI10Cfg, (snap) => {
     const data = snap.data() || {};

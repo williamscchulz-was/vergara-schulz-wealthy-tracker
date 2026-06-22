@@ -507,6 +507,12 @@
 #addQuickMenu .aq-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
 #addQuickMenu .aq-dot.exp { background: var(--purple); }
 #addQuickMenu .aq-dot.inc { background: var(--gain); }
+/* Ganho (variante B): mini-form de "nova descrição" — agrupado num bloco destacado */
+#expIncomeNewField { background: var(--bg-elevated-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+#expIncomeNewField > label { color: var(--purple-deep); }
+#expIncomeNewField .exp-income-sub { margin-top: 11px; }
+#expIncomeNewField .exp-income-save { display: flex; align-items: center; gap: 8px; margin: 12px 0 0; font-size: 13px; font-weight: 500; color: var(--ink-2); text-transform: none; letter-spacing: 0; cursor: pointer; }
+#expIncomeNewField .exp-income-save input { width: 16px; height: 16px; accent-color: var(--purple); margin: 0; flex-shrink: 0; }
 .exp-nat-opt { padding: 9px 10px; background: transparent; border: none; color: var(--ink-3); font-family: inherit; font-size: var(--fs-caption); font-weight: 600; border-radius: calc(var(--radius) - 6px); cursor: pointer; transition: all 0.18s var(--ease-out); }
 .exp-nat-opt:hover { color: var(--ink-2); background: var(--bg-elevated-3); }
 .exp-nat-opt.active { color: var(--purple-light); background: var(--purple-soft); border: 1px solid color-mix(in oklab, var(--purple) 32%, transparent); }
