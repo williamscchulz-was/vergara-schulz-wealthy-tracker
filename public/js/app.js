@@ -1314,6 +1314,7 @@ function renderExpenseTable(entries) {
   tbody.innerHTML = sorted.map((e, i) => {
     const meta = entryMeta(e);
     const isIn = isIncome(e);
+    const isV = e._virtual;   // declarar cedo: payHint (abaixo) depende dele — evita TDZ "Cannot access 'isV' before initialization"
     const isProv = /·\s*provis[aã]o\b/i.test(e.notes || '');
     const notes = (e.notes || '').replace(/\s*·\s*provis[aã]o\b/i, '').trim();   // tira da nota → vira selo "Provisão"
     const ownerChip = ownerChipHtml(e);
@@ -1327,7 +1328,6 @@ function renderExpenseTable(entries) {
     const amt = (+e.value || 0);
     const amtText = isIn ? `+ ${fmtBRL(amt)}` : fmtBRL(amt);
     const pillLabel = isIn ? t('exp.income.pill') : meta.label;
-    const isV = e._virtual;
     const fixaBadge = isV ? `<span class="exp-fixa-badge">${e._future ? 'fixa · prevista' : 'fixa'}</span>` : '';
     const provBadge = isProv ? `<span class="exp-prov-badge">${t('exp.prov.badge')}</span>` : '';   // P3 (v9.9)
     const extraCls = (!_showAll && sorted.length > TLIMIT && i >= TLIMIT) ? ' exp-row-extra' : '';
