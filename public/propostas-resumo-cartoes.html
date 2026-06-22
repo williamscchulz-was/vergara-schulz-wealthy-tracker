@@ -1,0 +1,92 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ledger · Proposta — resumo por cartão / Pix / dinheiro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --pg:#f3efe7; --ink:#2a2620; --ink2:#6b6256; --ink3:#6f6657; --inkm:#837767; --card:#fffdf9; --border:#e7ddcb; --el2:#f4eee2; --green:#2fae5f; --green-deep:#1f8f4a; --green-soft:rgba(47,174,95,.08); }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--pg);color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.4;padding:26px 18px 80px}
+  .wrap{max-width:1080px;margin:0 auto}
+  h1{font-size:23px;letter-spacing:-.02em;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  .v{font:700 10px Inter;background:var(--green-soft);color:var(--green-deep);border:1px solid var(--border);padding:3px 8px;border-radius:999px}
+  .lead{color:var(--ink2);font-size:14px;margin:0 0 22px}
+  .lead b{color:var(--ink)}
+  .opt{margin-bottom:30px}
+  .opt-h{display:flex;align-items:baseline;gap:9px;margin-bottom:3px;flex-wrap:wrap}
+  .opt-t{font-size:16px;font-weight:700}
+  .reco{font:700 9px Inter;letter-spacing:.04em;background:var(--green);color:#fff;padding:2px 7px;border-radius:999px;text-transform:uppercase}
+  .opt-d{font-size:12.5px;color:var(--ink3)}
+  .stage{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 18px;margin-top:11px;box-shadow:0 1px 2px rgba(20,40,24,.04),0 8px 22px -14px rgba(20,40,24,.2)}
+  .lbl{font:700 10px Inter;letter-spacing:.08em;text-transform:uppercase;color:var(--inkm);margin-bottom:11px}
+  /* ---- A: pills ---- */
+  .pills{display:flex;flex-wrap:wrap;gap:9px}
+  .pill{display:inline-flex;align-items:center;gap:8px;background:var(--el2);border:1px solid var(--border);border-radius:999px;padding:7px 13px 7px 9px}
+  .pdot{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;flex-shrink:0}
+  .pdot svg{width:12px;height:12px}
+  .pn{font-size:12.5px;font-weight:600;color:var(--ink2)}
+  .pv{font-family:'Geist Mono',monospace;font-weight:700;font-size:13px;color:var(--ink)}
+  /* ---- B: mini cards ---- */
+  .minis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .mini{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:11px 13px;display:flex;align-items:center;gap:11px}
+  .mini .pdot{width:32px;height:32px;border-radius:9px}
+  .mini .pdot svg{width:16px;height:16px}
+  .mini .mt{min-width:0}
+  .mini .mn{font-size:11.5px;font-weight:600;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mini .mv{font-family:'Geist Mono',monospace;font-weight:700;font-size:15px;color:var(--ink)}
+  /* ---- C: stacked bar ---- */
+  .barwrap{margin-bottom:13px}
+  .bar{display:flex;height:30px;border-radius:9px;overflow:hidden;border:1px solid var(--border)}
+  .seg{display:flex;align-items:center;justify-content:center;font:700 10px 'Geist Mono';color:#fff;min-width:24px}
+  .blegend{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px}
+  .li{display:inline-flex;align-items:center;gap:7px;font-size:12.5px}
+  .li i{width:9px;height:9px;border-radius:3px}
+  .li .ln{color:var(--ink2);font-weight:500}
+  .li .lv{font-family:'Geist Mono',monospace;font-weight:700;color:var(--ink)}
+  .note{font-size:12px;color:var(--ink3);margin-top:10px}
+  .foot{text-align:center;color:var(--ink3);font-size:13px;margin-top:24px;line-height:1.7}
+  .foot b{color:var(--ink2)}
+  @media(max-width:560px){ body{padding:18px 12px 70px} }
+</style></head>
+<body><div class="wrap">
+
+<h1>Resumo por cartão / Pix / dinheiro <span class="v">Ledger</span></h1>
+<p class="lead">Naquela faixa (aba Despesas, acima da lista) — quanto saiu de <b>cada cartão</b> (Flávia, William, Amanda, Isolde), do <b>Pix</b> e do <b>dinheiro</b>. <b>Só aparece o que teve gasto</b> (sem gasto em dinheiro? não mostra). 3 estilos clean — escolhe:</p>
+
+<div id="stage"></div>
+
+<div class="foot">Qual fica melhor: <b>A</b> (pílulas), <b>B</b> (mini-cards) ou <b>C</b> (barra)? Aplico na faixa da aba Despesas. ✌️</div>
+
+</div>
+<script>
+  const CARD = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><line x1="2" y1="10" x2="22" y2="10"/></svg>';
+  const PIX  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l3.5 3.5a3 3 0 0 0 4.2 0M12 21l3.5-3.5a3 3 0 0 1 4.2 0M12 3L8.5 6.5a3 3 0 0 1-4.2 0M12 21l-3.5-3.5a3 3 0 0 0-4.2 0M3 12l3.5-3.5a3 3 0 0 1 4.2 0L15 12l-4.3 3.5a3 3 0 0 1-4.2 0z"/></svg>';
+  const CASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>';
+  // só itens COM gasto (Isolde sem gasto no mês → omitida de propósito, pra mostrar o "só traz o que tem")
+  const SRC=[
+    {n:'William',  v:12400, c:'#1f7ab8', ic:CARD},
+    {n:'Flávia',   v:6800,  c:'#c43f93', ic:CARD},
+    {n:'Pix',      v:8200,  c:'#2fae5f', ic:PIX},
+    {n:'Amanda',   v:2100,  c:'#7c5cd0', ic:CARD},
+    {n:'Dinheiro', v:1694,  c:'#8a8175', ic:CASH},
+  ];
+  const tot=SRC.reduce((s,x)=>s+x.v,0);
+  const brl=n=>'R$ '+Math.round(n).toLocaleString('pt-BR');
+  function tint(hex,a){const n=parseInt(hex.slice(1),16);return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';}
+  const lbl='<div class="lbl">Por forma de pagamento · Junho 2026</div>';
+
+  // A — pills
+  const pills='<div class="pills">'+SRC.map(s=>`<div class="pill"><span class="pdot" style="color:${s.c};background:${tint(s.c,.14)}">${s.ic}</span><span class="pn">${s.n}</span><span class="pv">${brl(s.v)}</span></div>`).join('')+'</div>';
+  // B — mini cards
+  const minis='<div class="minis">'+SRC.map(s=>`<div class="mini"><span class="pdot" style="color:${s.c};background:${tint(s.c,.14)}">${s.ic}</span><div class="mt"><div class="mn">${s.n}</div><div class="mv">${brl(s.v)}</div></div></div>`).join('')+'</div>';
+  // C — stacked bar
+  const seg=SRC.map(s=>`<div class="seg" style="background:${s.c};flex:${s.v}" title="${s.n}">${Math.round(s.v/tot*100)>=8?Math.round(s.v/tot*100)+'%':''}</div>`).join('');
+  const leg=SRC.map(s=>`<span class="li"><i style="background:${s.c}"></i><span class="ln">${s.n}</span><span class="lv">${brl(s.v)}</span></span>`).join('');
+  const bar=`<div class="barwrap"><div class="bar">${seg}</div></div><div class="blegend">${leg}</div>`;
+
+  document.getElementById('stage').innerHTML=`
+    <div class="opt"><div class="opt-h"><span class="opt-t">A · Pílulas</span><span class="reco">★ recomendada</span><span class="opt-d">compacta, adapta a quantos tiverem gasto, quebra em 2 linhas se precisar</span></div><div class="stage">${lbl}${pills}</div></div>
+    <div class="opt"><div class="opt-h"><span class="opt-t">B · Mini-cards</span><span class="opt-d">cada forma num cartãozinho; valor maior, ocupa um pouco mais</span></div><div class="stage">${lbl}${minis}</div></div>
+    <div class="opt"><div class="opt-h"><span class="opt-t">C · Barra empilhada</span><span class="opt-d">mostra a proporção de cada um num olhar + legenda com valores</span></div><div class="stage">${lbl}${bar}</div></div>
+    <div class="note" style="text-align:center">↑ repara: a <b>Isolde</b> não aparece — é o "só traz o que teve gasto" funcionando.</div>`;
+</script>
+</body></html>
