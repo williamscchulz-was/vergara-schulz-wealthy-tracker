@@ -741,6 +741,29 @@ function renderResumo() {
 
   const vsTxt = (v, lbl) => v == null ? '' : (v >= 0 ? '↑' : '↓') + ' ' + Math.abs(v) + '% vs ' + lbl;
 
+  // Gastos por semana do mês (card novo, 4ª linha, aprovado pelo dono) — só no modo MENSAL.
+  let weeklyCard = '';
+  if (!annual) {
+    const daysInMonth = new Date(year, vd.getMonth() + 1, 0).getDate();
+    const nWeeks = Math.ceil(daysInMonth / 7);
+    const wkBins = new Array(nWeeks).fill(0);
+    for (const e of exp) {
+      const day = +String(e.date || e.competencia || '').slice(8, 10) || 1;
+      wkBins[Math.min(nWeeks - 1, Math.max(0, Math.floor((day - 1) / 7)))] += (+e.value || 0);
+    }
+    const wkMax = Math.max(1, ...wkBins);
+    const wkAvg = wkBins.reduce((s, v) => s + v, 0) / (nWeeks || 1);
+    const barsRow = wkBins.map(v => `<div class="rz-wcol"><div class="rz-wbar" style="height:${(v / wkMax * 84).toFixed(1)}%"><span class="rz-wval">${esc(mc(v))}</span></div></div>`).join('');
+    const labsRow = wkBins.map((v, i) => { const d1 = i * 7 + 1, d2 = Math.min((i + 1) * 7, daysInMonth); return `<div class="rz-wcol"><span class="rz-wn">${esc(t('rz.week'))} ${i + 1}</span><span class="rz-wd">${d1}–${d2}</span></div>`; }).join('');
+    const avgEl = wkAvg > 0 ? `<div class="rz-wavg" style="bottom:${(wkAvg / wkMax * 84).toFixed(1)}%"><span class="rz-wavg-tag">${esc(t('rz.avg'))} ${esc(mc(wkAvg))}</span></div>` : '';
+    weeklyCard = `<div class="card rz-week">
+        <div class="rz-card-h">${esc(t('rz.byweek'))}<span class="more">${esc(periodLabel)}</span></div>
+        <div class="rz-wsub">${esc(t('rz.monthtotal'))} <b>${esc(mc(despesas))}</b></div>
+        <div class="rz-wbars">${avgEl}${barsRow}</div>
+        <div class="rz-wlabels">${labsRow}</div>
+      </div>`;
+  }
+
   body.innerHTML = `
     <div class="rz-head">
       <div class="rz-seg">
@@ -791,6 +814,7 @@ function renderResumo() {
         <div class="rz-goalbar"><i style="width:${goalPct.toFixed(1)}%"></i></div>
         <div class="rz-note">${esc(t('rz.atpace'))} <b class="${goalOk ? 'pos' : 'neg'}">${esc(t(goalOk ? 'rz.onplan' : 'rz.offplan'))}</b> · ${esc(t('rz.missing'))} ${mc(falta)}</div>
       </div>
+      ${weeklyCard}
     </div>`;
   body.querySelectorAll('[data-rzview]').forEach(b => b.addEventListener('click', () => setResumoView(b.dataset.rzview)));
   body.querySelectorAll('[data-rznav]').forEach(b => b.addEventListener('click', () => resumoNav(+b.dataset.rznav)));
