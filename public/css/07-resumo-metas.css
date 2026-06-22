@@ -496,6 +496,9 @@
 .exp-table tr[data-id]:hover::after { opacity: 0.8; }
 .exp-table tr:last-child td { border-bottom: none; }
 .exp-row-date { color: var(--ink-3); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 11.5px; }
+/* visão agrupada por dia: a coluna DATA fica vazia (data vai no cabeçalho do dia) → some,
+   pra descrição grudar na esquerda em vez de flutuar no meio */
+.exp-table.is-grouped thead th[data-sort="date"], .exp-table.is-grouped .exp-row-date { display: none; }
 .exp-row-desc-cell { min-width: 0; }
 /* v10 slim (Ultra): linha do título = flex (título trunca, chip+selo ficam) */
 .exp-row-desc { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 12px; font-weight: 600; color: var(--ink); letter-spacing: -0.005em; line-height: 1.3; }

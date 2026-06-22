@@ -1354,6 +1354,9 @@ function renderExpenseTable(entries) {
   const _showAll = state._expTableAll || state.expSub === 'lancamentos' || state.expSub === 'ganhos';   // Lançamentos/Ganhos mostram TODAS
   // UX U6: nas sub-abas cheias e ordenado por data, agrupa por DIA com subtotal.
   const grouped = _showAll && _expSort.key === 'date';
+  // agrupado por dia → a data está no cabeçalho do dia, então a coluna DATA vazia some
+  // (senão empurra a descrição pro meio, parecendo "centralizada"). Pedido do dono.
+  tbody.parentElement.classList.toggle('is-grouped', grouped);
   // UX M5: termo da busca destacado na descrição — match no texto CRU, escape por
   // segmento (marcar o texto já escapado corrompia entidades; review F).
   const _q2 = _expSearchQuery.trim();
