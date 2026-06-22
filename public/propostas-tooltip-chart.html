@@ -1,0 +1,105 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ledger · Proposta — valor ao passar o dedo/mouse no gráfico</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --pg:#f3efe7; --ink:#2a2620; --ink2:#6b6256; --ink3:#6f6657; --card:#fffdf9; --border:#e7ddcb; --green:#2fae5f; --green-deep:#1f8f4a; --green-soft:rgba(47,174,95,.08); }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--pg);color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.5;padding:26px 16px 80px}
+  .wrap{max-width:880px;margin:0 auto}
+  h1{font-size:23px;letter-spacing:-.02em;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  .v{font:700 10px Inter;background:var(--green-soft);color:var(--green-deep);border:1px solid var(--border);padding:3px 8px;border-radius:999px}
+  .lead{color:var(--ink2);font-size:14.5px;margin:0 0 8px}
+  .lead b{color:var(--ink)}
+  .hint{color:var(--green-deep);font-size:13px;font-weight:600;margin:0 0 22px}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .mode-tag{font:600 10px Inter;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);margin:0 0 6px 2px}
+  .chart-card{position:relative;border:1px solid;border-radius:16px;padding:15px 15px 11px;box-shadow:0 1px 2px rgba(20,40,24,.04),0 8px 22px -14px rgba(20,40,24,.2)}
+  .ch-h{font-size:13.5px;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+  .ch-leg{font-size:10.5px;font-weight:500;display:inline-flex;gap:11px}
+  .ch-leg span{display:inline-flex;align-items:center;gap:4px}
+  .ch-leg i{width:8px;height:8px;border-radius:2px;display:inline-block}
+  .gbars{position:relative;display:flex;align-items:flex-end;gap:5px;height:130px}
+  .gcol{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;cursor:pointer;border-radius:5px;transition:background .15s}
+  .gpair{flex:1;display:flex;align-items:flex-end;justify-content:center;gap:2.5px;width:100%;min-height:0;transition:opacity .15s}
+  .gpair i{width:42%;border-radius:3px 3px 1px 1px;min-height:2px;transition:filter .15s}
+  .gx{font-size:8.5px;margin-top:5px;transition:color .15s,font-weight .15s}
+  /* foco: coluna ativa destacada, irmãs esmaecidas */
+  .gbars.has-active .gcol:not(.active) .gpair{opacity:.32}
+  .gcol.active .gx{font-weight:800}
+  /* tooltip */
+  .tip{position:absolute;z-index:5;pointer-events:none;opacity:0;transform:translate(-50%,4px);transition:opacity .14s,transform .14s;
+       padding:9px 12px;border-radius:11px;min-width:140px;box-shadow:0 12px 30px -10px rgba(0,0,0,.4);backdrop-filter:blur(8px)}
+  .tip.show{opacity:1;transform:translateX(-50%)}
+  .tip .tm{font:700 11px Inter;letter-spacing:.04em;text-transform:uppercase;margin-bottom:7px;opacity:.85}
+  .tip .tr{display:flex;align-items:center;gap:7px;font-size:12px;margin:3px 0}
+  .tip .tr i{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+  .tip .tr .tl{flex:1}
+  .tip .tr .tv{font-family:'Geist Mono',monospace;font-weight:700}
+  .tip .tsep{height:1px;margin:7px 0 5px;opacity:.5}
+  .tip .tr.sal .tv{font-size:13px}
+  .foot{text-align:center;color:var(--ink3);font-size:13px;margin-top:30px;line-height:1.7}
+  .foot b{color:var(--ink2)}
+  @media(max-width:620px){ .pair{grid-template-columns:1fr} body{padding:18px 12px 70px} }
+</style></head>
+<body><div class="wrap">
+
+<h1>Valor ao passar o dedo / mouse <span class="v">Ledger</span></h1>
+<p class="lead">Toca numa coluna (no celular) ou passa o mouse (no desktop): abre um <b>tooltip</b> com o mês, <b>Ganhos</b>, <b>Despesas</b> e o <b>saldo</b>. A coluna em foco destaca, as outras esmaecem.</p>
+<p class="hint">👇 experimenta nos dois — funciona no toque e no hover</p>
+
+<div class="pair">
+  <div><div class="mode-tag">☀ Claro</div><div id="cLight"></div></div>
+  <div><div class="mode-tag">🌙 Escuro</div><div id="cDark"></div></div>
+</div>
+
+<div class="foot">
+  Curtiu assim? Respondo: <b>aplico</b> · ou ajusto (ex.: sem esmaecer as outras, ou tooltip só com 1 valor). ✌️
+</div>
+
+</div>
+<script>
+  const DATA=[['jan',14000,1800],['fev',13500,1600],['mar',21000,2000],['abr',12500,2700],['mai',11000,8500],['jun',13000,1800],['jul',900,3100],['ago',700,1800],['set',700,1400],['out',900,1600],['nov',700,1100],['dez',900,2000]];
+  const MAX=Math.max(...DATA.flatMap(d=>[d[1],d[2]]));
+  const TH={
+    light:{card:'#fffdf9',ink:'#2a2620',ink3:'#6f6657',border:'#e7ddcb',inGrad:'linear-gradient(#5fd08a,#2fae5f)',inDot:'#2fae5f',gv:'#1f8f4a',out:'#e0a08f',
+           tipBg:'rgba(255,253,249,.94)',tipBd:'#e7ddcb',tipInk:'#2a2620',sep:'#e7ddcb'},
+    dark: {card:'#14180f',ink:'#f3f4ee',ink3:'#9a9c90',border:'rgba(255,255,255,.09)',inGrad:'linear-gradient(#d8fa72,#c7f73e)',inDot:'#c7f73e',gv:'#c7f73e',out:'#a85b4d',
+           tipBg:'rgba(26,31,20,.92)',tipBd:'rgba(255,255,255,.12)',tipInk:'#f3f4ee',sep:'rgba(255,255,255,.12)'}
+  };
+  const brl=n=>'R$ '+Math.round(n).toLocaleString('pt-BR');
+  function build(mount,themeKey){
+    const T=TH[themeKey];
+    const cols=DATA.map((d,i)=>`<div class="gcol" data-i="${i}"><div class="gpair"><i style="height:${d[1]/MAX*100}%;background:${T.inGrad}"></i><i style="height:${d[2]/MAX*100}%;background:${T.out}"></i></div><span class="gx" style="color:${T.ink3}">${d[0]}</span></div>`).join('');
+    mount.innerHTML=`<div class="chart-card" style="background:${T.card};border-color:${T.border}">
+      <div class="ch-h" style="color:${T.ink}">Receitas × Despesas
+        <span class="ch-leg" style="color:${T.ink3}"><span><i style="background:${T.inGrad}"></i>Ganhos</span><span><i style="background:${T.out}"></i>Despesas</span></span>
+      </div>
+      <div class="gbars">${cols}<div class="tip" style="background:${T.tipBg};border:1px solid ${T.tipBd};color:${T.tipInk}"></div></div>
+    </div>`;
+    const bars=mount.querySelector('.gbars'), tip=mount.querySelector('.tip');
+    function show(col){
+      const i=+col.dataset.i, d=DATA[i], sal=d[1]-d[2];
+      tip.innerHTML=`<div class="tm">${d[0]}</div>
+        <div class="tr"><i style="background:${T.inDot}"></i><span class="tl">Ganhos</span><span class="tv" style="color:${T.gv}">${brl(d[1])}</span></div>
+        <div class="tr"><i style="background:${T.out}"></i><span class="tl">Despesas</span><span class="tv" style="color:${T.out}">${brl(d[2])}</span></div>
+        <div class="tsep" style="background:${T.sep}"></div>
+        <div class="tr sal"><span class="tl">Saldo</span><span class="tv" style="color:${sal>=0?T.gv:T.out}">${sal>=0?'+':'−'}${brl(Math.abs(sal))}</span></div>`;
+      bars.classList.add('has-active');
+      bars.querySelectorAll('.gcol').forEach(c=>c.classList.toggle('active',c===col));
+      const left=col.offsetLeft+col.offsetWidth/2;
+      const cl=Math.max(76,Math.min(bars.clientWidth-76,left));
+      tip.style.left=cl+'px'; tip.style.top='-6px'; tip.classList.add('show');
+    }
+    function hide(){ tip.classList.remove('show'); bars.classList.remove('has-active'); bars.querySelectorAll('.gcol').forEach(c=>c.classList.remove('active')); }
+    bars.querySelectorAll('.gcol').forEach(col=>{
+      col.addEventListener('mouseenter',()=>show(col));
+      col.addEventListener('click',e=>{e.stopPropagation();show(col);});
+    });
+    mount.querySelector('.chart-card').addEventListener('mouseleave',hide);
+    document.addEventListener('click',hide);
+  }
+  build(document.getElementById('cLight'),'light');
+  build(document.getElementById('cDark'),'dark');
+</script>
+</body></html>
