@@ -955,6 +955,54 @@ function sparkPath(svgEl, values, W, H, fill) {
   html += '<path class="spk-line" vector-effect="non-scaling-stroke" fill="none" d="' + line + '"/>';
   svgEl.innerHTML = html;
 }
+// ============================================================
+//  Resumo por forma de pagamento (cartões por titular · Pix · dinheiro) — faixa da aba Despesas
+// ============================================================
+function fmtBRLk(n) {   // compacto: R$ 12,4K / R$ 1,34M
+  const v = +n || 0, a = Math.abs(v);
+  if (a >= 1e6) return 'R$ ' + (v / 1e6).toFixed(2).replace('.', ',') + 'M';
+  if (a >= 1000) return 'R$ ' + (v / 1000).toFixed(1).replace('.', ',') + 'K';
+  return fmtBRL0(v);
+}
+const PAY_HOLDER_COLORS = { william: '#1f7ab8', flavia: '#c43f93', amanda: '#7c5cd0', isolde: '#0ea5a4' };
+const PAY_PALETTE = ['#0071e3', '#bf5af2', '#ff9500', '#00c7be', '#ff375f', '#5856d6', '#30a14e'];
+const PAY_ICONS = {
+  card: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><line x1="2" y1="10" x2="22" y2="10"/></svg>',
+  pix: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l3.5 3.5a3 3 0 0 0 4.2 0M12 21l3.5-3.5a3 3 0 0 1 4.2 0M12 3L8.5 6.5a3 3 0 0 1-4.2 0M12 21l-3.5-3.5a3 3 0 0 0-4.2 0M3 12l3.5-3.5a3 3 0 0 1 4.2 0L15 12l-4.3 3.5a3 3 0 0 1-4.2 0z"/></svg>',
+  cash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>',
+};
+const _payNorm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+const _titleCase = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s;
+// Forma de pagamento de UM lançamento: titular do cartão (parseado das notas do import), Pix ou dinheiro.
+function paySourceOf(e) {
+  const kind = e.payMethod || entrySourceKind(e);   // 'cartao' | 'conta' | 'manual'
+  if (kind === 'cartao') {
+    const m = String(e.notes || '').match(/cart[aã]o:\s*([^\s·]+)/i);
+    if (m && m[1]) { const norm = _payNorm(m[1]); return { key: 'card:' + norm, label: _titleCase(m[1]), kind: 'card', norm }; }
+    return { key: 'card', label: t('exp.pay.cartao'), kind: 'card', norm: '' };
+  }
+  if (kind === 'conta') return { key: 'pix', label: t('exp.pay.pix'), kind: 'pix', norm: 'pix' };
+  return { key: 'cash', label: t('exp.pay.dinheiro'), kind: 'cash', norm: 'cash' };
+}
+function renderPaySummary(monthExp) {
+  const wrap = $('paySummary'); if (!wrap) return;
+  const map = {};
+  for (const e of (monthExp || [])) {
+    if (isIncome(e) || e._virtual) continue;   // fixa projetada não tem forma de pagamento real
+    const s = paySourceOf(e);
+    if (!map[s.key]) map[s.key] = { label: s.label, kind: s.kind, norm: s.norm, total: 0 };
+    map[s.key].total += (+e.value || 0);
+  }
+  const items = Object.values(map).filter(x => x.total > 0.005).sort((a, b) => b.total - a.total);
+  if (!items.length) { wrap.hidden = true; wrap.innerHTML = ''; return; }
+  const cells = items.map((it, i) => {
+    const c = PAY_HOLDER_COLORS[it.norm] || (it.kind === 'pix' ? '#2fae5f' : it.kind === 'cash' ? '#8a8175' : PAY_PALETTE[i % PAY_PALETTE.length]);
+    return `<div class="pay-item"><span class="pay-ic" style="color:${c};background:color-mix(in oklab, ${c} 15%, transparent)">${PAY_ICONS[it.kind]}</span>`
+      + `<span class="pay-t"><span class="pay-n">${esc(it.label)}</span><span class="pay-v">${esc(fmtBRLk(it.total))}</span></span></div>`;
+  }).join('');
+  wrap.innerHTML = `<div class="pay-lbl">${esc(t('exp.pay.summary'))}</div><div class="pay-items">${cells}</div>`;
+  wrap.hidden = false;
+}
 function renderExpenses() {
   updateExpSortHeaders();   // indicador de ordenação sempre reflete _expSort (mesmo c/ tabela vazia)
   const viewDate = state.currentViewMonth;
@@ -1048,6 +1096,7 @@ function renderExpenses() {
   // Expense-only surfaces (category breakdown, daily chart, trend, recurring, budgets)
   const allExpHistory = (state.expenses || []).filter(e => isExpense(e) && !e.provisioned);
   renderCategoryBreakdown(monthExp, total);
+  renderPaySummary(monthExp);
   renderTrend12m(allExpHistory, viewDate);
   renderTopRecurring(allExpHistory, viewDate);
   updateHeroOverBudgetBadge(monthExp);
