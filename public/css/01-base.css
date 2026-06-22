@@ -45,6 +45,7 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   --gain:          #4fdd8a;
   --gain-soft:     rgba(79,221,138,0.12);
   --loss:          #ff6b61;
+  --exp-bar:       #a85b4d;   /* barra Despesas (Receitas×Despesas) — vermelho suave, escolha do dono */
   --loss-soft:     rgba(255,107,97,0.12);
   --warn:          #ffc24d;
 
@@ -413,6 +414,7 @@ body {
   --gain:          #1f9d4d;
   --gain-soft:     rgba(31,157,77,0.10);
   --loss:          #dc2626;
+  --exp-bar:       #e0a08f;   /* barra Despesas (Receitas×Despesas) — vermelho suave, escolha do dono */
   --loss-soft:     rgba(220,38,38,0.10);
   --warn:          #c47d00;
   --shadow-sm:     0 1px 2px rgba(20,40,24,0.05);

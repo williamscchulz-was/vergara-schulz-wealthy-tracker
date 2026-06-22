@@ -474,12 +474,12 @@
 .rz-gpair { flex: 1; display: flex; align-items: flex-end; justify-content: center; gap: 3px; width: 100%; min-height: 0; }
 .rz-gpair i { width: 42%; border-radius: 4px 4px 2px 2px; min-height: 3px; transition: height .6s var(--ease-out, ease); }
 .rz-gpair .in { background: linear-gradient(var(--purple-light), var(--purple)); }
-.rz-gpair .out { background: var(--bg-elevated-3, var(--border)); }
+.rz-gpair .out { background: var(--exp-bar); }
 .rz-gx { font-size: 9.5px; color: var(--ink-3); margin-top: 7px; }
 .rz-legend { display: flex; gap: 14px; font-size: var(--fs-caption); color: var(--ink-2); font-weight: 600; }
 .rz-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: middle; }
 .rz-legend .rz-rec { background: var(--purple); }
-.rz-legend .rz-desp { background: var(--bg-elevated-3, var(--border)); }
+.rz-legend .rz-desp { background: var(--exp-bar); }
 /* onde foi o dinheiro (donut) */
 .rz-alloc { display: flex; align-items: center; gap: 20px; }
 .rz-odonut { flex-shrink: 0; }
