@@ -282,16 +282,17 @@
 /* ===== Resumo por forma de pagamento (faixa da aba Despesas/Lançamentos) ===== */
 #paySummary { display: none; }
 #moduleExpenses.view-lancamentos > #paySummary:not([hidden]) { display: block; }
-.pay-summary { padding: 13px 16px; margin-bottom: 16px; }
-.pay-lbl { font: 700 10px Inter, system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 11px; }
-.pay-items { display: flex; flex-wrap: nowrap; gap: 8px; overflow: hidden; }   /* desktop: sempre 1 linha */
-.pay-item { display: inline-flex; align-items: center; gap: 8px; background: var(--bg-elevated-2); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 6px 13px 6px 7px; flex: 0 1 auto; min-width: 0; }   /* encolhe pra caber em 1 linha (nome trunca), nunca corta */
-.pay-prev { border-style: dashed; }
-.pay-item { cursor: pointer; transition: border-color .15s, background .15s; }
-.pay-item:hover { border-color: color-mix(in oklab, var(--purple) 40%, var(--border)); background: var(--bg-elevated-3); }
+/* Opção A minimal (escolha do dono): SEM caixa de card — faixa inline acima da lista */
+.pay-summary { padding: 2px 2px 14px; margin-bottom: 4px; }
+.pay-lbl { font: 700 10px Inter, system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 9px; }
+.pay-items { display: flex; flex-wrap: nowrap; gap: 6px; overflow: hidden; }   /* desktop: sempre 1 linha */
+/* pills leves: sem borda/fundo, só ícone + nome + valor */
+.pay-item { display: inline-flex; align-items: center; gap: 7px; background: transparent; border: 0; border-radius: var(--radius-pill); padding: 5px 8px 5px 5px; flex: 0 1 auto; min-width: 0; cursor: pointer; transition: background .15s; }
+.pay-item:hover { background: var(--bg-elevated-2); }
+.pay-prev .pay-n { font-style: italic; }   /* "Previsto": cinza + relógio + itálico */
 .pay-item:focus-visible { outline: 2px solid var(--purple); outline-offset: 1px; }
 .pv-k { display: none; }   /* desktop: valor CHEIO (R$ 11.400) */
-.pay-ic { width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; flex-shrink: 0; }
+.pay-ic { width: 18px; height: 18px; border-radius: 5px; display: grid; place-items: center; flex-shrink: 0; }
 .pay-ic svg { width: 11px; height: 11px; }
 .pay-t { display: inline-flex; align-items: baseline; gap: 6px; min-width: 0; }
 .pay-n { font-size: 12px; font-weight: 600; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }

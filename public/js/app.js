@@ -1015,7 +1015,7 @@ function paySourceOf(e) {
   if (kind === 'cartao') {
     const m = String(e.notes || '').match(/cart[aã]o:\s*([^\s·]+)/i);
     if (m && m[1]) { const ch = _canonHolder(_payNorm(m[1])); return { key: 'card:' + ch.key, label: ch.label, kind: 'card', norm: ch.key }; }
-    return { key: 'card', label: t('exp.pay.cartao'), kind: 'card', norm: '' };
+    return { key: 'card', label: 'cc', kind: 'card', norm: '' };   // cartão sem titular → "cc" (cartão de crédito)
   }
   if (kind === 'conta') return { key: 'pix', label: t('exp.pay.pix'), kind: 'pix', norm: 'pix' };
   return { key: 'cash', label: t('exp.pay.dinheiro'), kind: 'cash', norm: 'cash' };
