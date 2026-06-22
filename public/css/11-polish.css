@@ -249,14 +249,14 @@
     align-content: start;
   }
   /* linha 2: categoria (5) + tabela (7) */
-  /* v11 (aprovado): os dois cards do MESMO tamanho, SEM scroll interno. A TABELA é o card mais
-     alto (8 linhas + filtros + total) e fica na altura natural; o card de CATEGORIAS (top 7,
-     compacto) estica pra igualar — a lista cresce SEM espalhar as linhas e o "Ver mais" gruda
-     no rodapé (a folga vira um gap pequeno antes do botão). "Ver mais" abre o popup com todas. */
-  #moduleExpenses.active > .exp-g-cat   { grid-column: span 5; margin: 0; align-self: stretch; display: flex; flex-direction: column; }
-  #moduleExpenses.active > .exp-g-table { grid-column: span 7; margin: 0; align-self: stretch; }
-  #moduleExpenses.active > .exp-g-cat .cat-list { flex: 1 1 auto; display: flex; flex-direction: column; gap: 3px; }
-  #moduleExpenses.active > .exp-g-cat .exp-cat-more { margin-top: auto; }
+  /* v11.1: cada card na ALTURA NATURAL (align-self:start, herda align-items:start do grid).
+     Categorias = top 7 compactas + "Ver mais" (popup) — o card termina logo após o botão, SEM
+     espaço branco dentro. A tabela fica naturalmente um pouco mais alta; nenhum dos dois estica,
+     então não há vazio nem scroll. (Tentar forçar mesma altura sempre sobra espaço em algum.) */
+  #moduleExpenses.active > .exp-g-cat   { grid-column: span 5; margin: 0; align-self: start; }
+  #moduleExpenses.active > .exp-g-table { grid-column: span 7; margin: 0; align-self: start; }
+  #moduleExpenses.active > .exp-g-cat .cat-list { display: flex; flex-direction: column; gap: 3px; }
+  #moduleExpenses.active > .exp-g-cat .exp-cat-more { margin-top: 8px; }
 }
 
 /* popup "Todas as categorias" (v11) — lista rolável reusando .exp-cat-row */
