@@ -1,6 +1,6 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ledger · Proposta — cards do Painel do mesmo tamanho</title>
+<title>Ledger · Proposta — Painel curto, cards iguais + popup de categorias</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{ --pg:#f3efe7; --ink:#2a2620; --ink2:#6b6256; --ink3:#6f6657; --inkm:#837767; --card:#fffdf9; --border:#e7ddcb; --el2:#f4eee2; --el3:#faf6ee; --green:#2fae5f; --green-deep:#1f8f4a; --green-soft:rgba(47,174,95,.08); }
@@ -11,12 +11,10 @@
   .v{font:700 10px Inter;background:var(--green-soft);color:var(--green-deep);border:1px solid var(--border);padding:3px 8px;border-radius:999px}
   .lead{color:var(--ink2);font-size:14px;margin:0 0 18px}
   .lead b{color:var(--ink)}
-  /* grid do Painel — 5/7, os dois ESTICAM igual */
   .panel-grid{display:grid;grid-template-columns:5fr 7fr;gap:16px;align-items:stretch}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px 16px 12px;box-shadow:0 1px 2px rgba(20,40,24,.04),0 8px 22px -14px rgba(20,40,24,.2);min-width:0;display:flex;flex-direction:column}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px 16px 10px;box-shadow:0 1px 2px rgba(20,40,24,.04),0 8px 22px -14px rgba(20,40,24,.2);min-width:0;display:flex;flex-direction:column}
   .card-h{font-size:14px;font-weight:700;margin-bottom:12px;flex:0 0 auto}
   .card-h .meta{font-size:11.5px;color:var(--ink3);font-weight:500}
-  /* categorias (esquerda) — preenche a altura espaçando as linhas (igual app) */
   .cat-list{flex:1 1 auto;display:flex;flex-direction:column;justify-content:space-between;gap:4px}
   .cat-row{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;padding:5px 4px}
   .cat-ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:13px}
@@ -27,15 +25,15 @@
   .cat-r{text-align:right;white-space:nowrap}
   .cat-pct{font:700 11px Inter;color:var(--ink2)}
   .cat-val{font:600 11px 'Geist Mono',monospace;color:var(--ink3);margin-top:2px}
-  /* lançamentos (direita) — header/total/thead fixos, linhas ROLAM, Ver todas fixo embaixo */
+  .foot-btn{flex:0 0 auto;width:100%;text-align:center;font:700 11px Inter;letter-spacing:.05em;color:var(--ink2);background:transparent;border:0;border-top:1px solid var(--border);padding:11px 0 4px;margin-top:6px;cursor:pointer}
+  .foot-btn:hover{color:var(--green-deep)}
   .t-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;flex:0 0 auto}
   .t-cnt{font:700 11px Inter;letter-spacing:.04em;color:var(--ink3)}
   .t-tot{font:800 17px 'Geist Mono',monospace}
   .thead{display:grid;grid-template-columns:54px 1fr 130px 96px;gap:10px;padding:0 8px 8px;border-bottom:1px solid var(--border);font:600 10px Inter;letter-spacing:.06em;text-transform:uppercase;color:var(--inkm);flex:0 0 auto}
   .thead .r{text-align:right}
   .t-scroll{flex:1 1 auto;overflow-y:auto;min-height:0;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
-  .t-scroll::-webkit-scrollbar{width:7px}
-  .t-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+  .t-scroll::-webkit-scrollbar{width:7px}.t-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
   .trow{display:grid;grid-template-columns:54px 1fr 130px 96px;gap:10px;align-items:center;padding:4px 8px;border-bottom:1px solid var(--border);cursor:pointer}
   .trow:hover{background:rgba(47,174,95,.03)}
   .t-date{font:500 11px 'Geist Mono',monospace;color:var(--ink3)}
@@ -51,25 +49,38 @@
   .pill{display:inline-flex;align-items:center;gap:5px;font:600 11px Inter;padding:4px 9px;border-radius:8px;white-space:nowrap;justify-self:start}
   .pill .ic{width:7px;height:7px;border-radius:2px}
   .t-val{font:700 12px 'Geist Mono',monospace;text-align:right;white-space:nowrap}
-  .vertodas{flex:0 0 auto;width:100%;text-align:center;font:700 11px Inter;letter-spacing:.05em;color:var(--ink2);background:transparent;border:0;border-top:1px solid var(--border);padding:12px 0 4px;margin-top:2px;cursor:pointer}
+  /* modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(60,53,65,.4);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+  .modal-bg.show{display:flex}
+  .modal{background:var(--card);border:1px solid var(--border);border-radius:20px;width:min(460px,94vw);max-height:82vh;display:flex;flex-direction:column;box-shadow:0 30px 80px -20px rgba(20,40,24,.4);padding:20px}
+  .modal-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .modal-h h3{margin:0;font-size:17px}
+  .modal-h .x{border:0;background:var(--el2);width:30px;height:30px;border-radius:9px;cursor:pointer;color:var(--ink2);font-size:16px}
+  .modal-list{overflow-y:auto;min-height:0;scrollbar-width:thin}
   .why{display:flex;gap:9px;align-items:flex-start;background:var(--green-soft);border:1px solid var(--border);border-radius:14px;padding:12px 15px;font-size:13px;color:var(--ink2);margin-top:18px}
-  .why b{color:var(--green-deep)}
-  .star{color:var(--green);flex-shrink:0;font-size:15px}
-  .foot{text-align:center;color:var(--ink3);font-size:13px;margin-top:18px}
-  .foot b{color:var(--ink2)}
-  @media(max-width:820px){ .panel-grid{grid-template-columns:1fr} .t-scroll{max-height:380px} }
+  .why b{color:var(--green-deep)}.star{color:var(--green);flex-shrink:0;font-size:15px}
+  .foot{text-align:center;color:var(--ink3);font-size:13px;margin-top:16px}.foot b{color:var(--ink2)}
+  @media(max-width:820px){ .panel-grid{grid-template-columns:1fr} .t-scroll{max-height:340px} }
 </style></head>
 <body><div class="wrap">
 
-<h1>Cards do mesmo tamanho, alinhados <span class="v">Ledger</span></h1>
-<p class="lead">Os dois cards <b>esticam igual</b> (mesma altura, bottoms alinhados). A lista de lançamentos <b>preenche</b> a altura e <b>rola por dentro</b> quando tem mais — o "Ver todas" fica fixo embaixo. Nunca mais sobra vazio, e ficam sempre simétricos.</p>
+<h1>Painel curto, cards iguais <span class="v">Ledger</span></h1>
+<p class="lead">Categorias mostram as <b>top 7</b> com um <b>"Ver mais"</b> que abre o <b>popup com todas</b>. A lista de lançamentos fica do <b>mesmo tamanho</b> (preenche + rola). Página bem mais curta, dois cards alinhados. <b>Clica em "Ver mais (8)"</b> pra ver o popup.</p>
 
 <div id="stage"></div>
 
-<div class="why"><span class="star">★</span><div><b>Por que assim:</b> a altura passa a ser a mesma sempre (não importa quantas categorias ou lançamentos existam). A lista enche o espaço e o excedente rola — então os dois cards ficam idênticos e o rodapé ("Ver todas") alinhado. Sem número mágico de linhas, sem vazio.</div></div>
-<div class="foot">Curtiu? Respondo <b>"pode aplicar"</b>. Se preferir <b>sem rolagem</b> (cortar a lista na altura exata, sem scroll), também dá — é só dizer. ✌️</div>
+<div class="why"><span class="star">★</span><div><b>Resultado:</b> os dois cards têm a mesma altura modesta, rodapés alinhados, e a página encurta. O detalhe (cauda de categorias 1-2% e o resto dos lançamentos) fica a um clique — popup pras categorias, página "Ver todas" pros lançamentos.</div></div>
+<div class="foot">Curtiu? <b>"pode aplicar"</b>. Posso ajustar quantas categorias aparecem antes do "Ver mais" (7, 8...). ✌️</div>
 
 </div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="modal-h"><h3>Todas as categorias</h3><button class="x" id="modalX">✕</button></div>
+    <div class="modal-list" id="modalList"></div>
+  </div>
+</div>
+
 <script>
   const CATS=[
     ['Outros',22,7324,'#8e8e93','▦'],['Viagem',17,5629,'#5856d6','✈'],['Moradia',17,5614,'#0071e3','⌂'],
@@ -78,6 +89,7 @@
     ['Doações',1,478,'#e0772f','♥'],['Alimentação',1,402,'#30a14e','♨'],['Assinaturas',1,333,'#a64ad4','↻'],
     ['Educação',1,223,'#3aa6d4','▱'],['Lazer',1,206,'#9a52de','◐'],['Uber',0,82,'#777','▸'],
   ];
+  const TOPN=7;
   const ROWS=[
     ['ter, 16','Ademicon 02','fam','FIXA','','Outros','#8e8e93','3.169,34'],
     ['15/06','LATAM AIR*HIYLFO','fam','PROVISÃO','cartão: WILLIAM · 2/4','Viagem','#5856d6','1.039,55'],
@@ -92,41 +104,41 @@
     ['12/06','Energia Solar','fam','','','Moradia','#0071e3','320,00'],
     ['10/06','Apple','fam','','via cartão','Assinaturas','#a64ad4','99,99'],
     ['10/06','Passagem Mexico','fam','','','Viagem','#5856d6','1.595,44'],
-    ['09/06','Mercado Pão de Açúcar','fam','','via cartão','Mercado','#00b3aa','243,18'],
-    ['08/06','Farmácia SP','w','','via cartão','Saúde','#ff375f','88,40'],
-    ['07/06','Uber','w','','via cartão','Uber','#777','42,10'],
-    ['06/06','Spotify','fam','FIXA','','Assinaturas','#a64ad4','34,90'],
-    ['05/06','Colégio Louise','fam','FIXA','','Educação','#3aa6d4','1.880,00'],
   ];
   const OLBL={fam:'Fam',w:'W',f:'F'};
   function tint(hex,a){const n=parseInt(hex.slice(1),16);return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';}
-  function catCard(){
-    const rows=CATS.map(c=>`<div class="cat-row">
+  function catRow(c){return `<div class="cat-row">
       <div class="cat-ic" style="color:${c[3]};background:${tint(c[3],.13)}">${c[4]}</div>
       <div class="cat-mid"><div class="cat-nm">${c[0]}</div><div class="cat-bar"><i style="width:${Math.max(4,c[1]*4.3)}%;background:${c[3]}"></i></div></div>
       <div class="cat-r"><div class="cat-pct">${c[1]}%</div><div class="cat-val">R$ ${c[2].toLocaleString('pt-BR')}</div></div>
-    </div>`).join('');
-    return `<div class="card"><div class="card-h">Por categoria <span class="meta">· Junho 2026</span></div><div class="cat-list">${rows}</div></div>`;
+    </div>`;}
+  function catCard(){
+    const top=CATS.slice(0,TOPN).map(catRow).join('');
+    const rest=CATS.length-TOPN;
+    return `<div class="card"><div class="card-h">Por categoria <span class="meta">· Junho 2026</span></div>
+      <div class="cat-list">${top}</div>
+      <button class="foot-btn" id="catMore">VER MAIS (${rest})</button></div>`;
   }
   function tableCard(){
     const rows=ROWS.map(r=>{
       const badge=r[3]?`<span class="badge">${r[3]}</span>`:'';
       const notes=r[4]?`<div class="t-notes">${r[4]}</div>`:'';
-      return `<div class="trow">
-        <div class="t-date">${r[0]}</div>
+      return `<div class="trow"><div class="t-date">${r[0]}</div>
         <div class="t-desc"><div class="t-dl"><span class="t-dt">${r[1]}</span><span class="chip ${r[2]}">${OLBL[r[2]]}</span>${badge}</div>${notes}</div>
         <div class="pill" style="color:${r[6]};background:${tint(r[6],.12)}"><span class="ic" style="background:${r[6]}"></span>${r[5]}</div>
-        <div class="t-val">R$ ${r[7]}</div>
-      </div>`;
+        <div class="t-val">R$ ${r[7]}</div></div>`;
     }).join('');
-    return `<div class="card">
-      <div class="card-h">Todas as despesas do mês <span class="meta">· Clique numa linha pra editar</span></div>
+    return `<div class="card"><div class="card-h">Todas as despesas do mês <span class="meta">· Clique numa linha pra editar</span></div>
       <div class="t-top"><span class="t-cnt">108 LANÇAMENTOS</span><span class="t-tot">R$ 32.594,07</span></div>
       <div class="thead"><span>DATA</span><span>DESCRIÇÃO</span><span>CATEGORIA</span><span class="r">VALOR</span></div>
       <div class="t-scroll">${rows}</div>
-      <button class="vertodas">VER TODAS (108)</button>
-    </div>`;
+      <button class="foot-btn">VER TODAS (108)</button></div>`;
   }
   document.getElementById('stage').innerHTML=`<div class="panel-grid">${catCard()}${tableCard()}</div>`;
+  document.getElementById('modalList').innerHTML=CATS.map(catRow).join('');
+  const bg=document.getElementById('modalBg');
+  document.getElementById('catMore').addEventListener('click',()=>bg.classList.add('show'));
+  document.getElementById('modalX').addEventListener('click',()=>bg.classList.remove('show'));
+  bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('show');});
 </script>
 </body></html>
