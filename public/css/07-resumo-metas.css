@@ -480,7 +480,7 @@
 .exp-total-bar { display: flex; align-items: baseline; gap: var(--sp-3); padding: 2px 14px 12px; }
 .exp-total-bar .exp-total-lbl { font-size: var(--fs-micro); font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; }
 .exp-total-bar .exp-total-val { margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 17px; font-weight: 700; color: var(--ink); }
-.exp-table td { padding: 13px 14px; border-bottom: 1px solid var(--border); color: var(--ink-2); vertical-align: middle; }
+.exp-table td { padding: 4px 14px; border-bottom: 1px solid var(--border); color: var(--ink-2); vertical-align: middle; }   /* v10 slim (Ultra): era 13px */
 .exp-table tr[data-id] { cursor: pointer; position: relative; transition: background 0.15s var(--ease-out); }
 .exp-table tr[data-id]::after {
   content: "";
@@ -497,8 +497,11 @@
 .exp-table tr:last-child td { border-bottom: none; }
 .exp-row-date { color: var(--ink-3); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 11.5px; }
 .exp-row-desc-cell { min-width: 0; }
-.exp-row-desc { font-size: 12.5px; font-weight: 600; color: var(--ink); letter-spacing: -0.005em; }
-.exp-row-notes { margin-top: 3px; font-size: 10.5px; color: var(--ink-muted); font-family: 'Geist Mono', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 360px; }
+/* v10 slim (Ultra): linha do título = flex (título trunca, chip+selo ficam) */
+.exp-row-desc { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 12px; font-weight: 600; color: var(--ink); letter-spacing: -0.005em; line-height: 1.3; }
+.exp-row-dt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex-shrink: 1; }
+.exp-row-desc .exp-owner-chip, .exp-row-desc .exp-fixa-badge, .exp-row-desc .exp-prov-badge { margin-left: 0; flex-shrink: 0; }
+.exp-row-notes { margin-top: 2px; font-size: 10px; color: var(--ink-muted); font-family: 'Geist Mono', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 360px; }
 .exp-row-amt { text-align: right; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
 /* Tags estilo Apple (opção A — soft tinted): fundo bem suave na cor da categoria,
    texto/ícone na cor, sem borda, cantos macios. */

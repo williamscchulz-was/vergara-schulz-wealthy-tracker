@@ -1378,7 +1378,10 @@ function renderExpenseTable(entries) {
     const isProv = /·\s*provis[aã]o\b/i.test(e.notes || '');
     const notes = (e.notes || '').replace(/\s*·\s*provis[aã]o\b/i, '').trim();   // tira da nota → vira selo "Provisão"
     const ownerChip = ownerChipHtml(e);
-    const descMain = `<div class="exp-row-desc">${_hi(e.description) || '—'}${ownerChip}</div>`;
+    // v10 slim (Ultra): selo FIXA/PROVISÃO sobe pra linha do título (era 3ª linha) — economiza uma linha por lançamento
+    const fixaBadge = isV ? `<span class="exp-fixa-badge">${e._future ? 'fixa · prevista' : 'fixa'}</span>` : '';
+    const provBadge = isProv ? `<span class="exp-prov-badge">${t('exp.prov.badge')}</span>` : '';
+    const descMain = `<div class="exp-row-desc"><span class="exp-row-dt">${_hi(e.description) || '—'}</span>${ownerChip}${fixaBadge}${provBadge}</div>`;
     // P-Pix/Cartão (Opção 1): forma de pagamento aparece na linha (lançamentos manuais)
     const _payKey = { cartao: 'exp.payhint.cartao', conta: 'exp.payhint.pix', manual: 'exp.payhint.dinheiro' }[e.payMethod];
     const payHint = (!isV && !isIn && _payKey) ? t(_payKey) : '';
@@ -1389,8 +1392,6 @@ function renderExpenseTable(entries) {
     const amt = (+e.value || 0);
     const amtText = isIn ? `+ ${fmtBRL(amt)}` : fmtBRL(amt);
     const pillLabel = isIn ? t('exp.income.pill') : meta.label;
-    const fixaBadge = isV ? `<span class="exp-fixa-badge">${e._future ? 'fixa · prevista' : 'fixa'}</span>` : '';
-    const provBadge = isProv ? `<span class="exp-prov-badge">${t('exp.prov.badge')}</span>` : '';   // P3 (v9.9)
     const extraCls = (!_showAll && sorted.length > TLIMIT && i >= TLIMIT) ? ' exp-row-extra' : '';
     const flashCls = (_flashRowId && e.id === _flashRowId) ? ' row-flash' : '';   // UX M1: linha recém-salva acende
     // UX U6: cabeçalho do dia (HOJE/ONTEM/SEX · 15/06 · subtotal do dia na visão atual)
@@ -1402,7 +1403,7 @@ function renderExpenseTable(entries) {
     }
     return dayHead + `<tr ${isV ? `data-recurring-id="${esc(e.recurringId)}"` : `data-id="${e.id}"`} class="${isIn ? 'is-income' : ''}${isV ? ' is-recurring' : ''}${extraCls}${flashCls}" style="--cat-color:${meta.color}">
       <td class="mono exp-row-date">${grouped ? '' : fmtDateHuman(e.date)}</td>
-      <td class="exp-row-desc-cell">${descHtml}${fixaBadge}${provBadge}</td>
+      <td class="exp-row-desc-cell">${descHtml}</td>
       <td class="exp-row-cat-cell"><span class="exp-cat-pill ${isIn ? 'is-income' : ''}${(e.id && _flashCatIds.has(e.id)) ? ' cat-flash' : ''}" style="--cat-color:${meta.color}" data-quickcat="${isV ? '' : (e.id || '')}"${(isV && !isIn) ? ` data-fixacat="${esc(e.recurringId)}" data-fixadate="${esc(e.date)}"` : ''}>${isIn ? '' : `<span class="exp-cat-pill-icon">${meta.icon}</span>`}${pillLabel}</span></td>
       <td class="mono exp-row-amt">${amtText}</td>
     </tr>`;
