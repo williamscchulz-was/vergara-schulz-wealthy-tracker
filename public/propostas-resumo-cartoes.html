@@ -1,6 +1,6 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ledger · Proposta — resumo por cartão (pílulas, 1 linha)</title>
+<title>Ledger · Proposta — resumo por cartão (mobile)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{ --pg:#f3efe7; --ink:#2a2620; --ink2:#6b6256; --ink3:#6f6657; --inkm:#837767; --card:#fffdf9; --border:#e7ddcb; --el2:#f4eee2; --green:#2fae5f; --green-deep:#1f8f4a; --green-soft:rgba(47,174,95,.08); }
@@ -9,61 +9,73 @@
   .wrap{max-width:1080px;margin:0 auto}
   h1{font-size:23px;letter-spacing:-.02em;margin:0 0 4px;display:flex;align-items:center;gap:10px}
   .v{font:700 10px Inter;background:var(--green-soft);color:var(--green-deep);border:1px solid var(--border);padding:3px 8px;border-radius:999px}
-  .lead{color:var(--ink2);font-size:14px;margin:0 0 22px}
-  .lead b{color:var(--ink)}
-  .cap{font:700 10px Inter;letter-spacing:.06em;text-transform:uppercase;color:var(--inkm);margin:22px 0 8px}
-  .frame{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 1px 2px rgba(20,40,24,.04),0 8px 22px -14px rgba(20,40,24,.2);overflow:hidden}
-  .frame.narrow{max-width:380px}
-  .lbl{font:700 10px Inter;letter-spacing:.08em;text-transform:uppercase;color:var(--inkm);padding:14px 16px 0}
-  /* PÍLULAS — sempre 1 linha; no estreito vira deslize horizontal (sem barra visível) */
-  .pills{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;padding:11px 16px 15px;scrollbar-width:none;-ms-overflow-style:none}
-  .pills::-webkit-scrollbar{display:none}
-  .pill{display:inline-flex;align-items:center;gap:7px;background:var(--el2);border:1px solid var(--border);border-radius:999px;padding:6px 12px 6px 7px;flex:0 0 auto}
-  .pdot{width:20px;height:20px;border-radius:6px;display:grid;place-items:center;flex-shrink:0}
+  .lead{color:var(--ink2);font-size:14px;margin:0 0 8px}.lead b{color:var(--ink)}
+  .ok{font-size:13px;color:var(--green-deep);font-weight:600;margin:0 0 24px}
+  .row{display:flex;gap:24px;flex-wrap:wrap;justify-content:center}
+  .col{flex:0 0 auto}
+  .col-h{display:flex;align-items:baseline;gap:8px;margin-bottom:9px;justify-content:center}
+  .col-t{font-size:15px;font-weight:700}
+  .reco{font:700 9px Inter;letter-spacing:.04em;background:var(--green);color:#fff;padding:2px 7px;border-radius:999px;text-transform:uppercase}
+  /* phone frame ~360 */
+  .phone{width:360px;background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 1px 2px rgba(20,40,24,.04),0 10px 26px -14px rgba(20,40,24,.22);overflow:hidden}
+  .lbl{font:700 10px Inter;letter-spacing:.08em;text-transform:uppercase;color:var(--inkm);padding:13px 14px 0}
+  .pad{padding:10px 14px 14px}
+  .pdot{border-radius:6px;display:grid;place-items:center;flex-shrink:0}
   .pdot svg{width:11px;height:11px}
-  .pn{font-size:12px;font-weight:600;color:var(--ink2);white-space:nowrap}
-  .pv{font-family:'Geist Mono',monospace;font-weight:700;font-size:12.5px;color:var(--ink);white-space:nowrap}
-  .note{font-size:12.5px;color:var(--ink3);margin-top:12px}.note b{color:var(--green-deep)}
-  .foot{text-align:center;color:var(--ink3);font-size:13px;margin-top:26px;line-height:1.7}.foot b{color:var(--ink2)}
+  .pn{font-weight:600;color:var(--ink2);white-space:nowrap}
+  .pv{font-family:'Geist Mono',monospace;font-weight:700;color:var(--ink);white-space:nowrap}
+  /* A: pílulas em 2 linhas */
+  .pills{display:flex;flex-wrap:wrap;gap:7px}
+  .pills .pill{display:inline-flex;align-items:center;gap:6px;background:var(--el2);border:1px solid var(--border);border-radius:999px;padding:5px 11px 5px 6px}
+  .pills .pdot{width:19px;height:19px} .pills .pn{font-size:11.5px} .pills .pv{font-size:12px}
+  /* B: grid 2 colunas */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .gcell{display:flex;align-items:center;gap:9px;background:var(--el2);border:1px solid var(--border);border-radius:11px;padding:8px 10px;min-width:0}
+  .gcell .pdot{width:26px;height:26px;border-radius:8px} .gcell .pdot svg{width:13px;height:13px}
+  .gcell .gt{min-width:0}
+  .gcell .pn{font-size:11px;display:block;overflow:hidden;text-overflow:ellipsis}
+  .gcell .pv{font-size:13.5px;display:block}
+  /* C: barra + legenda */
+  .bar{display:flex;height:26px;border-radius:8px;overflow:hidden;border:1px solid var(--border);margin-bottom:11px}
+  .seg{flex-grow:0}
+  .leg{display:grid;grid-template-columns:1fr 1fr;gap:7px 14px}
+  .li{display:flex;align-items:center;gap:7px;font-size:12px;min-width:0}
+  .li i{width:9px;height:9px;border-radius:3px;flex-shrink:0}
+  .li .ln{color:var(--ink2);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .li .lv{font-family:'Geist Mono',monospace;font-weight:700;color:var(--ink);margin-left:auto;white-space:nowrap}
+  .foot{text-align:center;color:var(--ink3);font-size:13px;margin-top:28px;line-height:1.7}.foot b{color:var(--ink2)}
+  @media(max-width:780px){ .phone{width:100%;max-width:360px} }
 </style></head>
 <body><div class="wrap">
 
-<h1>Resumo por cartão — pílulas em 1 linha <span class="v">Ledger</span></h1>
-<p class="lead">Sempre <b>uma linha só</b>. Valores <b>compactos</b> (R$ 12,4K) pra caber. Só mostra o que teve gasto. No desktop cabe folgado; numa tela estreita com muitos cartões, vira um <b>deslize horizontal</b> (sem barra de rolagem).</p>
+<h1>Resumo por cartão — solução p/ mobile <span class="v">Ledger</span></h1>
+<p class="lead">No <b>desktop</b> fica como você aprovou: pílulas em <b>1 linha</b>. No <b>celular</b> (onde não cabe), 3 opções de layout próprio — <b>sem deslize, sem barra</b>. Tudo à vista. Escolhe:</p>
+<p class="ok">✓ desktop = pílulas 1 linha (mantido) · abaixo só o MOBILE</p>
 
-<div class="cap">Tela larga (desktop) — cabe numa linha, folgado</div>
-<div class="frame">
-  <div class="lbl">Por forma de pagamento · Junho 2026</div>
-  <div class="pills" id="pillsWide"></div>
-</div>
+<div class="row" id="stage"></div>
 
-<div class="cap">Tela estreita (celular) — continua 1 linha; arrasta pro lado pra ver o resto →</div>
-<div class="frame narrow">
-  <div class="lbl">Por forma de pagamento</div>
-  <div class="pills" id="pillsNarrow"></div>
-</div>
-
-<div class="note">↑ a <b>Isolde</b> não aparece — "só traz o que teve gasto" funcionando. No desktop, todas as 5 cabem sem precisar arrastar.</div>
-
-<div class="foot">Tá assim que você queria? <b>"pode aplicar"</b> — e me diz se quer também a escolha de <b>qual cartão</b> no lançamento manual. ✌️</div>
+<div class="foot">Qual no mobile: <b>A</b> (pílulas 2 linhas), <b>B</b> (grade 2 colunas) ou <b>C</b> (barra + legenda)? ✌️</div>
 
 </div>
 <script>
-  const CARD = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><line x1="2" y1="10" x2="22" y2="10"/></svg>';
-  const PIX  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l3.5 3.5a3 3 0 0 0 4.2 0M12 21l3.5-3.5a3 3 0 0 1 4.2 0M12 3L8.5 6.5a3 3 0 0 1-4.2 0M12 21l-3.5-3.5a3 3 0 0 0-4.2 0M3 12l3.5-3.5a3 3 0 0 1 4.2 0L15 12l-4.3 3.5a3 3 0 0 1-4.2 0z"/></svg>';
-  const CASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>';
+  const CARD='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><line x1="2" y1="10" x2="22" y2="10"/></svg>';
+  const PIX='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l3.5 3.5a3 3 0 0 0 4.2 0M12 21l3.5-3.5a3 3 0 0 1 4.2 0M12 3L8.5 6.5a3 3 0 0 1-4.2 0M12 21l-3.5-3.5a3 3 0 0 0-4.2 0M3 12l3.5-3.5a3 3 0 0 1 4.2 0L15 12l-4.3 3.5a3 3 0 0 1-4.2 0z"/></svg>';
+  const CASH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>';
   const SRC=[
-    {n:'William',  v:12400, c:'#1f7ab8', ic:CARD},
-    {n:'Pix',      v:8200,  c:'#2fae5f', ic:PIX},
-    {n:'Flávia',   v:6800,  c:'#c43f93', ic:CARD},
-    {n:'Amanda',   v:2100,  c:'#7c5cd0', ic:CARD},
-    {n:'Dinheiro', v:1694,  c:'#8a8175', ic:CASH},
+    {n:'William',v:12400,c:'#1f7ab8',ic:CARD},{n:'Pix',v:8200,c:'#2fae5f',ic:PIX},{n:'Flávia',v:6800,c:'#c43f93',ic:CARD},
+    {n:'Amanda',v:2100,c:'#7c5cd0',ic:CARD},{n:'Dinheiro',v:1694,c:'#8a8175',ic:CASH},
   ];
-  // compacto estilo do app (mc): R$ 12,4K
+  const tot=SRC.reduce((s,x)=>s+x.v,0);
   function mc(n){const a=Math.abs(n);if(a>=1e6)return 'R$ '+(n/1e6).toFixed(2).replace('.',',')+'M';if(a>=1000)return 'R$ '+(n/1000).toFixed(1).replace('.',',')+'K';return 'R$ '+Math.round(n);}
-  function tint(hex,a){const x=parseInt(hex.slice(1),16);return 'rgba('+((x>>16)&255)+','+((x>>8)&255)+','+(x&255)+','+a+')';}
-  const pills=SRC.map(s=>`<div class="pill"><span class="pdot" style="color:${s.c};background:${tint(s.c,.14)}">${s.ic}</span><span class="pn">${s.n}</span><span class="pv">${mc(s.v)}</span></div>`).join('');
-  document.getElementById('pillsWide').innerHTML=pills;
-  document.getElementById('pillsNarrow').innerHTML=pills;
+  function tint(h,a){const x=parseInt(h.slice(1),16);return 'rgba('+((x>>16)&255)+','+((x>>8)&255)+','+(x&255)+','+a+')';}
+  const A=SRC.map(s=>`<div class="pill"><span class="pdot" style="color:${s.c};background:${tint(s.c,.14)}">${s.ic}</span><span class="pn">${s.n}</span><span class="pv">${mc(s.v)}</span></div>`).join('');
+  const B=SRC.map(s=>`<div class="gcell"><span class="pdot" style="color:${s.c};background:${tint(s.c,.14)}">${s.ic}</span><span class="gt"><span class="pn">${s.n}</span><span class="pv">${mc(s.v)}</span></span></div>`).join('');
+  const Cseg=SRC.map(s=>`<div class="seg" style="background:${s.c};flex:${s.v}"></div>`).join('');
+  const Cleg=SRC.map(s=>`<span class="li"><i style="background:${s.c}"></i><span class="ln">${s.n}</span><span class="lv">${mc(s.v)}</span></span>`).join('');
+  function phone(inner){return `<div class="phone"><div class="lbl">Por forma de pagamento</div><div class="pad">${inner}</div></div>`;}
+  document.getElementById('stage').innerHTML=`
+    <div class="col"><div class="col-h"><span class="col-t">A · Pílulas 2 linhas</span></div>${phone('<div class="pills">'+A+'</div>')}</div>
+    <div class="col"><div class="col-h"><span class="col-t">B · Grade 2 colunas</span><span class="reco">★</span></div>${phone('<div class="grid">'+B+'</div>')}</div>
+    <div class="col"><div class="col-h"><span class="col-t">C · Barra + legenda</span></div>${phone('<div class="bar">'+Cseg+'</div><div class="leg">'+Cleg+'</div>')}</div>`;
 </script>
 </body></html>
