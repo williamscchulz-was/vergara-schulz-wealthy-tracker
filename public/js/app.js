@@ -1472,18 +1472,19 @@ function syncPanelHeights() {
   const tw = tx && tx.querySelector('.table-wrap');
   if (!cat || !tx || !tw) return;
   const isPanel = !mod.classList.contains('view-lancamentos') && !mod.classList.contains('view-ganhos') && !mod.classList.contains('view-categorias');
-  if (!isPanel || window.innerWidth < 900) { tx.style.height = ''; tw.classList.remove('is-clipped'); return; }
-  tx.style.height = '';                         // mede natural
+  if (!isPanel || window.innerWidth < 900) { tw.style.maxHeight = ''; tx.style.height = ''; tw.classList.remove('is-clipped'); return; }
+  tw.style.maxHeight = ''; tx.style.height = '';   // mede a lista na altura NATURAL (todas as linhas renderizadas)
   const catH = cat.offsetHeight;
-  const txNat = tx.offsetHeight;
-  const chrome = txNat - tw.offsetHeight;       // card-head + total + rodapé (sem a lista)
-  // só iguala se dá pra clipar SEM espremer o header (catH cabe chrome + ~2 linhas) E o card de
-  // lançamentos é naturalmente mais alto (senão igualar deixaria vazio NELE). Senão, altura natural.
-  if (catH >= chrome + 88 && catH < txNat - 1) {
-    tx.style.height = catH + 'px';
-    tw.classList.toggle('is-clipped', tw.scrollHeight > tw.clientHeight + 2);   // fade só quando corta
+  const txNat = tx.offsetHeight;                 // card inteiro natural (chrome + lista)
+  const chrome = txNat - tw.offsetHeight;        // header + total + rodapé (sem a lista)
+  const target = catH - chrome;                  // altura disponível pra lista pro card bater a altura das categorias
+  // só clipa se a lista pode caber (target >= ~2 linhas) E é naturalmente mais alta que o alvo.
+  // Senão (mês esparso / lista curta) mostra tudo na altura natural — a lista NUNCA some.
+  if (target >= 88 && tw.offsetHeight > target + 1) {
+    tw.style.maxHeight = target + 'px';
+    tw.classList.toggle('is-clipped', tw.scrollHeight > target + 2);   // fade só quando corta
   } else {
-    tx.style.height = '';
+    tw.style.maxHeight = '';
     tw.classList.remove('is-clipped');
   }
 }
