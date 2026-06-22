@@ -1061,6 +1061,23 @@ function renderExpenses() {
 }
 
 let _catBreakdownExp = [];   // dataset do card "Por categoria" (pro drill-down em popup)
+let _catAllRowsHtml = '';    // HTML de TODAS as categorias do mês (pro popup "Ver mais") (v11)
+let _catAllSub = '';
+// Popup "Todas as categorias" — o card do Painel mostra só as top 7; aqui mostra todas.
+function openCatAllModal() {
+  const list = $('catAllList'); if (!list) return;
+  list.innerHTML = _catAllRowsHtml || '';
+  const sub = $('catAllSub'); if (sub) sub.textContent = _catAllSub || '';
+  // clicar numa categoria fecha o popup e abre o detalhe (drill-down) dela
+  list.querySelectorAll('.exp-cat-row[data-cat]').forEach(row => {
+    const go = () => { $('catAllModal')?.classList.remove('show'); openCategoryDetail(row.dataset.cat); };
+    row.addEventListener('click', go);
+    row.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+  });
+  $('catAllModal')?.classList.add('show');
+}
+$('catAllClose')?.addEventListener('click', () => $('catAllModal')?.classList.remove('show'));
+$('catAllModal')?.addEventListener('click', e => { if (e.target.id === 'catAllModal') $('catAllModal').classList.remove('show'); });
 function renderCategoryBreakdown(monthExp, total) {
   _catBreakdownExp = monthExp;
   // Popup de detalhe aberto → re-renderiza ao vivo a CADA snapshot, ANTES do early-return
@@ -1073,6 +1090,8 @@ function renderCategoryBreakdown(monthExp, total) {
   if (monthExp.length === 0) {
     wrap.innerHTML = `<div class="exp-empty"><h4>${t('exp.empty.cat.title')}</h4><p>${t('exp.empty.cat.sub')}</p></div>`;
     if (totalEl) totalEl.hidden = true;
+    _catAllRowsHtml = ''; _catAllSub = '';   // mês vazio: não deixa o popup com o HTML do mês anterior
+    if ($('catAllModal')?.classList.contains('show')) openCatAllModal();   // refresca se estiver aberto
     return;
   }
   // Group by category (include cats with a budget even if no spend)
@@ -1109,7 +1128,7 @@ function renderCategoryBreakdown(monthExp, total) {
     // Só é clicável (drill-down) se houver gasto — categoria orçada com 0 não abre popup vazio (review)
     const clickCls = val > 0 ? ' exp-cat-clickable' : '';
     const clickAttrs = val > 0 ? ` data-cat="${esc(catKey)}" role="button" tabindex="0"` : '';
-    return `<div class="exp-cat-row${clickCls}${idx >= 8 ? ' exp-cat-extra' : ''}${overBudget ? ' over-budget' : ''}${limit > 0 ? ' has-budget' : ''}"${clickAttrs} style="--cat-color:${cat.color};--cat-delay:${0.05 + idx * 0.04}s">
+    return `<div class="exp-cat-row${clickCls}${idx >= 7 ? ' exp-cat-extra' : ''}${overBudget ? ' over-budget' : ''}${limit > 0 ? ' has-budget' : ''}"${clickAttrs} style="--cat-color:${cat.color};--cat-delay:${0.05 + idx * 0.04}s">
       <div class="exp-cat-icon">${cat.icon}</div>
       <div class="exp-cat-meta">
         <div class="exp-cat-name">${cat.label}</div>
@@ -1121,13 +1140,15 @@ function renderCategoryBreakdown(monthExp, total) {
       </div>
     </div>`;
   }).join('');
-  // Mostra as 8 maiores no painel; "Ver todas" leva pra sub-aba Categorias (gerenciar todas).
-  const _extra = sorted.length - 8;
-  const _moreLbl = `Ver todas (${sorted.length})`;
-  wrap.innerHTML = catRowsHtml + (_extra > 0 ? `<button class="exp-cat-more" type="button">${_moreLbl}</button>` : '');
+  // Painel mostra as 7 maiores; "Ver mais (N)" abre o popup com TODAS (v11, aprovado pelo dono).
+  const _extra = sorted.length - 7;
+  wrap.innerHTML = catRowsHtml + (_extra > 0 ? `<button class="exp-cat-more" type="button">Ver mais (${_extra})</button>` : '');
   wrap.classList.remove('show-all');
+  _catAllRowsHtml = catRowsHtml;   // o popup reusa o mesmo HTML (com .show-all, todas aparecem)
+  _catAllSub = `${sorted.length} ${sorted.length === 1 ? 'categoria' : 'categorias'} · ${fmtBRL0(total)}`;
+  if ($('catAllModal')?.classList.contains('show')) openCatAllModal();   // popup aberto → atualiza ao vivo (igual o drill-down) quando o outro edita
   const _mb = wrap.querySelector('.exp-cat-more');
-  if (_mb) _mb.addEventListener('click', () => setExpSub('categorias'));
+  if (_mb) _mb.addEventListener('click', openCatAllModal);
   // Drill-down: clicar (ou Enter/Espaço) numa categoria abre o popup com todos os
   // lançamentos dela no mês + soma de conferência (pedido do dono).
   wrap.querySelectorAll('.exp-cat-row[data-cat]').forEach(row => {
@@ -5736,6 +5757,7 @@ $('yearlyModal').addEventListener('click', e => { if (e.target.id === 'yearlyMod
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     if (_scopeResolve) { finishScope('cancel'); return; }   // diálogo de escopo fecha primeiro
+    if ($('catAllModal')?.classList.contains('show')) { $('catAllModal').classList.remove('show'); return; }
     if ($('catDetailModal')?.classList.contains('show')) { closeCategoryDetail(); return; }
     if ($('mrTableModal')?.classList.contains('show')) { $('mrTableModal').classList.remove('show'); return; }
     closeExpenseModal();

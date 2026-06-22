@@ -742,6 +742,18 @@
   <div class="modal-foot"><span class="cd-hint" data-i18n="exp.detail.hint">Toque numa linha para conferir/editar</span><div class="spacer"></div><button class="btn-secondary" id="cdClose" data-i18n="imports.close">Fechar</button></div>
 </div></div>
 
+<!-- v11: popup com TODAS as categorias do mês (o card mostra só as top 7) -->
+<div class="modal-bg" id="catAllModal"><div class="modal modal-wide cd-modal" role="dialog" aria-modal="true">
+  <div class="cd-head">
+    <div class="cd-head-txt">
+      <h3 data-i18n="exp.cat.all.title">Todas as categorias</h3>
+      <p class="sub" id="catAllSub">—</p>
+    </div>
+  </div>
+  <div class="cd-scroll cat-list show-all" id="catAllList"></div>
+  <div class="modal-foot"><div class="spacer"></div><button class="btn-secondary" id="catAllClose" data-i18n="imports.close">Fechar</button></div>
+</div></div>
+
 <!-- Budget editor — one row per category with BRL-masked limit input -->
 <div class="modal-bg" id="budgetModal"><div class="modal liquid budget-modal">
   <h3 data-i18n="exp.budget.editTitle">Orçamento por categoria</h3>
