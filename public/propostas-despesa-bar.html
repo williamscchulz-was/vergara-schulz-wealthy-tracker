@@ -1,0 +1,77 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ledger · Proposta — destaque da barra Despesas</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --pg:#f3efe7; --ink:#2a2620; --ink2:#6b6256; --ink3:#6f6657; --card:#fffdf9; --border:#e7ddcb; --green:#2fae5f; --green-deep:#1f8f4a; --green-soft:rgba(47,174,95,.08); }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--pg);color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.5;padding:26px 16px 80px}
+  .wrap{max-width:880px;margin:0 auto}
+  h1{font-size:23px;letter-spacing:-.02em;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  .v{font:700 10px Inter;background:var(--green-soft);color:var(--green-deep);border:1px solid var(--border);padding:3px 8px;border-radius:999px}
+  .lead{color:var(--ink2);font-size:14.5px;margin:0 0 22px}
+  .lead b{color:var(--ink)}
+  .opt{margin-bottom:24px}
+  .opt-h{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+  .opt-t{font-size:16px;font-weight:700;letter-spacing:-.01em}
+  .opt-d{color:var(--ink2);font-size:13px}
+  .reco-tag{font:700 9.5px Inter;letter-spacing:.04em;background:var(--green);color:#fff;padding:2px 7px;border-radius:999px;text-transform:uppercase}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:11px}
+  .mode-tag{font:600 10px Inter;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);margin:0 0 6px 2px}
+  /* chart card (cores aplicadas inline por tema) */
+  .chart-card{border:1px solid;border-radius:16px;padding:15px 15px 11px;box-shadow:0 1px 2px rgba(20,40,24,.04),0 8px 22px -14px rgba(20,40,24,.2)}
+  .ch-h{font-size:13.5px;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+  .ch-leg{font-size:10.5px;font-weight:500;display:inline-flex;gap:11px}
+  .ch-leg span{display:inline-flex;align-items:center;gap:4px}
+  .ch-leg i{width:8px;height:8px;border-radius:2px;display:inline-block}
+  .gbars{display:flex;align-items:flex-end;gap:5px;height:120px}
+  .gcol{flex:1;display:flex;flex-direction:column;align-items:center;height:100%}
+  .gpair{flex:1;display:flex;align-items:flex-end;justify-content:center;gap:2.5px;width:100%;min-height:0}
+  .gpair i{width:42%;border-radius:3px 3px 1px 1px;min-height:2px}
+  .gx{font-size:8.5px;margin-top:5px}
+  .foot{text-align:center;color:var(--ink3);font-size:13px;margin-top:30px;line-height:1.7}
+  .foot b{color:var(--ink2)}
+  @media(max-width:620px){ .pair{grid-template-columns:1fr} body{padding:18px 12px 70px} }
+</style></head>
+<body><div class="wrap">
+
+<h1>Barra de Despesas mais visível <span class="v">Ledger</span></h1>
+<p class="lead">Hoje a barra <b>Despesas</b> usa quase a cor do próprio card — some no claro e no escuro. Abaixo, a <b>atual</b> e 3 formas de destacá-la (sem roubar o protagonismo do verde dos Ganhos). Cada uma nos <b>dois modos</b>. Escolhe a que te agrada.</p>
+
+<div id="opts"></div>
+
+<div class="foot">
+  Me diz o número: <b>1 (cinza)</b> · <b>2 (vermelho)</b> · <b>3 (âmbar)</b>. Aplico nos dois temas. ✌️
+</div>
+
+</div>
+<script>
+  const DATA=[['jan',62,8],['fev',60,7],['mar',95,9],['abr',55,12],['mai',48,38],['jun',58,8],['jul',4,14],['ago',3,8],['set',3,6],['out',4,7],['nov',3,5],['dez',4,9]];
+  const TH={
+    light:{card:'#fffdf9',ink:'#2a2620',ink3:'#6f6657',border:'#e7ddcb',inGrad:'linear-gradient(#5fd08a,#2fae5f)'},
+    dark: {card:'#14180f',ink:'#f3f4ee',ink3:'#9a9c90',border:'rgba(255,255,255,.09)',inGrad:'linear-gradient(#d8fa72,#c7f73e)'}
+  };
+  const OPTS=[
+    {key:'atual',  name:'Atual',            desc:'como está hoje — var(--bg-elevated-3), quase invisível.', out:{light:'#faf6ee',dark:'#20261a'}, reco:false},
+    {key:'neutro', name:'1 · Cinza quente', desc:'neutro, legível, mantém o verde como protagonista.',      out:{light:'#c4b6a0',dark:'#535b48'}, reco:true},
+    {key:'verm',   name:'2 · Vermelho suave',desc:'semântico: dinheiro saindo. Apagado pra não gritar.',    out:{light:'#e0a08f',dark:'#a85b4d'}, reco:false},
+    {key:'ambar',  name:'3 · Âmbar suave',  desc:'quente e visível, mais amigável que o vermelho.',          out:{light:'#e6bd78',dark:'#9c7d3f'}, reco:false},
+  ];
+  function chart(themeKey,outColor){
+    const T=TH[themeKey];
+    const bars=DATA.map(d=>`<div class="gcol"><div class="gpair"><i style="height:${d[1]}%;background:${T.inGrad}"></i><i style="height:${d[2]}%;background:${outColor}"></i></div><span class="gx" style="color:${T.ink3}">${d[0]}</span></div>`).join('');
+    return `<div class="chart-card" style="background:${T.card};border-color:${T.border}">
+      <div class="ch-h" style="color:${T.ink}">Receitas × Despesas
+        <span class="ch-leg" style="color:${T.ink3}"><span><i style="background:${T.inGrad}"></i>Ganhos</span><span><i style="background:${outColor}"></i>Despesas</span></span>
+      </div><div class="gbars">${bars}</div></div>`;
+  }
+  document.getElementById('opts').innerHTML = OPTS.map(o=>`
+    <div class="opt">
+      <div class="opt-h"><span class="opt-t">${o.name}</span>${o.reco?'<span class="reco-tag">★ recomendada</span>':''}<span class="opt-d">${o.desc}</span></div>
+      <div class="pair">
+        <div><div class="mode-tag">☀ Claro</div>${chart('light',o.out.light)}</div>
+        <div><div class="mode-tag">🌙 Escuro</div>${chart('dark',o.out.dark)}</div>
+      </div>
+    </div>`).join('');
+</script>
+</body></html>
