@@ -1371,7 +1371,7 @@ function renderExpenseTable(entries) {
   }
 
   const sorted = [...result].sort(expCompare);
-  const TLIMIT = 8;   // mostra as primeiras N linhas; o resto fica atrás de "Ver todas" (enche o card até a altura do de categoria)
+  const TLIMIT = 12;   // Painel: mostra N linhas no DOM; o clip do card (= altura das categorias) corta com fade o que sobra. >7 garante overflow.
   const _showAll = state._expTableAll || state.expSub === 'lancamentos' || state.expSub === 'ganhos';   // Lançamentos/Ganhos mostram TODAS
   // UX U6: nas sub-abas cheias e ordenado por data, agrupa por DIA com subtotal.
   const grouped = _showAll && _expSort.key === 'date';
@@ -1431,9 +1431,7 @@ function renderExpenseTable(entries) {
       <td class="exp-row-cat-cell"><span class="exp-cat-pill ${isIn ? 'is-income' : ''}${(e.id && _flashCatIds.has(e.id)) ? ' cat-flash' : ''}" style="--cat-color:${meta.color}" data-quickcat="${isV ? '' : (e.id || '')}"${(isV && !isIn) ? ` data-fixacat="${esc(e.recurringId)}" data-fixadate="${esc(e.date)}"` : ''}>${isIn ? '' : `<span class="exp-cat-pill-icon">${meta.icon}</span>`}${pillLabel}</span></td>
       <td class="mono exp-row-amt">${amtText}</td>
     </tr>`;
-  }).join('') + ((sorted.length > TLIMIT && state.expSub !== 'lancamentos' && state.expSub !== 'ganhos')
-    ? `<tr class="exp-row-more-tr"><td colspan="4"><button class="exp-row-more" type="button">Ver todas (${sorted.length})</button></td></tr>`
-    : '');
+  }).join('');   // "Ver todas" saiu da tabela → vira rodapé fixo (#expPanelMore), pra não ser cortado pelo clip do Painel
   tbody.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => openExpenseModal(tr.dataset.id)));
   tbody.querySelectorAll('tr[data-recurring-id]').forEach(tr => tr.addEventListener('click', () => openRecurringEditor(tr.dataset.recurringId)));
   // UX U4: tocar na pill de categoria troca ali mesmo (sem abrir o modal)
@@ -1449,12 +1447,36 @@ function renderExpenseTable(entries) {
     ev.stopPropagation();
     openQuickCatMenu(p, null, (catKey) => applyFixaCatVirtual(p.dataset.fixacat, p.dataset.fixadate, catKey));
   }));
-  const _moreBtn = tbody.querySelector('.exp-row-more');
-  if (_moreBtn) _moreBtn.addEventListener('click', () => setExpSub('lancamentos'));   // abre a sub-aba Lançamentos
+  // "Ver todas" virou rodapé FIXO do card (#expPanelMore, fora da tabela → não é cortado pelo clip). Só no Painel.
+  const _pm = $('expPanelMore');
+  if (_pm) {
+    _pm.hidden = !((state.expSub !== 'lancamentos' && state.expSub !== 'ganhos' && state.expSub !== 'categorias') && sorted.length > 0);
+    const _pmn = $('expPanelMoreN'); if (_pmn) _pmn.textContent = sorted.length;
+  }
+  requestAnimationFrame(syncPanelHeights);   // iguala a altura do card de lançamentos à do de categorias (clip + fade)
   // UX M1: o flash vale pra UM render — depois apaga sozinho
   if (_flashRowId && tbody.querySelector('.row-flash')) { const fid = _flashRowId; setTimeout(() => { if (_flashRowId === fid) _flashRowId = null; }, 1500); }
   if (_flashCatIds.size && tbody.querySelector('.cat-flash')) setTimeout(() => _flashCatIds.clear(), 1500);   // P-fixa: cascade anima 1×
 }
+// Painel desktop: iguala a altura do card de lançamentos à do card de categorias e clipa a lista
+// com fade (sem scrollbar). Fora do Painel ou no mobile (<900), desfaz (altura natural).
+function syncPanelHeights() {
+  const mod = $('moduleExpenses');
+  if (!mod || !mod.classList.contains('active')) return;
+  const cat = mod.querySelector('.exp-g-cat');
+  const tx = mod.querySelector('.exp-g-table');
+  const tw = tx && tx.querySelector('.table-wrap');
+  if (!cat || !tx || !tw) return;
+  const isPanel = !mod.classList.contains('view-lancamentos') && !mod.classList.contains('view-ganhos') && !mod.classList.contains('view-categorias');
+  if (!isPanel || window.innerWidth < 900) { tx.style.height = ''; tw.classList.remove('is-clipped'); return; }
+  tx.style.height = '';                         // mede a altura natural do card de categorias
+  const catH = cat.offsetHeight;
+  tx.style.height = catH + 'px';                // iguala
+  tw.classList.toggle('is-clipped', tw.scrollHeight > tw.clientHeight + 2);   // fade só quando há corte
+}
+$('expPanelMore')?.addEventListener('click', () => setExpSub('lancamentos'));   // rodapé fixo → abre a lista completa
+let _panelSyncRaf = 0;
+window.addEventListener('resize', () => { if (_panelSyncRaf) return; _panelSyncRaf = requestAnimationFrame(() => { _panelSyncRaf = 0; syncPanelHeights(); }); });
 // ---- UX P1: datas humanas (hoje/ontem/dia da semana) na lista ----
 const WEEKDAYS_PT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 const WEEKDAYS_EN = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];

@@ -249,14 +249,16 @@
     align-content: start;
   }
   /* linha 2: categoria (5) + tabela (7) */
-  /* v11.1: cada card na ALTURA NATURAL (align-self:start, herda align-items:start do grid).
-     Categorias = top 7 compactas + "Ver mais" (popup) — o card termina logo após o botão, SEM
-     espaço branco dentro. A tabela fica naturalmente um pouco mais alta; nenhum dos dois estica,
-     então não há vazio nem scroll. (Tentar forçar mesma altura sempre sobra espaço em algum.) */
+  /* v11.2 (escolha do dono): os dois cards EXATAMENTE da mesma altura. Categorias (top 7,
+     natural) DEFINE a altura; o card de lançamentos é igualado por JS (syncPanelHeights) e a
+     lista clipa com FADE embaixo (sem scrollbar), com "Ver todas" fixo no rodapé. */
   #moduleExpenses.active > .exp-g-cat   { grid-column: span 5; margin: 0; align-self: start; }
-  #moduleExpenses.active > .exp-g-table { grid-column: span 7; margin: 0; align-self: start; }
   #moduleExpenses.active > .exp-g-cat .cat-list { display: flex; flex-direction: column; gap: 3px; }
   #moduleExpenses.active > .exp-g-cat .exp-cat-more { margin-top: 8px; }
+  #moduleExpenses.active > .exp-g-table { grid-column: span 7; margin: 0; align-self: start; }
+  #moduleExpenses.active:not(.view-lancamentos):not(.view-ganhos):not(.view-categorias) > .exp-g-table { display: flex; flex-direction: column; }
+  #moduleExpenses.active:not(.view-lancamentos):not(.view-ganhos):not(.view-categorias) > .exp-g-table .table-wrap { flex: 1 1 0; min-height: 0; overflow: hidden; }
+  #moduleExpenses.active:not(.view-lancamentos):not(.view-ganhos):not(.view-categorias) > .exp-g-table .table-wrap.is-clipped { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent); }
 }
 
 /* popup "Todas as categorias" (v11) — lista rolável reusando .exp-cat-row */
@@ -272,6 +274,10 @@
   transition: color .15s;
 }
 .exp-row-more:hover { color: var(--purple); }
+/* v11.2: "Ver todas" como rodapé FIXO do card de lançamentos (Painel) */
+.exp-panel-more { flex: 0 0 auto; width: 100%; margin-top: 6px; padding: 12px; border: 0; border-top: 1px solid var(--border); background: transparent; color: var(--ink-3); cursor: pointer; font: 700 11px Inter, system-ui, sans-serif; letter-spacing: .07em; text-transform: uppercase; transition: color .15s; }
+.exp-panel-more:hover { color: var(--purple); }
+.exp-panel-more[hidden] { display: none; }
 
 /* ===== Stats 4 (2×2) + sparklines + hero com área (igual mockup) ===== */
 .stats.four { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); margin-bottom: 16px; }
