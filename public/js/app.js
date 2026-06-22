@@ -699,7 +699,15 @@ function renderResumo() {
     if (e.type === 'income') mo[i].rec += (+e.value || 0); else mo[i].desp += (+e.value || 0);
   }
   const maxMo = Math.max(1, ...mo.map(x => Math.max(x.rec, x.desp)));
-  const gbars = mo.map((x, i) => '<div class="rz-gcol"><div class="rz-gpair"><i class="in" style="height:' + (x.rec / maxMo * 100).toFixed(1) + '%" title="' + m(x.rec) + '"></i><i class="out" style="height:' + (x.desp / maxMo * 100).toFixed(1) + '%" title="' + m(x.desp) + '"></i></div><span class="rz-gx">' + MS[i] + '</span></div>').join('');
+  const gbars = mo.map((x, i) => {
+    const sal = x.rec - x.desp;
+    // data-* alimenta o tooltip (hover/toque); aria-label cobre a11y no lugar do title nativo (que sumiu)
+    const aria = MS[i] + ': ' + t('rz.income') + ' ' + m(x.rec) + ', ' + t('rz.expenses') + ' ' + m(x.desp) + ', ' + t('rz.saved') + ' ' + m(sal);
+    return '<div class="rz-gcol" tabindex="0" role="img" data-mo="' + esc(MS[i]) + '" data-rec="' + x.rec + '" data-desp="' + x.desp + '" aria-label="' + esc(aria) + '">'
+      + '<div class="rz-gpair"><i class="in" style="height:' + (x.rec / maxMo * 100).toFixed(1) + '%"></i>'
+      + '<i class="out" style="height:' + (x.desp / maxMo * 100).toFixed(1) + '%"></i></div>'
+      + '<span class="rz-gx">' + MS[i] + '</span></div>';
+  }).join('');
 
   // Patrimônio por ano — inclui o ano atual (patrimônio ao vivo) + % de crescimento ano a ano
   const _cy = new Date().getFullYear();
@@ -767,7 +775,7 @@ function renderResumo() {
       </div>
       <div class="card rz-gvs">
         <div class="rz-card-h">${esc(t('rz.recVsExp'))}<span class="rz-legend"><span class="lg"><i class="rz-rec"></i>${esc(t('rz.income'))}</span><span class="lg"><i class="rz-desp"></i>${esc(t('rz.expenses'))}</span></span></div>
-        <div class="rz-gbars">${gbars}</div>
+        <div class="rz-gbars">${gbars}<div class="rz-tip" id="rzTip" aria-hidden="true"></div></div>
       </div>
       <div class="card rz-onde">
         <div class="rz-card-h">${esc(t('rz.wheremoney'))}<span class="more">${esc(periodLabel)}</span></div>
@@ -786,6 +794,52 @@ function renderResumo() {
     </div>`;
   body.querySelectorAll('[data-rzview]').forEach(b => b.addEventListener('click', () => setResumoView(b.dataset.rzview)));
   body.querySelectorAll('[data-rznav]').forEach(b => b.addEventListener('click', () => resumoNav(+b.dataset.rznav)));
+  wireRzTip(body);   // tooltip do gráfico Receitas×Despesas (hover + toque) — religado a cada render
+}
+
+// Tooltip do gráfico Receitas×Despesas: ao passar o mouse / focar / tocar numa coluna,
+// mostra mês + Ganhos + Despesas + saldo, com a coluna em foco destacada. Religado a cada
+// render (renderResumo é idempotente); o handler global de "tocar fora" é ligado 1× só.
+let _rzTipGlobalWired = false;
+function wireRzTip(scope) {
+  const bars = scope.querySelector('.rz-gbars');
+  const tip = scope.querySelector('#rzTip');
+  if (!bars || !tip) return;
+  const cols = Array.from(bars.querySelectorAll('.rz-gcol'));
+  const fmt = (typeof fmtBRL0 === 'function') ? fmtBRL0 : (n => 'R$ ' + Math.round(+n || 0).toLocaleString('pt-BR'));
+  const show = (col) => {
+    const rec = +col.dataset.rec || 0, desp = +col.dataset.desp || 0, sal = rec - desp;
+    tip.innerHTML = '<div class="rz-tip-m">' + esc(col.dataset.mo || '') + '</div>'
+      + '<div class="rz-tip-r"><i class="d-in"></i><span class="l">' + esc(t('rz.income')) + '</span><span class="v">' + esc(fmt(rec)) + '</span></div>'
+      + '<div class="rz-tip-r"><i class="d-out"></i><span class="l">' + esc(t('rz.expenses')) + '</span><span class="v">' + esc(fmt(desp)) + '</span></div>'
+      + '<div class="rz-tip-sep"></div>'
+      + '<div class="rz-tip-r sal"><span class="l">' + esc(t('rz.saved')) + '</span><span class="v ' + (sal >= 0 ? 'pos' : 'neg') + '">' + (sal >= 0 ? '+' : '−') + esc(fmt(Math.abs(sal))) + '</span></div>';
+    bars.classList.add('has-active');
+    cols.forEach(c => c.classList.toggle('active', c === col));
+    const left = col.offsetLeft + col.offsetWidth / 2;
+    tip.style.left = Math.max(78, Math.min(bars.clientWidth - 78, left)) + 'px';
+    tip.classList.add('show');
+  };
+  const hide = () => { tip.classList.remove('show'); bars.classList.remove('has-active'); cols.forEach(c => c.classList.remove('active')); };
+  cols.forEach(col => {
+    col.addEventListener('mouseenter', () => show(col));
+    col.addEventListener('focus', () => show(col));
+    col.addEventListener('click', (e) => { e.stopPropagation(); show(col); });
+  });
+  bars.addEventListener('mouseleave', hide);
+  // teclado: sair do grupo de colunas (Tab) ou Esc esconde — senão o tooltip ficava preso (a11y)
+  bars.addEventListener('focusout', () => setTimeout(() => { if (!bars.contains(document.activeElement)) hide(); }, 0));
+  bars.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+  // tocar/clicar fora fecha — ligado uma vez só (mira o #rzTip vivo no momento do clique)
+  if (!_rzTipGlobalWired) {
+    _rzTipGlobalWired = true;
+    document.addEventListener('click', () => {
+      const tp = document.getElementById('rzTip'); if (!tp || !tp.classList.contains('show')) return;
+      tp.classList.remove('show');
+      const b = tp.closest('.rz-gbars');
+      if (b) { b.classList.remove('has-active'); b.querySelectorAll('.rz-gcol.active').forEach(c => c.classList.remove('active')); }
+    });
+  }
 }
 
 // ============================================================

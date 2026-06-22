@@ -469,7 +469,7 @@
 .rz-card-h { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; font-size: 14.5px; font-weight: 700; letter-spacing: -.01em; color: var(--ink); }
 .rz-card-h .more { font-size: 12.5px; color: var(--purple); font-weight: 700; }
 /* ganhos vs saídas */
-.rz-gbars { display: flex; align-items: flex-end; gap: var(--sp-2); height: 150px; }
+.rz-gbars { display: flex; align-items: flex-end; gap: var(--sp-2); height: 150px; position: relative; }
 .rz-gcol { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; }
 .rz-gpair { flex: 1; display: flex; align-items: flex-end; justify-content: center; gap: 3px; width: 100%; min-height: 0; }
 .rz-gpair i { width: 42%; border-radius: 4px 4px 2px 2px; min-height: 3px; transition: height .6s var(--ease-out, ease); }
@@ -480,6 +480,30 @@
 .rz-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: middle; }
 .rz-legend .rz-rec { background: var(--purple); }
 .rz-legend .rz-desp { background: var(--exp-bar); }
+/* tooltip do gráfico Receitas×Despesas (hover/foco/toque) — escolha do dono */
+.rz-gcol { cursor: pointer; border-radius: 5px; outline: none; }
+.rz-gpair { transition: opacity .15s var(--ease-out, ease); }
+.rz-gbars.has-active .rz-gcol:not(.active) .rz-gpair { opacity: .32; }
+.rz-gcol.active .rz-gx, .rz-gcol:focus-visible .rz-gx { font-weight: 800; color: var(--ink-2); }
+.rz-gcol:focus-visible { box-shadow: 0 0 0 2px var(--border-glow); }
+.rz-tip {
+  position: absolute; top: 2px; z-index: 6; pointer-events: none;
+  opacity: 0; transform: translate(-50%, 4px); transition: opacity .14s var(--ease-out, ease), transform .14s var(--ease-out, ease);
+  padding: 9px 12px; border-radius: 11px; min-width: 138px;
+  background: var(--glass-bg-strong); backdrop-filter: var(--glass-blur-strong, blur(8px)); -webkit-backdrop-filter: var(--glass-blur-strong, blur(8px));
+  border: 1px solid var(--glass-border); box-shadow: 0 12px 30px -10px rgba(0,0,0,.45); color: var(--ink);
+}
+.rz-tip.show { opacity: 1; transform: translateX(-50%); }
+.rz-tip-m { font: 700 11px Inter, system-ui, sans-serif; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 7px; }
+.rz-tip-r { display: flex; align-items: center; gap: 7px; font-size: 12px; margin: 3px 0; }
+.rz-tip-r i { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.rz-tip-r i.d-in { background: var(--purple); }   /* casa com as barras/legenda de Ganhos (lime), não --gain */
+.rz-tip-r i.d-out { background: var(--exp-bar); }
+.rz-tip-r .l { flex: 1; color: var(--ink-2); }
+.rz-tip-r .v { font-family: 'Geist Mono', monospace; font-weight: 700; color: var(--ink); }
+.rz-tip-sep { height: 1px; background: var(--border); margin: 7px 0 5px; }
+.rz-tip-r.sal .v.pos { color: var(--gain); }
+.rz-tip-r.sal .v.neg { color: var(--exp-bar); }
 /* onde foi o dinheiro (donut) */
 .rz-alloc { display: flex; align-items: center; gap: 20px; }
 .rz-odonut { flex-shrink: 0; }
