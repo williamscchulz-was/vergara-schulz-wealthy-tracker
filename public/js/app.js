@@ -992,28 +992,87 @@ function paySourceOf(e) {
   if (kind === 'conta') return { key: 'pix', label: t('exp.pay.pix'), kind: 'pix', norm: 'pix' };
   return { key: 'cash', label: t('exp.pay.dinheiro'), kind: 'cash', norm: 'cash' };
 }
+let _payMonthExp = [];   // dataset do mês pro drill-down do pill
+let _payItems = {};      // key -> {key,label,kind,norm,total}
+let _payOpenKey = null;  // pill aberto no popup (pro live-refresh)
+// Cor ESTÁVEL por forma de pagamento (não depende da ordem) — pra o pill e o popup baterem.
+function _payColor(it) {
+  if (PAY_HOLDER_COLORS[it.norm]) return PAY_HOLDER_COLORS[it.norm];
+  if (it.kind === 'pix') return '#2fae5f';
+  if (it.kind === 'cash' || it.kind === 'previsto') return '#8a8175';
+  let h = 0; for (const ch of (it.key || it.norm || 'x')) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return PAY_PALETTE[h % PAY_PALETTE.length];
+}
 function renderPaySummary(monthExp) {
   const wrap = $('paySummary'); if (!wrap) return;
+  _payMonthExp = monthExp || [];
   const map = {};
-  for (const e of (monthExp || [])) {
+  for (const e of _payMonthExp) {
     if (isIncome(e)) continue;
     // fixa projetada (não lançada) não tem forma de pagamento real → bucket "Previsto", pra a soma
     // reconciliar com o total do mês / card de categorias (que também contam as projeções).
     const s = e._virtual ? { key: 'previsto', label: t('exp.pay.previsto'), kind: 'previsto', norm: 'previsto' } : paySourceOf(e);
-    if (!map[s.key]) map[s.key] = { label: s.label, kind: s.kind, norm: s.norm, total: 0 };
+    if (!map[s.key]) map[s.key] = { key: s.key, label: s.label, kind: s.kind, norm: s.norm, total: 0 };
     map[s.key].total += (+e.value || 0);
   }
+  _payItems = map;
   // por valor, mas "Previsto" sempre por último (é resíduo, não forma de pagamento de fato)
   const items = Object.values(map).filter(x => x.total > 0.005)
     .sort((a, b) => ((a.kind === 'previsto') - (b.kind === 'previsto')) || (b.total - a.total));
   if (!items.length) { wrap.hidden = true; wrap.innerHTML = ''; return; }
-  const cells = items.map((it, i) => {
-    const c = PAY_HOLDER_COLORS[it.norm] || (it.kind === 'pix' ? '#2fae5f' : (it.kind === 'cash' || it.kind === 'previsto') ? '#8a8175' : PAY_PALETTE[i % PAY_PALETTE.length]);
-    return `<div class="pay-item${it.kind === 'previsto' ? ' pay-prev' : ''}"><span class="pay-ic" style="color:${c};background:color-mix(in oklab, ${c} 15%, transparent)">${PAY_ICONS[it.kind]}</span>`
-      + `<span class="pay-t"><span class="pay-n">${esc(it.label)}</span><span class="pay-v">${esc(fmtBRLk(it.total))}</span></span></div>`;
+  const cells = items.map(it => {
+    const c = _payColor(it);
+    return `<div class="pay-item${it.kind === 'previsto' ? ' pay-prev' : ''}" data-paykey="${esc(it.key)}" role="button" tabindex="0">`
+      + `<span class="pay-ic" style="color:${c};background:color-mix(in oklab, ${c} 15%, transparent)">${PAY_ICONS[it.kind]}</span>`
+      + `<span class="pay-t"><span class="pay-n">${esc(it.label)}</span>`
+      + `<span class="pay-v"><span class="pv-full">${esc(fmtBRL0(it.total))}</span><span class="pv-k">${esc(fmtBRLk(it.total))}</span></span></span></div>`;
   }).join('');
   wrap.innerHTML = `<div class="pay-lbl">${esc(t('exp.pay.summary'))}</div><div class="pay-items">${cells}</div>`;
   wrap.hidden = false;
+  wrap.querySelectorAll('[data-paykey]').forEach(p => {
+    p.addEventListener('click', () => openPayDetail(p.dataset.paykey));
+    p.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openPayDetail(p.dataset.paykey); } });
+  });
+  if (_payOpenKey && _payItems[_payOpenKey] && $('catDetailModal')?.classList.contains('show')) openPayDetail(_payOpenKey);   // popup aberto → atualiza ao vivo
+}
+// Drill-down de uma forma de pagamento: reusa o modal de detalhe de categoria (#catDetailModal).
+function openPayDetail(key) {
+  const meta = _payItems[key]; if (!meta) return;
+  _payOpenKey = key; _cdOpenCat = null;
+  const rows = (_payMonthExp || []).filter(e => {
+    if (isIncome(e)) return false;
+    if (key === 'previsto') return !!e._virtual;
+    return !e._virtual && paySourceOf(e).key === key;
+  }).sort((a, b) => parseLocalDate(b.date) - parseLocalDate(a.date));
+  const total = rows.reduce((s, e) => s + (+e.value || 0), 0);
+  const names = getLang() === 'en' ? MONTH_NAMES_EN : MONTH_NAMES_PT;
+  const d = state.currentViewMonth || new Date();
+  const countLbl = (n) => n + ' ' + t(n === 1 ? 'exp.count.one' : 'exp.count.many');
+  const c = _payColor(meta);
+  const ico = $('cdIcon');
+  if (ico) { ico.innerHTML = PAY_ICONS[meta.kind] || PAY_ICONS.card; ico.style.setProperty('--cat-color', c); }
+  $('cdTitle').textContent = meta.label;
+  $('cdSub').textContent = `${countLbl(rows.length)} · ${names[d.getMonth()]} ${d.getFullYear()}`;
+  const body = $('cdBody');
+  body.innerHTML = rows.length ? rows.map(e => {
+    const isV = e._virtual;
+    const owner = ownerChipHtml(e);
+    const sub = isV ? (e._future ? 'fixa · prevista' : 'fixa') : ((CATEGORIES[e.category] && CATEGORIES[e.category].label) || t('exp.filter.src.card'));
+    const idAttr = isV ? `data-recurring-id="${esc(e.recurringId)}"` : `data-id="${esc(e.id)}"`;
+    return `<tr ${idAttr} class="cd-row" tabindex="0"><td class="mono cd-date">${formatDateBR(e.date)}</td><td class="cd-desc"><div class="cd-desc-main">${esc(e.description) || '—'}${owner}</div><div class="cd-src">${esc(sub)}</div></td><td class="mono cd-val">${fmtBRL(+e.value || 0)}</td></tr>`;
+  }).join('') : `<tr><td colspan="3" class="cd-empty">${esc(t('exp.filter.none'))}</td></tr>`;
+  $('cdFootCount').textContent = countLbl(rows.length);
+  $('cdFootVal').textContent = fmtBRL0(total);
+  body.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => {
+    if (!(state.expenses || []).some(x => x.id === tr.dataset.id)) { showToast(t('exp.quickcat.gone')); return; }
+    closeCategoryDetail(); openExpenseModal(tr.dataset.id);
+  }));
+  body.querySelectorAll('tr[data-recurring-id]').forEach(tr => tr.addEventListener('click', () => {
+    if (!(state.recurring || []).some(x => x.id === tr.dataset.recurringId)) { showToast(t('exp.quickcat.gone')); return; }
+    closeCategoryDetail(); openRecurringEditor(tr.dataset.recurringId);
+  }));
+  $('catDetailModal')?.classList.add('show');
+  attachScrollShadow($('cdBodyScroll'));
 }
 function renderExpenses() {
   updateExpSortHeaders();   // indicador de ordenação sempre reflete _expSort (mesmo c/ tabela vazia)
@@ -1244,7 +1303,7 @@ function renderCategoryBreakdown(monthExp, total) {
 // dataset do card "Por categoria"), então a soma bate exatamente com a barra.
 let _cdOpenCat = null;   // categoria aberta no popup (pra re-render ao vivo via onSnapshot)
 function openCategoryDetail(catKey) {
-  _cdOpenCat = catKey;
+  _cdOpenCat = catKey; _payOpenKey = null;
   const cat = CATEGORIES[catKey] || CATEGORIES.outros;
   const rows = (_catBreakdownExp || [])
     .filter(e => (e.category || 'outros') === catKey)
@@ -1295,7 +1354,7 @@ function openCategoryDetail(catKey) {
   $('catDetailModal')?.classList.add('show');
   attachScrollShadow($('cdBodyScroll'));
 }
-function closeCategoryDetail() { _cdOpenCat = null; $('catDetailModal')?.classList.remove('show'); }
+function closeCategoryDetail() { _cdOpenCat = null; _payOpenKey = null; $('catDetailModal')?.classList.remove('show'); }
 
 // Owner short chip renderer — returns '' when the owner tag adds no info
 // (undefined or a legacy entry without owner field).
