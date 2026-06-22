@@ -1,66 +1,66 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ledger · Proposta — gastos por semana (Resumo)</title>
+<title>Ledger · Onde colocar o gráfico semanal no Resumo</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{ --pg:#f3efe7; --ink:#2a2620; --ink2:#6b6256; --ink3:#6f6657; --inkm:#837767; --card:#fffdf9; --border:#e7ddcb; --el2:#f4eee2; --green:#2fae5f; --green-light:#5fd08a; --green-deep:#1f8f4a; --green-soft:rgba(47,174,95,.08); --exp:#e0a08f; }
+  :root{ --pg:#f3efe7; --ink:#2a2620; --ink2:#6b6256; --ink3:#6f6657; --inkm:#837767; --card:#fffdf9; --border:#e7ddcb; --el2:#f4eee2; --green:#2fae5f; --green-light:#5fd08a; --green-deep:#1f8f4a; --green-soft:rgba(47,174,95,.08); --exp:#e0a08f; --hero:linear-gradient(135deg,#2f5e3f,#3f7a52 60%,#5a9b6f); }
   *{box-sizing:border-box}
   body{margin:0;background:var(--pg);color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.4;padding:26px 18px 80px}
-  .wrap{max-width:720px;margin:0 auto}
-  h1{font-size:23px;letter-spacing:-.02em;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  .wrap{max-width:960px;margin:0 auto}
+  h1{font-size:22px;letter-spacing:-.02em;margin:0 0 4px;display:flex;align-items:center;gap:10px}
   .v{font:700 10px Inter;background:var(--green-soft);color:var(--green-deep);border:1px solid var(--border);padding:3px 8px;border-radius:999px}
-  .lead{color:var(--ink2);font-size:14px;margin:0 0 22px}.lead b{color:var(--ink)}
-  .opt{margin-bottom:26px}
-  .opt-h{display:flex;align-items:baseline;gap:9px;margin-bottom:9px;flex-wrap:wrap}
-  .opt-t{font-size:16px;font-weight:700}
-  .reco{font:700 9px Inter;letter-spacing:.04em;background:var(--green);color:#fff;padding:2px 7px;border-radius:999px;text-transform:uppercase}
-  .opt-d{font-size:12.5px;color:var(--ink3)}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px 20px;box-shadow:0 1px 2px rgba(20,40,24,.04),0 8px 22px -14px rgba(20,40,24,.2)}
-  .ch-h{font-size:14.5px;font-weight:700;display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:4px}
+  .lead{color:var(--ink2);font-size:14px;margin:0 0 20px}.lead b{color:var(--ink)}
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;align-items:stretch}
+  .box{border:1px dashed var(--border);border-radius:16px;background:rgba(255,253,249,.5);min-height:76px;display:flex;align-items:center;justify-content:center;color:var(--inkm);font:600 12px Inter;text-align:center;padding:10px}
+  .b7{grid-column:span 7}.b5{grid-column:span 5}.b12{grid-column:span 12}
+  .box.hero{background:var(--hero);border-style:solid;border-color:transparent;color:#eafff1}
+  /* o card NOVO (real) */
+  .newcard{grid-column:span 12;background:var(--card);border:2px solid var(--green);border-radius:18px;padding:16px 18px 14px;box-shadow:0 0 0 4px var(--green-soft),0 10px 26px -14px rgba(20,40,24,.2);position:relative}
+  .newtag{position:absolute;top:-11px;left:18px;font:700 9px Inter;letter-spacing:.05em;text-transform:uppercase;background:var(--green);color:#fff;padding:3px 9px;border-radius:999px}
+  .ch-h{font-size:14px;font-weight:700;display:flex;align-items:baseline;justify-content:space-between;gap:10px}
   .ch-h .more{font-size:12px;color:var(--ink3);font-weight:500}
-  .ch-sub{font-size:12px;color:var(--ink3);margin-bottom:20px}
-  .ch-sub b{color:var(--ink2);font-family:'Geist Mono',monospace}
-  .chart{position:relative;display:flex;align-items:flex-end;gap:14px;height:170px;padding-top:22px}
-  .wk{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;gap:0}
-  .wbar{width:100%;max-width:54px;border-radius:7px 7px 3px 3px;position:relative;transition:height .7s cubic-bezier(.2,.9,.2,1)}
-  .wbar.g{background:linear-gradient(var(--green-light),var(--green))}
-  .wbar.r{background:linear-gradient(#ecc0b4,var(--exp))}
-  .wval{position:absolute;top:-19px;left:0;right:0;text-align:center;font:700 11px 'Geist Mono';color:var(--ink2);white-space:nowrap}
-  .wlab{margin-top:9px;text-align:center}
-  .wlab .wn{font-size:11px;font-weight:700;color:var(--ink2)}
-  .wlab .wd{font:600 9.5px 'Geist Mono';color:var(--inkm);margin-top:1px}
-  /* média */
+  .ch-sub{font-size:11.5px;color:var(--ink3);margin:2px 0 16px}.ch-sub b{color:var(--ink2);font-family:'Geist Mono',monospace}
+  .chart{position:relative;display:flex;align-items:flex-end;gap:16px;height:150px;padding-top:22px}
+  .wk{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end}
+  .wbar{width:100%;max-width:60px;border-radius:7px 7px 3px 3px;background:linear-gradient(var(--green-light),var(--green));position:relative}
+  .wval{position:absolute;top:-18px;left:0;right:0;text-align:center;font:700 10.5px 'Geist Mono';color:var(--ink2);white-space:nowrap}
+  .wlab{margin-top:9px;text-align:center}.wlab .wn{font-size:11px;font-weight:700;color:var(--ink2)}.wlab .wd{font:600 9px 'Geist Mono';color:var(--inkm);margin-top:1px}
   .avg{position:absolute;left:0;right:0;border-top:1.5px dashed var(--ink3);opacity:.55}
   .avg-tag{position:absolute;right:0;top:-9px;font:700 9px Inter;background:var(--el2);border:1px solid var(--border);color:var(--ink2);padding:1px 6px;border-radius:999px}
-  .foot{text-align:center;color:var(--ink3);font-size:13px;margin-top:20px;line-height:1.7}.foot b{color:var(--ink2)}
+  .note{font-size:12.5px;color:var(--ink3);margin-top:16px;text-align:center}.note b{color:var(--green-deep)}
+  .foot{text-align:center;color:var(--ink3);font-size:13px;margin-top:18px}.foot b{color:var(--ink2)}
 </style></head>
 <body><div class="wrap">
 
-<h1>Gastos por semana <span class="v">Ledger</span></h1>
-<p class="lead">No <b>Resumo</b>, um card com as despesas do mês <b>quebradas por semana</b> (1–7, 8–14, …). Dá pra ver em que semana o dinheiro saiu mais. 2 estilos:</p>
+<h1>Onde entra o gráfico semanal <span class="v">Resumo</span></h1>
+<p class="lead">Os cards <b>tracejados</b> = o Resumo que já existe (não muda nada). O card <b>verde</b> embaixo = o gráfico semanal novo, numa <b>4ª linha</b> largura cheia. Não desloca nada do que tá perfeito.</p>
 
-<div id="stage"></div>
+<div class="grid">
+  <div class="box hero b7">Saldo do mês<br>(gauge + ganhos/despesas/poupado)</div>
+  <div class="box b5">4 KPIs (ganhos · despesas · dividendos · patrimônio)</div>
+  <div class="box b7">Receitas × Despesas (12 meses)</div>
+  <div class="box b5">Onde foi o dinheiro (donut)</div>
+  <div class="box b7">Patrimônio por ano</div>
+  <div class="box b5">Meta de dividendos</div>
 
-<div class="foot">Qual prefere: <b>A</b> (simples) ou <b>B</b> (com linha de média)? E a cor: <b>verde</b> (da marca) ou <b>vermelho</b> (combina com a barra de Despesas)? ✌️</div>
+  <div class="newcard">
+    <span class="newtag">★ novo — gastos por semana</span>
+    <div class="ch-h">Gastos por semana<span class="more">Junho 2026</span></div>
+    <div class="ch-sub">total do mês <b>R$ 32.594</b></div>
+    <div class="chart" id="chart"></div>
+  </div>
+</div>
+
+<div class="note">É a opção <b>B</b> (com linha de média) que você escolheu, na 4ª linha. Largura cheia combina com a página e fica respirado.</div>
+<div class="foot">Topas aqui embaixo? <b>"pode aplicar"</b>. Se preferir <b>logo abaixo do "Receitas × Despesas"</b> (agrupando os 2 gráficos), também dá — é só dizer. ✌️</div>
 
 </div>
 <script>
-  // semanas do mês (dia 1-7, 8-14, ...) — Junho/2026
-  const WK=[
-    {n:'Sem 1',d:'1–7',v:8200},{n:'Sem 2',d:'8–14',v:6400},{n:'Sem 3',d:'15–21',v:11300},
-    {n:'Sem 4',d:'22–28',v:4900},{n:'Sem 5',d:'29–30',v:1794},
-  ];
-  const max=Math.max(...WK.map(w=>w.v));
-  const tot=WK.reduce((s,w)=>s+w.v,0), avg=tot/WK.length;
-  function mc(n){const a=Math.abs(n);if(a>=1000)return 'R$ '+(n/1000).toFixed(1).replace('.',',')+'K';return 'R$ '+Math.round(n);}
-  function chart(cls,withAvg){
-    const bars=WK.map(w=>`<div class="wk"><div class="wbar ${cls}" style="height:${(w.v/max*100).toFixed(1)}%"><span class="wval">${mc(w.v)}</span></div><div class="wlab"><div class="wn">${w.n}</div><div class="wd">${w.d}</div></div></div>`).join('');
-    const avgLine=withAvg?`<div class="avg" style="bottom:calc(35px + ${(avg/max*(170-22-35)).toFixed(0)}px)"><span class="avg-tag">média ${mc(avg)}</span></div>`:'';
-    return `<div class="card"><div class="ch-h">Gastos por semana<span class="more">Junho 2026</span></div><div class="ch-sub">total do mês <b>${mc(tot)}</b></div><div class="chart">${avgLine}${bars}</div></div>`;
-  }
-  document.getElementById('stage').innerHTML=`
-    <div class="opt"><div class="opt-h"><span class="opt-t">A · Simples</span><span class="opt-d">barras + valor + semana. Limpo.</span></div>${chart('g',false)}</div>
-    <div class="opt"><div class="opt-h"><span class="opt-t">B · Com média</span><span class="reco">★ recomendada</span><span class="opt-d">linha tracejada da média por semana — vê de relance se a semana foi acima/abaixo</span></div>${chart('g',true)}</div>
-    <div class="opt"><div class="opt-h"><span class="opt-t">Cor alternativa (vermelho)</span><span class="opt-d">mesma da barra de Despesas que você escolheu</span></div>${chart('r',true)}</div>`;
+  const WK=[{n:'Sem 1',d:'1–7',v:8200},{n:'Sem 2',d:'8–14',v:6400},{n:'Sem 3',d:'15–21',v:11300},{n:'Sem 4',d:'22–28',v:4900},{n:'Sem 5',d:'29–30',v:1794}];
+  const max=Math.max(...WK.map(w=>w.v)), avg=WK.reduce((s,w)=>s+w.v,0)/WK.length;
+  const mc=n=>(Math.abs(n)>=1000?'R$ '+(n/1000).toFixed(1).replace('.',',')+'K':'R$ '+Math.round(n));
+  const bars=WK.map(w=>`<div class="wk"><div class="wbar" style="height:${(w.v/max*100).toFixed(1)}%"><span class="wval">${mc(w.v)}</span></div><div class="wlab"><div class="wn">${w.n}</div><div class="wd">${w.d}</div></div></div>`).join('');
+  const avgLine=`<div class="avg" style="bottom:calc(35px + ${(avg/max*(150-22-35)).toFixed(0)}px)"><span class="avg-tag">média ${mc(avg)}</span></div>`;
+  document.getElementById('chart').innerHTML=avgLine+bars;
 </script>
 </body></html>
