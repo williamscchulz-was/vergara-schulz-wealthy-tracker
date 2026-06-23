@@ -1050,8 +1050,8 @@ function renderPaySummary(monthExp) {
   if (!items.length) { wrap.hidden = true; wrap.innerHTML = ''; return; }
   const cells = items.map(it => {
     const c = _payColor(it);
-    return `<div class="pay-item${it.kind === 'previsto' ? ' pay-prev' : ''}" data-paykey="${esc(it.key)}" role="button" tabindex="0">`
-      + `<span class="pay-ic" style="color:${c};background:color-mix(in oklab, ${c} 15%, transparent)">${PAY_ICONS[it.kind]}</span>`
+    return `<div class="pay-item${it.kind === 'previsto' ? ' pay-prev' : ''}" style="--pay-c:${c}" data-paykey="${esc(it.key)}" role="button" tabindex="0">`
+      + `<span class="pay-ic">${PAY_ICONS[it.kind]}</span>`
       + `<span class="pay-t"><span class="pay-n">${esc(it.label)}</span>`
       + `<span class="pay-v"><span class="pv-full">${esc(fmtBRL0(it.total))}</span><span class="pv-k">${esc(fmtBRLk(it.total))}</span></span></span></div>`;
   }).join('');
