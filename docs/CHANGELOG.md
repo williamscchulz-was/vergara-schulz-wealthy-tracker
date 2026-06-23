@@ -5,7 +5,7 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
-### v9.24 — USD vira lista de várias contas em dólar (igual reserva de emergência) (2026-06-17)
+### v9.24 — USD vira lista de várias contas em dólar (igual reserva de emergência) (2026-06-23)
 O dólar deixou de ser um valor único e virou uma **lista de contas** (`{id, name, value-em-US$}`),
 expansível igual à Reserva/Previdência — **reusando o mesmo builder `CASH_CAT`** com flag
 `currency:'usd'`. Cada conta tem nome + valor em US$ (com o R$ equivalente ao lado); o total da
@@ -16,7 +16,7 @@ o `usd` único antigo vira a 1ª conta "USD" na 1ª carga (id `usd_main`), sem p
 Novo helper `fxUsdTotal()` nos pontos que convertem dólar (hero, patrimônio, carteira, resumo).
 (`public/index.html`, `public/js/app.js`, `public/js/i18n.js`, `public/css/09-contrast-light.css`)
 
-### v9.23 — Gauge de dividendos da tela Resumo também em TTM (consistência) (2026-06-17)
+### v9.23 — Gauge de dividendos da tela Resumo também em TTM (consistência) (2026-06-23)
 A meta de dividendos da tela Investimentos virou TTM na v9.21, mas o gauge "Renda em dividendos"
 da tela **Resumo** (`renderResumo`) ainda usava YTD — continuava zerando todo ano lá. Agora as duas
 telas usam o **mesmo cálculo**, via novo helper compartilhado **`dividendsTTM()`** (TTM dos últimos
@@ -24,7 +24,7 @@ telas usam o **mesmo cálculo**, via novo helper compartilhado **`dividendsTTM()
 "R$ X de R$ 1M/ano · últimos 12 meses". De quebra, a lógica de janela que estava inline e duplicada
 no `renderMetas` foi extraída pro helper (sem risco de divergir de novo). (`public/js/app.js`)
 
-### v9.22 — Subtítulos dos cards de Análise viram "?" com tooltip (menos texto na tela) (2026-06-17)
+### v9.22 — Subtítulos dos cards de Análise viram "?" com tooltip (menos texto na tela) (2026-06-23)
 Os subtítulos explicativos sempre-visíveis dos 4 cards de Análise (Dividendos por ano,
 Patrimônio por ano, Rentabilidade mês a mês, Aportes mensais) saíram da tela e viraram um
 **"?" discreto ao lado do título** — a explicação aparece em **tooltip no hover/focus**.
@@ -33,7 +33,7 @@ do tooltip do TWR; novo handler `data-i18n-tip` na `applyI18n` (seta `data-tip` 
 PT/EN) e `data-i18n-aria` no "?" pro leitor de tela. As chaves `sub.*` continuam, agora
 consumidas pelo tooltip. (`public/index.html`, `public/css/11-polish.css`, `public/js/app.js`)
 
-### v9.21 — Meta de dividendos: últimos 12 meses (TTM) em vez de YTD (2026-06-17)
+### v9.21 — Meta de dividendos: últimos 12 meses (TTM) em vez de YTD (2026-06-23)
 A meta "Renda em dividendos" media YTD ÷ R$ 1M, o que **zerava todo 1º de janeiro** e
 desmotivava. Agora a barra usa os **últimos 12 meses (TTM)** — soma rolante de
 `state.i10.divsMonthly` (proventos reais por mês, até 30m de histórico) ÷ meta anual — então
@@ -42,14 +42,14 @@ os 12 meses anteriores; ↗ verde / ↘ warn). Fallback: se o dado mensal não c
 (ex.: a `earnings-list` do I10 falhou), volta pro YTD com a pill de ritmo de antes. Strings
 `metas.last12m` / `metas.vs12m` em PT/EN. (`public/js/app.js`, `public/js/i18n.js`)
 
-### v9.20 — Tooltip do TWR não estoura mais pra fora do hero (2026-06-17)
+### v9.20 — Tooltip do TWR não estoura mais pra fora do hero (2026-06-23)
 O tooltip de termo técnico (`.tip-term`, hoje só no "TWR") era centralizado no termo
 (`left:50%; translateX(-50%)`). Como o "TWR" fica na borda esquerda do hero — que tem
 `overflow:hidden` pra esconder o spark — o tooltip estourava pra esquerda, era cortado e
 subia por cima do número grande. Agora é **ancorado à esquerda do termo** (`left:0`, sem
 o translateX), abrindo pra direita e ficando todo dentro do card. (`public/css/11-polish.css`)
 
-### v9.19 — Carteira alinhada de vez + hero sem cards duplicados + barra all-time fora (2026-06-17)
+### v9.19 — Carteira alinhada de vez + hero sem cards duplicados + barra all-time fora (2026-06-23)
 **Carteira (desalinhamento, agora pela raiz):** a causa eram TRÊS estruturas de coluna diferentes
 por tipo de linha — categoria `valor | appr-vazio | chevron`; USD `appr-vazio | valor | ✏️`;
 reserva/previdência `valor | chevron`. O fix v9.17 só tinha mexido na linha do USD. Agora o grid
@@ -65,7 +65,7 @@ e os ids do skeleton de loading limpos. O dólar-holdings segue editável na Car
 progresso (denominador "5× a meta anual" era arbitrário, sem significado). A barra do card "YTD"
 (dividendos do ano ÷ meta anual) continua. (`public/index.html`, `public/js/app.js`)
 
-### v9.18 — "Histórico anual" no header do card + Análise sem vão de rodapé (2026-06-17)
+### v9.18 — "Histórico anual" no header do card + Análise sem vão de rodapé (2026-06-23)
 O botão "Histórico anual" saiu de baixo da grade (estava solto, centralizado) e foi pro header
 do card "Patrimônio por ano", ao lado do seletor `1Y/5Y/All` (novo wrapper `.card-head-actions`).
 Os cards "Patrimônio por ano" e "Dividendos por ano" deixaram de ter o espaço vazio no rodapé no
@@ -73,7 +73,7 @@ desktop: o gráfico passa a absorver a altura sobrando (`#plChartWrap`/`#divChar
 mesmo padrão já usado no card "Rentabilidade mês a mês"). Handler do botão liga por id — JS
 intacto. (`public/index.html`, `public/css/11-polish.css`)
 
-### v9.17 — Carteira: valor do USD alinhado com as categorias (2026-06-17)
+### v9.17 — Carteira: valor do USD alinhado com as categorias (2026-06-23)
 A linha do USD/dólar na carteira não tinha o placeholder `.cat-appr` que as linhas de
 categoria têm, então o valor caía uma coluna antes da certa (desalinhado à esquerda).
 Adicionado o `<div class="cat-appr"></div>` na linha do FX (mesma estrutura das categorias)
