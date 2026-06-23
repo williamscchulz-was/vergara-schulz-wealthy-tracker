@@ -77,8 +77,9 @@ Config compartilhada do sync.
 Campos: `workerUrl`, `walletId`, `publicHash`.
 
 ### `/household/main/config/fx`
-Cotação USD→BRL + holdings em dólar.
-Campos: `usd`, `rateUSD`, `rateUpdatedAt`, `rateSource`, `note`.
+Cotação USD→BRL + contas em dólar (lista, mesmo formato de `reserves`/`pension`).
+Campos: `accounts` (`[{id, name, value}]`, `value` em **US$**), `rateUSD`, `rateUpdatedAt`, `rateSource`, `note`.
+`usd` é **legado** (valor único antigo) — migrado automaticamente p/ `accounts` na 1ª carga (`renderMetas`/onSnapshot do fx).
 
 ### `/household/main/config/reserves`
 Contas correntes / poupança.

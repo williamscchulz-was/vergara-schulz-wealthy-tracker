@@ -5,6 +5,17 @@ Datas em `YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### v9.24 — USD vira lista de várias contas em dólar (igual reserva de emergência) (2026-06-17)
+O dólar deixou de ser um valor único e virou uma **lista de contas** (`{id, name, value-em-US$}`),
+expansível igual à Reserva/Previdência — **reusando o mesmo builder `CASH_CAT`** com flag
+`currency:'usd'`. Cada conta tem nome + valor em US$ (com o R$ equivalente ao lado); o total da
+linha = Σ US$ × cotação. A **cotação única** fica no rodapé do expandido (auto-atualiza ↻ + edição
+manual ✎); o antigo modal de "quantidade em USD" virou modal de **cotação**. **Migração automática:**
+o `usd` único antigo vira a 1ª conta "USD" na 1ª carga (id `usd_main`), sem perder nada. Schema
+`config/fx` ganha `accounts`; `persistCash` passou a usar `merge:true` (pra não clobberar a cotação).
+Novo helper `fxUsdTotal()` nos pontos que convertem dólar (hero, patrimônio, carteira, resumo).
+(`public/index.html`, `public/js/app.js`, `public/js/i18n.js`, `public/css/09-contrast-light.css`)
+
 ### v9.23 — Gauge de dividendos da tela Resumo também em TTM (consistência) (2026-06-17)
 A meta de dividendos da tela Investimentos virou TTM na v9.21, mas o gauge "Renda em dividendos"
 da tela **Resumo** (`renderResumo`) ainda usava YTD — continuava zerando todo ano lá. Agora as duas

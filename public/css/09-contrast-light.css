@@ -19,7 +19,7 @@
 :root[data-theme="light"] .pension-row .cat-count { color: #5f6b57 !important; }
 :root[data-theme="light"] .cat-icon.reserve-icon,
 :root[data-theme="light"] .cat-icon.pension-icon { color: var(--purple-deep) !important; }
-.cat-row.fx-row { align-items: flex-start; }
+.cat-row.fx-row { align-items: center; }
 .cat-icon.fx-icon { background: var(--usd-bg) !important; color: var(--usd) !important; }
 .cat-row.fx-row:hover .cat-icon.fx-icon { background: color-mix(in oklab, var(--purple) 22%, transparent) !important; }
 
@@ -39,6 +39,15 @@
 .res-actions { display: flex; gap: var(--sp-2); align-items: center; }
 .res-edit { width: 26px; height: 26px; border-radius: 7px; background: transparent; border: 1px solid var(--border-2); color: var(--ink-3); cursor: pointer; display: grid; place-items: center; transition: all 0.18s var(--ease-out); }
 .res-edit:hover { border-color: color-mix(in oklab, var(--purple) 45%, transparent); color: var(--purple-light); }
+/* USD multi-conta: R$ equivalente ao lado do US$ + rodapé da taxa (cotação única) */
+.res-val-brl { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--ink-muted); margin-left: 8px; }
+.fx-rate-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 6px; padding: 9px 14px; background: var(--usd-bg); border: 1px solid var(--usd-strong); border-radius: 10px; font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--ink-2); }
+.fx-rate-row b { color: var(--usd); font-weight: 700; }
+.fx-rate-when { color: var(--text-dim); }
+.fx-rate-acts { display: flex; gap: 6px; flex-shrink: 0; }
+.fx-rate-btn { width: 26px; height: 26px; border-radius: 7px; background: transparent; border: 1px solid var(--usd-strong); color: var(--usd); cursor: pointer; display: grid; place-items: center; font-size: 13px; line-height: 1; transition: all .15s ease; }
+.fx-rate-btn:hover { background: var(--usd-bg); }
+.fx-rate-btn.spin { animation: fxspin .8s linear infinite; }
 .res-add { display: flex; align-items: center; gap: var(--sp-2); padding: 10px 14px; background: transparent; border: 1px dashed var(--border-2); color: var(--ink-3); border-radius: 10px; font-size: var(--fs-caption); cursor: pointer; justify-content: center; font-family: inherit; transition: all 0.18s var(--ease-out); }
 .res-add:hover { border-color: color-mix(in oklab, var(--purple) 45%, transparent); color: var(--purple-light); }
 

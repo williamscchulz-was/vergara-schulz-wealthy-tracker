@@ -113,7 +113,7 @@ const state = {
   i10Cfg: { workerUrl: '', walletId: '', publicHash: '', autoSync: false },
   i10Louise: { equity: 0, dividends: 0, applied: 0, variation: 0, updatedAt: null },
   i10LouiseCfg: { walletId: '2699282' },
-  fx: { usd: 0, rateUSD: 0, rateUpdatedAt: null, rateSource: '', note: '' },
+  fx: { accounts: [], usd: 0, rateUSD: 0, rateUpdatedAt: null, rateSource: '', note: '', editingId: null },
   reserves: { accounts: [], loaded: false, editingId: null },
   pension:  { accounts: [], loaded: false, editingId: null },
   budgets: {},                   // { [categoryKey]: monthlyLimitBRL }
@@ -480,6 +480,12 @@ function pensionTotal() {
   return accs.reduce((s, a) => s + (+a.value || 0), 0);
 }
 
+// Soma de TODAS as contas em dólar (em US$). O USD virou lista (igual reserva/previdência).
+function fxUsdTotal() {
+  const accs = (state.fx && Array.isArray(state.fx.accounts)) ? state.fx.accounts : [];
+  return accs.reduce((s, a) => s + (+a.value || 0), 0);
+}
+
 // Expose net equity (i10 + USD + reserves + pension) to the Goal Simulator via window.__ledgerEquity.
 function updateLedgerEquity() {
   window.__ledgerEquity = calcTotalNetWorth();
@@ -578,7 +584,7 @@ function computeMonthlyReturns(monthlyEquity, contributions, yearlyDividends, re
 
 function calcTotalNetWorth() {
   const i10Eq = +state.i10.equity || 0;
-  const usdBRL = (+state.fx.usd || 0) * (+state.fx.rateUSD || 0);
+  const usdBRL = fxUsdTotal() * (+state.fx.rateUSD || 0);
   return i10Eq + usdBRL + reservesTotal() + pensionTotal();
 }
 
@@ -665,7 +671,7 @@ function renderResumo() {
   const divs = +state.i10.dividends || 0;
   const monthsSoFar = (year === new Date().getFullYear()) ? (new Date().getMonth() + 1) : 12;
   const divAvg = divs / (monthsSoFar || 12);
-  const patrimonio = (+state.i10.equity || 0) + (+state.fx.usd || 0) * (+state.fx.rateUSD || 0) + reservesTotal() + pensionTotal();
+  const patrimonio = (+state.i10.equity || 0) + fxUsdTotal() * (+state.fx.rateUSD || 0) + reservesTotal() + pensionTotal();
   const nwYears = [...(state.yearly || [])].filter(y => y.equity != null && +y.equity > 0).sort((a, b) => a.year - b.year);
   const prevNW = nwYears.length ? +nwYears[nwYears.length - 1].equity : 0;
   const nwDelta = prevNW > 0 ? (patrimonio - prevNW) : 0;
@@ -2500,8 +2506,11 @@ function renderFxModalRate() {
 function openFXModal() {
   const modal = document.getElementById('fxModal');
   if (!modal) return;
-  document.getElementById('fxModalInput').value = (+state.fx.usd || 0).toString().replace('.', ',');
+  // Agora edita a COTAÇÃO manual (o valor em US$ virou lista de contas).
+  const r = +state.fx.rateUSD || 0;
+  document.getElementById('fxModalInput').value = r > 0 ? r.toFixed(2).replace('.', ',') : '';
   renderFxModalRate();
+  modal.style.display = '';
   modal.classList.add('show');
 }
 
@@ -2513,26 +2522,30 @@ function closeFXModal() {
 async function saveFX() {
   const inputEl = document.getElementById('fxModalInput');
   let raw = inputEl ? String(inputEl.value || '') : '';
-  // Remove thousand-separator dots, swap comma for dot (pt-BR to JS parseFloat format)
+  // pt-BR → JS: tira ponto de milhar, troca vírgula por ponto
   raw = raw.split('.').join('');
   raw = raw.split(',').join('.');
   raw = raw.trim();
-  const usd = parseFloat(raw) || 0;
-  await setDoc(docFx, {
-    usd,
-    note: '',
-    updatedBy: state.user?.displayName || 'unknown',
-    updatedAt: serverTimestamp(),
-  }, { merge: true });
+  const rate = parseFloat(raw) || 0;
+  if (rate > 0) {
+    await setDoc(docFx, {
+      rateUSD: rate,
+      rateSource: 'manual',
+      rateUpdatedAt: new Date().toISOString(),
+      updatedBy: state.user?.displayName || 'unknown',
+      updatedAt: serverTimestamp(),
+    }, { merge: true });
+  }
   const m = document.getElementById('fxModal');
-  if (m) m.style.display = 'none';
-  showToast(t('fx.toast.saved').replace('{v}', usd.toLocaleString('pt-BR')));
+  if (m) { m.classList.remove('show'); m.style.display = ''; }
+  showToast(t('fx.toast.saved').replace('{v}', rate > 0 ? rate.toFixed(2).replace('.', ',') : '—'));
+  if (state.mode === 'investments') renderInvestments();
 }
 
 // v8 Turno 8 — refresh USD-BRL rate from worker (called on main Sync)
 // v8 Turno 8 — FX modal event listeners (wired right after saveFX declaration so closures see it)
 (function wireFXModal() {
-  const _close = () => { const m = document.getElementById('fxModal'); if (m) m.style.display = 'none'; };
+  const _close = () => { const m = document.getElementById('fxModal'); if (m) { m.classList.remove('show'); m.style.display = ''; } };
   document.getElementById('fxModalClose')?.addEventListener('click', _close);
   document.getElementById('fxModalCancel')?.addEventListener('click', _close);
   document.getElementById('fxModalSave')?.addEventListener('click', () => {
@@ -2553,6 +2566,7 @@ async function saveFX() {
 })();
 
 let _fxAutoChecked = false;   // garante que o auto-refresh do c\u00e2mbio no boot roda s\u00f3 1\u00d7 por sess\u00e3o
+let _fxMigrated = false;      // migra\u00e7\u00e3o usd-\u00fanico \u2192 lista de contas roda s\u00f3 1\u00d7 por sess\u00e3o
 async function fetchFXRate() {
   // 1) DIRETO do AwesomeAPI \u2014 tem CORS '*', ent\u00e3o o browser busca sem o worker (que
   //    estava dando HTTP 502 no /fx/rate, prov\u00e1vel bloqueio do IP Cloudflare).
@@ -2660,6 +2674,31 @@ const CASH_CAT = {
     countSing: () => t('pension.count.singular'),
     countPlur: () => t('pension.count.plural'),
   },
+  fx: {
+    docRef: () => docFx,
+    state: () => state.fx,
+    currency: 'usd',                 // valores das contas são em US$, convertidos pela taxa única
+    rate: () => +state.fx.rateUSD || 0,
+    iconClass: 'fx-icon',
+    rowClass: 'fx-row',
+    countColor: '#5bd47e',
+    rowId: 'fxCatRow',
+    expId: 'fxExpanded',
+    addBtnId: 'fxAddBtn',
+    modalId: 'fxAcctModal',
+    modalTitleId: 'fxAcctModalTitle',
+    nameInputId: 'fxAcctNameInput',
+    valueInputId: 'fxAcctValueInput',
+    deleteBtnId: 'fxAcctDeleteBtn',
+    iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+    label: () => 'USD',
+    emptyLabel: () => t('fx.empty.value'),
+    addLabel: () => t('fx.add'),
+    editTitle: () => t('fx.modal.edit'),
+    addTitle: () => t('fx.modal.add'),
+    countSing: () => t('fx.count.singular'),
+    countPlur: () => t('fx.count.plural'),
+  },
 };
 
 function _newCashId(prefix) {
@@ -2673,7 +2712,7 @@ async function persistCash(type) {
       accounts: cfg.state().accounts,
       updatedAt: serverTimestamp(),
       updatedBy: state.user?.displayName || 'unknown',
-    });
+    }, { merge: true });   // merge: o doc do fx também guarda rateUSD/rateUpdatedAt — não pode clobberar
   } catch (err) {
     console.error('persistCash(' + type + ') failed:', err);
     showToast(t('toast.error.save'));
@@ -2714,7 +2753,7 @@ async function saveCash(type) {
     const idx = accs.findIndex(a => a.id === id);
     if (idx >= 0) accs[idx] = { ...accs[idx], name, value };
   } else {
-    accs.push({ id: _newCashId(type === 'pension' ? 'p' : 'r'), name, value });
+    accs.push({ id: _newCashId(type === 'pension' ? 'p' : type === 'fx' ? 'u' : 'r'), name, value });
   }
   await persistCash(type);
   closeCashModal(type);
@@ -2742,18 +2781,27 @@ function renderCashRow(type, wrap) {
   if (!wrap) return;
   const cfg = CASH_CAT[type];
   const accs = cfg.state().accounts || [];
-  const total = accs.reduce((s, a) => s + (+a.value || 0), 0);
-  const usdBRL = (+state.fx.usd || 0) * (+state.fx.rateUSD || 0);
+  const isFx = cfg.currency === 'usd';
+  const rate = isFx ? (cfg.rate() || 0) : 1;
+  const totalNative = accs.reduce((s, a) => s + (+a.value || 0), 0);   // US$ no fx, R$ nos demais
+  const totalBRL = totalNative * rate;
+  const usdBRL = fxUsdTotal() * (+state.fx.rateUSD || 0);
   const denominator = (+state.i10.equity || 0) + usdBRL + reservesTotal() + pensionTotal();
-  const percent = denominator > 0 ? (total / denominator) * 100 : 0;
+  const percent = denominator > 0 ? (totalBRL / denominator) * 100 : 0;
   const cntLbl = accs.length === 1 ? cfg.countSing() : cfg.countPlur();
 
   let itemsHtml = '';
   for (const a of accs) {
     const v = +a.value || 0;
-    const valHtml = v > 0
-      ? '<span class="res-val">R$ ' + v.toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + '</span>'
-      : '<span class="res-val empty">' + cfg.emptyLabel() + '</span>';
+    let valHtml;
+    if (v <= 0) {
+      valHtml = '<span class="res-val empty">' + cfg.emptyLabel() + '</span>';
+    } else if (isFx) {
+      valHtml = '<span class="res-val">US$ ' + v.toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + '</span>' +
+                '<span class="res-val-brl">R$ ' + (v * rate).toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + '</span>';
+    } else {
+      valHtml = '<span class="res-val">R$ ' + v.toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + '</span>';
+    }
     itemsHtml += '<div class="res-item" data-rid="' + a.id + '">' +
       '<span class="res-name">' + esc(a.name || '-') + '</span>' +
       '<div class="res-actions">' + valHtml +
@@ -2767,15 +2815,30 @@ function renderCashRow(type, wrap) {
     '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
     cfg.addLabel() +
   '</button>';
+  // Rodapé da taxa (só fx): cotação única, auto-atualiza (↻) + edição manual (✎)
+  if (isFx) {
+    const upd = state.fx.rateUpdatedAt;
+    const updTxt = upd ? formatDateTimeBR(upd) : '';
+    itemsHtml += '<div class="fx-rate-row">' +
+      '<span class="fx-rate-txt">US$ 1 = <b>' + (rate > 0 ? 'R$ ' + rate.toFixed(2).replace('.', ',') : '—') + '</b>' +
+        (updTxt ? '<span class="fx-rate-when"> · ' + esc(updTxt) + '</span>' : '') + '</span>' +
+      '<span class="fx-rate-acts">' +
+        '<button class="fx-rate-btn" id="fxRateRefresh" type="button" title="Atualizar cotação" aria-label="Atualizar cotação">↻</button>' +
+        '<button class="fx-rate-btn" id="fxRateEdit" type="button" title="Editar cotação manual" aria-label="Editar cotação manual"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>' +
+      '</span>' +
+    '</div>';
+  }
 
   const html =
     '<div class="cat-row ' + cfg.rowClass + ' clickable" id="' + cfg.rowId + '">' +
       '<div class="cat-icon ' + cfg.iconClass + '">' + cfg.iconSvg + '</div>' +
       '<div class="cat-info">' +
         '<div class="cat-name">' + cfg.label() + '</div>' +
-        '<div class="cat-count" style="color:' + cfg.countColor + '">' + accs.length + ' ' + cntLbl + ' &middot; ' + percent.toFixed(0) + '% ' + t('cat.label.suffix') + '</div>' +
+        '<div class="cat-count" style="color:' + cfg.countColor + '">' + accs.length + ' ' + cntLbl + ' &middot; ' + percent.toFixed(0) + '% ' + t('cat.label.suffix') +
+          (isFx && rate > 0 ? ' <span class="fx-rate-chip">&times; ' + rate.toFixed(2).replace('.', ',') + '</span>' : '') +
+        '</div>' +
       '</div>' +
-      '<div><div class="cat-value">R$ ' + total.toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + '</div></div>' +
+      '<div><div class="cat-value">R$ ' + totalBRL.toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + '</div></div>' +
       '<svg class="cat-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>' +
     '</div>' +
     '<div class="reserve-expanded" id="' + cfg.expId + '">' + itemsHtml + '</div>';
@@ -2786,7 +2849,7 @@ function renderCashRow(type, wrap) {
   const row = document.getElementById(cfg.rowId);
   const exp = document.getElementById(cfg.expId);
   row?.addEventListener('click', (e) => {
-    if (e.target.closest('.res-edit, .res-add, .res-item')) return;
+    if (e.target.closest('.res-edit, .res-add, .res-item, .fx-rate-row')) return;
     row.classList.toggle('expanded');
     exp.classList.toggle('open');
   });
@@ -2800,6 +2863,21 @@ function renderCashRow(type, wrap) {
       openCashModal(type, btn.dataset.rid);
     });
   });
+  if (isFx) {
+    document.getElementById('fxRateRefresh')?.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const btn = e.currentTarget; if (btn.disabled) return;
+      btn.disabled = true; btn.classList.add('spin');
+      const res = await fetchFXRate();
+      btn.disabled = false; btn.classList.remove('spin');
+      showToast((res && res.ok) ? ('Cotação: R$ ' + (+res.rate).toFixed(2).replace('.', ',')) : 'Não deu pra atualizar a cotação');
+      if (state.mode === 'investments') renderInvestments();
+    });
+    document.getElementById('fxRateEdit')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openFXModal();
+    });
+  }
 }
 
 // Backwards-compat aliases (used by wireReserveModal in HTML wiring)
@@ -2836,6 +2914,19 @@ const deleteReserve     = () => deleteCash('reserves');
   });
 })();
 
+(function wireFxAcctModal() {
+  document.getElementById('fxAcctModalCancel')?.addEventListener('click', () => closeCashModal('fx'));
+  document.getElementById('fxAcctModalSave')?.addEventListener('click', () => {
+    try { saveCash('fx'); } catch (e) { console.error('saveFxAcct failed:', e); }
+  });
+  document.getElementById('fxAcctDeleteBtn')?.addEventListener('click', () => {
+    try { deleteCash('fx'); } catch (e) { console.error('deleteFxAcct failed:', e); }
+  });
+  document.getElementById('fxAcctModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'fxAcctModal') closeCashModal('fx');
+  });
+})();
+
 // Botão de minimizar nos cards com header (Investimentos + Despesas).
 // Cobre as DUAS estruturas: header dentro de .card-body (carteira/gráficos)
 // OU header direto no .card (cards de Despesas). Estado salvo no localStorage.
@@ -2853,7 +2944,7 @@ function renderInvestments() {
   // Hero - Patrimônio
   // v8 Turno 8: hero total includes USD converted to BRL
   // + reserves (cash position, no P&L)
-  const _usdBRL = (+state.fx.usd || 0) * (+state.fx.rateUSD || 0);
+  const _usdBRL = fxUsdTotal() * (+state.fx.rateUSD || 0);
   const _reservesBRL = reservesTotal();
   const _pensionBRL = pensionTotal();
   const _heroTotal = (+state.i10.equity || 0) + _usdBRL + _reservesBRL + _pensionBRL;
@@ -3570,36 +3661,8 @@ function renderI10Assets() {
   renderInvDonut(sortedKeys, groups, assetsTotal);
   renderInvTopAssets(assets);
 
-  // v8 Turno 8 — append USD row to portfolio list
-  const usd = +state.fx.usd || 0;
-  const rate = +state.fx.rateUSD || 0;
-  if (usd > 0 && rate > 0) {
-    const usdBRL = usd * rate;
-    const totalWallet = (+state.i10.equity || 0) + usdBRL;
-    const percent = totalWallet > 0 ? (usdBRL / totalWallet) * 100 : 0;
-    const rateStr = rate.toFixed(2).replace('.', ',');
-    const usdRowHTML = '<div class="cat-row fx-row" id="fxCatRow">' +
-      '<div class="cat-icon fx-icon">' +
-        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>' +
-      '</div>' +
-      '<div class="cat-info">' +
-        '<div class="cat-name">USD</div>' +
-        '<div class="cat-count">' + percent.toFixed(0) + '% ' + t('cat.label.suffix') + '</div>' +
-        '<div class="fx-extra"><span class="fx-native">US$ ' + usd.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '</span><span class="fx-rate-chip">× ' + rateStr + '</span></div>' +
-      '</div>' +
-      '<div>' +
-        '<div class="cat-value">R$ ' + usdBRL.toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + '</div>' +
-      '</div>' +
-      '<button class="fx-edit-btn" id="fxEditBtn" type="button" aria-label="Edit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>' +
-    '</div>';
-    wrap.insertAdjacentHTML('beforeend', usdRowHTML);
-  } else {
-    // No holding yet: small "add" hint at the end
-    const addRowHTML = '<button class="fx-add-hint" id="fxEditBtn" type="button">+ Adicionar USD</button>';
-    wrap.insertAdjacentHTML('beforeend', addRowHTML);
-  }
-  const fxBtn = document.getElementById('fxEditBtn');
-  if (fxBtn) fxBtn.addEventListener('click', openFXModal);
+  // USD agora é lista de contas em dólar (igual reserva/previdência) — mesmo builder (CASH_CAT.fx).
+  renderCashRow('fx', wrap);
 
   // Reserves row (always visible per spec)
   renderReservesRow(wrap);
@@ -3611,6 +3674,7 @@ function renderI10Assets() {
   wrap.querySelectorAll('.cat-row.clickable').forEach(row => {
     if (row.id === 'reserveRow') return;
     if (row.id === 'pensionRow') return;
+    if (row.id === 'fxCatRow') return;
     row.addEventListener('click', () => {
       const open = row.classList.toggle('expanded');
       // Persist expand state per category so a re-render (e.g. auto-sync)
@@ -6003,13 +6067,22 @@ function subscribeAll() {
       if (d.rateUpdatedAt) {
         upd = typeof d.rateUpdatedAt.toDate === 'function' ? d.rateUpdatedAt.toDate() : d.rateUpdatedAt;
       }
+      const _fxAccts = Array.isArray(d.accounts)
+        ? d.accounts
+        : ((+d.usd || 0) > 0 ? [{ id: 'usd_main', name: 'USD', value: +d.usd }] : []);
       state.fx = {
-        usd: +d.usd || 0,
+        accounts: _fxAccts,
         rateUSD: +d.rateUSD || 0,
         rateUpdatedAt: upd,
         rateSource: d.rateSource || '',
         note: d.note || '',
+        editingId: (state.fx && state.fx.editingId) || null,
       };
+      // Migração 1×: valor único antigo (d.usd) → lista de contas. Persiste pra parar de depender do usd.
+      if (!Array.isArray(d.accounts) && (+d.usd || 0) > 0 && !_fxMigrated) {
+        _fxMigrated = true;
+        persistCash('fx').catch(() => {});
+      }
       updateLedgerEquity();
       // The USD row + hero are fully rebuilt by renderInvestments →
       // renderI10Assets. (Old renderFX() was dead+broken — it targeted

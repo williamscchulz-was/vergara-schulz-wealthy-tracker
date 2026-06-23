@@ -965,6 +965,27 @@
   </div>
 </div></div>
 
+<div class="modal-bg" id="fxAcctModal"><div class="modal" role="dialog" aria-modal="true">
+  <h3 id="fxAcctModalTitle">Editar conta em dólar</h3>
+  <p class="sub" data-i18n="fx.modal.sub2">Conta ou saldo em dólar</p>
+  <div class="form-grid">
+    <div class="field full">
+      <label data-i18n="fx.field.name">Nome da conta</label>
+      <input type="text" id="fxAcctNameInput" placeholder="Wise" autocomplete="off" />
+    </div>
+    <div class="field full">
+      <label data-i18n="fx.field.value">Valor (US$)</label>
+      <input type="text" id="fxAcctValueInput" inputmode="decimal" placeholder="0,00" autocomplete="off" />
+    </div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn-danger ghost" id="fxAcctDeleteBtn" data-i18n="exp.btn.delete">Excluir</button>
+    <div class="spacer"></div>
+    <button class="btn-secondary" id="fxAcctModalCancel" data-i18n="exp.btn.cancel">Cancelar</button>
+    <button class="btn-primary" id="fxAcctModalSave" data-i18n="exp.btn.save">Salvar</button>
+  </div>
+</div></div>
+
 <!-- Editor de meta (dividendos / quantidade de ações) -->
 <div class="modal-bg" id="metaModal"><div class="modal" role="dialog" aria-modal="true">
   <h3 id="metaModalTitle">Editar meta</h3>
@@ -1048,7 +1069,7 @@
     <p class="sub" data-i18n="fx.modal.sub">Quanto você tem em dólar — convertido pela cotação atual.</p>
     <div class="field full">
       <label data-i18n="fx.f.usd">Quantidade em USD</label>
-      <input type="text" id="fxModalInput" inputmode="decimal" placeholder="Ex: 10.000,00" autocomplete="off">
+      <input type="text" id="fxModalInput" inputmode="decimal" placeholder="Ex: 5,10" autocomplete="off">
       <div class="hint"><span data-i18n="fx.rate.label">Cotação atual:</span> <b id="fxModalRate">—</b> <span id="fxModalRateDate"></span> <button type="button" id="fxRefreshBtn" class="fx-refresh" title="Atualizar cotação agora" aria-label="Atualizar cotação">↻</button></div>
       <div class="hint fx-stale" id="fxStaleWarn" hidden></div>
     </div>

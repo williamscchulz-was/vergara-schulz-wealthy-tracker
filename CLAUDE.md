@@ -198,8 +198,10 @@ Todas as coleções e documentos ficam sob `household/main/...` (a casa é uma s
 /household/main/config/i10sync          // config compartilhada
     workerUrl, walletId, publicHash
 
-/household/main/config/fx               // cotação USD→BRL + holdings em USD
-    usd, rateUSD, rateUpdatedAt, rateSource, note
+/household/main/config/fx               // cotação USD→BRL + contas em USD (lista)
+    accounts: [{id, name, value}]       // value em US$; total × rateUSD = R$ (igual reserves/pension)
+    rateUSD, rateUpdatedAt, rateSource, note
+    usd                                 // legado (valor único antigo) — migrado p/ accounts na 1ª carga
 
 /household/main/config/reserves         // contas de reserva (CC / poupança)
     accounts: [{ id, name, bank, amount, ... }]
@@ -275,7 +277,7 @@ A API interna do I10 é **não oficial** — mapeada por engenharia reversa do l
 - **Aportes mensais** (`contributions`): visualização histórica por ano/mês
 - **Reservas** (CC/poupança): lista editável, com seed automático de 3 contas default no primeiro load
 - **Previdência** (Bradesco default): lista editável, com seed automático no primeiro load
-- **FX / USD holdings**: valor em USD × rate USD→BRL (atualizado via worker), nota opcional
+- **FX / USD holdings**: **lista de contas em USD** (`accounts: [{id,name,value}]`, mesmo builder `CASH_CAT` da reserva/previdência, com flag `currency:'usd'`) × rate USD→BRL (auto via AwesomeAPI + edição manual no rodapé do expandido). Total = Σ US$ × rate. Helper `fxUsdTotal()`
 
 ### Modo Despesas
 
