@@ -377,6 +377,7 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 > - **SEMPRE** assuma que o repositório pode ter mudanças feitas em outra máquina.
 > - **ANTES de começar a trabalhar:** `git fetch` + `git pull`. Se houver divergência, **avise o dono antes de mesclar**.
 > - **DEPOIS de qualquer mudança relevante:** `git add` + `git commit` + `git push origin main`. O trabalho só está salvo de verdade **quando está no GitHub**.
+> - **⚙️ `git push` precisa rodar FORA do sandbox do Bash** (`dangerouslyDisableSandbox: true`) — o sandbox bloqueia `github.com` ("Could not resolve host"); só o `firebase deploy` passa por um proxy permitido. _(Observado no PC Windows do dono, jun/2026; o MacBook pode diferir.)_
 > - `firebase deploy` publica o site mas **NÃO** envia o código pro GitHub. **Deploy ≠ push.** Nunca confie só no deploy pra preservar o código-fonte.
 > - **🏷️ Identifique a máquina nos commits.** Cada PC se auto-nomeia (`claudecode-<nome>`) e adiciona o trailer **`Machine: <nome>`** na mensagem do commit, logo depois do `Co-Authored-By`. Assim dá pra ver no `git log` qual máquina fez cada mudança. **O MacBook Pro 13" do dono = `claudecode-macbook`.**
 
