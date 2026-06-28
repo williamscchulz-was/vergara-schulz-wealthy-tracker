@@ -6087,7 +6087,11 @@ document.addEventListener('keydown', e => {
 let unsub = {};
 function subscribeAll() {
   unsub.expenses = onSnapshot(colExpenses(), (snap) => {
-    state.expenses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const _all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // soft-delete (Revisar duplicados): docs com removed:true saem de TODOS os totais/listas
+    // por um ponto único de corte aqui — guardados em expensesRemoved só pro "desfazer"/histórico.
+    state.expensesRemoved = _all.filter(e => e.removed);
+    state.expenses = _all.filter(e => !e.removed);
     const firstLoad = !state._expensesLoaded;
     state._expensesLoaded = true;   // o dedup do auto-sync DEPENDE disso (ver autoSyncProventos)
     if (state.mode === 'expenses') renderExpenses();
