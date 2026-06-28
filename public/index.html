@@ -269,6 +269,12 @@
       <div class="inv-sec">Este mês</div>
       <!-- Resumo por forma de pagamento (cartões/Pix/dinheiro) — só na aba Despesas/Lançamentos -->
       <div class="pay-summary" id="paySummary" hidden></div>
+      <!-- Revisar duplicados (Faxina): varre o histórico e propõe remover sobras/duplicados -->
+      <button type="button" class="dup-entry" id="dupEntry" hidden>
+        <span class="dup-entry-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="13" height="13" rx="2"/><path d="M8 19h11a2 2 0 0 0 2-2V8"/></svg></span>
+        <span class="dup-entry-lbl" data-i18n="dup.entry">Revisar duplicados</span>
+        <span class="dup-entry-badge"><span class="dup-entry-dot"></span><span id="dupEntryN" class="mono">0</span></span>
+      </button>
       <!-- Daily spending sparkline (Fase C) -->
       <div class="card animate-in exp-g-cat">
         <div class="card-head">
@@ -745,6 +751,26 @@
   </div>
   <div class="modal-foot"><span class="cd-hint" data-i18n="exp.detail.hint">Toque numa linha para conferir/editar</span><div class="spacer"></div><button class="btn-secondary" id="cdClose" data-i18n="imports.close">Fechar</button></div>
 </div></div>
+
+<!-- Revisar duplicados (Faxina) — varredura retroativa + soft-delete reversível (v9) -->
+<div class="modal-bg" id="dupModal"><div class="modal modal-wide dup-modal" role="dialog" aria-modal="true">
+  <div class="cd-head"><div class="cd-head-txt"><h3 data-i18n="dup.title">Revisar duplicados</h3><p class="sub" id="dupSub">—</p></div></div>
+  <div class="dup-scope" id="dupScope">
+    <button type="button" data-scope="month" data-i18n="dup.scope.month">Este mês</button>
+    <button type="button" data-scope="6m" class="on" data-i18n="dup.scope.6m">Últimos 6 meses</button>
+    <button type="button" data-scope="all" data-i18n="dup.scope.all">Tudo</button>
+  </div>
+  <div class="cd-scroll dup-scroll" id="dupScroll"><div id="dupBody"></div></div>
+  <div class="modal-foot dup-foot">
+    <button class="dup-sel" id="dupSelAll" type="button" data-i18n="dup.selall">Selecionar todos sugeridos</button>
+    <span class="dup-tally mono" id="dupTally"></span>
+    <button class="dup-undo-last" id="dupUndoLast" type="button" hidden></button>
+    <div class="spacer"></div>
+    <button class="btn-secondary" id="dupClose" type="button" data-i18n="imports.close">Fechar</button>
+    <button class="btn-danger" id="dupApply" type="button" data-i18n="dup.apply">Aplicar limpeza</button>
+  </div>
+</div></div>
+<div class="dup-undo-toast" id="dupUndoToast"><span class="du-toast-txt"></span><button class="du-toast-undo" type="button" data-i18n="dup.undo">Desfazer</button></div>
 
 <!-- v11: popup com TODAS as categorias do mês (o card mostra só as top 7) -->
 <div class="modal-bg" id="catAllModal"><div class="modal modal-wide cd-modal" role="dialog" aria-modal="true">

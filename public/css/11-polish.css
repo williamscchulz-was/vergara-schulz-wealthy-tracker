@@ -339,6 +339,54 @@
 .cf-acts { margin-top: 9px; }
 .cf-btn { font: 600 11.5px Inter, system-ui, sans-serif; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--ink-2); border-radius: 999px; padding: 5px 13px; cursor: pointer; }
 .cf-btn:hover { color: var(--ink); border-color: var(--ink-3); }
+
+/* v9 — Revisar duplicados (Faxina): entrada abaixo da faixa + modal + soft-delete reversível */
+.dup-entry { display: none; align-items: center; gap: 9px; width: 100%; text-align: left; background: var(--bg-elevated-3); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin: 4px 0 2px; cursor: pointer; }
+#moduleExpenses.view-lancamentos > #dupEntry:not([hidden]) { display: flex; }
+.dup-entry:hover { border-color: var(--ink-3); }
+.dup-entry .dup-entry-ic { width: 18px; height: 18px; display: grid; place-items: center; color: var(--ink-2); flex-shrink: 0; }
+.dup-entry .dup-entry-ic svg { width: 16px; height: 16px; }
+.dup-entry .dup-entry-lbl { font: 600 13px Inter, system-ui, sans-serif; color: var(--ink); }
+.dup-entry .dup-entry-badge { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font: 700 11px 'Geist Mono', monospace; color: var(--ink-2); background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 999px; padding: 3px 9px; }
+.dup-entry .dup-entry-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--warn); }
+.dup-scope { display: flex; gap: 4px; background: var(--bg-elevated-2); border: 1px solid var(--border); border-radius: 999px; padding: 4px; margin: 0 0 6px; width: fit-content; max-width: 100%; flex-wrap: wrap; }
+.dup-scope button { font: 600 12px Inter, system-ui, sans-serif; color: var(--ink-3); background: transparent; border: 0; border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.dup-scope button.on { background: var(--bg-elevated); color: var(--ink); }
+.dup-scroll { max-height: 56vh; }
+.du-empty { text-align: center; color: var(--ink-2); padding: 28px 12px; font-size: 13px; }
+.du-empty-sub { color: var(--ink-3); font-size: 12px; margin-top: 4px; }
+.du-clu { border: 1px solid var(--border); border-radius: 12px; margin: 9px 0; overflow: hidden; background: var(--bg-elevated); }
+.du-h { display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: var(--bg-elevated-3); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.du-conf { display: inline-flex; align-items: center; gap: 5px; font: 700 9px Inter, system-ui, sans-serif; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
+.du-conf .du-mk { width: 9px; height: 9px; border-radius: 999px; }
+.du-conf.hi .du-mk { background: var(--warn); }
+.du-conf.lo .du-mk { box-shadow: inset 0 0 0 1.5px var(--ink-3); }
+.du-mer { font-weight: 700; font-size: 13.5px; color: var(--ink); }
+.du-kind { font-size: 11px; color: var(--ink-3); }
+.du-save { margin-left: auto; font-weight: 700; font-size: 12.5px; color: var(--loss); }
+.du-why { font-size: 11.5px; color: var(--ink-3); padding: 8px 12px 4px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.du-delta { font: 700 10.5px 'Geist Mono', monospace; color: var(--warn); background: var(--warn-soft); border-radius: 5px; padding: 1px 6px; }
+.du-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; font-size: 12.5px; cursor: pointer; }
+.du-row + .du-row { border-top: 1px solid var(--border); }
+.du-row .du-d { color: var(--ink-3); font-size: 11px; min-width: 70px; flex-shrink: 0; }
+.du-row .du-ds { flex: 1; min-width: 0; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.du-row .du-tag { font: 700 9px Inter, system-ui, sans-serif; text-transform: uppercase; letter-spacing: .03em; flex-shrink: 0; }
+.du-row .du-v { font-weight: 700; color: var(--ink); flex-shrink: 0; }
+.du-row .du-chk { width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--warn); cursor: pointer; }
+.du-row .du-chk-sp { width: 18px; flex-shrink: 0; }
+.du-row.keep { background: color-mix(in srgb, var(--gain) 7%, transparent); border-left: 3px solid var(--gain); }
+.du-row.keep .du-tag { color: var(--gain); }
+.du-row.rem .du-tag { color: var(--warn); }
+.du-row.rem.checked .du-ds, .du-row.rem.checked .du-v { text-decoration: line-through; opacity: .55; }
+.du-row.rem:not(.checked) { opacity: .62; }
+.dup-foot { flex-wrap: wrap; gap: 10px; }
+.dup-sel { font: 600 12px Inter, system-ui, sans-serif; color: var(--ink-2); background: var(--bg-elevated-2); border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.dup-sel:hover { color: var(--ink); }
+.dup-tally { font-weight: 700; font-size: 13px; color: var(--ink); }
+.dup-undo-last { font: 600 12px Inter, system-ui, sans-serif; color: var(--ink-3); background: transparent; border: 0; text-decoration: underline; cursor: pointer; }
+.dup-undo-toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: var(--ink); color: var(--bg); border-radius: 12px; padding: 11px 16px; font-size: 13px; display: none; align-items: center; gap: 14px; z-index: 9000; box-shadow: 0 8px 30px rgba(0,0,0,.3); max-width: calc(100vw - 32px); }
+.dup-undo-toast.show { display: flex; }
+.dup-undo-toast .du-toast-undo { background: transparent; border: 1px solid color-mix(in srgb, var(--bg) 45%, transparent); color: var(--bg); border-radius: 999px; padding: 4px 12px; font: 600 12px Inter, system-ui, sans-serif; cursor: pointer; flex-shrink: 0; }
 @media (prefers-reduced-motion: reduce) {
   .pay-item:hover .pay-ic::after, .pay-item:focus-visible .pay-ic::after { animation: none; opacity: 0; }
   .pay-item:hover .pay-ic, .pay-item:focus-visible .pay-ic { background: color-mix(in srgb, var(--pay-c) 26%, transparent); color: var(--pay-c); }

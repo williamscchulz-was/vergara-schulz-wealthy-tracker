@@ -89,12 +89,21 @@ export function findDuplicateClusters(expenses, opts = {}) {
     if (used.has(p.id)) continue;
     const pk = impRuleKey(p.description || ''); if (!pk) continue;
     const pi = instOf(p);
-    const real = reals.find(r => !used.has(r.id) && impRuleKey(r.description || '') === pk && sameInst(instOf(r), pi) && ym(r) === ym(p));
-    if (real) {
-      used.add(p.id); used.add(real.id);
-      out.push(cluster('leftover-provision', 'quase-certo', real, [p],
-        'A provisão da parcela ' + pi.k + '/' + pi.total + ' ficou sobrando — a parcela real já foi importada da fatura.'));
-    }
+    // candidatos: real com mesma loja + parcela k/Y + competência. ENTRE eles, escolhe o de valor
+    // mais próximo (igual matchInstallmentProvision) — não o primeiro da lista.
+    const cands = reals.filter(r => !used.has(r.id) && impRuleKey(r.description || '') === pk && sameInst(instOf(r), pi) && ym(r) === ym(p));
+    if (!cands.length) continue;
+    let real = cands[0], bestDiff = Infinity;
+    for (const r of cands) { const d = Math.abs((+r.value || 0) - (+p.value || 0)); if (d < bestDiff) { bestDiff = d; real = r; } }
+    // GUARDA DE VALOR (igual ao import: 2% E R$2): provisão estimada ≈ real → quase-certo (sobra real).
+    // Valor divergente além disso → 'talvez' (pode ser OUTRO parcelamento da mesma loja) — NUNCA pré-marcado.
+    const pv = +p.value || 0, rv = +real.value || 0, base = pv || rv || 1;
+    const within = Math.abs(rv - pv) / base <= 0.02 && Math.abs(rv - pv) <= 2;
+    used.add(p.id); used.add(real.id);
+    out.push(cluster('leftover-provision', within ? 'quase-certo' : 'talvez', real, [p],
+      within
+        ? 'A provisão da parcela ' + pi.k + '/' + pi.total + ' ficou sobrando — a parcela real já foi importada da fatura.'
+        : 'Mesma loja e parcela ' + pi.k + '/' + pi.total + ', mas com VALORES diferentes — confira se não são compras distintas antes de remover.'));
   }
 
   // 2) CÓPIA EXATA RE-IMPORTADA (quase-certo) — mesmo fingerprint, mas de LOTES diferentes
@@ -103,11 +112,16 @@ export function findDuplicateClusters(expenses, opts = {}) {
   for (const e of exps) { if (used.has(e.id) || e.provisioned) continue; const k = fpOf(e); (byFp.get(k) || byFp.set(k, []).get(k)).push(e); }
   for (const grp of byFp.values()) {
     if (grp.length < 2) continue;
-    const batches = new Set(grp.map(e => e.batchId || ('m:' + srcKind(e))));
-    if (batches.size < 2) continue;                          // tudo do mesmo lote = multiset legítimo
-    const sorted = grp.slice().sort((a, b) => String(a.batchId || '').localeCompare(String(b.batchId || '')));
+    // só é "re-import" quando há 2+ LOTES de import DISTINTOS. Mesmo lote = multiset legítimo da fatura;
+    // manual/auto (sem batchId) não contam — caem nas regras 'talvez' (rule 3/4), nunca pré-marcados aqui.
+    const realBatches = new Set(grp.filter(e => e.batchId).map(e => e.batchId));
+    if (realBatches.size < 2) continue;
+    // keeper por PRIORIDADE DE FONTE (import > auto > manual), desempate pelo lote mais antigo —
+    // garante manter o registro importado/canônico (ligado ao "desfazer import" e à memória de regras).
+    const rank = e => (srcKind(e) === 'import' ? 0 : srcKind(e) === 'auto' ? 1 : 2);
+    const sorted = grp.slice().sort((a, b) => (rank(a) - rank(b)) || String(a.batchId || '').localeCompare(String(b.batchId || '')));
     const keep = sorted[0], rem = sorted.slice(1);
-    keep && used.add(keep.id); rem.forEach(r => used.add(r.id));
+    used.add(keep.id); rem.forEach(r => used.add(r.id));
     out.push(cluster('exact-copy', 'quase-certo', keep, rem, 'Lançamento idêntico importado mais de uma vez.'));
   }
 

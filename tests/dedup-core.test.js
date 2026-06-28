@@ -134,6 +134,61 @@ test('removalSummary: por padrão conta só os quase-certo (talvez não vem pré
   assert.equal(all.total, 282.6);
 });
 
+test('sobra de provisão com valor MUITO diferente (mesma loja/k/Y/mês) → talvez, NÃO pré-marcado', () => {
+  const data = [
+    exp({ id: 'real', description: 'Magalu', value: 100, competencia: '2026-02', date: '2026-02-09', source: 'import:cartao', installment: { k: 4, total: 10 } }),
+    exp({ id: 'prov', description: 'Magalu', value: 250, competencia: '2026-02', date: '2026-02-15', provisioned: true, source: 'import:cartao', installment: { k: 4, total: 10 } }),
+  ];
+  const cl = findDuplicateClusters(data);
+  assert.equal(cl.length, 1);
+  assert.equal(cl[0].kind, 'leftover-provision');
+  assert.equal(cl[0].confidence, 'talvez');           // valor diverge além de 2%/R$2 → não funde como certo
+  assert.equal(removalSummary(cl).count, 0);          // default (quase-certo) não inclui o talvez
+});
+
+test('sobra de provisão escolhe o real de valor MAIS PRÓXIMO (multi-match), não o primeiro', () => {
+  const data = [
+    exp({ id: 'realFar', description: 'Magalu', value: 900, competencia: '2026-02', date: '2026-02-05', source: 'import:cartao', installment: { k: 4, total: 10 } }),
+    exp({ id: 'realNear', description: 'Magalu', value: 189.90, competencia: '2026-02', date: '2026-02-09', source: 'import:cartao', installment: { k: 4, total: 10 } }),
+    exp({ id: 'prov', description: 'Magalu', value: 189.90, competencia: '2026-02', date: '2026-02-15', provisioned: true, source: 'import:cartao', installment: { k: 4, total: 10 } }),
+  ];
+  const cl = findDuplicateClusters(data).filter(c => c.kind === 'leftover-provision');
+  assert.equal(cl.length, 1);
+  assert.equal(cl[0].keepId, 'realNear');             // casa pelo valor mais próximo, não pela ordem
+  assert.equal(cl[0].confidence, 'quase-certo');
+});
+
+test('exact-copy: manual + importado (mesmo fp) mantém o IMPORTADO e fica talvez (não pré-marcado)', () => {
+  const data = [
+    exp({ id: 'man', description: 'Netflix', value: 44.9, date: '2026-05-15', competencia: '2026-05', source: 'manual' }),
+    exp({ id: 'imp', description: 'Netflix', value: 44.9, date: '2026-05-15', competencia: '2026-05', source: 'import:cartao', batchId: 'A' }),
+  ];
+  const cl = findDuplicateClusters(data);
+  assert.equal(cl.length, 1);
+  assert.equal(cl[0].keepId, 'imp');                  // mantém o canônico (importado), não o manual
+  assert.notEqual(cl[0].confidence, 'quase-certo');
+  assert.equal(removalSummary(cl).count, 0);
+});
+
+test('exact-copy NÃO pré-seleciona manual + auto (mesmo fp, sem lote de import)', () => {
+  const data = [
+    exp({ id: 'man', description: 'Academia', value: 120, date: '2026-05-05', competencia: '2026-05', source: 'manual' }),
+    exp({ id: 'au', description: 'Academia', value: 120, date: '2026-05-05', competencia: '2026-05', source: 'auto:recurring' }),
+  ];
+  const cl = findDuplicateClusters(data);
+  assert.equal(cl.length, 1);
+  assert.notEqual(cl[0].confidence, 'quase-certo');   // sem 2 lotes de import reais → nunca quase-certo
+  assert.equal(removalSummary(cl).count, 0);
+});
+
+test('duas parcelas REAIS distintas (mesma loja/k/Y/mês, valores diferentes) NÃO fundem', () => {
+  const data = [
+    exp({ id: 'a', description: 'Magalu', value: 300, competencia: '2026-02', date: '2026-02-05', source: 'import:cartao', installment: { k: 1, total: 3 } }),
+    exp({ id: 'b', description: 'Magalu', value: 900, competencia: '2026-02', date: '2026-02-06', source: 'import:cartao', installment: { k: 1, total: 3 } }),
+  ];
+  assert.equal(findDuplicateClusters(data).length, 0);
+});
+
 test('helpers: instOf / cardOf / srcKind', () => {
   assert.deepEqual(instOf({ installment: { k: 4, total: 10 } }), { k: 4, total: 10 });
   assert.deepEqual(instOf({ notes: 'cartão: William · parcela 7/12 · provisão' }), { k: 7, total: 12 });

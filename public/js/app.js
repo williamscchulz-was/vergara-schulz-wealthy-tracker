@@ -48,6 +48,7 @@ const docIncomeOpts = doc(db, "household", "main", "config", "incomeOpts");   //
 const docCategories = doc(db, "household", "main", "config", "categories");
 const docImportMeta = doc(db, "household", "main", "config", "importMeta");
 const docReviewDismissed = doc(db, "household", "main", "config", "reviewDismissed");   // flags de Conferência dispensados ("são diferentes")
+const docCleanupMeta = doc(db, "household", "main", "config", "cleanupMeta");   // última limpeza de duplicados (Faxina) p/ desfazer pós-toast
 const docUserPrefs = doc(db, "household", "main", "config", "userPrefs");
 const docImportRules = doc(db, "household", "main", "config", "importRules");  // memória do importador (estabelecimento → categoria/de-quem)
 
@@ -1162,7 +1163,7 @@ async function dismissPayFlag(id, undo) {
 function cfDeltaText(d) {
   if (!d) return '';
   if (d.type === 'value') return 'Δ R$ ' + (+d.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + (d.pct ? ' (' + String(d.pct).replace('.', ',') + '%)' : '');
-  return 'Δ ' + d.amount + ' ' + (d.amount === 1 ? 'dia' : 'dias');
+  return 'Δ ' + d.amount + ' ' + t(d.amount === 1 ? 'conf.delta.day' : 'conf.delta.days');
 }
 function cfFlagHtml(f) {
   const mem = (f.cluster ? f.cluster.members : []).map(m =>
@@ -1173,6 +1174,143 @@ function cfFlagHtml(f) {
 function cfBlockHtml(key) {
   const fls = _payFlags[key] || []; if (!fls.length) return '';
   return `<tr class="cd-confer"><td colspan="3"><div class="cf-h">${esc(t('conf.tocheck').replace('{n}', fls.length))}</div>${fls.map(cfFlagHtml).join('')}</td></tr>`;
+}
+// ============================================================
+//  Revisar duplicados (Faxina, v9) — varredura retroativa + soft-delete REVERSÍVEL.
+//  Quem apaga é o usuário: revisa → confirma → marca removed:true (sai dos totais) → desfazer.
+//  Nada é hard-deletado aqui; o doc fica no banco com removed:true e volta no "desfazer".
+// ============================================================
+let _dupScope = '6m';
+let _dupClusters = [];
+let _dupSel = new Set();
+let _dupToastTimer = null;
+let _dupUndoTarget = null;            // cleanupId da limpeza mais recente ainda desfazível
+let _dupEntryMemo = { sig: null, n: 0 };   // memo do scan da entrada (evita varrer a cada render)
+const _ddmmyy = (iso) => { const s = String(iso || ''); return s.length >= 10 ? s.slice(8, 10) + '/' + s.slice(5, 7) + '/' + s.slice(2, 4) : formatDateBR(iso); };   // data com ano (escopos multi-mês)
+function dupScopeExps(scope) {
+  const exps = (state.expenses || []).filter(e => isExpense(e));   // state.expenses já exclui os removed
+  if (scope === 'all') return exps;
+  const now = state.currentViewMonth || new Date();
+  const kOf = e => e.competencia || String(e.date || '').slice(0, 7);
+  if (scope === 'month') { const k = monthKey(now); return exps.filter(e => kOf(e) === k); }
+  const cutK = monthKey(new Date(now.getFullYear(), now.getMonth() - 5, 1));   // últimos 6 meses
+  return exps.filter(e => kOf(e) >= cutK);
+}
+function dupScan() {
+  let clusters = [];
+  try { clusters = findDuplicateClusters(dupScopeExps(_dupScope), { nearDays: 3 }); } catch (e) { console.warn('[dup] scan', e); }
+  _dupClusters = clusters;
+  _dupSel = new Set();   // só os quase-certo já vêm marcados; "talvez" exige opt-in
+  for (const cl of clusters) if (cl.confidence === 'quase-certo') for (const m of cl.members) if (m.role === 'remover') _dupSel.add(m.id);
+}
+function dupSelTotal() { let s = 0; for (const cl of _dupClusters) for (const m of cl.members) if (m.role === 'remover' && _dupSel.has(m.id)) s += +m.value || 0; return s; }
+function updateDupEntry() {
+  const btn = $('dupEntry'); if (!btn) return;
+  const mod = $('moduleExpenses');
+  if (!mod || !mod.classList.contains('view-lancamentos')) { btn.hidden = true; return; }   // só varre na sub-aba Lançamentos
+  const sig = (state.expenses || []).length + ':' + monthKey(state.currentViewMonth || new Date());
+  let n;
+  if (_dupEntryMemo.sig === sig) n = _dupEntryMemo.n;   // memo: evita re-varrer 6 meses a cada render/snapshot
+  else { try { n = findDuplicateClusters(dupScopeExps('6m'), { nearDays: 3 }).length; } catch (e) { n = 0; } _dupEntryMemo = { sig, n }; }
+  btn.hidden = !n;
+  if (n) { const el = $('dupEntryN'); if (el) el.textContent = n; }
+}
+function duClusterHtml(cl) {
+  const conf = cl.confidence === 'quase-certo' ? 'hi' : 'lo';
+  const delta = cl.delta ? `<span class="du-delta">${esc(cfDeltaText(cl.delta))}</span>` : '';
+  const rows = cl.members.map(m => {
+    if (m.role === 'manter') return `<div class="du-row keep" data-open="${esc(m.id)}"><span class="du-chk-sp"></span><span class="mono du-d">${_ddmmyy(m.date)}</span><span class="du-ds">${esc(m.description) || '—'}</span><span class="du-tag keep">${esc(t('dup.keep'))}</span><span class="mono du-v">${fmtBRL0(m.value)}</span></div>`;
+    const ck = _dupSel.has(m.id);
+    return `<label class="du-row rem${ck ? ' checked' : ''}"><input type="checkbox" class="du-chk" data-dup-id="${esc(m.id)}"${ck ? ' checked' : ''}><span class="mono du-d">${_ddmmyy(m.date)}</span><span class="du-ds">${esc(m.description) || '—'}</span><span class="du-tag rem">${esc(t('dup.remove'))}</span><span class="mono du-v">${fmtBRL0(m.value)}</span></label>`;
+  }).join('');
+  return `<div class="du-clu"><div class="du-h"><span class="du-conf ${conf}"><span class="du-mk"></span>${esc(t(conf === 'hi' ? 'dup.conf.high' : 'dup.conf.low'))}</span><span class="du-mer">${esc(cl.merchant) || '—'}</span><span class="du-kind">${esc(t(CONF_KIND[cl.kind] || 'conf.kind.near'))}</span><span class="du-save mono">−${fmtBRL0(cl.value)}</span></div><div class="du-why">${esc(cl.why)}${delta}</div>${rows}</div>`;
+}
+function updateDupTally() {
+  const el = $('dupTally'); if (el) el.textContent = t('dup.tally').replace('{n}', _dupSel.size).replace('{total}', fmtBRL0(dupSelTotal()));
+  const apply = $('dupApply'); if (apply) apply.disabled = _dupSel.size === 0;
+  // "Desfazer última limpeza": deriva do que AINDA está removido, agrupado por cleanupId (mais recente
+  // primeiro) — assim toda limpeza fica desfazível, não só a última gravada em cleanupMeta.
+  const ul = $('dupUndoLast'); if (!ul) return;
+  const groups = {};
+  for (const e of (state.expensesRemoved || [])) {
+    const cid = e.cleanupId || '?'; const g = groups[cid] || (groups[cid] = { id: cid, n: 0, at: 0 });
+    g.n++; const ms = (e.removedAt && e.removedAt.toMillis) ? e.removedAt.toMillis() : 0; if (ms > g.at) g.at = ms;
+  }
+  const latest = Object.values(groups).sort((a, b) => b.at - a.at)[0];
+  _dupUndoTarget = latest ? latest.id : null;
+  ul.hidden = !latest;
+  if (latest) ul.textContent = t('dup.undo.last').replace('{n}', latest.n);
+}
+function renderDupBody() {
+  const body = $('dupBody'); if (!body) return;
+  const scopeEl = $('dupScope'); if (scopeEl) scopeEl.querySelectorAll('[data-scope]').forEach(b => b.classList.toggle('on', b.dataset.scope === _dupScope));
+  if (!_dupClusters.length) {
+    body.innerHTML = `<div class="du-empty"><div>${esc(t('dup.empty'))}</div><div class="du-empty-sub">${esc(t('dup.empty.sub'))}</div></div>`;
+    if ($('dupSub')) $('dupSub').textContent = '';
+    updateDupTally(); return;
+  }
+  if ($('dupSub')) $('dupSub').textContent = t('dup.sub').replace('{groups}', _dupClusters.length);
+  body.innerHTML = _dupClusters.map(duClusterHtml).join('');
+  body.querySelectorAll('input[data-dup-id]').forEach(cb => cb.addEventListener('change', () => {
+    const id = cb.getAttribute('data-dup-id');
+    if (cb.checked) _dupSel.add(id); else _dupSel.delete(id);
+    const row = cb.closest('.du-row'); if (row) row.classList.toggle('checked', cb.checked);
+    updateDupTally();
+  }));
+  body.querySelectorAll('.du-row.keep[data-open]').forEach(el => el.addEventListener('click', () => {
+    const id = el.getAttribute('data-open');
+    if ((state.expenses || []).some(x => x.id === id)) { const m = $('dupModal'); if (m) m.classList.remove('show'); openExpenseModal(id); }
+  }));
+  updateDupTally();
+}
+function openDupModal() { _dupScope = '6m'; dupScan(); renderDupBody(); const m = $('dupModal'); if (m) m.classList.add('show'); attachScrollShadow($('dupScroll')); }
+function dupApply() {
+  const ids = [..._dupSel]; if (!ids.length) return;
+  const total = dupSelTotal();
+  openConfirmModal({
+    title: t('dup.confirm.title').replace('{n}', ids.length),
+    sub: t('dup.confirm.sub').replace('{total}', fmtBRL0(total)),
+    confirmLabel: t('dup.confirm.ok'), cancelLabel: t('exp.btn.cancel'), danger: true,
+    onConfirm: () => dupSoftDelete(ids, total),
+  });
+}
+async function dupSoftDelete(ids, total) {
+  const cleanupId = 'cl' + Date.now().toString(36);
+  const by = (state.user && state.user.displayName) || '—';
+  try {
+    for (let i = 0; i < ids.length; i += 450) {
+      const wb = writeBatch(db);
+      for (const id of ids.slice(i, i + 450)) wb.set(docExpense(id), { removed: true, cleanupId, removedAt: serverTimestamp(), removedBy: by }, { merge: true });
+      await wb.commit();
+    }
+    setDoc(docCleanupMeta, { last: { cleanupId, count: ids.length, total, at: Date.now(), by } }, { merge: true }).catch(() => {});
+    const m = $('dupModal'); if (m) m.classList.remove('show');
+    showDupUndoToast(ids.length, total, cleanupId, ids);
+  } catch (e) { console.error('[dup] softDelete', e); if (typeof showErrorPopup === 'function') showErrorPopup(t('dup.err.title'), e); else showToast(t('toast.error.save')); }
+}
+function showDupUndoToast(n, total, cleanupId, ids) {
+  const tt = $('dupUndoToast');
+  if (!tt) { showToast(t('dup.done').replace('{n}', n).replace('{total}', fmtBRL0(total))); return; }
+  tt.querySelector('.du-toast-txt').textContent = t('dup.done').replace('{n}', n).replace('{total}', fmtBRL0(total));
+  tt.classList.add('show');
+  clearTimeout(_dupToastTimer);
+  _dupToastTimer = setTimeout(() => tt.classList.remove('show'), 9000);
+  const btn = tt.querySelector('.du-toast-undo');
+  btn.onclick = () => { clearTimeout(_dupToastTimer); tt.classList.remove('show'); dupUndo(cleanupId, ids); };
+}
+async function dupUndo(cleanupId, ids) {
+  // restaura só docs que AINDA estão removidos sob ESTE cleanup (não ressuscita algo que outra limpeza removeu)
+  const removedNow = new Set((state.expensesRemoved || []).filter(e => e.cleanupId === cleanupId).map(e => e.id));
+  const list = (ids && ids.length) ? ids.filter(id => removedNow.has(id)) : [...removedNow];
+  if (!list.length) return;
+  try {
+    for (let i = 0; i < list.length; i += 450) {
+      const wb = writeBatch(db);
+      for (const id of list.slice(i, i + 450)) wb.set(docExpense(id), { removed: false, cleanupId: null }, { merge: true });
+      await wb.commit();
+    }
+    showToast(t('dup.undo.done').replace('{n}', list.length));
+  } catch (e) { console.error('[dup] undo', e); }
 }
 function renderExpenses() {
   updateExpSortHeaders();   // indicador de ordenação sempre reflete _expSort (mesmo c/ tabela vazia)
@@ -1268,6 +1406,7 @@ function renderExpenses() {
   const allExpHistory = (state.expenses || []).filter(e => isExpense(e) && !e.provisioned);
   renderCategoryBreakdown(monthExp, total);
   renderPaySummary(monthExp);
+  updateDupEntry();   // Faxina: mostra/esconde a entrada "Revisar duplicados" conforme há clusters
   renderTrend12m(allExpHistory, viewDate);
   renderTopRecurring(allExpHistory, viewDate);
   updateHeroOverBudgetBadge(monthExp);
@@ -5485,7 +5624,7 @@ async function autoSyncProventos() {
   // multiset dos proventos JÁ existentes (income lançado por aqui)
   const stripOrd = s => String(s || '').replace(/#\d+$/, '');
   const existCount = {};
-  for (const e of (state.expenses || [])) {
+  for (const e of [...(state.expenses || []), ...(state.expensesRemoved || [])]) {   // inclui removidos: provento dispensado não ressuscita no próximo sync
     if (e.type !== 'income') continue;
     const b = e.fpBase || stripOrd(e.fp || impFp(e.date, e.value, e.description));
     existCount[b] = (existCount[b] || 0) + 1;
@@ -5720,7 +5859,7 @@ async function doImport() {
   // 2 compras iguais legítimas NÃO se anulam, e reimportar o mesmo extrato é idempotente.
   const stripOrd = (s) => String(s || '').replace(/#\d+$/, '');
   const existCount = {};
-  for (const e of (state.expenses || [])) {
+  for (const e of [...(state.expenses || []), ...(state.expensesRemoved || [])]) {   // inclui removidos: reimportar não ressuscita um duplicado já removido na Faxina
     const b = e.fpBase || stripOrd(e.fp || impFp(e.date, e.value, e.description));
     existCount[b] = (existCount[b] || 0) + 1;
   }
@@ -5952,6 +6091,14 @@ $('importConfirm')?.addEventListener('click', doImport);
 // "Limpar importados" removido da UI (risco). Função clearImportedExpenses mantida
 // inerte; o botão "Desfazer último" cobre o caso seguro de reverter o último import.
 $('btnUndoImport')?.addEventListener('click', undoLastImport);
+// Revisar duplicados (Faxina)
+$('dupEntry')?.addEventListener('click', openDupModal);
+$('dupClose')?.addEventListener('click', () => $('dupModal')?.classList.remove('show'));
+$('dupModal')?.addEventListener('click', e => { if (e.target.id === 'dupModal') $('dupModal').classList.remove('show'); });
+$('dupScope')?.addEventListener('click', e => { const b = e.target.closest('[data-scope]'); if (!b) return; _dupScope = b.dataset.scope; dupScan(); renderDupBody(); });
+$('dupSelAll')?.addEventListener('click', () => { for (const cl of _dupClusters) if (cl.confidence === 'quase-certo') for (const m of cl.members) if (m.role === 'remover') _dupSel.add(m.id); renderDupBody(); });
+$('dupApply')?.addEventListener('click', dupApply);
+$('dupUndoLast')?.addEventListener('click', () => { if (_dupUndoTarget) dupUndo(_dupUndoTarget); });
 // Escape de emergência: clicar no overlay (ou Esc) fecha, caso algo trave.
 $('importOverlay')?.addEventListener('click', () => {
   const o = $('importOverlay'); if (o) { o.hidden = true; o.classList.remove('done', 'out'); }
@@ -6074,6 +6221,7 @@ document.addEventListener('keydown', e => {
     if ($('catAllModal')?.classList.contains('show')) { $('catAllModal').classList.remove('show'); return; }
     if ($('catDetailModal')?.classList.contains('show')) { closeCategoryDetail(); return; }
     if ($('mrTableModal')?.classList.contains('show')) { $('mrTableModal').classList.remove('show'); return; }
+    if ($('dupModal')?.classList.contains('show')) { $('dupModal').classList.remove('show'); return; }
     closeExpenseModal();
     closeI10Modal();
     closeYearlyModal();
@@ -6311,6 +6459,7 @@ function subscribeAll() {
     _reviewDismissed = new Set(Object.entries(data.ids || {}).filter(([, v]) => v).map(([k]) => k));
     if (state.mode === 'expenses') renderExpenses();
   });
+  unsub.cleanupMeta = onSnapshot(docCleanupMeta, (snap) => { state.cleanupMeta = snap.exists() ? (snap.data() || {}) : {}; });
 }
 function unsubscribeAll() { Object.values(unsub).forEach(fn => fn && fn()); unsub = {}; }
 
