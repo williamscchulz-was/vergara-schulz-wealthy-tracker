@@ -7,6 +7,7 @@ import { I18N } from "./i18n.js";
 import { ICONS, CATEGORIES, INCOME_SOURCES, INCOME_OPTS, MONTH_NAMES_PT, MONTH_NAMES_EN } from "./constants.js";
 import { IMP_GATEWAY, IMP_UF, IMP_STOP, impNormalize, impTokens, impRuleKey, impToISO, impFp, parseBRMoney, matchInstallmentProvision } from "./import-core.js";
 import { projectMonth as projectRecurring, satisfies as satisfiesRule, toYM, ymOf } from "./recurring-core.js";
+import { findDuplicateClusters } from "./dedup-core.js";
 
 // ============================================================
 //  EARLY AUTH GUARD - login works even if main code crashes
@@ -46,6 +47,7 @@ const docBudgets  = doc(db, "household", "main", "config", "budgets");
 const docIncomeOpts = doc(db, "household", "main", "config", "incomeOpts");   // atalhos de descrição de ganho criados pelo casal (compartilhado)
 const docCategories = doc(db, "household", "main", "config", "categories");
 const docImportMeta = doc(db, "household", "main", "config", "importMeta");
+const docReviewDismissed = doc(db, "household", "main", "config", "reviewDismissed");   // flags de Conferência dispensados ("são diferentes")
 const docUserPrefs = doc(db, "household", "main", "config", "userPrefs");
 const docImportRules = doc(db, "household", "main", "config", "importRules");  // memória do importador (estabelecimento → categoria/de-quem)
 
@@ -1029,6 +1031,8 @@ function paySourceOf(e) {
 let _payMonthExp = [];   // dataset do mês pro drill-down do pill
 let _payItems = {};      // key -> {key,label,kind,norm,total}
 let _payOpenKey = null;  // pill aberto no popup (pro live-refresh)
+let _reviewDismissed = new Set();   // ids de flags de Conferência marcados "são diferentes" (config/reviewDismissed)
+let _payFlags = {};      // key da forma de pagamento -> [flag,...] do mês (Conferência)
 // Cor ESTÁVEL por forma de pagamento (não depende da ordem) — pra o pill e o popup baterem.
 function _payColor(it) {
   if (PAY_HOLDER_COLORS[it.norm]) return PAY_HOLDER_COLORS[it.norm];
@@ -1050,18 +1054,24 @@ function renderPaySummary(monthExp) {
     map[s.key].total += (+e.value || 0);
   }
   _payItems = map;
+  // Conferência: flags do mês por forma de pagamento (selo no pill). Read-only, já guardado em try.
+  const flags = payFlagsFor(_payMonthExp); _payFlags = flags;
+  const totalFlags = Object.values(flags).reduce((s, a) => s + a.length, 0);
   // por valor, mas "Previsto" sempre por último (é resíduo, não forma de pagamento de fato)
   const items = Object.values(map).filter(x => x.total > 0.005)
     .sort((a, b) => ((a.kind === 'previsto') - (b.kind === 'previsto')) || (b.total - a.total));
   if (!items.length) { wrap.hidden = true; wrap.innerHTML = ''; return; }
   const cells = items.map(it => {
     const c = _payColor(it);
-    return `<div class="pay-item${it.kind === 'previsto' ? ' pay-prev' : ''}" style="--pay-c:${c}" data-paykey="${esc(it.key)}" role="button" tabindex="0">`
+    const fl = flags[it.key] || [];
+    const badge = fl.length ? `<span class="pay-flag sev-${paySevTop(fl)}" aria-hidden="true">${PAY_WARN}${fl.length > 1 ? `<span class="pay-flag-n">${fl.length}</span>` : ''}</span>` : '';
+    return `<div class="pay-item${it.kind === 'previsto' ? ' pay-prev' : ''}${fl.length ? ' has-flag' : ''}" style="--pay-c:${c}" data-paykey="${esc(it.key)}" role="button" tabindex="0">`
       + `<span class="pay-ic">${PAY_ICONS[it.kind]}</span>`
       + `<span class="pay-t"><span class="pay-n">${esc(it.label)}</span>`
-      + `<span class="pay-v"><span class="pv-full">${esc(fmtBRL0(it.total))}</span><span class="pv-k">${esc(fmtBRLk(it.total))}</span></span></span></div>`;
+      + `<span class="pay-v"><span class="pv-full">${esc(fmtBRL0(it.total))}</span><span class="pv-k">${esc(fmtBRLk(it.total))}</span></span></span>${badge}</div>`;
   }).join('');
-  wrap.innerHTML = `<div class="pay-lbl">${esc(t('exp.pay.summary'))}</div><div class="pay-items">${cells}</div>`;
+  const sumHtml = totalFlags ? ` <span class="pay-sum">${esc(t('conf.summary').replace('{n}', totalFlags))}</span>` : '';
+  wrap.innerHTML = `<div class="pay-lbl">${esc(t('exp.pay.summary'))}${sumHtml}</div><div class="pay-items">${cells}</div>`;
   wrap.hidden = false;
   wrap.querySelectorAll('[data-paykey]').forEach(p => {
     p.addEventListener('click', () => openPayDetail(p.dataset.paykey));
@@ -1088,13 +1098,13 @@ function openPayDetail(key) {
   $('cdTitle').textContent = meta.label;
   $('cdSub').textContent = `${countLbl(rows.length)} · ${names[d.getMonth()]} ${d.getFullYear()}`;
   const body = $('cdBody');
-  body.innerHTML = rows.length ? rows.map(e => {
+  body.innerHTML = cfBlockHtml(key) + (rows.length ? rows.map(e => {
     const isV = e._virtual;
     const owner = ownerChipHtml(e);
     const sub = isV ? (e._future ? 'fixa · prevista' : 'fixa') : ((CATEGORIES[e.category] && CATEGORIES[e.category].label) || t('exp.filter.src.card'));
     const idAttr = isV ? `data-recurring-id="${esc(e.recurringId)}"` : `data-id="${esc(e.id)}"`;
     return `<tr ${idAttr} class="cd-row" tabindex="0"><td class="mono cd-date">${formatDateBR(e.date)}</td><td class="cd-desc"><div class="cd-desc-main">${esc(e.description) || '—'}${owner}</div><div class="cd-src">${esc(sub)}</div></td><td class="mono cd-val">${fmtBRL(+e.value || 0)}</td></tr>`;
-  }).join('') : `<tr><td colspan="3" class="cd-empty">${esc(t('exp.filter.none'))}</td></tr>`;
+  }).join('') : `<tr><td colspan="3" class="cd-empty">${esc(t('exp.filter.none'))}</td></tr>`);
   $('cdFootCount').textContent = countLbl(rows.length);
   $('cdFootVal').textContent = fmtBRL0(total);
   body.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => {
@@ -1105,8 +1115,64 @@ function openPayDetail(key) {
     if (!(state.recurring || []).some(x => x.id === tr.dataset.recurringId)) { showToast(t('exp.quickcat.gone')); return; }
     closeCategoryDetail(); openRecurringEditor(tr.dataset.recurringId);
   }));
+  // Conferência: "São diferentes" dispensa o flag; clicar num lançamento do par abre pra editar.
+  body.querySelectorAll('[data-cf-dismiss]').forEach(b => b.addEventListener('click', ev => { ev.stopPropagation(); dismissPayFlag(b.getAttribute('data-cf-dismiss')); }));
+  body.querySelectorAll('.cf-mem[data-cf-open]').forEach(el => el.addEventListener('click', ev => {
+    ev.stopPropagation(); const id = el.getAttribute('data-cf-open');
+    if ((state.expenses || []).some(x => x.id === id)) { closeCategoryDetail(); openExpenseModal(id); }
+  }));
   $('catDetailModal')?.classList.add('show');
   attachScrollShadow($('cdBodyScroll'));
+}
+// ============================================================
+//  Conferência (v9) — selo no pill: aponta possíveis duplicados/erros do mês p/ a prova real
+//  da fatura. SÓ LEITURA: nunca apaga. "São diferentes" persiste em config/reviewDismissed.
+// ============================================================
+const _SEV_RANK = { erro: 0, aviso: 1, dica: 2 };
+const CONF_KIND = { 'leftover-provision': 'conf.kind.prov', 'exact-copy': 'conf.kind.copy', 'manual-vs-import': 'conf.kind.manual', 'near-duplicate': 'conf.kind.near' };
+const PAY_WARN = '<svg class="pf-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5 21 19H3z"/><path d="M12 10v4"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>';
+// Flags do mês agrupadas pela MESMA key do paySourceOf (cada achado cai no cartão/Pix a que pertence).
+// Guardado em try: erro de detecção nunca pode quebrar o render das despesas.
+function payFlagsFor(monthExp) {
+  const byKey = {};
+  try {
+    const reals = (monthExp || []).filter(e => e && e.id && isExpense(e) && !e._virtual && !e.removed);
+    const push = (k, f) => { (byKey[k] || (byKey[k] = [])).push(f); };
+    for (const cl of findDuplicateClusters(reals, { nearDays: 3 })) {
+      if (_reviewDismissed.has(cl.id)) continue;
+      const rem = reals.find(e => cl.removeIds.includes(e.id));
+      const key = rem ? paySourceOf(rem).key : 'card';
+      push(key, { id: cl.id, sev: cl.confidence === 'quase-certo' ? 'erro' : 'aviso', title: t(CONF_KIND[cl.kind] || 'conf.kind.near'), detail: cl.why, cluster: cl });
+    }
+    // higiene: cartão genérico "cc" (sem titular) com gastos → não dá pra saber de quem é
+    if (reals.some(e => paySourceOf(e).key === 'card')) {
+      const id = 'cc-noholder:' + monthKey(state.currentViewMonth || new Date());
+      if (!_reviewDismissed.has(id)) push('card', { id, sev: 'dica', title: t('conf.kind.ccnoholder'), detail: t('conf.ccnoholder.detail'), cluster: null });
+    }
+  } catch (err) { console.warn('[conferencia] payFlagsFor', err); }
+  return byKey;
+}
+function paySevTop(flags) { let top = null; for (const f of flags) if (top === null || _SEV_RANK[f.sev] < _SEV_RANK[top]) top = f.sev; return top; }
+async function dismissPayFlag(id, undo) {
+  if (undo) _reviewDismissed.delete(id); else _reviewDismissed.add(id);
+  if (state.mode === 'expenses') renderExpenses();   // some/volta na hora (e o popup aberto se atualiza via _payOpenKey)
+  try { await setDoc(docReviewDismissed, { ids: { [id]: !undo } }, { merge: true }); }
+  catch (e) { console.warn('[conferencia] dismiss', e); }
+}
+function cfDeltaText(d) {
+  if (!d) return '';
+  if (d.type === 'value') return 'Δ R$ ' + (+d.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + (d.pct ? ' (' + String(d.pct).replace('.', ',') + '%)' : '');
+  return 'Δ ' + d.amount + ' ' + (d.amount === 1 ? 'dia' : 'dias');
+}
+function cfFlagHtml(f) {
+  const mem = (f.cluster ? f.cluster.members : []).map(m =>
+    `<div class="cf-mem ${m.role}" data-cf-open="${esc(m.id)}"><span class="mono cf-md">${formatDateBR(m.date)}</span><span class="cf-mdesc">${esc(m.description) || '—'}</span><span class="cf-mtag">${esc(t(m.role === 'manter' ? 'conf.keep' : 'conf.remove'))}</span><span class="mono cf-mv">${fmtBRL0(m.value)}</span></div>`).join('');
+  const delta = f.cluster && f.cluster.delta ? `<span class="cf-delta">${esc(cfDeltaText(f.cluster.delta))}</span>` : '';
+  return `<div class="cf-flag sev-${f.sev}"><div class="cf-t">${esc(f.title)}${delta}</div><div class="cf-d">${esc(f.detail)}</div>${mem}<div class="cf-acts"><button class="cf-btn" data-cf-dismiss="${esc(f.id)}">${esc(t('conf.act.different'))}</button></div></div>`;
+}
+function cfBlockHtml(key) {
+  const fls = _payFlags[key] || []; if (!fls.length) return '';
+  return `<tr class="cd-confer"><td colspan="3"><div class="cf-h">${esc(t('conf.tocheck').replace('{n}', fls.length))}</div>${fls.map(cfFlagHtml).join('')}</td></tr>`;
 }
 function renderExpenses() {
   updateExpSortHeaders();   // indicador de ordenação sempre reflete _expSort (mesmo c/ tabela vazia)
@@ -6234,6 +6300,11 @@ function subscribeAll() {
       Object.entries(data).forEach(([k, v]) => { if (typeof v === 'number' && k in CATEGORIES) flat[k] = v; });
       state.budgets = flat;
     }
+    if (state.mode === 'expenses') renderExpenses();
+  });
+  unsub.reviewDismissed = onSnapshot(docReviewDismissed, (snap) => {
+    const data = snap.exists() ? (snap.data() || {}) : {};
+    _reviewDismissed = new Set(Object.entries(data.ids || {}).filter(([, v]) => v).map(([k]) => k));
     if (state.mode === 'expenses') renderExpenses();
   });
 }
