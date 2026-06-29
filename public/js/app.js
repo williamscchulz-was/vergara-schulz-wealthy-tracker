@@ -6,7 +6,7 @@ import { app, auth, db, GoogleAuthProvider, signInWithPopup, signOut, onAuthStat
 import { I18N } from "./i18n.js";
 import { ICONS, CATEGORIES, INCOME_SOURCES, INCOME_OPTS, MONTH_NAMES_PT, MONTH_NAMES_EN } from "./constants.js";
 import { IMP_GATEWAY, IMP_UF, IMP_STOP, impNormalize, impTokens, impRuleKey, impToISO, impFp, parseBRMoney, matchInstallmentProvision } from "./import-core.js";
-import { projectMonth as projectRecurring, satisfies as satisfiesRule, toYM, ymOf } from "./recurring-core.js";
+import { projectMonth as projectRecurring, satisfies as satisfiesRule, toYM, ymOf, valueFor as recValueFor } from "./recurring-core.js";
 import { findDuplicateClusters } from "./dedup-core.js";
 
 // ============================================================
@@ -756,10 +756,13 @@ function renderResumo() {
     const daysInMonth = new Date(year, vd.getMonth() + 1, 0).getDate();
     const nWeeks = Math.ceil(daysInMonth / 7);
     const wkBins = new Array(nWeeks).fill(0);
-    for (const e of exp) {
-      if (e.provisioned) continue;              // parcela futura provisionada: data sintética (dia 15) distorceria as semanas
+    // Fonte = DATA REAL no mês visto, NÃO a competência. Senão o cartão (competência = mês da fatura,
+    // data = dia da compra) só preenche a 1ª metade do mês e as semanas 3–5 ficam vazias — era o bug
+    // do "só semana 1 e 2". state.expenses já exclui removidos (soft-delete) e não tem virtuais.
+    for (const e of (state.expenses || [])) {
+      if (e.type === 'income' || e.provisioned) continue;   // provisão tem data sintética (dia 15) → distorceria a semana
       const ds = String(e.date || '');
-      if (!ds.startsWith(prefix)) continue;     // só conta se a data REAL cai no mês visto (cartão cross-month: data num mês, fatura noutro)
+      if (!ds.startsWith(prefix)) continue;
       const day = +ds.slice(8, 10) || 1;
       wkBins[Math.min(nWeeks - 1, Math.max(0, Math.floor((day - 1) / 7)))] += (+e.value || 0);
     }
@@ -2398,7 +2401,7 @@ function openRecurringEditor(id) {
     bg.innerHTML = '<div class="modal" role="dialog" aria-modal="true" style="max-width:420px">'
       + '<h3>Despesa fixa</h3>'
       + '<p class="sub" id="recEditDesc" style="margin:-4px 0 12px"></p>'
-      + '<div class="field full"><label>Valor</label><input type="text" id="recEditVal" inputmode="decimal" autocomplete="off"></div>'
+      + '<div class="field full"><label id="recEditValLbl">Valor</label><input type="text" id="recEditVal" inputmode="decimal" autocomplete="off"><div class="meta" id="recEditValMeta"></div></div>'
       + '<div class="field full"><label>Categoria</label><select id="recEditCat"></select><div class="meta">Muda em todas as repetições desta fixa</div></div>'
       + '<div class="field full"><label>Repetir até</label><input type="month" id="recEditEnd"><div class="meta">Em branco = indefinido</div></div>'
       + '<div class="modal-foot">'
@@ -2409,8 +2412,13 @@ function openRecurringEditor(id) {
     bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('show'); });
     bg.querySelector('#recEditCancel').addEventListener('click', () => bg.classList.remove('show'));
   }
+  const _ym = monthKey(state.currentViewMonth || new Date());   // o mês visto = o mês da repetição clicada
+  const _MN = getLang() === 'en' ? MONTH_NAMES_EN : MONTH_NAMES_PT;
+  const _mp = _ym.split('-'); const _mLabel = (_MN[(+_mp[1]) - 1] || '') + ' ' + _mp[0];
   bg.querySelector('#recEditDesc').textContent = tpl.desc + (tpl.card ? ' · no cartão' : '') + (tpl.endYM ? ` · até ${tpl.endYM}` : ' · indefinido');
-  bg.querySelector('#recEditVal').value = fmtBRLInput(tpl.value);
+  bg.querySelector('#recEditValLbl').textContent = 'Valor de ' + _mLabel;
+  bg.querySelector('#recEditValMeta').textContent = 'Só este mês — não mexe nos outros';
+  bg.querySelector('#recEditVal').value = fmtBRLInput(recValueFor(tpl, _ym));
   bg.querySelector('#recEditEnd').value = tpl.endYM || '';
   const catSel = bg.querySelector('#recEditCat');
   catSel.innerHTML = catsAZ().map(([k, c]) => `<option value="${esc(k)}">${esc(c.label)}</option>`).join('');
@@ -2418,9 +2426,9 @@ function openRecurringEditor(id) {
   bg.querySelector('#recEditSave').onclick = async () => {
     try {
       const newCat = catSel.value;
-      // Editar a fixa em si = "daqui pra frente": muda o template (governa as projeções
-      // futuras); as reais já materializadas em meses passados não são tocadas aqui.
-      await setDoc(docRecurring(id), { value: parseBRLInput(bg.querySelector('#recEditVal').value), endYM: (bg.querySelector('#recEditEnd').value || null), category: newCat, updatedAt: serverTimestamp() }, { merge: true });
+      // VALOR é por mês: grava só overrides[mês visto] (merge funde no mapa, preserva os outros) —
+      // não toca o passado nem os demais meses. Categoria e "repetir até" valem pro template inteiro.
+      await setDoc(docRecurring(id), { overrides: { [_ym]: parseBRLInput(bg.querySelector('#recEditVal').value) }, endYM: (bg.querySelector('#recEditEnd').value || null), category: newCat, updatedAt: serverTimestamp() }, { merge: true });
       bg.classList.remove('show');
       showToast('Despesa fixa atualizada');
     } catch (e) { showErrorPopup('Falha ao salvar a recorrência', e); }

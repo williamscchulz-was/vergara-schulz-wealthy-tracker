@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { impRuleKey } from '../public/js/import-core.js';
-import { toYM, ymOf, ymCmp, ymAdd, activeIn, satisfies, makeVirtual, projectMonth } from '../public/js/recurring-core.js';
+import { toYM, ymOf, ymCmp, ymAdd, activeIn, satisfies, makeVirtual, projectMonth, valueFor } from '../public/js/recurring-core.js';
 
 test('helpers de mês (YYYY-MM)', () => {
   assert.equal(toYM(2026, 6), '2026-06');
@@ -74,4 +74,25 @@ test('projectMonth — projeta o que falta, suprime o que já tem real (não dup
   // Override manual do aluguel naquele mês → suprime o aluguel projetado
   const v3 = projectMonth(templates, [{ recurringId: 'rent', value: 2100, competencia: '2026-07' }], '2026-07', '2026-06');
   assert.deepEqual(v3.map(x => x.recurringId).sort(), ['net']);
+});
+
+test('valueFor — override por mês tem prioridade; senão o valor base; sem overrides = base', () => {
+  const tpl = { value: 120, overrides: { '2026-07': 150, '2026-09': 95 } };
+  assert.equal(valueFor(tpl, '2026-06'), 120);   // sem override → base
+  assert.equal(valueFor(tpl, '2026-07'), 150);   // override do mês
+  assert.equal(valueFor(tpl, '2026-09'), 95);
+  assert.equal(valueFor({ value: 120 }, '2026-07'), 120);   // template sem overrides
+});
+
+test('makeVirtual — usa o override do mês quando existe (gás varia por mês)', () => {
+  const tpl = { id: 'gas', desc: 'Gás', value: 120, category: 'casa', owner: 'familia', dayOfMonth: 10, overrides: { '2026-07': 95 } };
+  assert.equal(makeVirtual(tpl, '2026-06', '2026-06').value, 120);   // mês sem override → base
+  assert.equal(makeVirtual(tpl, '2026-07', '2026-06').value, 95);    // mês com override → override (não mexe nos outros)
+});
+
+test('satisfies — cartão usa o valor do MÊS (override) na tolerância', () => {
+  const tpl = { id: 'r', card: true, ruleKey: impRuleKey('CLARO'), value: 100, overrides: { '2026-07': 200 } };
+  assert.equal(satisfies({ description: 'CLARO', value: 210, competencia: '2026-07' }, tpl), true);   // mês espera ~200 (override)
+  assert.equal(satisfies({ description: 'CLARO', value: 100, competencia: '2026-07' }, tpl), false);  // 100 longe de 200 → não casa
+  assert.equal(satisfies({ description: 'CLARO', value: 105, competencia: '2026-06' }, tpl), true);   // mês sem override usa base 100
 });

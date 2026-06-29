@@ -35,11 +35,20 @@ export function satisfies(exp, tpl, tol = 0.30) {
   if (!exp || !tpl) return false;
   if (exp.recurringId && exp.recurringId === tpl.id) return true;
   if (tpl.card && tpl.ruleKey && impRuleKey(exp.description) === tpl.ruleKey) {
-    const a = +exp.value || 0, b = +tpl.value || 0;
+    const a = +exp.value || 0, b = valueFor(tpl, ymOf(exp.competencia || exp.date)) || 0;   // valor esperado do MÊS (respeita override)
     if (b <= 0) return true;
     return Math.abs(a - b) / b <= tol;
   }
   return false;
+}
+
+// Valor da fixa NUM MÊS: override por mês (overrides['YYYY-MM']) tem prioridade; senão o valor base
+// do template. Editar o valor de um mês grava só overrides[aquele mês] — não toca o passado nem os
+// outros meses. Sem overrides → devolve o valor base (100% retrocompatível).
+export function valueFor(tpl, yms) {
+  const ov = tpl && tpl.overrides;
+  if (ov && ov[yms] != null && ov[yms] !== '') return +ov[yms] || 0;
+  return +(tpl && tpl.value) || 0;
 }
 
 // Instância VIRTUAL (projetada) de um template num mês. _virtual=true → não persiste.
@@ -54,7 +63,7 @@ export function makeVirtual(tpl, yms, currentYM) {
     recurringId: tpl.id,
     type: tpl.type || 'expense',
     description: tpl.desc,
-    value: +tpl.value || 0,
+    value: valueFor(tpl, yms),   // override do mês (se houver) ou valor base
     category: tpl.category || 'outros',
     owner: tpl.owner || 'familia',
     nature: 'fixa',

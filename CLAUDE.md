@@ -170,6 +170,7 @@ Todas as coleções e documentos ficam sob `household/main/...` (a casa é uma s
 
 /household/main/recurring/{id}             // templates de despesa FIXA/recorrente (v8.19)
   - desc, value, category, owner, type:'expense', nature:'fixa'
+  - overrides:  { 'YYYY-MM': number }  // valor POR MÊS (editor da fixa grava só o mês visto via recValueFor); sem entrada usa `value`. Não mexe no passado nem nos outros meses.
   - dayOfMonth: number (1-28)
   - startYM:   'YYYY-MM'        // mês de início
   - endYM:     'YYYY-MM' | null // até quando (null = indefinido)
