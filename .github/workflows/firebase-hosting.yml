@@ -1,55 +1,35 @@
 name: Deploy to Firebase Hosting
 
-# Publica public/ no Firebase Hosting (canal live) a cada push — SÓ se existir o secret
-# FIREBASE_SERVICE_ACCOUNT. Sem o secret, o job 'deploy' é PULADO (skipped) — não falha e não
-# manda e-mail de "Run failed". O site é publicado pela CLI `firebase deploy` (manual) + GitHub
-# Pages (pages.yml). Pra ligar o auto-deploy no .web.app, adicione o secret: docs/DEPLOY-HOSTING.md.
+# MANUAL-ONLY (workflow_dispatch) — NÃO roda a cada push.
 #
-# Por que dois jobs: o `secrets` não pode ser usado em `if:` de job, e uma action `uses:` inválida
-# falha o job inteiro mesmo com `if` no step. Então o job `check` (sempre verde) decide via output,
-# e o `deploy` (com a action de checkout) só é criado/rodado quando o secret existe.
+# Por quê: o secret FIREBASE_SERVICE_ACCOUNT EXISTE no repo, então o auto-deploy no push
+# RODAVA e FALHAVA (a service account não tem permissão de Firebase Hosting), mandando e-mail
+# de "Run failed" a cada push. O site é publicado pelo `firebase deploy` (CLI logada no PC do
+# dono) — esse é o método oficial (ver CLAUDE.md) — e pelo GitHub Pages (pages.yml).
+#
+# Pra RELIGAR o auto-deploy no push: (1) dê o papel "Firebase Hosting Admin" à service account
+# do secret, valide com um `workflow_dispatch` manual, e (2) re-adicione `push:` no `on:` abaixo.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'public/**'
-      - 'firebase.json'
-      - '.github/workflows/firebase-hosting.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    outputs:
-      has_sa: ${{ steps.check.outputs.has_sa }}
-    steps:
-      - id: check
-        env:
-          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: |
-          if [ -n "$SA" ]; then
-            echo "has_sa=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_sa=false" >> "$GITHUB_OUTPUT"
-            echo "FIREBASE_SERVICE_ACCOUNT ausente — deploy via CLI/GitHub Pages; job 'deploy' será pulado."
-          fi
-
   deploy:
-    needs: check
-    if: needs.check.outputs.has_sa == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       # Deploy pela firebase CLI (node já vem no runner) → sem action de terceiro.
-      # Autentica via service account (GOOGLE_APPLICATION_CREDENTIALS → arquivo do secret).
       - name: Deploy to Firebase Hosting (live, via firebase CLI)
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "Sem FIREBASE_SERVICE_ACCOUNT — nada a publicar."
+            exit 0
+          fi
           printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/sa.json"
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
           npx -y firebase-tools@latest deploy --only hosting --project wealthy-tracker-68658 --non-interactive

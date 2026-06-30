@@ -20,7 +20,7 @@ Contexto persistente do projeto. Mantenha este arquivo atualizado. Quando algo a
 
 Os dois usuários (W e F) compartilham o mesmo Firestore (`household/main/*`) e enxergam o mesmo estado em tempo real via `onSnapshot`. Cada alteração de um aparece instantaneamente pro outro.
 
-O app é **single-page**, **client-side puro**, servido estaticamente. Não há build step — os arquivos são publicados como estão. **Hospedagem dupla** (mesmo `public/`): **Firebase Hosting** em `https://ledger-schulz.web.app` (URL principal) — publicada por **`firebase deploy` manual** (CLI logada no PC do dono); o Action `firebase-hosting.yml` fica **INERTE** até existir o secret `FIREBASE_SERVICE_ACCOUNT` (passa verde sem publicar). **GitHub Pages** (backup) **esse auto-deploya** no push (`pages.yml`). ⚠️ **`git push` NÃO atualiza o `.web.app`** — só `firebase deploy` manual (ou o secret) faz isso. Ver `docs/DEPLOY-HOSTING.md`.
+O app é **single-page**, **client-side puro**, servido estaticamente. Não há build step — os arquivos são publicados como estão. **Hospedagem dupla** (mesmo `public/`): **Firebase Hosting** em `https://ledger-schulz.web.app` (URL principal) — publicada por **`firebase deploy` manual** (CLI logada no PC do dono); o Action `firebase-hosting.yml` é **manual-only** (`workflow_dispatch`, **não roda no push**) — o auto-deploy foi desligado em jun/2026 porque a service account do secret `FIREBASE_SERVICE_ACCOUNT` não tem permissão de Hosting e falhava a cada push (e-mail de "Run failed"). **GitHub Pages** (backup) **esse auto-deploya** no push (`pages.yml`). ⚠️ **`git push` NÃO atualiza o `.web.app`** — só `firebase deploy` manual faz isso. Ver `docs/DEPLOY-HOSTING.md`.
 
 ---
 
@@ -31,7 +31,7 @@ O app é **single-page**, **client-side puro**, servido estaticamente. Não há 
 | Frontend | HTML + CSS + JavaScript ES modules (sem bundler, sem framework) |
 | Auth | Firebase Auth (Google provider) |
 | Database | Cloud Firestore (projeto `wealthy-tracker-68658`) |
-| Hosting | **Firebase Hosting** (`ledger-schulz.web.app`, principal) — publicada por `firebase deploy` manual (Action `firebase-hosting.yml` **inerte** sem o secret `FIREBASE_SERVICE_ACCOUNT`) + **GitHub Pages** backup (auto-deploy no push, `pages.yml`). ⚠️ `git push` não atualiza o `.web.app`. Config `firebase.json`. Setup `docs/DEPLOY-HOSTING.md` |
+| Hosting | **Firebase Hosting** (`ledger-schulz.web.app`, principal) — publicada por `firebase deploy` manual (Action `firebase-hosting.yml` é **manual-only**/`workflow_dispatch`; auto-deploy no push desligado pq a SA do secret falhava) + **GitHub Pages** backup (auto-deploy no push, `pages.yml`). ⚠️ `git push` não atualiza o `.web.app`. Config `firebase.json`. Setup `docs/DEPLOY-HOSTING.md` |
 | Fontes | Inter (UI) + Geist Mono (números) via Google Fonts |
 | PWA | `manifest.json` + ícones padrão (iOS + Android + maskable) |
 | Proxy/integração | **Cloudflare Worker** (`worker/src/worker.js`) publicado em `workers.cloudflare.com` — resolve CORS do Investidor 10 e faz cache de 5 min |
@@ -455,4 +455,4 @@ Quando fizer uma mudança relevante, marcá-la como `v8 Turno N+1` (ou `v9 Turno
 - **Firebase project ID**: `wealthy-tracker-68658`
 - **Entrypoint**: `public/index.html` → importa `public/js/app.js` (ES module, único arquivo JS do app)
 - **Deploy do worker**: `wrangler deploy` ou colar no dashboard do Cloudflare Workers
-- **Deploy do app**: **GitHub Pages** (backup) auto-publica no push (`pages.yml`). O **`.web.app` principal** sai por `firebase deploy --only hosting --project wealthy-tracker-68658` (manual, CLI logada no PC do dono) — o Action `firebase-hosting.yml` só publica se o secret `FIREBASE_SERVICE_ACCOUNT` existir. ⚠️ `git push` NÃO atualiza o `.web.app`. Setup em `docs/DEPLOY-HOSTING.md`
+- **Deploy do app**: **GitHub Pages** (backup) auto-publica no push (`pages.yml`). O **`.web.app` principal** sai por `firebase deploy --only hosting --project wealthy-tracker-68658` (manual, CLI logada no PC do dono). O Action `firebase-hosting.yml` é **manual-only** (`workflow_dispatch`) — o auto-deploy no push foi desligado pq a SA do secret `FIREBASE_SERVICE_ACCOUNT` não tem permissão de Hosting e falhava todo push. ⚠️ `git push` NÃO atualiza o `.web.app`. Setup em `docs/DEPLOY-HOSTING.md`
