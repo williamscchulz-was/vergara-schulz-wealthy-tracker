@@ -653,8 +653,14 @@ function renderResumo() {
   const periodWord = annual ? t('rz.inyear') : t('rz.inmonth');
   const startsWith = (e, p) => (e.competencia || e.date || '').startsWith(p);
 
-  // Período corrente (mensal ou anual) — hero/KPIs/donut
-  const items = (state.expenses || []).filter(e => startsWith(e, prefix));
+  // Período corrente (mensal ou anual) — hero/KPIs/donut. No modo MENSAL, mescla as fixas AINDA
+  // projetadas (mesma regra de renderExpenses/projectRecurring) — senão "Despesas no mês"/donut
+  // ficavam menores que o total real da aba Despesas (a fixa conta como custo do mês mesmo sem
+  // lançamento manual reconciliado ainda — ver recurring-core.js). Reaproveitado no card semanal
+  // logo abaixo, pra os dois números do Resumo baterem entre si.
+  let items = (state.expenses || []).filter(e => startsWith(e, prefix));
+  const curVirtuals = !annual ? projectRecurring(state.recurring, items, prefix, monthKey(new Date())) : [];
+  if (curVirtuals.length) items = items.concat(curVirtuals);
   const exp = items.filter(e => e.type !== 'income');
   const inc = items.filter(e => e.type === 'income');
   const sum = arr => arr.reduce((s, e) => s + (+e.value || 0), 0);
@@ -667,7 +673,11 @@ function renderResumo() {
   const prevDate = annual ? new Date(year - 1, 0, 1) : new Date(vd.getFullYear(), vd.getMonth() - 1, 1);
   const prevPrefix = annual ? ((year - 1) + '-') : (prevDate.getFullYear() + '-' + String(prevDate.getMonth() + 1).padStart(2, '0'));
   const prevLabel = annual ? String(year - 1) : MN[prevDate.getMonth()];
-  const prevItems = (state.expenses || []).filter(e => startsWith(e, prevPrefix));
+  let prevItems = (state.expenses || []).filter(e => startsWith(e, prevPrefix));
+  if (!annual) {
+    const prevVirtuals = projectRecurring(state.recurring, prevItems, prevPrefix, monthKey(new Date()));
+    if (prevVirtuals.length) prevItems = prevItems.concat(prevVirtuals);
+  }
   const prevGanhos = sum(prevItems.filter(e => e.type === 'income'));
   const prevDespesas = sum(prevItems.filter(e => e.type !== 'income'));
   const ganhosVs = prevGanhos > 0 ? Math.round((ganhos - prevGanhos) / prevGanhos * 100) : null;
@@ -761,13 +771,20 @@ function renderResumo() {
     const wkBins = new Array(nWeeks).fill(0);
     // Fonte = DATA REAL no mês visto, NÃO a competência. Senão o cartão (competência = mês da fatura,
     // data = dia da compra) só preenche a 1ª metade do mês e as semanas 3–5 ficam vazias — era o bug
-    // do "só semana 1 e 2". state.expenses já exclui removidos (soft-delete) e não tem virtuais.
+    // do "só semana 1 e 2". state.expenses já exclui removidos (soft-delete).
     for (const e of (state.expenses || [])) {
       if (e.type === 'income' || e.provisioned) continue;   // provisão tem data sintética (dia 15) → distorceria a semana
       const ds = String(e.date || '');
       if (!ds.startsWith(prefix)) continue;
       const day = +ds.slice(8, 10) || 1;
       wkBins[Math.min(nWeeks - 1, Math.max(0, Math.floor((day - 1) / 7)))] += (+e.value || 0);
+    }
+    // + fixas ainda projetadas (curVirtuals, calculado acima p/ o resto do Resumo) — o `date` delas já
+    // é sintético DENTRO do mês visto (yms-dayOfMonth), então bucketar por dia aqui é seguro e mantém
+    // este total batendo com "Despesas no mês" (senão o card semanal ficava menor que o restante).
+    for (const v of curVirtuals) {
+      const day = +String(v.date || '').slice(8, 10) || 1;
+      wkBins[Math.min(nWeeks - 1, Math.max(0, Math.floor((day - 1) / 7)))] += (+v.value || 0);
     }
     const wkTotal = wkBins.reduce((s, v) => s + v, 0);   // subtotal = só o que entrou nas barras (reconcilia)
     const wkMax = Math.max(1, ...wkBins);
