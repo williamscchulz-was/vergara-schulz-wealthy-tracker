@@ -128,6 +128,9 @@ const state = {
   incomeOpts: [],                // atalhos de descrição de ganho criados pelo casal [{val,label,source}]
   currentViewMonth: new Date(),  // month being viewed in Expenses
 };
+// Expõe o state pro console (debug/suporte) — só leitura, mesmo espírito de window.__ledgerYearly/
+// __ledgerEquity. `state` é const e mutado in-place (nunca reatribuído), então isso fica sempre ao vivo.
+window.__ledgerState = state;
 
 // ============================================================
 //  i18n - declared early so functions can use t()
