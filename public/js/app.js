@@ -2424,6 +2424,8 @@ function openRecurringEditor(id) {
       + '<div class="field full"><label id="recEditValLbl">Valor</label><input type="text" id="recEditVal" inputmode="decimal" autocomplete="off"><div class="meta" id="recEditValMeta"></div></div>'
       + '<div class="field full"><label>Categoria</label><select id="recEditCat"></select><div class="meta">Muda em todas as repetições desta fixa</div></div>'
       + '<div class="field full"><label>Repetir até</label><input type="month" id="recEditEnd"><div class="meta">Em branco = indefinido</div></div>'
+      + '<button class="btn-primary" id="recEditPay" type="button" style="width:100%;margin:2px 0 16px">Marcar como pago este mês</button>'
+      + '<p class="meta" id="recEditPayMeta" style="margin:-12px 0 14px"></p>'
       + '<div class="modal-foot">'
       + '<button class="btn-danger ghost" id="recEditDel" type="button">Parar de repetir</button><div class="spacer"></div>'
       + '<button class="btn-secondary" id="recEditCancel" type="button">Cancelar</button><button class="btn-primary" id="recEditSave" type="button">Salvar</button>'
@@ -2443,6 +2445,28 @@ function openRecurringEditor(id) {
   const catSel = bg.querySelector('#recEditCat');
   catSel.innerHTML = catsAZ().map(([k, c]) => `<option value="${esc(k)}">${esc(c.label)}</option>`).join('');
   catSel.value = tpl.category || 'outros';
+  // "Marcar como pago": só faz sentido pra fixa NÃO-cartão — a de cartão já reconcilia sozinha
+  // quando a fatura é importada (criar manual aqui arriscaria duplicar quando o import chegasse).
+  const payBtn = bg.querySelector('#recEditPay');
+  payBtn.hidden = !!tpl.card;
+  bg.querySelector('#recEditPayMeta').textContent = tpl.card
+    ? 'Essa fixa reconcilia sozinha quando você importa a fatura do cartão.'
+    : `Cria o lançamento real de ${_mLabel} (sem precisar redigitar) — some do "Previsto".`;
+  payBtn.onclick = async () => {
+    try {
+      payBtn.disabled = true;
+      const day = Math.min(28, Math.max(1, +tpl.dayOfMonth || 1));
+      await addDoc(colExpenses(), {
+        type: 'expense', description: tpl.desc, value: parseBRLInput(bg.querySelector('#recEditVal').value),
+        date: `${_ym}-${String(day).padStart(2, '0')}`, category: catSel.value, owner: tpl.owner || 'familia',
+        nature: 'fixa', recurringId: tpl.id, source: 'manual', notes: '',
+        createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+        createdBy: state.user?.displayName || 'unknown', updatedBy: state.user?.displayName || 'unknown',
+      });
+      bg.classList.remove('show');
+      showToast('Marcado como pago — não aparece mais como Previsto');
+    } catch (e) { showErrorPopup('Falha ao marcar como pago', e); } finally { payBtn.disabled = false; }
+  };
   bg.querySelector('#recEditSave').onclick = async () => {
     try {
       const newCat = catSel.value;
