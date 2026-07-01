@@ -1,0 +1,440 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ledger · Investimentos — 3 direções de rebranding</title>
+<!--
+  MOCKUP DE REVISÃO DE DESIGN — não é código de produção.
+  Reusa os MESMOS tokens CSS (--bg, --ink, --purple etc.) e nomes de classe do app real
+  (.hero-card, .cat-row, .inv-donut, .inv-leg...) pra facilitar portar depois de aprovado.
+  Dados são os números reais que o dono compartilhou — mesmos em TODAS as direções (comparação justa).
+  Precisa da aprovação explícita do dono antes de qualquer coisa entrar em index.html/app.js.
+-->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --font-ui:'Inter',system-ui,sans-serif; --font-mono:'Geist Mono',monospace;
+  --radius:14px; --radius-lg:20px; --radius-sm:8px;
+}
+body[data-theme="dark"]{
+  --bg:#0a0c08; --bg-elevated:#14180f; --bg-elevated-2:#1a1f14; --bg-elevated-3:#20261a;
+  --ink:#f3f4ee; --ink-2:#b9bbae; --ink-3:#9a9c90; --ink-muted:#8b8d81;
+  --purple:#c7f73e; --purple-light:#d8fa72; --purple-deep:#a6d22e;
+  --border:color-mix(in oklab, var(--purple) 8%, transparent);
+  --gain:#4fdd8a; --loss:#ff6b61; --warn:#ffc24d;
+}
+body[data-theme="light"]{
+  --bg:#f3efe7; --bg-elevated:#fffdf9; --bg-elevated-2:#f4eee2; --bg-elevated-3:#faf6ee;
+  --ink:#2a2620; --ink-2:#6b6256; --ink-3:#6f6657; --ink-muted:#837767;
+  --purple:#2fae5f; --purple-light:#5fd08a; --purple-deep:#1f8f4a;
+  --border:#e7ddcb;
+  --gain:#1f9d4d; --loss:#dc2626; --warn:#c47d00;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);line-height:1.4;padding:0 0 90px;transition:background .25s,color .25s}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.topbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.topbar h1{font-size:15px;margin:0;font-weight:700;white-space:nowrap}
+.topbar .v{font:700 9px var(--font-ui);background:color-mix(in srgb,var(--purple) 12%,transparent);color:var(--purple);border:1px solid var(--border);padding:2px 7px;border-radius:999px}
+.dir-switch{display:inline-flex;gap:3px;background:var(--bg-elevated-2);border:1px solid var(--border);border-radius:999px;padding:4px;flex-wrap:wrap}
+.dir-switch button{font:600 12px var(--font-ui);color:var(--ink-3);background:transparent;border:0;border-radius:999px;padding:7px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.dir-switch button.on{background:var(--bg-elevated);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.dir-switch button .star{color:var(--purple);font-size:10px}
+.theme-btn{margin-left:auto;font:600 12px var(--font-ui);color:var(--ink-2);background:var(--bg-elevated-2);border:1px solid var(--border);border-radius:999px;padding:8px 14px;cursor:pointer;white-space:nowrap}
+.lead{padding:14px 20px 4px;color:var(--ink-2);font-size:13px;max-width:76ch}
+.lead b{color:var(--ink)}
+.page{max-width:900px;margin:0 auto;padding:18px 20px 0}
+.card{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.card + .card{margin-top:20px}
+.eyebrow{font:700 11px var(--font-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);display:flex;align-items:center;gap:8px}
+.live-dot{width:6px;height:6px;border-radius:999px;background:var(--gain);box-shadow:0 0 0 3px color-mix(in srgb,var(--gain) 20%,transparent)}
+.chip{display:inline-flex;align-items:center;gap:4px;font:700 13px var(--font-mono);color:var(--gain);background:color-mix(in srgb,var(--gain) 14%,transparent);border-radius:999px;padding:3px 10px}
+.hero-actions{display:flex;align-items:center;gap:10px;margin-top:16px;color:var(--ink-muted);font-size:11.5px}
+.hero-actions .btn-ic{width:30px;height:30px;border-radius:999px;background:var(--bg-elevated-2);border:1px solid var(--border);display:grid;place-items:center;color:var(--ink-2);cursor:pointer}
+.hero-actions .btn-ic svg{width:14px;height:14px}
+.louise-chip{display:inline-flex;align-items:center;gap:8px;background:var(--bg-elevated-2);border:1px solid var(--border);border-radius:999px;padding:7px 12px;margin-top:14px;font-size:12px;color:var(--ink-2)}
+.louise-chip svg{width:13px;height:13px;color:#e0629f}
+.louise-chip .lv{font-family:var(--font-mono);font-weight:700;color:var(--ink)}
+.section-title{font-size:15px;font-weight:700;margin:0}
+.card-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.seg{display:inline-flex;background:var(--bg-elevated-2);border:1px solid var(--border);border-radius:999px;padding:3px;gap:2px;margin-left:auto}
+.seg button{font:600 11px var(--font-ui);color:var(--ink-3);background:transparent;border:0;border-radius:999px;padding:5px 10px;cursor:pointer}
+.seg button.on{background:var(--bg-elevated);color:var(--ink)}
+.legend-row{display:flex;gap:16px;font-size:11.5px;color:var(--ink-2);margin-bottom:10px}
+.legend-row .dot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:5px}
+svg{display:block}
+.reco-badge{font:700 9px var(--font-ui);letter-spacing:.04em;text-transform:uppercase;background:var(--purple);color:var(--bg);padding:2px 8px;border-radius:999px}
+.foot{text-align:center;color:var(--ink-3);font-size:13px;margin:36px auto 0;max-width:640px;line-height:1.7;padding:0 20px}
+.foot b{color:var(--ink-2)}
+@media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
+
+/* ===== Direction 1: Quiet Ledger ===== */
+.q-hero .hero-amount{font:700 48px var(--font-mono);margin:6px 0 2px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.q-hero .hero-amount .cents{font-size:60%;opacity:.55}
+.q-hero .hero-usd{font:600 13px var(--font-mono);color:var(--ink-muted);margin-bottom:14px}
+.q-hero .hero-stat-row{display:flex;border-top:1px solid var(--border);padding-top:16px;margin-top:4px;gap:0;flex-wrap:wrap}
+.q-hero .qstat{flex:1 1 21%;padding:0 16px;border-left:1px solid var(--border)}
+.q-hero .qstat:first-child{border-left:0;padding-left:0}
+.q-lbl{font:600 10.5px var(--font-ui);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
+.q-val{font:700 18px var(--font-mono);color:var(--ink)}
+.q-sub{font:600 10.5px var(--font-mono);color:var(--ink-muted);margin-top:3px}
+.q-evo-bars{display:flex;align-items:flex-end;gap:8px;height:130px;margin:8px 0 2px}
+.q-evo-bars .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.q-evo-bars .bar{width:70%;border-radius:8px 8px 0 0;background:linear-gradient(180deg,var(--purple) 0%,color-mix(in srgb,var(--purple) 35%,transparent) 100%)}
+.q-evo-bars .col.cur .bar{box-shadow:0 0 0 1.5px var(--purple),0 0 14px -4px var(--purple)}
+.q-yoy-strip{display:flex;gap:10px;overflow-x:auto;padding-top:12px;margin-top:10px;border-top:1px solid var(--border)}
+.q-yoy-strip .cell{flex:0 0 auto;text-align:center;padding-bottom:6px;border-bottom:2px solid var(--gain);min-width:56px}
+.q-yoy-strip .cell.neg{border-bottom-color:var(--loss)}
+.q-yoy-strip .cell .yv{font:700 12px var(--font-mono);color:var(--gain)}
+.q-yoy-strip .cell.neg .yv{color:var(--loss)}
+.q-yoy-strip .cell .yl{font-size:9px;color:var(--ink-3);margin-top:2px}
+.q-donut-wrap{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.q-donut-center{position:relative;flex-shrink:0}
+.q-donut-center .dc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.q-donut-center .dc .dv{font:700 19px var(--font-mono)}
+.q-donut-center .dc .dl{font-size:9.5px;color:var(--ink-3);margin-top:2px;max-width:80px}
+.q-leg{flex:1;min-width:180px}
+.q-leg .row{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.q-leg .row.muted{color:var(--ink-muted)}
+.q-leg .row .dot{width:8px;height:8px;border-radius:2px;margin-right:9px}
+.q-leg .row .nm{font-weight:600;flex:1}
+.q-leg .row .pc{font:700 13px var(--font-mono)}
+.q-cat-row{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid var(--border);cursor:pointer}
+.q-cat-row:last-child{border-bottom:0}
+.q-cat-ic{width:36px;height:36px;border-radius:10px;background:color-mix(in srgb,var(--purple) 12%,transparent);color:var(--purple);display:grid;place-items:center;flex-shrink:0}
+.q-cat-ic svg{width:17px;height:17px}
+.q-cat-name{font-weight:600;font-size:13.5px}
+.q-cat-meta{font-size:11px;color:var(--ink-3);margin-top:1px}
+.q-cat-val{margin-left:auto;font:700 15px var(--font-mono)}
+.q-chevron{width:16px;height:16px;color:var(--ink-3);transition:transform .2s}
+.q-cat-row.open .q-chevron{transform:rotate(90deg)}
+.q-expand{display:none;padding:12px 4px 4px 48px}
+.q-cat-row.open + .q-expand{display:block}
+.q-stats-strip{display:flex;gap:20px;padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:10px;flex-wrap:wrap}
+.q-stats-strip div{font-size:11px;color:var(--ink-3)}
+.q-stats-strip .v{display:block;font:700 13px var(--font-mono);color:var(--ink);margin-top:2px}
+.q-pill{display:inline-block;font:700 12px var(--font-mono);background:color-mix(in srgb,var(--gain) 14%,transparent);color:var(--gain);border-radius:999px;padding:2px 9px}
+.q-ticker{display:flex;justify-content:space-between;padding:6px 0;font-size:12px;color:var(--ink-2)}
+.q-ticker .tv{font-family:var(--font-mono);color:var(--ink)}
+.q-ticker .ta{font-family:var(--font-mono);color:var(--gain);margin-left:8px}
+
+/* ===== Direction 2: Ledger Dashboard ===== */
+.d-hero{padding:0;overflow:hidden}
+.d-hero .tier1{padding:28px 26px 22px}
+.d-hero .hero-amount{font:700 42px var(--font-mono);margin:6px 0 4px}
+.d-hero .hero-usd{font:600 13px var(--font-mono);color:var(--ink-muted)}
+.d-tier2{background:var(--bg-elevated-2);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(4,1fr);padding:18px 26px}
+.d-tier2 .tile{padding:0 16px;border-left:1px solid var(--border)}
+.d-tier2 .tile:first-child{border-left:0;padding-left:0}
+.d-tile-lbl{font:600 10.5px var(--font-ui);letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
+.d-tile-val{font:700 17px var(--font-mono)}
+.d-tile-sub{font:600 10.5px var(--font-mono);color:var(--ink-muted);margin-top:3px}
+.story-row{display:grid;gap:20px;grid-template-columns:1fr}
+@media(min-width:900px){.story-row{grid-template-columns:1.3fr 1fr}}
+.d-evo-legend{display:flex;gap:16px;font-size:12px;color:var(--ink-2);margin-bottom:10px}
+.d-evo-legend .dot{width:9px;height:9px;border-radius:3px;margin-right:6px}
+.d-evo-bars{display:flex;align-items:flex-end;gap:7px;height:150px}
+.d-evo-bars .col{flex:1;display:flex;flex-direction:column-reverse;height:100%}
+.d-evo-bars .seg-applied{background:var(--purple);border-radius:0}
+.d-evo-bars .seg-gain{background:color-mix(in srgb, var(--gain) 55%, var(--purple) 45%);border-radius:6px 6px 0 0}
+.d-split{display:grid;grid-template-columns:minmax(120px,150px) 1fr;gap:16px;align-items:flex-start}
+.d-donut-pane{background:var(--bg-elevated-2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;justify-content:center}
+.d-leg-list{display:flex;flex-direction:column;gap:2px}
+.leg-row-card{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;font-size:13px;cursor:pointer}
+.leg-row-card:hover{background:var(--bg-elevated-2)}
+.leg-row-card .dot{width:10px;height:10px;border-radius:999px;box-shadow:0 0 0 2px color-mix(in srgb, currentColor 25%, transparent)}
+.leg-row-card .nm{font-weight:600;flex:1}
+.leg-row-card .pc{font:700 14px var(--font-mono)}
+.cat-row--kpi{padding:14px 4px;border-bottom:1px solid var(--border)}
+.cat-row--kpi:last-child{border-bottom:0}
+.kpi-line1{display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer}
+.kpi-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+@media(max-width:680px){.kpi-stats{grid-template-columns:repeat(2,1fr)}}
+.kpi-stat{font-size:10.5px;color:var(--ink-3)}
+.kpi-stat b{display:block;font:700 13.5px var(--font-mono);color:var(--ink);margin-top:3px}
+.kpi-stat .cat-pill{font:700 11px var(--font-mono);background:color-mix(in srgb,var(--gain) 14%,transparent);color:var(--gain);border-radius:999px;padding:1px 8px;display:inline-block;margin-top:3px}
+
+/* ===== Direction 3: Orbit Overview ===== */
+.o-ring-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.o-ring-svg{flex-shrink:0}
+.o-ring-center{position:relative;width:150px;height:150px}
+.o-ring-center .oc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.o-ring-center .ov{font:700 22px var(--font-mono)}
+.o-ring-center .ol{font-size:10.5px;color:var(--ink-3);margin-top:4px}
+.o-statline{font-size:12.5px;color:var(--ink-2);line-height:1.9;flex:1;min-width:220px}
+.o-statline .lbl{color:var(--ink-3);font-style:italic;margin-right:4px}
+.o-statline .val{font-family:var(--font-mono);font-weight:700;color:var(--ink)}
+.o-statline .sep{color:var(--border);margin:0 8px}
+.o-micro{display:flex;align-items:center;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.o-micro .ml{font-size:11.5px;color:var(--ink-3)}
+.detail-toggle{width:100%;margin-top:20px;background:var(--bg-elevated-2);border:1px solid var(--border);border-radius:999px;padding:11px;font:600 13px var(--font-ui);color:var(--ink-2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.detail-toggle svg{width:14px;height:14px;transition:transform .24s}
+.detail-toggle.open svg{transform:rotate(180deg)}
+.detail-stack{display:none;margin-top:20px}
+.detail-stack.open{display:block}
+.o-sparkbar-card{background:var(--bg-elevated-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 14px;margin-bottom:10px;cursor:pointer}
+.o-sb-top{display:flex;align-items:center;gap:10px}
+.o-sb-top .nm{font-weight:600;font-size:13.5px;flex:1}
+.o-sb-top .val{font:700 15px var(--font-mono)}
+.o-sb-bar{height:3px;border-radius:999px;background:var(--border);margin-top:9px;overflow:hidden}
+.o-sb-bar i{display:block;height:100%;border-radius:999px}
+.o-sb-pct{font-size:10.5px;color:var(--ink-3);margin-top:5px}
+</style></head>
+<body data-theme="light">
+
+<div class="topbar">
+  <h1>Investimentos — rebranding <span class="v">mockup</span></h1>
+  <div class="dir-switch" id="dirSwitch">
+    <button data-d="quiet">Quiet Ledger</button>
+    <button data-d="dash">Ledger Dashboard <span class="star">★</span></button>
+    <button data-d="orbit">Orbit Overview</button>
+  </div>
+  <button class="theme-btn" id="themeBtn">🌙 Escuro</button>
+</div>
+<p class="lead">Direção <b>Apple</b> (tipografia, espaço, contenção) + inspiração <b>Investidor10</b> (densidade de dado). Mesmos números reais nas 3 — só muda o tratamento visual. <b>★ = minha sugestão</b> (Ledger Dashboard: densidade do I10 com o material da Apple).</p>
+
+<div class="page" id="stage"></div>
+
+<div class="foot">Escolhe uma direção pelo tato — pode alternar tema (claro/escuro) em qualquer uma. Me diz qual curtiu (ou pede pra combinar pedaços de mais de uma) que eu faço o blueprint de implementação. Nada disso entra no app até você aprovar. ✌️</div>
+
+<script>
+const D = {
+  patrimonioTotal: 1750000, // total do Ledger (I10 + reservas + previdência), consistente com o Resumo
+  patrimonioI10: 1681348.28,
+  valorInvestido: 1548563.41,
+  lucroTotal: 317794.58, ganhoDeCapital: 132784.87, dividendosRecebidos: 185009.72,
+  proventos12M: 100832.93, rent12M: 22.5, rentTotal: 17.08, usd: 1240.10,
+  allocation: [
+    {cat:'Ações', pct:88.48, value:1371200, count:11, variacao:84200, rent:22.5},
+    {cat:'Renda Fixa', pct:7.66, value:118600, count:4, variacao:3100, rent:2.9},
+    {cat:'Fundos de Investimento', pct:1.85, value:28650, count:2, variacao:890, rent:3.2},
+    {cat:'Tesouro Direto', pct:1.63, value:25250, count:1, variacao:410, rent:1.8},
+    {cat:'ETFs Internacionais', pct:0.31, value:4800, count:1, variacao:260, rent:5.7},
+    {cat:'ETFs Brasil', pct:0.06, value:930, count:1, variacao:15, rent:1.6},
+  ],
+  years: [
+    {y:2020, v:21000}, {y:2021, v:64000, yoy:205}, {y:2022, v:66000, yoy:3}, {y:2023, v:293000, yoy:344},
+    {y:2024, v:613000, yoy:109}, {y:2025, v:1260000, yoy:106}, {y:2026, v:1750000, yoy:39},
+  ],
+  palette: ['#0a84ff','#c7f73e','#ff9f0a','#bf5af2','#64d2ff','#ff6b61','#4fdd8a','#ffd60a','#5e5ce6'],
+};
+const brl0 = n => 'R$ ' + Math.round(n).toLocaleString('pt-BR');
+const brl2 = n => 'R$ ' + (+n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const pct1 = n => (n>=0?'+':'') + n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}) + '%';
+const ICONS = {
+  'Ações':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 9l-5 5-4-4-4 4"/></svg>',
+  'Renda Fixa':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="10" rx="1"/><path d="M5 10V6a7 7 0 0 1 14 0v4"/></svg>',
+  'Fundos de Investimento':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  'Tesouro Direto':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>',
+  'ETFs Internacionais':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg>',
+  'ETFs Brasil':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg>',
+};
+function donutSegs(items, {stroke=3.2}={}) {
+  let cum = 0, out = '';
+  out += `<circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--border)" stroke-width="${stroke}"/>`;
+  items.forEach(it => {
+    out += `<circle cx="21" cy="21" r="15.9" fill="none" stroke="${it.color}" stroke-width="${stroke}" stroke-dasharray="${it.pct.toFixed(1)} ${(100-it.pct).toFixed(1)}" stroke-dashoffset="${(25-cum).toFixed(1)}" transform="rotate(-90 21 21)"/>`;
+    cum += it.pct;
+  });
+  return out;
+}
+function heroActions() {
+  return `<div class="hero-actions">
+    <span class="btn-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v5h-5"/></svg></span>
+    <span class="btn-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></span>
+    <span>Atualizado agora · 22:41</span>
+  </div>`;
+}
+function louiseChip() {
+  return `<div class="louise-chip"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4.5 5.4 4 7.6 3.6 10 5 12 8c2-3 4.4-4.4 6.6-4 3.4.5 5 4 3.4 7.7C19.5 16.4 12 21 12 21z"/></svg><span>Louise</span><span class="lv">R$ 42.180</span><span style="color:var(--gain)">↑ 6,1%</span></div>`;
+}
+
+// ============ Direção 1 — Quiet Ledger ============
+function renderQuiet() {
+  const yMax = Math.max(...D.years.map(y=>y.v));
+  const evoBars = D.years.map((y,i) => `<div class="col${i===D.years.length-1?' cur':''}"><div class="bar" style="height:${(y.v/yMax*100).toFixed(1)}%"></div></div>`).join('');
+  const yoy = D.years.filter(y=>y.yoy!=null).map(y => `<div class="cell${y.yoy<0?' neg':''}"><div class="yv">${y.yoy>=0?'+':''}${y.yoy}%</div><div class="yl">${y.y}</div></div>`).join('');
+  const donutItems = [];
+  let othersPct = 0, othersVal = 0;
+  D.allocation.forEach((a,i) => { if (a.pct >= 3) donutItems.push({...a, color: D.palette[i % D.palette.length]}); else { othersPct += a.pct; othersVal += a.value; } });
+  if (othersPct > 0) donutItems.push({cat:'Outros', pct:othersPct, value:othersVal, muted:true, color:'var(--ink-muted)'});
+  const legRows = donutItems.map(it => `<div class="row${it.muted?' muted':''}"><span class="dot" style="background:${it.color}"></span><span class="nm">${it.cat}</span><span class="pc">${it.pct.toFixed(1)}%</span></div>`).join('');
+  return `
+  <div class="card q-hero">
+    <div class="eyebrow"><span class="live-dot"></span>PATRIMÔNIO TOTAL</div>
+    <div class="hero-amount"><span>${brl0(D.patrimonioTotal)}</span><span class="chip">↑ ${pct1(D.rent12M)}</span></div>
+    <div class="hero-usd">USD ${brl2(D.usd)} incluso</div>
+    <div class="hero-stat-row">
+      <div class="qstat"><div class="q-lbl">Lucro total</div><div class="q-val">${brl0(D.lucroTotal)}</div><div class="q-sub">Capital ${brl0(D.ganhoDeCapital)} · Div. ${brl0(D.dividendosRecebidos)}</div></div>
+      <div class="qstat"><div class="q-lbl">Proventos 12M</div><div class="q-val">${brl0(D.proventos12M)}</div></div>
+      <div class="qstat"><div class="q-lbl">Rentab. 12M</div><div class="q-val" style="color:var(--gain)">${pct1(D.rent12M)}</div></div>
+      <div class="qstat"><div class="q-lbl">Rentab. total</div><div class="q-val" style="color:var(--gain)">${pct1(D.rentTotal)}</div></div>
+    </div>
+    ${louiseChip()}
+    ${heroActions()}
+  </div>
+  <div class="card">
+    <div class="card-head"><h3 class="section-title">Evolução — Patrimônio</h3><div class="seg"><button class="on">1A</button><button>5A</button><button>Tudo</button></div></div>
+    <div class="q-evo-bars">${evoBars}</div>
+    <div class="q-yoy-strip">${yoy}</div>
+  </div>
+  <div class="card">
+    <div class="card-head"><h3 class="section-title">Carteira</h3></div>
+    <div class="q-donut-wrap">
+      <div class="q-donut-center"><svg width="148" height="148" viewBox="0 0 42 42">${donutSegs(donutItems,{stroke:3.2})}</svg><div class="dc"><div class="dv">${brl0(D.valorInvestido).replace('R$ ','')}</div><div class="dl">maior posição: Ações 88%</div></div></div>
+      <div class="q-leg">${legRows}</div>
+    </div>
+    <div style="margin-top:18px;border-top:1px solid var(--border);padding-top:6px">
+      ${D.allocation.map((a,i) => `
+        <div class="q-cat-row" data-open="q${i}"><span class="q-cat-ic">${ICONS[a.cat]||''}</span><div><div class="q-cat-name">${a.cat}</div><div class="q-cat-meta">${a.count} ativo${a.count>1?'s':''} · ${a.pct}% da carteira</div></div><span class="q-cat-val">${brl0(a.value)}</span><svg class="q-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>
+        <div class="q-expand"><div class="q-stats-strip"><div>Variação<span class="v" style="color:var(--gain)">+${brl0(a.variacao)}</span></div><div>Rentabilidade<span class="v"><span class="q-pill">${pct1(a.rent)}</span></span></div><div>% carteira<span class="v">${a.pct}%</span></div></div>
+        <div class="q-ticker"><span>Ticker exemplo 1</span><span><span class="tv">${brl0(a.value*0.4)}</span><span class="ta">+${(a.rent*0.9).toFixed(1)}%</span></span></div>
+        <div class="q-ticker"><span>Ticker exemplo 2</span><span><span class="tv">${brl0(a.value*0.35)}</span><span class="ta">+${(a.rent*1.1).toFixed(1)}%</span></span></div></div>
+      `).join('')}
+    </div>
+  </div>
+  <div class="card"><div class="card-head"><h3 class="section-title">Análise</h3></div><p style="color:var(--ink-3);font-size:12.5px;margin:0">Dividendos · Patrimônio por ano · Rentabilidade mensal · Aportes — inalterados nesta proposta (foco: hero, evolução, carteira).</p></div>
+  `;
+}
+
+// ============ Direção 2 — Ledger Dashboard (★) ============
+function renderDash() {
+  const yMax = Math.max(...D.years.map(y=>y.v));
+  const evoBars = D.years.map(y => {
+    const applied = y.v * 0.88, gained = y.v - applied;
+    const hA = (applied/yMax*100).toFixed(1), hG = (gained/yMax*100).toFixed(1);
+    return `<div class="col"><div class="seg-gain" style="height:${hG}%"></div><div class="seg-applied" style="height:${hA}%"></div></div>`;
+  }).join('');
+  const donutItems = D.allocation.map((a,i) => ({...a, color: D.palette[i % D.palette.length]}));
+  const legRows = donutItems.map(it => `<div class="leg-row-card" style="color:${it.color}"><span class="dot" style="background:${it.color}"></span><span class="nm" style="color:var(--ink)">${it.cat}</span><span class="pc" style="color:var(--ink)">${it.pct}%</span></div>`).join('');
+  const holdRows = D.allocation.map((a,i) => `
+    <div class="cat-row--kpi">
+      <div class="kpi-line1" data-open="d${i}"><span class="q-cat-ic">${ICONS[a.cat]||''}</span><div class="q-cat-name">${a.cat}</div><svg class="q-chevron" style="margin-left:auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>
+      <div class="kpi-stats">
+        <div class="kpi-stat">Ativos<b>${a.count}</b></div>
+        <div class="kpi-stat">Valor total<b>${brl0(a.value)}</b></div>
+        <div class="kpi-stat">Variação<b style="color:var(--gain)">+${brl0(a.variacao)}</b></div>
+        <div class="kpi-stat">Rentabilidade<span class="cat-pill">${pct1(a.rent)}</span></div>
+        <div class="kpi-stat">% carteira<b>${a.pct}%</b></div>
+      </div>
+      <div class="q-expand" id="d${i}-body"><div class="q-ticker" style="padding-left:46px"><span>Ticker exemplo 1</span><span><span class="tv">${brl0(a.value*0.4)}</span><span class="ta">+${(a.rent*0.9).toFixed(1)}%</span></span></div>
+      <div class="q-ticker" style="padding-left:46px"><span>Ticker exemplo 2</span><span><span class="tv">${brl0(a.value*0.35)}</span><span class="ta">+${(a.rent*1.1).toFixed(1)}%</span></span></div></div>
+    </div>`).join('');
+  return `
+  <div class="card d-hero">
+    <div class="tier1">
+      <div class="eyebrow"><span class="live-dot"></span>PATRIMÔNIO TOTAL</div>
+      <div class="hero-amount"><span>${brl0(D.patrimonioTotal)}</span> <span class="chip">↑ ${pct1(D.rent12M)}</span></div>
+      <div class="hero-usd">USD ${brl2(D.usd)} incluso</div>
+      ${louiseChip()}
+    </div>
+    <div class="d-tier2">
+      <div class="tile"><div class="d-tile-lbl">Lucro total</div><div class="d-tile-val">${brl0(D.lucroTotal)}</div><div class="d-tile-sub">Ganho ${brl0(D.ganhoDeCapital)} · Div. ${brl0(D.dividendosRecebidos)}</div></div>
+      <div class="tile"><div class="d-tile-lbl">Proventos 12M</div><div class="d-tile-val">${brl0(D.proventos12M)}</div></div>
+      <div class="tile"><div class="d-tile-lbl">Rentab. 12M</div><div class="d-tile-val" style="color:var(--gain)">${pct1(D.rent12M)}</div></div>
+      <div class="tile"><div class="d-tile-lbl">Rentab. total</div><div class="d-tile-val" style="color:var(--gain)">${pct1(D.rentTotal)}</div></div>
+    </div>
+    <div style="padding:16px 26px 20px">${heroActions()}</div>
+  </div>
+  <div class="story-row" style="margin-top:20px">
+    <div class="card">
+      <div class="card-head"><h3 class="section-title">Evolução</h3><div class="seg"><button class="on">Ano</button><button>Mês</button></div></div>
+      <div class="d-evo-legend"><span><span class="dot" style="background:var(--purple)"></span>Valor aplicado</span><span><span class="dot" style="background:color-mix(in srgb, var(--gain) 55%, var(--purple) 45%)"></span>Ganho de capital</span></div>
+      <div class="d-evo-bars">${evoBars}</div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3 class="section-title">Ativos na carteira</h3></div>
+      <div class="d-split"><div class="d-donut-pane"><svg width="120" height="120" viewBox="0 0 42 42">${donutSegs(donutItems,{stroke:4.5})}</svg></div><div class="d-leg-list">${legRows}</div></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:20px"><div class="card-head"><h3 class="section-title">Meus ativos</h3></div>${holdRows}</div>
+  <div class="card"><div class="card-head"><h3 class="section-title">Análise</h3></div><p style="color:var(--ink-3);font-size:12.5px;margin:0">Dividendos · Patrimônio por ano · Rentabilidade mensal · Aportes — inalterados nesta proposta (foco: hero, evolução, carteira).</p></div>
+  `;
+}
+
+// ============ Direção 3 — Orbit Overview ============
+function renderOrbit() {
+  const ringPct = Math.min(100, D.rent12M * 3.2);
+  const yMax = Math.max(...D.years.map(y=>y.v));
+  const evoBars = D.years.map(y => {
+    const applied = y.v * 0.88, gained = y.v - applied;
+    return `<div class="col"><div class="seg-gain" style="height:${(gained/yMax*100).toFixed(1)}%"></div><div class="seg-applied" style="height:${(applied/yMax*100).toFixed(1)}%"></div></div>`;
+  }).join('');
+  const yoy = D.years.filter(y=>y.yoy!=null).map(y => `<div class="cell${y.yoy<0?' neg':''}"><div class="yv">${y.yoy>=0?'+':''}${y.yoy}%</div><div class="yl">${y.y}</div></div>`).join('');
+  const donutItems = D.allocation.map((a,i) => ({...a, color: D.palette[i % D.palette.length]}));
+  const microDonut = donutSegs([donutItems[0], {pct:100-donutItems[0].pct, color:'var(--ink-muted)', muted:true}], {stroke:5});
+  const legRows = donutItems.map(it => `<div class="leg-row-card" style="color:${it.color}"><span class="dot" style="background:${it.color}"></span><span class="nm" style="color:var(--ink)">${it.cat}</span><span class="pc" style="color:var(--ink)">${it.pct}%</span></div>`).join('');
+  const sbCards = D.allocation.map((a,i) => `
+    <div class="o-sparkbar-card" data-open="o${i}">
+      <div class="o-sb-top"><span class="q-pill" style="background:color-mix(in srgb, ${a.color||D.palette[i%D.palette.length]} 16%, transparent);color:${a.color||D.palette[i%D.palette.length]}">${pct1(a.rent)}</span><span class="nm">${a.cat}</span><span class="val">${brl0(a.value)}</span></div>
+      <div class="o-sb-bar"><i style="width:${a.pct}%;background:${D.palette[i%D.palette.length]}"></i></div>
+      <div class="o-sb-pct">${a.pct}% da carteira</div>
+      <div class="q-expand" id="o${i}-body"><div style="padding-top:8px;font-size:11px;color:var(--ink-3)">${a.count} ativo${a.count>1?'s':''} · variação +${brl0(a.variacao)}</div>
+      <div class="q-ticker"><span>Ticker exemplo 1</span><span><span class="tv">${brl0(a.value*0.4)}</span><span class="ta">+${(a.rent*0.9).toFixed(1)}%</span></span></div></div>
+    </div>`).join('');
+  return `
+  <div class="card">
+    <div class="eyebrow"><span class="live-dot"></span>VISÃO GERAL</div>
+    <div class="o-ring-wrap" style="margin-top:10px">
+      <div class="o-ring-center">
+        <svg class="o-ring-svg" width="150" height="150" viewBox="0 0 42 42" style="position:absolute">
+          <circle cx="21" cy="21" r="18.5" fill="none" stroke="var(--border)" stroke-width="3.5"/>
+          <circle cx="21" cy="21" r="18.5" fill="none" stroke="var(--purple)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="${(ringPct/100*116.2).toFixed(1)} 116.2" transform="rotate(-90 21 21)"/>
+        </svg>
+        <div class="oc"><div class="ov">${brl0(D.patrimonioTotal).replace('R$ ','')}</div><div class="ol">Rentab. 12M ${pct1(D.rent12M)}</div></div>
+      </div>
+      <div class="o-statline">
+        <span class="lbl">Lucro total</span><span class="val">${brl0(D.lucroTotal)}</span><span class="sep">·</span>
+        <span class="lbl">Ganho</span><span class="val">${brl0(D.ganhoDeCapital)}</span><span class="sep">·</span>
+        <span class="lbl">Dividendos</span><span class="val">${brl0(D.dividendosRecebidos)}</span><span class="sep">·</span>
+        <span class="lbl">Proventos 12M</span><span class="val">${brl0(D.proventos12M)}</span><span class="sep">·</span>
+        <span class="lbl">Rent. total</span><span class="val" style="color:var(--gain)">${pct1(D.rentTotal)}</span>
+      </div>
+    </div>
+    <div class="o-micro"><svg width="72" height="72" viewBox="0 0 42 42">${microDonut}</svg><span class="ml">Maior posição: <b style="color:var(--ink)">Ações 88%</b></span></div>
+    ${louiseChip()}
+    ${heroActions()}
+    <button class="detail-toggle open" id="orbitToggle">Ver detalhes <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+  </div>
+  <div class="detail-stack open" id="orbitDetail">
+    <div class="card">
+      <div class="card-head"><h3 class="section-title">Evolução</h3><div class="seg"><button class="on">Ano</button><button>Mês</button></div></div>
+      <div class="d-evo-legend"><span><span class="dot" style="background:var(--purple)"></span>Valor aplicado</span><span><span class="dot" style="background:color-mix(in srgb, var(--gain) 55%, var(--purple) 45%)"></span>Ganho de capital</span></div>
+      <div class="d-evo-bars">${evoBars}</div>
+      <div class="q-yoy-strip">${yoy}</div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3 class="section-title">Ativos na carteira</h3></div>
+      <div class="d-split"><div class="d-donut-pane"><svg width="120" height="120" viewBox="0 0 42 42">${donutSegs(donutItems,{stroke:4.5})}</svg></div><div class="d-leg-list">${legRows}</div></div>
+    </div>
+    <div class="card"><div class="card-head"><h3 class="section-title">Meus ativos</h3></div>${sbCards}</div>
+    <div class="card"><div class="card-head"><h3 class="section-title">Análise</h3></div><p style="color:var(--ink-3);font-size:12.5px;margin:0">Dividendos · Patrimônio por ano · Rentabilidade mensal · Aportes — inalterados nesta proposta.</p></div>
+  </div>
+  `;
+}
+
+const RENDERERS = { quiet: renderQuiet, dash: renderDash, orbit: renderOrbit };
+function wireExpand(root) {
+  root.querySelectorAll('[data-open]').forEach(el => {
+    el.addEventListener('click', () => { el.classList.toggle('open'); });
+  });
+  const t = document.getElementById('orbitToggle');
+  if (t) t.addEventListener('click', () => {
+    t.classList.toggle('open');
+    document.getElementById('orbitDetail').classList.toggle('open');
+    t.firstChild.textContent = t.classList.contains('open') ? 'Ver detalhes ' : 'Ver detalhes ';
+  });
+}
+function render(dir) {
+  const stage = document.getElementById('stage');
+  stage.innerHTML = RENDERERS[dir]();
+  wireExpand(stage);
+  document.querySelectorAll('#dirSwitch button').forEach(b => b.classList.toggle('on', b.dataset.d === dir));
+}
+document.getElementById('dirSwitch').addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (b) render(b.dataset.d); });
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const dark = document.body.getAttribute('data-theme') === 'dark';
+  document.body.setAttribute('data-theme', dark ? 'light' : 'dark');
+  document.getElementById('themeBtn').textContent = dark ? '🌙 Escuro' : '☀️ Claro';
+});
+render('dash');
+</script>
+</body></html>
