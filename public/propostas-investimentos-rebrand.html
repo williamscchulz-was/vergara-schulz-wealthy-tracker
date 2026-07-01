@@ -89,7 +89,7 @@ svg{display:block}
 .q-donut-wrap{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
 .q-donut-center{position:relative;flex-shrink:0}
 .q-donut-center .dc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-.q-donut-center .dc .dv{font:700 19px var(--font-mono)}
+.q-donut-center .dc .dv{font:700 17px var(--font-mono)}
 .q-donut-center .dc .dl{font-size:9.5px;color:var(--ink-3);margin-top:2px;max-width:80px}
 .q-leg{flex:1;min-width:180px}
 .q-leg .row{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px}
@@ -219,6 +219,35 @@ const D = {
 const brl0 = n => 'R$ ' + Math.round(n).toLocaleString('pt-BR');
 const brl2 = n => 'R$ ' + (+n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const pct1 = n => (n>=0?'+':'') + n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}) + '%';
+// compacto estilo Resumo do app real: R$ 1,55M / R$ 64,0k — pro número não competir com o resto
+const mc = n => { n=+n||0; const a=Math.abs(n), sg=n<0?'-':''; if(a>=1e6) return 'R$ '+sg+(a/1e6).toFixed(2).replace('.',',')+'M'; if(a>=1000) return 'R$ '+sg+(a/1000).toFixed(1).replace('.',',')+'k'; return brl0(n); };
+// Barras de evolução com o % ENTRE as colunas — mesmo padrão já validado no app real (v8 Turno 9):
+// conector tracejado entre os topos + pill opaca no meio, cor por faixa (verde <100%, âmbar >100%, vermelho negativo).
+function buildEvoSvg(years, {width=680, height=200}={}) {
+  const padT=30, padB=26, innerH=height-padT-padB, slot=width/years.length, barW=slot*0.46;
+  const yMax = Math.max(...years.map(y=>y.v));
+  const pts = years.map((y,i) => { const h=Math.max(2,(y.v/yMax)*innerH); const cx=slot*i+slot/2; return {cx, top:padT+innerH-h, h, y}; });
+  let svg = `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="xMidYMid meet">`;
+  svg += `<defs><linearGradient id="evoGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--purple)"/><stop offset="100%" stop-color="var(--purple)" stop-opacity=".3"/></linearGradient></defs>`;
+  pts.forEach((p,i) => {
+    const cur = i === pts.length-1;
+    svg += `<rect x="${(p.cx-barW/2).toFixed(1)}" y="${p.top.toFixed(1)}" width="${barW.toFixed(1)}" height="${p.h.toFixed(1)}" rx="7" fill="url(#evoGrad)"${cur?' stroke="var(--purple)" stroke-width="1.5"':''}/>`;
+    svg += `<text x="${p.cx.toFixed(1)}" y="${height-9}" text-anchor="middle" fill="var(--ink-3)" font-family="Geist Mono, monospace" font-size="10.5" font-weight="600">${p.y.y}</text>`;
+  });
+  for (let i=1; i<pts.length; i++) {
+    const prev = pts[i-1], cur = pts[i];
+    if (cur.y.yoy == null) continue;
+    const yoy = cur.y.yoy, txt = (yoy>=0?'+':'') + yoy + '%';
+    const col = yoy < 0 ? 'var(--loss)' : (yoy > 100 ? 'var(--warn)' : 'var(--gain)');
+    const midX = (prev.cx+cur.cx)/2, midY = (prev.top+cur.top)/2;
+    const pillW = txt.length*7.4+14, pillH=19;
+    svg += `<line x1="${(prev.cx+barW/2).toFixed(1)}" y1="${prev.top.toFixed(1)}" x2="${(cur.cx-barW/2).toFixed(1)}" y2="${cur.top.toFixed(1)}" stroke="${col}" stroke-opacity=".4" stroke-width="1.3" stroke-dasharray="2 3"/>`;
+    svg += `<rect x="${(midX-pillW/2).toFixed(1)}" y="${(midY-pillH/2).toFixed(1)}" width="${pillW.toFixed(1)}" height="${pillH}" rx="${pillH/2}" fill="${col}"/>`;
+    svg += `<text x="${midX.toFixed(1)}" y="${(midY+pillH*0.28).toFixed(1)}" text-anchor="middle" fill="#fff" font-family="Geist Mono, monospace" font-size="10.5" font-weight="700">${txt}</text>`;
+  }
+  svg += '</svg>';
+  return svg;
+}
 const ICONS = {
   'Ações':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 9l-5 5-4-4-4 4"/></svg>',
   'Renda Fixa':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="10" rx="1"/><path d="M5 10V6a7 7 0 0 1 14 0v4"/></svg>',
@@ -249,12 +278,13 @@ function louiseChip() {
 
 // ============ Direção 1 — Quiet Ledger ============
 function renderQuiet() {
-  const yMax = Math.max(...D.years.map(y=>y.v));
-  const evoBars = D.years.map((y,i) => `<div class="col${i===D.years.length-1?' cur':''}"><div class="bar" style="height:${(y.v/yMax*100).toFixed(1)}%"></div></div>`).join('');
-  const yoy = D.years.filter(y=>y.yoy!=null).map(y => `<div class="cell${y.yoy<0?' neg':''}"><div class="yv">${y.yoy>=0?'+':''}${y.yoy}%</div><div class="yl">${y.y}</div></div>`).join('');
+  const evoSvg = buildEvoSvg(D.years);
+  // Cor dominante = acento da marca (var(--purple), lime/verde) — não mais azul cru do palette bruto.
+  // Só a maior fatia usa o acento; o resto usa uma paleta secundária, e o rabo (<3%) vira "Outros".
+  const SECONDARY = ['#0a84ff','#ff9f0a','#bf5af2','#64d2ff','#ffd60a'];
   const donutItems = [];
-  let othersPct = 0, othersVal = 0;
-  D.allocation.forEach((a,i) => { if (a.pct >= 3) donutItems.push({...a, color: D.palette[i % D.palette.length]}); else { othersPct += a.pct; othersVal += a.value; } });
+  let othersPct = 0, othersVal = 0, secIdx = 0;
+  D.allocation.forEach((a,i) => { if (a.pct >= 3) donutItems.push({...a, color: i===0 ? 'var(--purple)' : SECONDARY[secIdx++ % SECONDARY.length]}); else { othersPct += a.pct; othersVal += a.value; } });
   if (othersPct > 0) donutItems.push({cat:'Outros', pct:othersPct, value:othersVal, muted:true, color:'var(--ink-muted)'});
   const legRows = donutItems.map(it => `<div class="row${it.muted?' muted':''}"><span class="dot" style="background:${it.color}"></span><span class="nm">${it.cat}</span><span class="pc">${it.pct.toFixed(1)}%</span></div>`).join('');
   return `
@@ -273,13 +303,12 @@ function renderQuiet() {
   </div>
   <div class="card">
     <div class="card-head"><h3 class="section-title">Evolução — Patrimônio</h3><div class="seg"><button class="on">1A</button><button>5A</button><button>Tudo</button></div></div>
-    <div class="q-evo-bars">${evoBars}</div>
-    <div class="q-yoy-strip">${yoy}</div>
+    ${evoSvg}
   </div>
   <div class="card">
     <div class="card-head"><h3 class="section-title">Carteira</h3></div>
     <div class="q-donut-wrap">
-      <div class="q-donut-center"><svg width="148" height="148" viewBox="0 0 42 42">${donutSegs(donutItems,{stroke:3.2})}</svg><div class="dc"><div class="dv">${brl0(D.valorInvestido).replace('R$ ','')}</div><div class="dl">maior posição: Ações 88%</div></div></div>
+      <div class="q-donut-center"><svg width="148" height="148" viewBox="0 0 42 42">${donutSegs(donutItems,{stroke:3.2})}</svg><div class="dc"><div class="dv">${mc(D.valorInvestido)}</div><div class="dl">maior posição: Ações 88%</div></div></div>
       <div class="q-leg">${legRows}</div>
     </div>
     <div style="margin-top:18px;border-top:1px solid var(--border);padding-top:6px">
