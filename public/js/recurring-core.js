@@ -28,13 +28,19 @@ export function activeIn(tpl, yms) {
 }
 
 // Um lançamento REAL satisfaz (é a realização de) o template?
-// - override/seed manual: `recurringId` bate.
-// - cartão: mesma chave de estabelecimento (impRuleKey) + valor dentro da tolerância
-//   (a fatura "NETFLIX.COM*SP" confirma a recorrência "Netflix"). tol = fração (0.30 = 30%).
+// - override/seed manual: `recurringId` bate (única forma até jun/2026 pra fixa NÃO-cartão).
+// - por estabelecimento: mesma chave normalizada (impRuleKey) + valor dentro da tolerância. Pra
+//   cartão usa a `ruleKey` já detectada na fatura (pega variações de gateway/prefixo); pra QUALQUER
+//   outra fixa (Pix/boleto/dinheiro/manual) cai pra impRuleKey(tpl.desc) — sem isso, uma fixa não-
+//   cartão NUNCA reconciliava sozinha (só via recurringId, que só nasce na criação do template), e
+//   o "Previsto" continuava contando pra sempre mesmo com o gasto real já lançado normalmente.
+// tol = fração (0.30 = 30%).
 export function satisfies(exp, tpl, tol = 0.30) {
   if (!exp || !tpl) return false;
+  if ((exp.type || 'expense') !== 'expense') return false;
   if (exp.recurringId && exp.recurringId === tpl.id) return true;
-  if (tpl.card && tpl.ruleKey && impRuleKey(exp.description) === tpl.ruleKey) {
+  const rk = (tpl.card && tpl.ruleKey) ? tpl.ruleKey : impRuleKey(tpl.desc || '');
+  if (rk && impRuleKey(exp.description) === rk) {
     const a = +exp.value || 0, b = valueFor(tpl, ymOf(exp.competencia || exp.date)) || 0;   // valor esperado do MÊS (respeita override)
     if (b <= 0) return true;
     return Math.abs(a - b) / b <= tol;

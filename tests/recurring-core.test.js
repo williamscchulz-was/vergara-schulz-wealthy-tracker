@@ -39,10 +39,18 @@ test('satisfies — cartão casa por estabelecimento + valor aprox', () => {
   assert.equal(satisfies({ description: 'SPOTIFY BR', value: 40 }, tpl), false);
 });
 
-test('satisfies — fixa NÃO-cartão só casa por recurringId (nunca por nome)', () => {
+test('satisfies — fixa NÃO-cartão (Pix/boleto/manual) reconcilia por descrição+valor, igual ao cartão', () => {
+  // BUG real (jun/2026): antes disso só casava por recurringId (que só nasce na criação do
+  // template) → uma fixa paga normalmente todo mês NUNCA reconciliava, e o "Previsto" continuava
+  // contando pra sempre mesmo com o gasto real já lançado. Corrigido: usa impRuleKey(tpl.desc)
+  // como fallback quando não é cartão — mesma lógica de tolerância já aceita pro cartão.
   const tpl = { id: 'r2', card: false, value: 2000, desc: 'Aluguel' };
-  assert.equal(satisfies({ description: 'Aluguel', value: 2000 }, tpl), false);   // sem recurringId
-  assert.equal(satisfies({ description: 'Aluguel', value: 2000, recurringId: 'r2' }, tpl), true);
+  assert.equal(satisfies({ description: 'Aluguel', value: 2000 }, tpl), true);        // lançamento normal do mês seguinte → reconcilia
+  assert.equal(satisfies({ description: 'Aluguel', value: 2100 }, tpl), true);        // reajuste pequeno, dentro da tolerância
+  assert.equal(satisfies({ description: 'Aluguel', value: 5000 }, tpl), false);       // valor muito diferente → não é a mesma
+  assert.equal(satisfies({ description: 'Energia Solar', value: 2000 }, tpl), false); // outra descrição → não casa
+  assert.equal(satisfies({ description: 'Aluguel', value: 2000, recurringId: 'r2' }, tpl), true);   // recurringId continua funcionando
+  assert.equal(satisfies({ description: 'Aluguel', value: 2000, type: 'income' }, tpl), false);     // ganho não satisfaz despesa fixa
 });
 
 test('makeVirtual — conta no saldo sempre; futuro ganha flag _future', () => {
