@@ -622,10 +622,10 @@ let _resumoView = 'mensal';  // 'mensal' | 'anual'
 const RZ_PERSON = { william: ['William', '#64d2ff', 'W'], flavia: ['Flávia', '#d8fa72', 'F'], louise: ['Louise', '#30d158', 'L'], familia: ['Família', '#c7f73e', 'Fam'] };
 // Ícones dos KPIs do Resumo (cor herda do CSS via currentColor).
 const RZ_KIC = {
-  income:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>',
-  expense: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>',
-  debt:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>',
-  savings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="2.5"/><path d="M8 9V6.5a4 4 0 0 1 8 0V9"/></svg>',
+  income:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>',
+  expense: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>',
+  debt:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>',
+  savings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="2.5"/><path d="M8 9V6.5a4 4 0 0 1 8 0V9"/></svg>',
   balance: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10.5h18"/><circle cx="16.5" cy="14.5" r="1.3" fill="currentColor"/></svg>',
 };
 function setResumoView(v) { _resumoView = v === 'anual' ? 'anual' : 'mensal'; renderResumo(); }
@@ -1154,7 +1154,7 @@ function openPayDetail(key) {
 // ============================================================
 const _SEV_RANK = { erro: 0, aviso: 1, dica: 2 };
 const CONF_KIND = { 'leftover-provision': 'conf.kind.prov', 'exact-copy': 'conf.kind.copy', 'manual-vs-import': 'conf.kind.manual', 'near-duplicate': 'conf.kind.near' };
-const PAY_WARN = '<svg class="pf-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5 21 19H3z"/><path d="M12 10v4"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>';
+const PAY_WARN = '<svg class="pf-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5 21 19H3z"/><path d="M12 10v4"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>';
 // Flags do mês agrupadas pela MESMA key do paySourceOf (cada achado cai no cartão/Pix a que pertence).
 // Guardado em try: erro de detecção nunca pode quebrar o render das despesas.
 function payFlagsFor(monthExp) {
@@ -2898,7 +2898,7 @@ const CASH_CAT = {
     nameInputId: 'reserveNameInput',
     valueInputId: 'reserveValueInput',
     deleteBtnId: 'reserveDeleteBtn',
-    iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
     label: () => t('reserve.label'),
     emptyLabel: () => t('reserve.empty.value'),
     addLabel: () => t('reserve.add'),
@@ -2922,7 +2922,7 @@ const CASH_CAT = {
     valueInputId: 'pensionValueInput',
     deleteBtnId: 'pensionDeleteBtn',
     // Leaf icon (lucide leaf)
-    iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96c1.4 9.3-1.5 14.2-8.2 17.04Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg>',
+    iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96c1.4 9.3-1.5 14.2-8.2 17.04Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg>',
     label: () => t('pension.label'),
     emptyLabel: () => t('pension.empty.value'),
     addLabel: () => t('pension.add'),
@@ -2947,7 +2947,7 @@ const CASH_CAT = {
     nameInputId: 'fxAcctNameInput',
     valueInputId: 'fxAcctValueInput',
     deleteBtnId: 'fxAcctDeleteBtn',
-    iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+    iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
     label: () => 'USD',
     emptyLabel: () => t('fx.empty.value'),
     addLabel: () => t('fx.add'),
@@ -3063,13 +3063,13 @@ function renderCashRow(type, wrap) {
       '<span class="res-name">' + esc(a.name || '-') + '</span>' +
       '<div class="res-actions">' + valHtml +
         '<button class="res-edit" data-rid="' + a.id + '" type="button" aria-label="Edit">' +
-          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>' +
+          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>' +
         '</button>' +
       '</div>' +
     '</div>';
   }
   itemsHtml += '<button class="res-add" id="' + cfg.addBtnId + '" type="button">' +
-    '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+    '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
     cfg.addLabel() +
   '</button>';
   // Rodapé da taxa (só fx): cotação única, auto-atualiza (↻) + edição manual (✎)
@@ -3081,7 +3081,7 @@ function renderCashRow(type, wrap) {
         (updTxt ? '<span class="fx-rate-when"> · ' + esc(updTxt) + '</span>' : '') + '</span>' +
       '<span class="fx-rate-acts">' +
         '<button class="fx-rate-btn" id="fxRateRefresh" type="button" title="Atualizar cotação" aria-label="Atualizar cotação">↻</button>' +
-        '<button class="fx-rate-btn" id="fxRateEdit" type="button" title="Editar cotação manual" aria-label="Editar cotação manual"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>' +
+        '<button class="fx-rate-btn" id="fxRateEdit" type="button" title="Editar cotação manual" aria-label="Editar cotação manual"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>' +
       '</span>' +
     '</div>';
   }
@@ -3096,7 +3096,7 @@ function renderCashRow(type, wrap) {
         '</div>' +
       '</div>' +
       '<div><div class="cat-value">R$ ' + totalBRL.toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + '</div></div>' +
-      '<svg class="cat-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>' +
+      '<svg class="cat-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>' +
     '</div>' +
     '<div class="reserve-expanded" id="' + cfg.expId + '">' + itemsHtml + '</div>';
 
@@ -3241,8 +3241,8 @@ function renderInvestments() {
     if (_hasSync) {
       const sign = _totalReturn >= 0 ? '+' : '';
       const arrow = _totalReturn >= 0
-        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>'
-        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>';
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>';
       const pillCls = _totalReturn >= 0 ? 'return-pill' : 'return-pill neg';
       subEl.innerHTML = `<div class="${pillCls}">${arrow}${sign}${_totalReturn.toFixed(2)}% ${t('hero.return.label')}</div><div class="applied-text">${t('hero.applied')} <b>${fmtBRL0(_appliedTotal)}</b></div>`;
     } else {
@@ -3919,7 +3919,7 @@ function renderI10Assets() {
     const pct = assetsTotal > 0 ? (g.value / assetsTotal) * 100 : 0;
     const n = g.items.length;
     const countStr = n + ' ' + (n === 1 ? t('cat.assets.singular') : t('cat.assets.plural'));
-    const chevronHtml = '<svg class="cat-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+    const chevronHtml = '<svg class="cat-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
 
     const sortedTickers = [...g.items].sort((a, b) => (+b.equity || 0) - (+a.equity || 0));
     const tickersHtml = sortedTickers.map(a => {
@@ -6335,6 +6335,18 @@ document.addEventListener('keydown', e => {
     closeYearlyModal();
     closeI10ConfigModal();
   }
+});
+
+// Liquid Glass reativo (v9): o anel do modal aponta pra onde o ponteiro está,
+// em vez de girar sozinho — aproxima do comportamento real do Liquid Glass
+// da Apple (destaque especular que reage a movimento, não loop perpétuo).
+document.addEventListener('pointermove', (e) => {
+  const modal = document.querySelector('.modal-bg.show .modal');
+  if (!modal) return;
+  const r = modal.getBoundingClientRect();
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  const angle = Math.atan2(e.clientY - cy, e.clientX - cx) * 180 / Math.PI + 90;
+  modal.style.setProperty('--liquid-angle', `${angle}deg`);
 });
 
 // ============================================================

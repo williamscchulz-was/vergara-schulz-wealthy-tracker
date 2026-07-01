@@ -3,13 +3,16 @@
    =========================================================== */
 .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(12px) saturate(140%); -webkit-backdrop-filter: blur(12px) saturate(140%); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
 .modal-bg.show { display: flex; animation: fadeIn 0.2s var(--ease-out); }
-.modal { background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 20px 24px; max-width: 440px; width: 100%; box-shadow: var(--shadow-lg), 0 0 60px color-mix(in oklab, var(--purple) 20%, transparent); animation: modalUp 0.3s var(--ease-back); max-height: 96vh; overflow-x: hidden; overflow-y: auto; position: relative; }
+.modal { background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); corner-shape: superellipse(2); padding: 20px 24px; max-width: 440px; width: 100%; box-shadow: var(--shadow-lg), 0 0 60px color-mix(in oklab, var(--purple) 20%, transparent); animation: modalUp 0.3s var(--ease-back); max-height: 96vh; overflow-x: hidden; overflow-y: auto; position: relative; }
 /* modal de editar/nova despesa: subtítulo é redundante (o título já diz) → esconde p/ caber sem scroll em telas curtas */
 #expenseModal .sub { display: none; }
 #expenseModal .exp-type-seg { margin-bottom: 12px !important; }
 
-/* Liquid glass variant — the spinning ring + ambient glow */
-.modal.liquid::before {
+/* Liquid Glass ring — todo modal (v9), não só os 3 antigos. O destaque
+   acompanha o ponteiro (--liquid-angle, atualizado por um listener em
+   app.js) em vez de girar sozinho pra sempre — Liquid Glass real (iOS 26)
+   reage a movimento, não faz loop perpétuo. */
+.modal::before {
   content: "";
   position: absolute;
   inset: -1.5px;
@@ -28,10 +31,13 @@
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
-  animation: liquid-spin 4s linear infinite;
+  transition: --liquid-angle 0.7s var(--ease-out);
   filter: drop-shadow(0 0 8px color-mix(in oklab, var(--purple) 60%, transparent));
   pointer-events: none;
   opacity: 0.85;
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal::before { transition: none; }
 }
 @keyframes modalUp { from { opacity: 0; transform: translateY(16px) scale(0.97); } to { opacity: 1; transform: none; } }
 .modal h3 { font-size: var(--fs-value); font-weight: 700; color: var(--ink); margin: 0 0 6px; letter-spacing: -0.01em; }
