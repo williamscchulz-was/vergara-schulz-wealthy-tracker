@@ -3227,33 +3227,41 @@ function renderInvestments() {
     $('i10Updated').textContent = t('hero.updated.never');
   }
   // Hero meta row: return pill + applied text
+  // Ganho de capital + dividendos all-time hoisted aqui (jun/2026, rebrand Quiet Ledger) — usados
+  // TANTO pelo return-pill quanto pelo novo stat "Lucro total" da hero-stat-row, uma conta só.
+  const _pastDivsAllTime = state.yearly.filter(y => y.year < currentYear).reduce((s, y) => s + (+y.divs || 0), 0);
+  const _totalDivsAllTime = (+state.i10.dividends || 0) + _pastDivsAllTime;
+  const _hasSync = state.i10.source === 'investidor10-sync' && state.i10.applied > 0;
+  const _appliedTotal = _hasSync ? ((+state.i10.applied || 0) + _usdBRL + _reservesBRL + _pensionBRL) : 0;
+  const _ganhoCapital = _hasSync ? (_heroTotal - _appliedTotal) : 0;
+  const _totalReturn = _hasSync ? ((_ganhoCapital + _totalDivsAllTime) / _appliedTotal) * 100 : null;
   const subEl = $('i10EquitySub');
   if (subEl) {
-    if (state.i10.source === 'investidor10-sync' && state.i10.applied > 0) {
-      const ytdDivs = +state.i10.dividends || 0;
-      const pastDivs = state.yearly
-        .filter(y => y.year < currentYear)
-        .reduce((s, y) => s + (+y.divs || 0), 0);
-      const totalDivs = ytdDivs + pastDivs;
-      // USD holdings + reserves + pension count as both equity AND applied
-      const _appliedTotal = (+state.i10.applied || 0) + _usdBRL + _reservesBRL + _pensionBRL;
-      const totalReturn = ((_heroTotal - _appliedTotal + totalDivs) / _appliedTotal) * 100;
-      const sign = totalReturn >= 0 ? '+' : '';
-      const arrow = totalReturn >= 0
+    if (_hasSync) {
+      const sign = _totalReturn >= 0 ? '+' : '';
+      const arrow = _totalReturn >= 0
         ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>'
         : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>';
-      const pillCls = totalReturn >= 0 ? 'return-pill' : 'return-pill neg';
-      subEl.innerHTML = `<div class="${pillCls}">${arrow}${sign}${totalReturn.toFixed(2)}% ${t('hero.return.label')}</div><div class="applied-text">${t('hero.applied')} <b>${fmtBRL0(_appliedTotal)}</b></div>`;
+      const pillCls = _totalReturn >= 0 ? 'return-pill' : 'return-pill neg';
+      subEl.innerHTML = `<div class="${pillCls}">${arrow}${sign}${_totalReturn.toFixed(2)}% ${t('hero.return.label')}</div><div class="applied-text">${t('hero.applied')} <b>${fmtBRL0(_appliedTotal)}</b></div>`;
     } else {
       subEl.innerHTML = `<div class="applied-text">${t('hero.manual.full')}</div>`;
     }
   }
+  // Hero-stat-row (Quiet Ledger): Lucro total (ganho de capital + dividendos all-time), Proventos
+  // 12M (TTM — mesmo fallback já usado na Meta de dividendos do Resumo), Rentab. total (return-pill).
+  // Sem sync I10 (modo manual) os 3 caem em "—" — nada de inventar rentabilidade sem baseline aplicado.
+  if ($('heroProfitTotal')) $('heroProfitTotal').textContent = _hasSync ? fmtBRL0(_ganhoCapital + _totalDivsAllTime) : '—';
+  if ($('heroProfitSub')) $('heroProfitSub').textContent = _hasSync ? `${t('hero.stat.capital')} ${fmtBRL0(_ganhoCapital)} · ${t('hero.stat.divs')} ${fmtBRL0(_totalDivsAllTime)}` : '—';
+  const _divTtmHero = dividendsTTM();
+  const _divs12m = _divTtmHero.ready ? _divTtmHero.ttm : (+state.i10.dividends || 0);
+  if ($('heroDivs12m')) $('heroDivs12m').textContent = fmtBRL0(_divs12m);
+  if ($('heroRentTotal')) $('heroRentTotal').textContent = _hasSync ? (_totalReturn >= 0 ? '+' : '') + _totalReturn.toFixed(1).replace('.', ',') + '%' : '—';
 
   // Hero mini-KPIs: Lucro TWR · Dividendos
   const _twr = +state.i10.profitTwr || 0;
   if ($('heroTwr')) $('heroTwr').textContent = (_twr >= 0 ? '+' : '') + _twr.toFixed(1).replace('.', ',') + '%';
-  if ($('heroDiv')) $('heroDiv').textContent = fmtBRL0(+state.i10.dividends || 0);
-  if ($('heroDivYear')) $('heroDivYear').textContent = currentYear;
+  // (heroDiv/heroDivYear saíram da hero-stat-row — a dividendo YTD segue visível no card YTD/all-time.)
   // AUDITORIA jun/2026: o "% no mês" vinha de i10.variation (métrica do I10 com período
   // próprio, não-mensal) — dava "+4,0% no mês" num mês que o Dietz fechava -1,7%.
   // Agora pill e tile usam a MESMA conta do card "rentabilidade mês a mês"
@@ -3376,12 +3384,8 @@ function renderInvestments() {
   renderI10Assets();
   renderMonthlyReturns();
   renderContributions();
-  // Fileira de KPIs (reservas · previdência · aportes do ano · aplicado)
-  const _contribYear = (state.contributions || []).reduce((s, c) => s + ((+c.year === currentYear) ? (+c.amount || 0) : 0), 0);
-  if ($('kpiReserves')) $('kpiReserves').textContent = fmtBRL0(_reservesBRL);
-  if ($('kpiPension')) $('kpiPension').textContent = fmtBRL0(_pensionBRL);
-  if ($('kpiContrib')) $('kpiContrib').textContent = fmtBRL0(_contribYear);
-  if ($('kpiContribLbl')) $('kpiContribLbl').textContent = (getLang() === 'en' ? 'Contributions ' : 'Aportes ') + currentYear;
+  // (Reservas/Previdência/Aportes saíram da hero no rebrand Quiet Ledger — continuam visíveis
+  // como linhas na Carteira e no card Aportes; kpiReserves/kpiPension/kpiContrib removidos.)
   if (typeof renderMetas === 'function') renderMetas();
   wireCardCollapse();
 }
@@ -3799,24 +3803,42 @@ let _expandedCats = new Set(); // pedido do dono: TODAS as categorias começam r
 
 // Donut de diversificação (igual mockup) — segmentos por categoria.
 const INV_DONUT_PALETTE = ['#0a84ff', '#c7f73e', '#ff9f0a', '#bf5af2', '#64d2ff', '#ff6b61', '#4fdd8a', '#ffd60a', '#5e5ce6'];
+// Paleta secundária = INV_DONUT_PALETTE sem o lime (esse fica reservado pro acento da marca na
+// fatia dominante) — senão a maior posição saía numa cor crua (azul) e uma fatia menor podia
+// coincidir com o lime, competindo visualmente com o acento (rebrand Quiet Ledger, jun/2026).
+const INV_DONUT_SECONDARY = INV_DONUT_PALETTE.filter(c => c.toLowerCase() !== '#c7f73e');
 function renderInvDonut(sortedKeys, groups, assetsTotal) {
   const svg = $('invDonut'), leg = $('invDonutLeg');
+  const centerVal = $('invDonutCenterVal'), centerLbl = $('invDonutCenterLbl');
   if (!svg || !leg) return;
-  if (!assetsTotal || !sortedKeys.length) { svg.innerHTML = ''; leg.innerHTML = ''; return; }
+  if (!assetsTotal || !sortedKeys.length) {
+    svg.innerHTML = ''; leg.innerHTML = '';
+    if (centerVal) centerVal.textContent = '—';
+    if (centerLbl) centerLbl.textContent = '';
+    return;
+  }
   let cum = 0;
-  let segs = '<circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--bg-elevated-2)" stroke-width="5"/>';
+  let segs = '<circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--bg-elevated-2)" stroke-width="3.5"/>';
   let legHtml = '';
   sortedKeys.forEach((key, i) => {
     const pct = (groups[key].value / assetsTotal) * 100;
     if (pct <= 0) return;
-    const color = INV_DONUT_PALETTE[i % INV_DONUT_PALETTE.length];
-    segs += '<circle cx="21" cy="21" r="15.9" fill="none" stroke="' + color + '" stroke-width="5" stroke-dasharray="' + pct.toFixed(1) + ' ' + (100 - pct).toFixed(1) + '" stroke-dashoffset="' + (25 - cum).toFixed(1) + '" transform="rotate(-90 21 21)"/>';
+    const color = i === 0 ? 'var(--purple)' : INV_DONUT_SECONDARY[(i - 1) % INV_DONUT_SECONDARY.length];
+    segs += '<circle cx="21" cy="21" r="15.9" fill="none" stroke="' + color + '" stroke-width="3.5" stroke-dasharray="' + pct.toFixed(1) + ' ' + (100 - pct).toFixed(1) + '" stroke-dashoffset="' + (25 - cum).toFixed(1) + '" transform="rotate(-90 21 21)"/>';
     cum += pct;
     const _ic = t('inv.cat.' + key); const label = (_ic !== 'inv.cat.' + key) ? _ic : (CATEGORY_DISPLAY[key] || key);
     legHtml += '<div class="it"><span class="dot" style="background:' + color + '"></span><span class="nm">' + esc(label) + '</span><span class="pc">' + pct.toFixed(0) + '%</span></div>';
   });
   svg.innerHTML = segs;
   leg.innerHTML = legHtml;
+  // Centro: total compacto (fmtBRLk, já usado no resumo de pagamento) + "maior posição: X Y%"
+  if (centerVal) centerVal.textContent = fmtBRLk(assetsTotal);
+  if (centerLbl) {
+    const topKey = sortedKeys[0];
+    const topPct = Math.round((groups[topKey].value / assetsTotal) * 100);
+    const _ic = t('inv.cat.' + topKey); const topLabel = (_ic !== 'inv.cat.' + topKey) ? _ic : (CATEGORY_DISPLAY[topKey] || topKey);
+    centerLbl.textContent = t('donut.top').replace('{cat}', topLabel).replace('{pct}', topPct);
+  }
 }
 // Maiores posições (igual mockup) — top 6 ativos por patrimônio.
 function renderInvTopAssets(assets) {
@@ -3896,6 +3918,20 @@ function renderI10Assets() {
       const sign = appr >= 0 ? '+' : '';
       return '<div class="ticker-row"><div class="ticker-name">' + esc(a.ticker || '-') + '</div><div class="ticker-val">' + fmtBRL0(+a.equity || 0) + '</div><div class="ticker-appr ' + cls + '">' + sign + appr.toFixed(1) + '%</div></div>';
     }).join('');
+    // Stats-strip da categoria (Quiet Ledger, jun/2026): Variação R$ + Rentabilidade % agregadas
+    // (custo total = Σ preço médio × qtd de cada ativo) + % da carteira. Só aparece quando há
+    // custo conhecido (ativo importado do I10 sempre traz avgPrice/quantity); sem isso, não mostra
+    // número inventado.
+    const custoTotal = g.items.reduce((s, a) => s + (+a.avgPrice || 0) * (+a.quantity || 0), 0);
+    const variacaoR = g.value - custoTotal;
+    const rentPct = custoTotal > 0 ? (variacaoR / custoTotal) * 100 : null;
+    const statsStripHtml = custoTotal > 0 ? (
+      '<div class="cat-stats-strip">' +
+        '<div class="css-item"><span class="css-lbl">' + esc(t('cat.stats.variacao')) + '</span><span class="css-v ' + (variacaoR >= 0 ? 'pos' : 'neg') + '">' + (variacaoR >= 0 ? '+' : '') + fmtBRL0(variacaoR) + '</span></div>' +
+        '<div class="css-item"><span class="css-lbl">' + esc(t('cat.stats.rent')) + '</span><span class="cat-pill ' + (rentPct >= 0 ? 'pos' : 'neg') + '">' + (rentPct >= 0 ? '+' : '') + rentPct.toFixed(1) + '%</span></div>' +
+        '<div class="css-item"><span class="css-lbl">' + esc(t('cat.stats.pct')) + '</span><span class="css-v">' + pct.toFixed(1) + '%</span></div>' +
+      '</div>'
+    ) : '';
 
     const expanded = _expandedCats.has(key) ? ' expanded' : '';
     return '<div class="cat-row clickable' + expanded + '" data-type="' + esc(key) + '">' +
@@ -3909,7 +3945,7 @@ function renderI10Assets() {
       '</div>' +
       chevronHtml +
     '</div>' +
-    '<div class="cat-tickers">' + tickersHtml + '</div>';
+    '<div class="cat-tickers">' + statsStripHtml + tickersHtml + '</div>';
   }).join('');
 
   wrap.innerHTML = html;
@@ -4351,7 +4387,7 @@ async function syncFromI10() {
   const originalHTML = btn ? btn.innerHTML : '';
   if (btn) { btn.disabled = true; btn.innerHTML = t('hero.syncing'); }
   // DS (aprovado no provador): skeleton shimmer nos números enquanto o I10 responde
-  const _skelIds = ['i10Equity', 'heroTwr', 'heroDiv', 'i10Dividends'];
+  const _skelIds = ['i10Equity', 'heroTwr', 'heroProfitTotal', 'heroDivs12m', 'heroRentTotal', 'i10Dividends'];
   _skelIds.forEach(id => $(id)?.classList.add('skel'));
 
   try {

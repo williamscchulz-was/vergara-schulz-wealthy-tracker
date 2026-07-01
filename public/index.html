@@ -395,12 +395,27 @@
         <div class="hero-meta-row" id="i10EquitySub">
           <div class="applied-text" data-i18n="hero.manual">Manual update</div>
         </div>
-        <div class="hero-mini-kpis">
-          <div><div class="k">Lucro (<span class="tip-term" tabindex="0" data-tip="TWR (Time-Weighted Return): rentabilidade real da carteira, sem o efeito dos aportes — compara direto com CDI/Ibov">TWR</span>)</div><div class="v" id="heroTwr">—</div></div>
-          <div><div class="k">Dividendos <span id="heroDivYear"></span></div><div class="v" id="heroDiv">R$ 0</div></div>
-          <div><div class="k" data-i18n="kpi.reserves">Reservas</div><div class="v" id="kpiReserves">R$ 0</div></div>
-          <div><div class="k" data-i18n="kpi.pension">Previdência</div><div class="v" id="kpiPension">R$ 0</div></div>
-          <div><div class="k" id="kpiContribLbl">Aportes</div><div class="v" id="kpiContrib">R$ 0</div></div>
+        <!-- v9 rebrand (Quiet Ledger, aprovado pelo dono): 4 stats sem caixa, com divisor fino,
+             em vez da grade de 5 tiles. Reservas/Previdência continuam visíveis como linhas na
+             Carteira (cat-row) — nada de informação se perde, só sai da hero. -->
+        <div class="hero-stat-row">
+          <div class="hstat">
+            <div class="k" data-i18n="hero.stat.profit">Lucro total</div>
+            <div class="v" id="heroProfitTotal">R$ 0</div>
+            <div class="sub" id="heroProfitSub">—</div>
+          </div>
+          <div class="hstat">
+            <div class="k" data-i18n="hero.stat.divs12m">Proventos 12M</div>
+            <div class="v" id="heroDivs12m">R$ 0</div>
+          </div>
+          <div class="hstat">
+            <div class="k">Rentab. (<span class="tip-term" tabindex="0" data-tip="TWR (Time-Weighted Return): rentabilidade real da carteira, sem o efeito dos aportes — compara direto com CDI/Ibov">TWR</span>)</div>
+            <div class="v gain" id="heroTwr">—</div>
+          </div>
+          <div class="hstat">
+            <div class="k" data-i18n="hero.stat.renttotal">Rentab. total</div>
+            <div class="v gain" id="heroRentTotal">—</div>
+          </div>
         </div>
         <div class="louise-chip" id="louiseChip" style="display:none" title="Carteira da Louise (filha) — acompanhada separadamente, não soma no patrimônio da casa" data-i18n-title="louise.title">
           <span class="louise-chip-heart"><svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
@@ -464,7 +479,10 @@
               <div class="eyebrow-mono" data-i18n="via.i10">VIA I10</div>
             </div>
             <div class="cart-alloc">
-              <svg class="inv-donut" id="invDonut" width="96" height="96" viewBox="0 0 42 42" aria-hidden="true"></svg>
+              <div class="donut-wrap">
+                <svg class="inv-donut" id="invDonut" width="132" height="132" viewBox="0 0 42 42" aria-hidden="true"></svg>
+                <div class="donut-center"><div class="dv" id="invDonutCenterVal">—</div><div class="dl" id="invDonutCenterLbl"></div></div>
+              </div>
               <div class="inv-leg" id="invDonutLeg"></div>
             </div>
             <div class="cat-list" id="i10AssetsList"></div>
