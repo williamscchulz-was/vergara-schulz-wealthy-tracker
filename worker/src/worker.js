@@ -132,6 +132,16 @@ function currentYearRange(year) {
   const y = year && /^\d{4}$/.test(year) ? year : new Date().getUTCFullYear();
   return { start: `${y}-01-01`, end: dividendsEndDate(y) };
 }
+// Janela ROLANTE dos últimos 12 meses (hoje-365d até hoje) — pro "Proventos 12M" bater com
+// o que o próprio Investidor10 mostra (confirmado: reconstruir via divsMonthly local dava um
+// valor diferente/impreciso). end usa todayUTC() direto (não dividendsEndDate, que é pra
+// ranges de ANO calendário) — a janela rolante já termina hoje por definição.
+function last12mRange() {
+  const end = todayUTC();
+  const d = new Date(`${end}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - 365);
+  return { start: d.toISOString().slice(0, 10), end };
+}
 
 async function handle(request) {
   if (request.method === 'OPTIONS') {
@@ -258,9 +268,14 @@ async function handle(request) {
       // Barchart é tolerante a falha: se quebrar, o resto da resposta
       // continua válida e o app trata `barchart === null`.
       const { start, end } = currentYearRange(url.searchParams.get('year'));
-      const [metrics, earnings, actives, barchart] = await Promise.all([
+      const r12 = last12mRange();
+      const [metrics, earnings, earnings12m, actives, barchart] = await Promise.all([
         fetchI10(`/summary/metrics/${walletId}?type=without-earnings&raw=1`),
         fetchI10(`/earnings/total-period/${walletId}?start_date=${start}&end_date=${end}`),
+        // Janela rolante 12m — "Proventos 12M" (bate com o card de resumo do próprio I10;
+        // confirmado, ver comentário de last12mRange). Tolerante a falha: sem isso, o app
+        // cai pro fallback (dividendsTTM local, menos preciso mas não trava a tela).
+        fetchI10(`/earnings/total-period/${walletId}?start_date=${r12.start}&end_date=${r12.end}`).catch(() => null),
         fetchAllActives(walletId),
         // 120 months (10y) so the app derives year-end equity per year
         // straight from the barchart — no Firestore equity write, nothing
@@ -271,6 +286,7 @@ async function handle(request) {
       return json({
         metrics,
         earnings,
+        earnings12m,
         actives,
         barchart,
         fetchedAt: new Date().toISOString(),
@@ -373,9 +389,11 @@ function parseBarchartMonthly(raw) {
 }
 async function cronSyncMain(token) {
   const year = new Date().getUTCFullYear();
-  const [metrics, earnings, activesRaw, barchart] = await Promise.all([
+  const r12 = last12mRange();
+  const [metrics, earnings, earnings12m, activesRaw, barchart] = await Promise.all([
     fetchI10(`/summary/metrics/${WALLET_W}?type=without-earnings&raw=1`),
     fetchI10(`/earnings/total-period/${WALLET_W}?start_date=${year}-01-01&end_date=${dividendsEndDate(year)}`),
+    fetchI10(`/earnings/total-period/${WALLET_W}?start_date=${r12.start}&end_date=${r12.end}`).catch(() => null),
     fetchAllActives(WALLET_W),
     fetchI10(`/summary/barchart/${WALLET_W}/120/all`).catch(() => null),
   ]);
@@ -392,6 +410,7 @@ async function cronSyncMain(token) {
   await firestoreWrite(token, 'household/main/config/i10', {
     equity: +metrics.equity || 0, applied: +metrics.applied || 0,
     variation: +metrics.variation || 0, profitTwr: +metrics.profit_twr || 0,
+    profitTwr12m: +metrics.profit_twr_12m || 0, divs12m: +earnings12m?.sum || 0,
     dividends: +earnings?.sum || 0, year, assets, monthly: parseBarchartMonthly(barchart),
     updatedAt: tsNow(), updatedBy: 'cron 8h', source: 'investidor10-sync',
   });

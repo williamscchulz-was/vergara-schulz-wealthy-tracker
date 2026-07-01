@@ -3235,6 +3235,7 @@ function renderInvestments() {
   const _appliedTotal = _hasSync ? ((+state.i10.applied || 0) + _usdBRL + _reservesBRL + _pensionBRL) : 0;
   const _ganhoCapital = _hasSync ? (_heroTotal - _appliedTotal) : 0;
   const _totalReturn = _hasSync ? ((_ganhoCapital + _totalDivsAllTime) / _appliedTotal) * 100 : null;
+  const _twr = +state.i10.profitTwr || 0;   // hoisted (era declarado só lá embaixo, mas o hero-stat-row abaixo já precisa dele)
   const subEl = $('i10EquitySub');
   if (subEl) {
     if (_hasSync) {
@@ -3249,19 +3250,28 @@ function renderInvestments() {
     }
   }
   // Hero-stat-row (Quiet Ledger): Lucro total (ganho de capital + dividendos all-time), Proventos
-  // 12M (TTM — mesmo fallback já usado na Meta de dividendos do Resumo), Rentab. total (return-pill).
-  // Sem sync I10 (modo manual) os 3 caem em "—" — nada de inventar rentabilidade sem baseline aplicado.
+  // 12M, Rentabilidade 12M, Rentabilidade total. Sem sync I10 (modo manual) tudo cai em "—" —
+  // nada de inventar rentabilidade sem baseline aplicado.
+  // AUDITORIA jun/2026 (conferido contra a API real do I10 pelo dono): os 3 stats de %/proventos
+  // batiam com números DIFERENTES do que o I10 mostra de verdade. Corrigido:
+  //  - Proventos 12M: state.i10.divs12m (janela ROLANTE hoje-365d, vinda do worker) — a
+  //    reconstrução via divsMonthly (dividendsTTM) dava R$97.795 quando o I10 mostra R$100.832,93
+  //    real; agora só cai nesse fallback enquanto o worker novo não foi sincronizado (divs12m=0).
+  //  - Rentabilidade 12M: state.i10.profitTwr12m (campo profit_twr_12m do I10, não capturado antes).
+  //  - Rentabilidade total: state.i10.profitTwr (profit_twr — confirmado que é o all-time/total,
+  //    NÃO um "TWR" genérico) — troquei do cálculo money-weighted caseiro (_totalReturn, que dava
+  //    um número diferente do I10) por esse valor real sincronizado.
   if ($('heroProfitTotal')) $('heroProfitTotal').textContent = _hasSync ? fmtBRL0(_ganhoCapital + _totalDivsAllTime) : '—';
   if ($('heroProfitSub')) $('heroProfitSub').textContent = _hasSync ? `${t('hero.stat.capital')} ${fmtBRL0(_ganhoCapital)} · ${t('hero.stat.divs')} ${fmtBRL0(_totalDivsAllTime)}` : '—';
-  const _divTtmHero = dividendsTTM();
-  const _divs12m = _divTtmHero.ready ? _divTtmHero.ttm : (+state.i10.dividends || 0);
+  let _divs12m = +state.i10.divs12m || 0;
+  if (!_divs12m) { const _divTtmHero = dividendsTTM(); _divs12m = _divTtmHero.ready ? _divTtmHero.ttm : (+state.i10.dividends || 0); }   // fallback: worker ainda sem earnings12m
   if ($('heroDivs12m')) $('heroDivs12m').textContent = fmtBRL0(_divs12m);
-  if ($('heroRentTotal')) $('heroRentTotal').textContent = _hasSync ? (_totalReturn >= 0 ? '+' : '') + _totalReturn.toFixed(1).replace('.', ',') + '%' : '—';
+  const _twr12m = +state.i10.profitTwr12m || 0;
+  if ($('heroRent12m')) $('heroRent12m').textContent = (_hasSync && _twr12m) ? (_twr12m >= 0 ? '+' : '') + _twr12m.toFixed(1).replace('.', ',') + '%' : '—';
+  if ($('heroRentTotal')) $('heroRentTotal').textContent = _hasSync ? (_twr >= 0 ? '+' : '') + _twr.toFixed(1).replace('.', ',') + '%' : '—';
 
-  // Hero mini-KPIs: Lucro TWR · Dividendos
-  const _twr = +state.i10.profitTwr || 0;
-  if ($('heroTwr')) $('heroTwr').textContent = (_twr >= 0 ? '+' : '') + _twr.toFixed(1).replace('.', ',') + '%';
-  // (heroDiv/heroDivYear saíram da hero-stat-row — a dividendo YTD segue visível no card YTD/all-time.)
+  // (heroTwr/heroDiv/heroDivYear saíram da hero-stat-row — viraram "Rentabilidade 12M"/"Rentabilidade
+  // total" acima [_twr já hoisted], e a dividendo YTD segue visível no card YTD/all-time.)
   // AUDITORIA jun/2026: o "% no mês" vinha de i10.variation (métrica do I10 com período
   // próprio, não-mensal) — dava "+4,0% no mês" num mês que o Dietz fechava -1,7%.
   // Agora pill e tile usam a MESMA conta do card "rentabilidade mês a mês"
@@ -4387,7 +4397,7 @@ async function syncFromI10() {
   const originalHTML = btn ? btn.innerHTML : '';
   if (btn) { btn.disabled = true; btn.innerHTML = t('hero.syncing'); }
   // DS (aprovado no provador): skeleton shimmer nos números enquanto o I10 responde
-  const _skelIds = ['i10Equity', 'heroTwr', 'heroProfitTotal', 'heroDivs12m', 'heroRentTotal', 'i10Dividends'];
+  const _skelIds = ['i10Equity', 'heroRent12m', 'heroProfitTotal', 'heroDivs12m', 'heroRentTotal', 'i10Dividends'];
   _skelIds.forEach(id => $(id)?.classList.add('skel'));
 
   try {
@@ -4423,9 +4433,17 @@ async function syncFromI10() {
     const applied = parseFloat(m.applied) || 0;
     const variation = parseFloat(m.variation) || 0;
     const profitTwr = parseFloat(m.profit_twr) || 0;
+    // Rentabilidade 12M (jun/2026): confirmado via API real do I10 que profit_twr = TOTAL/all-time
+    // (bate com "Rentabilidade Total" do próprio I10) e profit_twr_12m = os últimos 12 meses — os
+    // dois já vêm no raw metrics, só não eram capturados. worker antigo (sem earnings12m) → 0/fallback.
+    const profitTwr12m = parseFloat(m.profit_twr_12m) || 0;
 
     // Parse earnings (sum of dividends YTD)
     const dividends = parseFloat(payload.earnings?.sum) || 0;
+    // Proventos 12M (janela ROLANTE hoje-365d, não reconstrução via divsMonthly — confirmado que
+    // bate exato com o card do próprio I10; divsMonthly local tinha gaps). payload.earnings12m só
+    // existe se o worker JÁ foi redeployado com essa mudança — undefined → 0, cai no fallback abaixo.
+    const divs12m = parseFloat(payload.earnings12m?.sum) || 0;
 
     // Populate global ticker->category map from /i10/full diversification
     if (payload.diversification?.tickerToCategory) {
@@ -4521,6 +4539,8 @@ async function syncFromI10() {
       applied,
       variation,
       profitTwr,
+      ...(divs12m > 0 ? { divs12m } : {}),           // 0/ausente = worker ainda não redeployado; não pisa num valor bom já salvo
+      ...(profitTwr12m !== 0 ? { profitTwr12m } : {}),
       assets,
       categories,
       monthly,
@@ -6434,6 +6454,8 @@ function subscribeAll() {
     state.i10.applied = +data.applied || 0;
     state.i10.variation = +data.variation || 0;
     state.i10.profitTwr = +data.profitTwr || 0;
+    state.i10.profitTwr12m = +data.profitTwr12m || 0;   // Rentabilidade 12M (I10 profit_twr_12m)
+    state.i10.divs12m = +data.divs12m || 0;             // Proventos 12M (janela rolante, worker)
     state.i10.source = data.source || null;
     // Restore ticker->category map persisted by syncFromI10
     if (data.tickerCategories && typeof data.tickerCategories === 'object') {
